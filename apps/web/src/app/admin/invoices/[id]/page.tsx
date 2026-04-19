@@ -38,16 +38,25 @@ export default function InvoiceDetailPage() {
   const openPdf = async () => {
     try {
       const token = localStorage.getItem('gearup_token');
+      if (!token) { alert('Not authenticated. Please login again.'); return; }
       const res = await fetch(`/api/admin/invoices/${id}/pdf`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { 'Authorization': `Bearer ${token}` },
       });
-      if (!res.ok) { alert('Failed to generate PDF'); return; }
+      if (!res.ok) {
+        const err = await res.text();
+        console.error('PDF error:', res.status, err);
+        alert('Failed to generate PDF');
+        return;
+      }
       const html = await res.text();
       const blob = new Blob([html], { type: 'text/html' });
       const url = URL.createObjectURL(blob);
       const w = window.open(url, '_blank');
       if (w) w.onload = () => URL.revokeObjectURL(url);
-    } catch { alert('Failed to generate PDF'); }
+    } catch (e) {
+      console.error('PDF fetch error:', e);
+      alert('Failed to generate PDF');
+    }
   };
 
   if (!data) return <div className="py-12 text-center text-gray-500 animate-pulse">Loading invoice...</div>;
