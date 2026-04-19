@@ -1,6 +1,6 @@
 import type { ApiResponse } from '@gearup/types';
 
-const BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000/api';
+const BASE = '/api';
 
 async function request<T>(path: string, opts: RequestInit = {}): Promise<ApiResponse<T>> {
   const token = typeof window !== 'undefined' ? localStorage.getItem('gearup_token') : null;
