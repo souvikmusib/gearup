@@ -6,6 +6,7 @@ import { requirePermission } from '../../common/middleware/auth';
 import { PERMISSIONS } from '@gearup/types';
 import { z } from 'zod';
 import { logActivity } from '../../common/utils/activity-logger';
+import type { Prisma } from '@prisma/client';
 
 const router: Router = Router();
 
@@ -46,7 +47,7 @@ router.get('/', requirePermission(PERMISSIONS.VEHICLES_VIEW), asyncHandler(async
 
 router.post('/', requirePermission(PERMISSIONS.VEHICLES_EDIT), asyncHandler(async (req, res) => {
   const body = vehicleSchema.parse(req.body);
-  const vehicle = await prisma.vehicle.create({ data: body });
+  const vehicle = await prisma.vehicle.create({ data: body as Prisma.VehicleUncheckedCreateInput });
   await logActivity({ entityType: 'Vehicle', entityId: vehicle.id, action: 'vehicle.created', newValue: vehicle, actorType: 'ADMIN', actorId: req.user!.sub, requestId: req.requestId });
   res.status(201).json({ success: true, data: vehicle });
 }));
@@ -58,7 +59,7 @@ router.get('/:id', requirePermission(PERMISSIONS.VEHICLES_VIEW), asyncHandler(as
 
 router.patch('/:id', requirePermission(PERMISSIONS.VEHICLES_EDIT), asyncHandler(async (req, res) => {
   const body = vehicleSchema.partial().parse(req.body);
-  const vehicle = await prisma.vehicle.update({ where: { id: req.params.id }, data: body });
+  const vehicle = await prisma.vehicle.update({ where: { id: req.params.id }, data: body as Prisma.VehicleUncheckedUpdateInput });
   await logActivity({ entityType: 'Vehicle', entityId: vehicle.id, action: 'vehicle.updated', newValue: vehicle, actorType: 'ADMIN', actorId: req.user!.sub, requestId: req.requestId });
   res.json({ success: true, data: vehicle });
 }));
