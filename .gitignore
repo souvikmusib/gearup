@@ -12,7 +12,5 @@ coverage
 .vercel
 .sentryclirc
 *.log
-.env
-# Graphify
-.graphify*
-graphify-out/
+.envapps/web/test-results/
+apps/web/test-results/
