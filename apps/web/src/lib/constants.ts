@@ -1,0 +1,9 @@
+export const APP_NAME = 'GearUp Servicing';
+export const MAX_LOGIN_ATTEMPTS = 5;
+export const LOCKOUT_DURATION_MINUTES = 30;
+export const JWT_EXPIRY = '24h';
+export const DEFAULT_PAGE_SIZE = 20;
+export const MAX_PAGE_SIZE = 100;
+export const REFERENCE_ID_PREFIX = 'GU';
+export const JOB_CARD_PREFIX = 'JC';
+export const INVOICE_PREFIX = 'INV';
