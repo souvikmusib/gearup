@@ -1,0 +1,170 @@
+{
+  "public": {
+    "POST /api/public/service-requests": {
+      "description": "Create guest service request with optional appointment",
+      "request": {
+        "fullName": "string (required)",
+        "phoneNumber": "string (required, min 5)",
+        "alternatePhone": "string | null",
+        "email": "string (email) | null",
+        "vehicleType": "CAR | BIKE | OTHER",
+        "brand": "string (required)",
+        "model": "string (required)",
+        "variant": "string | null",
+        "registrationNumber": "string (required)",
+        "serviceCategory": "string (required)",
+        "issueDescription": "string (required)",
+        "preferredDate": "ISO date string | null",
+        "preferredSlotLabel": "string | null",
+        "pickupDropRequired": "boolean (default false)",
+        "notes": "string | null"
+      },
+      "response": {
+        "referenceId": "string (e.g. GU-A1B2C3D4)",
+        "serviceRequestId": "string (cuid)",
+        "appointmentId": "string | null",
+        "status": "SUBMITTED | APPOINTMENT_PENDING",
+        "message": "string"
+      }
+    },
+    "GET /api/public/available-slots": {
+      "description": "Get available appointment slots for a date",
+      "query": { "date": "YYYY-MM-DD (required)", "vehicleType": "CAR | BIKE | OTHER (optional)" },
+      "response": {
+        "date": "string",
+        "slots": [{ "label": "string", "start": "ISO datetime", "end": "ISO datetime", "available": "boolean" }]
+      }
+    },
+    "POST /api/public/track": {
+      "description": "Track service request by reference ID and phone",
+      "request": { "referenceId": "string (required)", "phoneNumber": "string (required)", "email": "string | null" },
+      "response": {
+        "referenceId": "string",
+        "serviceRequestStatus": "ServiceRequestStatus",
+        "appointmentStatus": "AppointmentStatus | null",
+        "jobCardStatus": "JobCardStatus | null",
+        "invoiceStatus": "InvoiceStatus | null",
+        "paymentStatus": "PaymentStatus | null",
+        "publicTimeline": [{ "label": "string", "timestamp": "ISO datetime | null", "status": "string" }]
+      }
+    }
+  },
+  "auth": {
+    "POST /api/admin/auth/login": {
+      "request": { "adminUserId": "string", "password": "string" },
+      "response": { "token": "string (JWT)", "adminUser": { "id": "string", "adminUserId": "string", "fullName": "string", "roles": ["string"] } }
+    },
+    "POST /api/admin/auth/logout": { "request": {}, "response": { "success": true } },
+    "GET /api/admin/auth/me": {
+      "response": { "id": "string", "adminUserId": "string", "fullName": "string", "email": "string | null", "roles": ["string"], "permissions": ["string"] }
+    },
+    "POST /api/admin/auth/change-password": {
+      "request": { "currentPassword": "string", "newPassword": "string (min 8)" },
+      "response": { "success": true }
+    }
+  },
+  "customers": {
+    "GET /api/admin/customers": { "query": { "page": "number", "pageSize": "number", "search": "string" }, "response": { "data": "Customer[]", "meta": "PaginationMeta" } },
+    "POST /api/admin/customers": { "request": "CreateCustomerBody", "response": { "data": "Customer" } },
+    "GET /api/admin/customers/:id": { "response": { "data": "Customer with vehicles, serviceRequests, invoices" } },
+    "PATCH /api/admin/customers/:id": { "request": "Partial<CreateCustomerBody>", "response": { "data": "Customer" } },
+    "GET /api/admin/customers/:id/history": { "response": { "data": "ActivityLog[]" } }
+  },
+  "vehicles": {
+    "GET /api/admin/vehicles": { "query": { "page": "number", "pageSize": "number", "search": "string" }, "response": { "data": "Vehicle[]", "meta": "PaginationMeta" } },
+    "POST /api/admin/vehicles": { "request": "CreateVehicleBody", "response": { "data": "Vehicle" } },
+    "GET /api/admin/vehicles/:id": { "response": { "data": "Vehicle with customer, serviceRequests, jobCards" } },
+    "PATCH /api/admin/vehicles/:id": { "request": "Partial<CreateVehicleBody>", "response": { "data": "Vehicle" } }
+  },
+  "serviceRequests": {
+    "GET /api/admin/service-requests": { "query": { "page": "number", "pageSize": "number", "search": "string", "status": "ServiceRequestStatus" } },
+    "GET /api/admin/service-requests/:id": { "response": { "data": "ServiceRequest with customer, vehicle, appointment, jobCards, attachments" } },
+    "PATCH /api/admin/service-requests/:id": { "request": { "notes": "string", "urgency": "string" } },
+    "PATCH /api/admin/service-requests/:id/status": { "request": { "status": "ServiceRequestStatus" } }
+  },
+  "appointments": {
+    "GET /api/admin/appointments": { "query": { "page": "number", "pageSize": "number", "status": "AppointmentStatus", "date": "YYYY-MM-DD" } },
+    "POST /api/admin/appointments": { "request": "CreateAppointmentBody" },
+    "GET /api/admin/appointments/:id": {},
+    "PATCH /api/admin/appointments/:id": {},
+    "POST /api/admin/appointments/:id/confirm": {},
+    "POST /api/admin/appointments/:id/reschedule": { "request": { "appointmentDate": "string", "slotStart": "string", "slotEnd": "string", "reason": "string" } },
+    "POST /api/admin/appointments/:id/cancel": { "request": { "reason": "string" } },
+    "POST /api/admin/appointments/:id/check-in": {},
+    "POST /api/admin/appointments/:id/no-show": {}
+  },
+  "jobCards": {
+    "GET /api/admin/job-cards": { "query": { "page": "number", "pageSize": "number", "status": "JobCardStatus", "search": "string" } },
+    "POST /api/admin/job-cards": { "request": "CreateJobCardBody" },
+    "GET /api/admin/job-cards/:id": {},
+    "PATCH /api/admin/job-cards/:id": {},
+    "PATCH /api/admin/job-cards/:id/status": { "request": { "status": "JobCardStatus", "approvalStatus": "ApprovalStatus" } },
+    "POST /api/admin/job-cards/:id/assign-workers": { "request": { "workerIds": ["string"], "assignmentRole": "string" } },
+    "POST /api/admin/job-cards/:id/tasks": { "request": { "taskName": "string", "taskDescription": "string", "assignedWorkerId": "string", "estimatedMinutes": "number" } },
+    "PATCH /api/admin/job-cards/:id/tasks/:taskId": { "request": { "status": "string", "actualMinutes": "number", "notes": "string" } },
+    "POST /api/admin/job-cards/:id/parts": { "request": { "inventoryItemId": "string", "requiredQty": "number", "unitPrice": "number" } }
+  },
+  "workers": {
+    "GET /api/admin/workers": {},
+    "POST /api/admin/workers": { "request": "CreateWorkerBody" },
+    "GET /api/admin/workers/:id": {},
+    "PATCH /api/admin/workers/:id": {},
+    "POST /api/admin/workers/:id/leave": { "request": { "leaveType": "string", "startDate": "string", "endDate": "string", "reason": "string" } },
+    "GET /api/admin/workers/:id/schedule": { "query": { "from": "ISO date", "to": "ISO date" } }
+  },
+  "inventory": {
+    "GET /api/admin/inventory/items": {},
+    "POST /api/admin/inventory/items": {},
+    "PATCH /api/admin/inventory/items/:id": {},
+    "GET /api/admin/inventory/movements": {},
+    "POST /api/admin/inventory/stock-movements": { "request": { "inventoryItemId": "string", "movementType": "InventoryMovementType", "quantity": "number", "reason": "string" } },
+    "GET /api/admin/inventory/low-stock": {},
+    "GET /api/admin/inventory/categories": {},
+    "POST /api/admin/inventory/categories": {},
+    "GET /api/admin/inventory/suppliers": {},
+    "POST /api/admin/inventory/suppliers": {}
+  },
+  "invoices": {
+    "GET /api/admin/invoices": {},
+    "POST /api/admin/invoices": { "request": { "customerId": "string", "vehicleId": "string", "jobCardId": "string", "invoiceDate": "string", "lineItems": "InvoiceLineItem[]" } },
+    "GET /api/admin/invoices/:id": {},
+    "PATCH /api/admin/invoices/:id": {},
+    "POST /api/admin/invoices/:id/finalize": {},
+    "POST /api/admin/invoices/:id/payments": { "request": { "amount": "number", "paymentMode": "PaymentMode", "paymentDate": "string" } }
+  },
+  "expenses": {
+    "GET /api/admin/expenses": {},
+    "POST /api/admin/expenses": {},
+    "GET /api/admin/expenses/:id": {},
+    "PATCH /api/admin/expenses/:id": {},
+    "DELETE /api/admin/expenses/:id": {},
+    "GET /api/admin/expenses/categories": {},
+    "POST /api/admin/expenses/categories": {}
+  },
+  "notifications": {
+    "GET /api/admin/notifications": {},
+    "POST /api/admin/notifications/retry/:id": {},
+    "GET /api/admin/notifications/templates": {},
+    "PATCH /api/admin/notifications/templates/:id": {}
+  },
+  "reports": {
+    "GET /api/admin/reports/dashboard": { "response": { "todayAppointments": "number", "pendingRequests": "number", "activeJobs": "number", "lowStockCount": "number", "unpaidInvoices": "number", "todayRevenue": "number" } },
+    "GET /api/admin/reports/revenue": { "query": { "from": "ISO date", "to": "ISO date" } },
+    "GET /api/admin/reports/appointments": {},
+    "GET /api/admin/reports/jobs": {},
+    "GET /api/admin/reports/inventory": {},
+    "GET /api/admin/reports/workers": {},
+    "GET /api/admin/reports/expenses": { "query": { "from": "ISO date", "to": "ISO date" } }
+  },
+  "logs": {
+    "GET /api/admin/logs/activity": { "query": { "page": "number", "pageSize": "number", "entityType": "string", "actorType": "string", "action": "string" } }
+  },
+  "settings": {
+    "GET /api/admin/settings": {},
+    "PATCH /api/admin/settings": { "request": "Record<string, any>" },
+    "GET /api/admin/settings/business-hours": {},
+    "PATCH /api/admin/settings/business-hours": { "request": { "rules": "AppointmentSlotRule[]" } },
+    "GET /api/admin/settings/integrations": {},
+    "PATCH /api/admin/settings/integrations": {}
+  }
+}

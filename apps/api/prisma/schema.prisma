@@ -1,0 +1,797 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AdminUserStatus {
+  ACTIVE
+  INACTIVE
+  LOCKED
+}
+
+enum ActorType {
+  ADMIN
+  WORKER
+  SYSTEM
+  PUBLIC
+}
+
+enum VehicleType {
+  CAR
+  BIKE
+  OTHER
+}
+
+enum ServiceRequestStatus {
+  SUBMITTED
+  UNDER_REVIEW
+  APPOINTMENT_PENDING
+  APPOINTMENT_CONFIRMED
+  CONVERTED_TO_JOB
+  CANCELLED
+  CLOSED
+}
+
+enum AppointmentStatus {
+  REQUESTED
+  PENDING_REVIEW
+  CONFIRMED
+  RESCHEDULED
+  CANCELLED
+  NO_SHOW
+  CHECKED_IN
+  COMPLETED
+}
+
+enum JobCardStatus {
+  CREATED
+  UNDER_INSPECTION
+  ESTIMATE_PREPARED
+  AWAITING_CUSTOMER_APPROVAL
+  APPROVED
+  REJECTED
+  PARTS_PENDING
+  WORK_IN_PROGRESS
+  QUALITY_CHECK
+  READY_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+  CLOSED
+}
+
+enum ApprovalStatus {
+  NOT_REQUIRED
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum WorkerStatus {
+  ACTIVE
+  INACTIVE
+  ON_LEAVE
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum HolidayType {
+  PUBLIC_HOLIDAY
+  WEEKLY_OFF
+  BUSINESS_CLOSURE
+  MAINTENANCE_SHUTDOWN
+  CUSTOM_BLOCK
+}
+
+enum InventoryMovementType {
+  STOCK_IN
+  STOCK_OUT
+  ADJUSTMENT_INCREASE
+  ADJUSTMENT_DECREASE
+  RESERVED
+  RELEASED
+  CONSUMED
+  RETURNED
+}
+
+enum InvoiceStatus {
+  DRAFT
+  FINALIZED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  UNPAID
+  PARTIALLY_PAID
+  PAID
+  REFUNDED
+  WAIVED
+}
+
+enum InvoiceLineType {
+  PART
+  LABOR
+  CUSTOM_CHARGE
+  DISCOUNT_ADJUSTMENT
+}
+
+enum NotificationChannel {
+  WHATSAPP
+  EMAIL
+}
+
+enum NotificationStatus {
+  QUEUED
+  PROCESSING
+  SENT
+  DELIVERED
+  FAILED
+  DEAD_LETTER
+}
+
+enum PaymentMode {
+  CASH
+  CARD
+  UPI
+  BANK_TRANSFER
+  CHEQUE
+  OTHER
+}
+
+model AdminUser {
+  id                  String          @id @default(cuid())
+  adminUserId         String          @unique
+  fullName            String
+  email               String?         @unique
+  phone               String?
+  passwordHash        String
+  status              AdminUserStatus @default(ACTIVE)
+  failedLoginAttempts Int             @default(0)
+  lockedUntil         DateTime?
+  lastLoginAt         DateTime?
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+
+  roles                 AdminUserRole[]
+  activityLogs          ActivityLog[]
+  notificationsSent     Notification[]  @relation("NotificationCreatedBy")
+  expensesCreated       Expense[]
+  invoicesCreated       Invoice[]
+  appointmentsConfirmed Appointment[]   @relation("AppointmentConfirmedBy")
+}
+
+model Role {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  adminUsers  AdminUserRole[]
+  permissions RolePermission[]
+}
+
+model Permission {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  module      String
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  roles RolePermission[]
+}
+
+model AdminUserRole {
+  id          String @id @default(cuid())
+  adminUserId String
+  roleId      String
+
+  adminUser AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+  role      Role      @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([adminUserId, roleId])
+}
+
+model RolePermission {
+  id           String @id @default(cuid())
+  roleId       String
+  permissionId String
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+}
+
+model Customer {
+  id             String    @id @default(cuid())
+  fullName       String
+  phoneNumber    String
+  alternatePhone String?
+  email          String?
+  addressLine1   String?
+  addressLine2   String?
+  city           String?
+  state          String?
+  postalCode     String?
+  notes          String?
+  source         String?
+  archivedAt     DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  vehicles        Vehicle[]
+  serviceRequests ServiceRequest[]
+  appointments    Appointment[]
+  jobCards        JobCard[]
+  invoices        Invoice[]
+
+  @@index([phoneNumber])
+  @@index([email])
+}
+
+model Vehicle {
+  id                 String      @id @default(cuid())
+  customerId         String
+  vehicleType        VehicleType
+  registrationNumber String
+  brand              String
+  model              String
+  variant            String?
+  yearOfManufacture  Int?
+  fuelType           String?
+  transmission       String?
+  color              String?
+  vin                String?
+  chassisNumber      String?
+  engineNumber       String?
+  odometerReading    Int?
+  notes              String?
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+
+  customer        Customer         @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  serviceRequests ServiceRequest[]
+  appointments    Appointment[]
+  jobCards        JobCard[]
+  invoices        Invoice[]
+
+  @@index([customerId])
+  @@index([registrationNumber])
+}
+
+model ServiceRequest {
+  id                 String               @id @default(cuid())
+  referenceId        String               @unique
+  customerId         String
+  vehicleId          String
+  serviceCategory    String
+  issueDescription   String
+  preferredDate      DateTime?
+  preferredSlotLabel String?
+  urgency            String?
+  pickupDropRequired Boolean              @default(false)
+  notes              String?
+  status             ServiceRequestStatus @default(SUBMITTED)
+  source             String?
+  closedAt           DateTime?
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+
+  customer    Customer                   @relation(fields: [customerId], references: [id])
+  vehicle     Vehicle                    @relation(fields: [vehicleId], references: [id])
+  appointment Appointment?
+  jobCards    JobCard[]
+  attachments ServiceRequestAttachment[]
+
+  @@index([customerId])
+  @@index([vehicleId])
+  @@index([status])
+}
+
+model ServiceRequestAttachment {
+  id               String   @id @default(cuid())
+  serviceRequestId String
+  fileName         String
+  filePath         String
+  mimeType         String
+  fileSize         Int?
+  createdAt        DateTime @default(now())
+
+  serviceRequest ServiceRequest @relation(fields: [serviceRequestId], references: [id], onDelete: Cascade)
+
+  @@index([serviceRequestId])
+}
+
+model Appointment {
+  id                 String            @id @default(cuid())
+  referenceId        String            @unique
+  serviceRequestId   String?           @unique
+  customerId         String
+  vehicleId          String
+  appointmentDate    DateTime
+  slotStart          DateTime
+  slotEnd            DateTime
+  status             AppointmentStatus @default(REQUESTED)
+  bookingSource      String
+  confirmationMode   String?
+  confirmedByAdminId String?
+  assignedWorkerId   String?
+  bayId              String?
+  rescheduleReason   String?
+  cancellationReason String?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  serviceRequest ServiceRequest? @relation(fields: [serviceRequestId], references: [id])
+  customer       Customer        @relation(fields: [customerId], references: [id])
+  vehicle        Vehicle         @relation(fields: [vehicleId], references: [id])
+  confirmedBy    AdminUser?      @relation("AppointmentConfirmedBy", fields: [confirmedByAdminId], references: [id])
+  worker         Worker?         @relation(fields: [assignedWorkerId], references: [id])
+  jobCards       JobCard[]
+
+  @@index([customerId])
+  @@index([vehicleId])
+  @@index([appointmentDate])
+  @@index([status])
+}
+
+model AppointmentSlotRule {
+  id                  String   @id @default(cuid())
+  dayOfWeek           Int
+  openTime            String
+  closeTime           String
+  slotDurationMinutes Int
+  maxCapacity         Int
+  isActive            Boolean  @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model BlockedSlot {
+  id               String   @id @default(cuid())
+  blockDate        DateTime
+  blockStartTime   DateTime
+  blockEndTime     DateTime
+  blockReason      String
+  appliesToAll     Boolean  @default(true)
+  workerId         String?
+  bayId            String?
+  createdByAdminId String?
+  createdAt        DateTime @default(now())
+
+  @@index([blockDate])
+}
+
+model Holiday {
+  id          String      @id @default(cuid())
+  holidayName String
+  holidayDate DateTime
+  holidayType HolidayType
+  isFullDay   Boolean     @default(true)
+  startTime   String?
+  endTime     String?
+  notes       String?
+  createdAt   DateTime    @default(now())
+
+  @@index([holidayDate])
+}
+
+model Worker {
+  id                    String       @id @default(cuid())
+  workerCode            String       @unique
+  fullName              String
+  phoneNumber           String?
+  email                 String?
+  designation           String?
+  specialization        String?
+  employmentType        String?
+  joiningDate           DateTime?
+  dailyCapacity         Int?
+  shiftStart            String?
+  shiftEnd              String?
+  status                WorkerStatus @default(ACTIVE)
+  emergencyContactName  String?
+  emergencyContactPhone String?
+  address               String?
+  notes                 String?
+  createdAt             DateTime     @default(now())
+  updatedAt             DateTime     @updatedAt
+
+  appointments Appointment[]
+  leaves       WorkerLeave[]
+  assignments  WorkerAssignment[]
+  tasks        JobCardTask[]
+
+  @@index([status])
+}
+
+model WorkerLeave {
+  id               String      @id @default(cuid())
+  workerId         String
+  leaveType        String
+  startDate        DateTime
+  endDate          DateTime
+  partialDay       Boolean     @default(false)
+  partialStartTime String?
+  partialEndTime   String?
+  status           LeaveStatus @default(PENDING)
+  reason           String?
+  approvedByAdminId String?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  worker Worker @relation(fields: [workerId], references: [id], onDelete: Cascade)
+
+  @@index([workerId])
+  @@index([status])
+}
+
+model JobCard {
+  id                       String         @id @default(cuid())
+  jobCardNumber            String         @unique
+  appointmentId            String?
+  serviceRequestId         String?
+  customerId               String
+  vehicleId                String
+  intakeDate               DateTime
+  estimatedDeliveryAt      DateTime?
+  actualDeliveryAt         DateTime?
+  issueSummary             String
+  customerComplaints       String?
+  diagnosisNotes           String?
+  estimateNotes            String?
+  approvalStatus           ApprovalStatus @default(PENDING)
+  priority                 String?
+  status                   JobCardStatus  @default(CREATED)
+  assignedServiceManagerId String?
+  estimatedPartsCost       Decimal        @default(0) @db.Decimal(12, 2)
+  estimatedLaborCost       Decimal        @default(0) @db.Decimal(12, 2)
+  estimatedTotal           Decimal        @default(0) @db.Decimal(12, 2)
+  finalPartsCost           Decimal        @default(0) @db.Decimal(12, 2)
+  finalLaborCost           Decimal        @default(0) @db.Decimal(12, 2)
+  finalTotal               Decimal        @default(0) @db.Decimal(12, 2)
+  customerVisibleNotes     String?
+  internalNotes            String?
+  createdAt                DateTime       @default(now())
+  updatedAt                DateTime       @updatedAt
+
+  appointment    Appointment?       @relation(fields: [appointmentId], references: [id])
+  serviceRequest ServiceRequest?    @relation(fields: [serviceRequestId], references: [id])
+  customer       Customer           @relation(fields: [customerId], references: [id])
+  vehicle        Vehicle            @relation(fields: [vehicleId], references: [id])
+  assignments    WorkerAssignment[]
+  tasks          JobCardTask[]
+  parts          JobCardPart[]
+  attachments    JobCardAttachment[]
+  invoices       Invoice[]
+
+  @@index([appointmentId])
+  @@index([serviceRequestId])
+  @@index([customerId])
+  @@index([vehicleId])
+  @@index([status])
+}
+
+model WorkerAssignment {
+  id             String    @id @default(cuid())
+  jobCardId      String
+  workerId       String
+  assignmentRole String?
+  assignedAt     DateTime  @default(now())
+  unassignedAt   DateTime?
+  notes          String?
+
+  jobCard JobCard @relation(fields: [jobCardId], references: [id], onDelete: Cascade)
+  worker  Worker  @relation(fields: [workerId], references: [id], onDelete: Cascade)
+
+  @@index([jobCardId])
+  @@index([workerId])
+}
+
+model JobCardTask {
+  id               String   @id @default(cuid())
+  jobCardId        String
+  taskName         String
+  taskDescription  String?
+  status           String
+  assignedWorkerId String?
+  estimatedMinutes Int?
+  actualMinutes    Int?
+  notes            String?
+  sortOrder        Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  jobCard        JobCard @relation(fields: [jobCardId], references: [id], onDelete: Cascade)
+  assignedWorker Worker? @relation(fields: [assignedWorkerId], references: [id])
+
+  @@index([jobCardId])
+}
+
+model JobCardPart {
+  id              String   @id @default(cuid())
+  jobCardId       String
+  inventoryItemId String
+  requiredQty     Decimal  @db.Decimal(12, 2)
+  reservedQty     Decimal  @default(0) @db.Decimal(12, 2)
+  consumedQty     Decimal  @default(0) @db.Decimal(12, 2)
+  unitPrice       Decimal  @default(0) @db.Decimal(12, 2)
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  jobCard       JobCard       @relation(fields: [jobCardId], references: [id], onDelete: Cascade)
+  inventoryItem InventoryItem @relation(fields: [inventoryItemId], references: [id])
+
+  @@index([jobCardId])
+  @@index([inventoryItemId])
+}
+
+model JobCardAttachment {
+  id        String   @id @default(cuid())
+  jobCardId String
+  fileName  String
+  filePath  String
+  mimeType  String
+  fileSize  Int?
+  createdAt DateTime @default(now())
+
+  jobCard JobCard @relation(fields: [jobCardId], references: [id], onDelete: Cascade)
+
+  @@index([jobCardId])
+}
+
+model InventoryCategory {
+  id           String          @id @default(cuid())
+  categoryName String          @unique
+  description  String?
+  items        InventoryItem[]
+}
+
+model Supplier {
+  id            String          @id @default(cuid())
+  supplierName  String
+  phone         String?
+  email         String?
+  address       String?
+  contactPerson String?
+  notes         String?
+  items         InventoryItem[]
+}
+
+model InventoryItem {
+  id                     String    @id @default(cuid())
+  sku                    String    @unique
+  itemName               String
+  categoryId             String
+  supplierId             String?
+  brand                  String?
+  description            String?
+  compatibleVehicleTypes String?
+  unit                   String
+  taxRate                Decimal   @default(0) @db.Decimal(5, 2)
+  costPrice              Decimal   @default(0) @db.Decimal(12, 2)
+  sellingPrice           Decimal   @default(0) @db.Decimal(12, 2)
+  quantityInStock        Decimal   @default(0) @db.Decimal(12, 2)
+  reservedQuantity       Decimal   @default(0) @db.Decimal(12, 2)
+  reorderLevel           Decimal?  @db.Decimal(12, 2)
+  reorderQuantity        Decimal?  @db.Decimal(12, 2)
+  storageLocation        String?
+  barcode                String?
+  isActive               Boolean   @default(true)
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+
+  category       InventoryCategory @relation(fields: [categoryId], references: [id])
+  supplier       Supplier?         @relation(fields: [supplierId], references: [id])
+  stockMovements StockMovement[]
+  jobCardParts   JobCardPart[]
+
+  @@index([categoryId])
+  @@index([supplierId])
+  @@index([itemName])
+}
+
+model StockMovement {
+  id                 String                @id @default(cuid())
+  inventoryItemId    String
+  movementType       InventoryMovementType
+  quantity           Decimal               @db.Decimal(12, 2)
+  previousQuantity   Decimal               @db.Decimal(12, 2)
+  newQuantity        Decimal               @db.Decimal(12, 2)
+  relatedEntityType  String?
+  relatedEntityId    String?
+  reason             String?
+  performedByAdminId String?
+  createdAt          DateTime              @default(now())
+
+  inventoryItem InventoryItem @relation(fields: [inventoryItemId], references: [id])
+
+  @@index([inventoryItemId])
+  @@index([movementType])
+}
+
+model Invoice {
+  id              String        @id @default(cuid())
+  invoiceNumber   String        @unique
+  customerId      String
+  vehicleId       String
+  jobCardId       String
+  appointmentId   String?
+  invoiceDate     DateTime
+  dueDate         DateTime?
+  subtotal        Decimal       @default(0) @db.Decimal(12, 2)
+  discountType    String?
+  discountValue   Decimal?      @db.Decimal(12, 2)
+  discountAmount  Decimal       @default(0) @db.Decimal(12, 2)
+  taxTotal        Decimal       @default(0) @db.Decimal(12, 2)
+  grandTotal      Decimal       @default(0) @db.Decimal(12, 2)
+  amountPaid      Decimal       @default(0) @db.Decimal(12, 2)
+  amountDue       Decimal       @default(0) @db.Decimal(12, 2)
+  paymentStatus   PaymentStatus @default(UNPAID)
+  invoiceStatus   InvoiceStatus @default(DRAFT)
+  notes           String?
+  finalizedAt     DateTime?
+  createdByAdminId String
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  customer  Customer          @relation(fields: [customerId], references: [id])
+  vehicle   Vehicle           @relation(fields: [vehicleId], references: [id])
+  jobCard   JobCard           @relation(fields: [jobCardId], references: [id])
+  createdBy AdminUser         @relation(fields: [createdByAdminId], references: [id])
+  lineItems InvoiceLineItem[]
+  payments  Payment[]
+
+  @@index([customerId])
+  @@index([vehicleId])
+  @@index([jobCardId])
+  @@index([invoiceDate])
+  @@index([paymentStatus])
+}
+
+model InvoiceLineItem {
+  id              String          @id @default(cuid())
+  invoiceId       String
+  lineType        InvoiceLineType
+  referenceItemId String?
+  description     String
+  quantity        Decimal         @default(1) @db.Decimal(12, 2)
+  unitPrice       Decimal         @default(0) @db.Decimal(12, 2)
+  taxRate         Decimal         @default(0) @db.Decimal(5, 2)
+  taxAmount       Decimal         @default(0) @db.Decimal(12, 2)
+  lineTotal       Decimal         @default(0) @db.Decimal(12, 2)
+  sortOrder       Int             @default(0)
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
+}
+
+model Payment {
+  id                String      @id @default(cuid())
+  invoiceId         String
+  amount            Decimal     @db.Decimal(12, 2)
+  paymentMode       PaymentMode
+  paymentDate       DateTime
+  referenceNumber   String?
+  notes             String?
+  receivedByAdminId String
+  createdAt         DateTime    @default(now())
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
+  @@index([paymentDate])
+}
+
+model ExpenseCategory {
+  id           String    @id @default(cuid())
+  categoryName String    @unique
+  description  String?
+  expenses     Expense[]
+}
+
+model Expense {
+  id               String       @id @default(cuid())
+  expenseDate      DateTime
+  categoryId       String
+  title            String
+  amount           Decimal      @db.Decimal(12, 2)
+  vendorName       String?
+  paymentMode      PaymentMode?
+  referenceNumber  String?
+  notes            String?
+  attachmentUrl    String?
+  createdByAdminId String
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  category  ExpenseCategory @relation(fields: [categoryId], references: [id])
+  createdBy AdminUser       @relation(fields: [createdByAdminId], references: [id])
+
+  @@index([expenseDate])
+  @@index([categoryId])
+}
+
+model NotificationTemplate {
+  id                 String              @id @default(cuid())
+  channel            NotificationChannel
+  eventType          String
+  templateKey        String              @unique
+  subject            String?
+  messageBody        String
+  variableSchemaJson Json?
+  isActive           Boolean             @default(true)
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+}
+
+model Notification {
+  id                String              @id @default(cuid())
+  channel           NotificationChannel
+  eventType         String
+  templateKey       String
+  recipientPhone    String?
+  recipientEmail    String?
+  payloadJson       Json
+  sendStatus        NotificationStatus  @default(QUEUED)
+  providerName      String?
+  providerMessageId String?
+  errorMessage      String?
+  retryCount        Int                 @default(0)
+  scheduledFor      DateTime?
+  sentAt            DateTime?
+  deliveredAt       DateTime?
+  relatedEntityType String?
+  relatedEntityId   String?
+  createdByAdminId  String?
+  createdAt         DateTime            @default(now())
+
+  createdBy AdminUser? @relation("NotificationCreatedBy", fields: [createdByAdminId], references: [id])
+
+  @@index([sendStatus])
+  @@index([eventType])
+  @@index([scheduledFor])
+}
+
+model ActivityLog {
+  id                String    @id @default(cuid())
+  entityType        String
+  entityId          String?
+  action            String
+  previousValueJson Json?
+  newValueJson      Json?
+  actorType         ActorType
+  actorId           String?
+  requestId         String?
+  ipAddress         String?
+  userAgent         String?
+  createdAt         DateTime  @default(now())
+
+  adminUser AdminUser? @relation(fields: [actorId], references: [id], map: "activity_log_actor_id_fkey")
+
+  @@index([entityType, entityId])
+  @@index([action])
+  @@index([actorType])
+  @@index([createdAt])
+}
+
+model Setting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
