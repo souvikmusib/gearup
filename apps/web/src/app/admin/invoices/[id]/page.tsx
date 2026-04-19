@@ -46,7 +46,7 @@ export default function InvoiceDetailPage() {
       if (!res.ok) { alert('Failed to generate PDF'); return; }
       const html = await res.text();
       const w = window.open('', '_blank');
-      if (w) { w.document.write(html); w.document.close(); }
+      if (w) { w.document.write(html); w.document.close(); w.onload = () => w.print(); }
     } catch (e) {
       console.error('PDF error:', e);
       alert('Failed to generate PDF');
