@@ -26,7 +26,10 @@ export async function POST(req: NextRequest) {
       const sr = await tx.serviceRequest.create({ data: { referenceId, customerId: customer.id, vehicleId: vehicle.id, serviceCategory: body.serviceCategory, issueDescription: body.issueDescription, preferredDate: body.preferredDate ? new Date(body.preferredDate) : undefined, preferredSlotLabel: body.preferredSlotLabel, pickupDropRequired: body.pickupDropRequired, notes: body.notes, source: 'PUBLIC_FORM', status: body.preferredDate ? 'APPOINTMENT_PENDING' : 'SUBMITTED' } });
       let appointment = null;
       if (body.preferredDate) {
-        appointment = await tx.appointment.create({ data: { referenceId: generateAppointmentRef(), serviceRequestId: sr.id, customerId: customer.id, vehicleId: vehicle.id, appointmentDate: new Date(body.preferredDate), slotStart: new Date(body.preferredDate), slotEnd: new Date(new Date(body.preferredDate).getTime() + 30 * 60_000), bookingSource: 'PUBLIC_FORM', status: 'REQUESTED' } });
+        const preferredDate = new Date(body.preferredDate);
+        const slotRule = await tx.appointmentSlotRule.findFirst({ where: { dayOfWeek: preferredDate.getUTCDay(), isActive: true } });
+        const duration = (slotRule?.slotDurationMinutes ?? 30) * 60_000;
+        appointment = await tx.appointment.create({ data: { referenceId: generateAppointmentRef(), serviceRequestId: sr.id, customerId: customer.id, vehicleId: vehicle.id, appointmentDate: preferredDate, slotStart: preferredDate, slotEnd: new Date(preferredDate.getTime() + duration), bookingSource: 'PUBLIC_FORM', status: 'REQUESTED' } });
       }
       return { referenceId, serviceRequestId: sr.id, appointmentId: appointment?.id ?? null, status: sr.status };
     });

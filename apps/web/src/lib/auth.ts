@@ -20,10 +20,19 @@ export function verifyAuth(): AuthTokenPayload {
   }
 }
 
+/** Requires ALL listed permissions (AND) */
 export function requirePermission(...required: PermissionKey[]): AuthTokenPayload {
   const user = verifyAuth();
   const has = new Set(user.permissions);
   const missing = required.filter((p) => !has.has(p));
   if (missing.length) throw new ForbiddenError(`Missing permissions: ${missing.join(', ')}`);
+  return user;
+}
+
+/** Requires ANY of the listed permissions (OR) */
+export function requireAnyPermission(...required: PermissionKey[]): AuthTokenPayload {
+  const user = verifyAuth();
+  const has = new Set(user.permissions);
+  if (!required.some((p) => has.has(p))) throw new ForbiddenError(`Requires one of: ${required.join(', ')}`);
   return user;
 }
