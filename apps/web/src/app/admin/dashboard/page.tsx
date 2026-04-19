@@ -17,7 +17,7 @@ export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
 
   useEffect(() => {
-    api.get<DashboardData>('/admin/reports/dashboard').then((res) => {
+    api.get<DashboardData>('/admin/reports?type=dashboard').then((res) => {
       if (res.success && res.data) setData(res.data);
     });
   }, []);
