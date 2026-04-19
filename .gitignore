@@ -13,3 +13,6 @@ coverage
 .sentryclirc
 *.log
 .env
+# Graphify
+.graphify*
+graphify-out/
