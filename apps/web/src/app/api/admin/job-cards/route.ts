@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { paginate, paginationMeta } from '@/lib/pagination';
-import { requireAnyPermission } from '@/lib/auth';
+import { requireAnyPermission, requirePermission } from '@/lib/auth';
 import { handleApiError } from '@/lib/errors';
 import { logActivity } from '@/lib/activity-logger';
 import { generateJobCardNumber } from '@/lib/id-generators';

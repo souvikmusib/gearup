@@ -1,927 +1,681 @@
 # Graph Report - .  (2026-04-19)
 
 ## Corpus Check
-- Corpus is ~25,264 words - fits in a single context window. You may not need a graph.
+- Corpus is ~42,826 words - fits in a single context window. You may not need a graph.
 
 ## Summary
-- 233 nodes · 106 edges · 130 communities detected
-- Extraction: 95% EXTRACTED · 5% INFERRED · 0% AMBIGUOUS · INFERRED: 5 edges (avg confidence: 0.74)
+- 234 nodes · 164 edges · 93 communities detected
+- Extraction: 95% EXTRACTED · 4% INFERRED · 1% AMBIGUOUS · INFERRED: 7 edges (avg confidence: 0.84)
 - Token cost: 0 input · 0 output
 
 ## Community Hubs (Navigation)
-- [[_COMMUNITY_index ts|index ts]]
-- [[_COMMUNITY_docs Directory Documentation|docs Directory Documentation]]
-- [[_COMMUNITY_id generators ts|id generators ts]]
-- [[_COMMUNITY_page tsx|page tsx]]
-- [[_COMMUNITY_storage ts|storage ts]]
-- [[_COMMUNITY_pagination ts|pagination ts]]
-- [[_COMMUNITY_page tsx|page tsx]]
-- [[_COMMUNITY_linkCls|linkCls]]
-- [[_COMMUNITY_auth context tsx|auth context tsx]]
-- [[_COMMUNITY_theme context tsx|theme context tsx]]
-- [[_COMMUNITY_client ts|client ts]]
-- [[_COMMUNITY_client ts|client ts]]
-- [[_COMMUNITY_auth ts|auth ts]]
-- [[_COMMUNITY_index ts|index ts]]
-- [[_COMMUNITY_EmptyState|EmptyState]]
-- [[_COMMUNITY_status badge tsx|status badge tsx]]
-- [[_COMMUNITY_page header tsx|page header tsx]]
-- [[_COMMUNITY_stat card tsx|stat card tsx]]
-- [[_COMMUNITY_template renderer ts|template renderer ts]]
-- [[_COMMUNITY_middleware ts|middleware ts]]
-- [[_COMMUNITY_layout tsx|layout tsx]]
-- [[_COMMUNITY_layout tsx|layout tsx]]
-- [[_COMMUNITY_page tsx|page tsx]]
-- [[_COMMUNITY_page tsx|page tsx]]
-- [[_COMMUNITY_page tsx|page tsx]]
-- [[_COMMUNITY_page tsx|page tsx]]
-- [[_COMMUNITY_page tsx|page tsx]]
-- [[_COMMUNITY_page tsx|page tsx]]
-- [[_COMMUNITY_page tsx|page tsx]]
-- [[_COMMUNITY_page tsx|page tsx]]
-- [[_COMMUNITY_page tsx|page tsx]]
-- [[_COMMUNITY_page tsx|page tsx]]
-- [[_COMMUNITY_page tsx|page tsx]]
-- [[_COMMUNITY_page tsx|page tsx]]
-- [[_COMMUNITY_page tsx|page tsx]]
-- [[_COMMUNITY_page tsx|page tsx]]
-- [[_COMMUNITY_page tsx|page tsx]]
-- [[_COMMUNITY_page tsx|page tsx]]
-- [[_COMMUNITY_page tsx|page tsx]]
-- [[_COMMUNITY_page tsx|page tsx]]
-- [[_COMMUNITY_page tsx|page tsx]]
-- [[_COMMUNITY_page tsx|page tsx]]
-- [[_COMMUNITY_page tsx|page tsx]]
-- [[_COMMUNITY_page tsx|page tsx]]
-- [[_COMMUNITY_page tsx|page tsx]]
-- [[_COMMUNITY_page tsx|page tsx]]
-- [[_COMMUNITY_layout tsx|layout tsx]]
-- [[_COMMUNITY_page tsx|page tsx]]
-- [[_COMMUNITY_index tsx|index tsx]]
-- [[_COMMUNITY_pagination tsx|pagination tsx]]
-- [[_COMMUNITY_modal tsx|modal tsx]]
-- [[_COMMUNITY_theme toggle tsx|theme toggle tsx]]
-- [[_COMMUNITY_client ts|client ts]]
-- [[_COMMUNITY_seed ts|seed ts]]
-- [[_COMMUNITY_server ts|server ts]]
-- [[_COMMUNITY_sentry ts|sentry ts]]
-- [[_COMMUNITY_env ts|env ts]]
-- [[_COMMUNITY_error handler ts|error handler ts]]
-- [[_COMMUNITY_request logger ts|request logger ts]]
-- [[_COMMUNITY_async handler ts|async handler ts]]
-- [[_COMMUNITY_logActivity|logActivity]]
-- [[_COMMUNITY_notification retry job ts|notification retry job ts]]
-- [[_COMMUNITY_missed appointment followup job|missed appointment followup job]]
-- [[_COMMUNITY_ready for pickup reminder|ready for pickup reminder]]
-- [[_COMMUNITY_daily summary job ts|daily summary job ts]]
-- [[_COMMUNITY_notification processor job ts|notification processor job ts]]
-- [[_COMMUNITY_appointmentReminders|appointmentReminders]]
-- [[_COMMUNITY_invoice reminder job ts|invoice reminder job ts]]
-- [[_COMMUNITY_index ts|index ts]]
-- [[_COMMUNITY_index ts|index ts]]
-- [[_COMMUNITY_data table tsx|data table tsx]]
-- [[_COMMUNITY_api ts|api ts]]
-- [[_COMMUNITY_index ts|index ts]]
-- [[_COMMUNITY_domain ts|domain ts]]
-- [[_COMMUNITY_auth ts|auth ts]]
-- [[_COMMUNITY_client ts|client ts]]
-- [[_COMMUNITY_index ts|index ts]]
-- [[_COMMUNITY_channels ts|channels ts]]
-- [[_COMMUNITY_templates ts|templates ts]]
-- [[_COMMUNITY_events ts|events ts]]
-- [[_COMMUNITY_index ts|index ts]]
-- [[_COMMUNITY_tailwind config js|tailwind config js]]
-- [[_COMMUNITY_sentry server config ts|sentry server config ts]]
-- [[_COMMUNITY_next env d ts|next env d ts]]
-- [[_COMMUNITY_sentry client config ts|sentry client config ts]]
-- [[_COMMUNITY_sentry edge config ts|sentry edge config ts]]
-- [[_COMMUNITY_postcss config js|postcss config js]]
-- [[_COMMUNITY_page tsx|page tsx]]
-- [[_COMMUNITY_page tsx|page tsx]]
-- [[_COMMUNITY_page tsx|page tsx]]
-- [[_COMMUNITY_page tsx|page tsx]]
-- [[_COMMUNITY_page tsx|page tsx]]
-- [[_COMMUNITY_page tsx|page tsx]]
-- [[_COMMUNITY_page tsx|page tsx]]
-- [[_COMMUNITY_page tsx|page tsx]]
-- [[_COMMUNITY_page tsx|page tsx]]
-- [[_COMMUNITY_page tsx|page tsx]]
-- [[_COMMUNITY_page tsx|page tsx]]
-- [[_COMMUNITY_page tsx|page tsx]]
-- [[_COMMUNITY_page tsx|page tsx]]
-- [[_COMMUNITY_page tsx|page tsx]]
-- [[_COMMUNITY_page tsx|page tsx]]
-- [[_COMMUNITY_page tsx|page tsx]]
-- [[_COMMUNITY_page tsx|page tsx]]
-- [[_COMMUNITY_list toolbar tsx|list toolbar tsx]]
-- [[_COMMUNITY_app ts|app ts]]
-- [[_COMMUNITY_constants ts|constants ts]]
-- [[_COMMUNITY_cors ts|cors ts]]
-- [[_COMMUNITY_index ts|index ts]]
-- [[_COMMUNITY_index ts|index ts]]
-- [[_COMMUNITY_customer routes ts|customer routes ts]]
-- [[_COMMUNITY_settings routes ts|settings routes ts]]
-- [[_COMMUNITY_payment routes ts|payment routes ts]]
-- [[_COMMUNITY_invoice routes ts|invoice routes ts]]
-- [[_COMMUNITY_appointment routes ts|appointment routes ts]]
-- [[_COMMUNITY_auth routes ts|auth routes ts]]
-- [[_COMMUNITY_expense routes ts|expense routes ts]]
-- [[_COMMUNITY_health routes ts|health routes ts]]
-- [[_COMMUNITY_upload routes ts|upload routes ts]]
-- [[_COMMUNITY_admin user routes ts|admin user routes ts]]
-- [[_COMMUNITY_service request routes ts|service request routes ts]]
-- [[_COMMUNITY_public routes ts|public routes ts]]
-- [[_COMMUNITY_log routes ts|log routes ts]]
-- [[_COMMUNITY_inventory routes ts|inventory routes ts]]
-- [[_COMMUNITY_worker routes ts|worker routes ts]]
-- [[_COMMUNITY_vehicle routes ts|vehicle routes ts]]
-- [[_COMMUNITY_notification routes ts|notification routes ts]]
-- [[_COMMUNITY_job card routes ts|job card routes ts]]
-- [[_COMMUNITY_report routes ts|report routes ts]]
-- [[_COMMUNITY_pnpm Workspaces and Turborepo|pnpm Workspaces and Turborepo]]
+- [[_COMMUNITY_Knowledge Cluster 0|Knowledge Cluster 0]]
+- [[_COMMUNITY_E2e Notification Production|E2e Notification Production]]
+- [[_COMMUNITY_Constructor Errors Apperror|Constructor Errors Apperror]]
+- [[_COMMUNITY_Apps Web Legacy|Apps Web Legacy]]
+- [[_COMMUNITY_Generators Generateappointmentref Generateinvoicenumber|Generators Generateappointmentref Generateinvoicenumber]]
+- [[_COMMUNITY_Authget Authpatch Authpost|Authget Authpatch Authpost]]
+- [[_COMMUNITY_Auth Getauthtoken Requireanypermission|Auth Getauthtoken Requireanypermission]]
+- [[_COMMUNITY_Page Tsx Set|Page Tsx Set]]
+- [[_COMMUNITY_Split Apps Deployment|Split Apps Deployment]]
+- [[_COMMUNITY_Middleware Isratelimited Cluster|Middleware Isratelimited Cluster]]
+- [[_COMMUNITY_Page Tsx Formataction|Page Tsx Formataction]]
+- [[_COMMUNITY_Page Tsx Onsubmit|Page Tsx Onsubmit]]
+- [[_COMMUNITY_Linkcls Togglesub Sidebar|Linkcls Togglesub Sidebar]]
+- [[_COMMUNITY_Pagination Paginate Paginationmeta|Pagination Paginate Paginationmeta]]
+- [[_COMMUNITY_Auth Context Tsx|Auth Context Tsx]]
+- [[_COMMUNITY_Theme Context Tsx|Theme Context Tsx]]
+- [[_COMMUNITY_Emptystate Empty State|Emptystate Empty State]]
+- [[_COMMUNITY_Status Badge Tsx|Status Badge Tsx]]
+- [[_COMMUNITY_Page Header Tsx|Page Header Tsx]]
+- [[_COMMUNITY_Stat Card Tsx|Stat Card Tsx]]
+- [[_COMMUNITY_Seed Main Cluster|Seed Main Cluster]]
+- [[_COMMUNITY_Layout Tsx Rootlayout|Layout Tsx Rootlayout]]
+- [[_COMMUNITY_Page Tsx Adminindexpage|Page Tsx Adminindexpage]]
+- [[_COMMUNITY_Page Tsx Customerspage|Page Tsx Customerspage]]
+- [[_COMMUNITY_Page Tsx Adminuserspage|Page Tsx Adminuserspage]]
+- [[_COMMUNITY_Page Tsx Integrationspage|Page Tsx Integrationspage]]
+- [[_COMMUNITY_Page Tsx Notificationsettingspage|Page Tsx Notificationsettingspage]]
+- [[_COMMUNITY_Page Tsx Paymentspage|Page Tsx Paymentspage]]
+- [[_COMMUNITY_Page Tsx Invoicedetailpage|Page Tsx Invoicedetailpage]]
+- [[_COMMUNITY_Page Tsx Appointmentcalendarpage|Page Tsx Appointmentcalendarpage]]
+- [[_COMMUNITY_Page Tsx Appointmentdetailpage|Page Tsx Appointmentdetailpage]]
+- [[_COMMUNITY_Page Tsx Expensespage|Page Tsx Expensespage]]
+- [[_COMMUNITY_Page Tsx Expensecategoriespage|Page Tsx Expensecategoriespage]]
+- [[_COMMUNITY_Page Tsx Servicerequestdetailpage|Page Tsx Servicerequestdetailpage]]
+- [[_COMMUNITY_Page Tsx Activitylogspage|Page Tsx Activitylogspage]]
+- [[_COMMUNITY_Page Tsx Supplierspage|Page Tsx Supplierspage]]
+- [[_COMMUNITY_Page Tsx Lowstockpage|Page Tsx Lowstockpage]]
+- [[_COMMUNITY_Page Tsx Inventorycategoriespage|Page Tsx Inventorycategoriespage]]
+- [[_COMMUNITY_Page Tsx Workercalendarpage|Page Tsx Workercalendarpage]]
+- [[_COMMUNITY_Page Tsx Vehiclespage|Page Tsx Vehiclespage]]
+- [[_COMMUNITY_Page Tsx Vehicledetailpage|Page Tsx Vehicledetailpage]]
+- [[_COMMUNITY_Page Tsx Notificationtemplatespage|Page Tsx Notificationtemplatespage]]
+- [[_COMMUNITY_Page Tsx Adminloginpage|Page Tsx Adminloginpage]]
+- [[_COMMUNITY_Page Tsx Jobcarddetailpage|Page Tsx Jobcarddetailpage]]
+- [[_COMMUNITY_Page Tsx Inventoryreportpage|Page Tsx Inventoryreportpage]]
+- [[_COMMUNITY_Page Tsx Workersreportpage|Page Tsx Workersreportpage]]
+- [[_COMMUNITY_Layout Tsx Publiclayout|Layout Tsx Publiclayout]]
+- [[_COMMUNITY_Page Tsx Contactpage|Page Tsx Contactpage]]
+- [[_COMMUNITY_Index Tsx Providers|Index Tsx Providers]]
+- [[_COMMUNITY_Pagination Tsx Cluster|Pagination Tsx Cluster]]
+- [[_COMMUNITY_Modal Tsx Cluster|Modal Tsx Cluster]]
+- [[_COMMUNITY_Theme Toggle Tsx|Theme Toggle Tsx]]
+- [[_COMMUNITY_Logactivity Activity Logger|Logactivity Activity Logger]]
+- [[_COMMUNITY_Client Request Cluster|Client Request Cluster]]
+- [[_COMMUNITY_Region Alignment Optimization|Region Alignment Optimization]]
+- [[_COMMUNITY_Production Ready Verdict|Production Ready Verdict]]
+- [[_COMMUNITY_Index Cluster|Index Cluster]]
+- [[_COMMUNITY_Table Tsx Cluster|Table Tsx Cluster]]
+- [[_COMMUNITY_Knowledge Cluster 58|Knowledge Cluster 58]]
+- [[_COMMUNITY_Index Cluster|Index Cluster]]
+- [[_COMMUNITY_Domain Cluster|Domain Cluster]]
+- [[_COMMUNITY_Auth Cluster|Auth Cluster]]
+- [[_COMMUNITY_Tailwind Config Cluster|Tailwind Config Cluster]]
+- [[_COMMUNITY_Sentry Server Config|Sentry Server Config]]
+- [[_COMMUNITY_Next Env Cluster|Next Env Cluster]]
+- [[_COMMUNITY_Sentry Client Config|Sentry Client Config]]
+- [[_COMMUNITY_Sentry Edge Config|Sentry Edge Config]]
+- [[_COMMUNITY_Playwright Config Cluster|Playwright Config Cluster]]
+- [[_COMMUNITY_Postcss Config Cluster|Postcss Config Cluster]]
+- [[_COMMUNITY_Layout Tsx Cluster|Layout Tsx Cluster]]
+- [[_COMMUNITY_Page Tsx Cluster|Page Tsx Cluster]]
+- [[_COMMUNITY_Page Tsx Cluster|Page Tsx Cluster]]
+- [[_COMMUNITY_Page Tsx Cluster|Page Tsx Cluster]]
+- [[_COMMUNITY_Page Tsx Cluster|Page Tsx Cluster]]
+- [[_COMMUNITY_Page Tsx Cluster|Page Tsx Cluster]]
+- [[_COMMUNITY_Page Tsx Cluster|Page Tsx Cluster]]
+- [[_COMMUNITY_Page Tsx Cluster|Page Tsx Cluster]]
+- [[_COMMUNITY_Page Tsx Cluster|Page Tsx Cluster]]
+- [[_COMMUNITY_Page Tsx Cluster|Page Tsx Cluster]]
+- [[_COMMUNITY_Page Tsx Cluster|Page Tsx Cluster]]
+- [[_COMMUNITY_Page Tsx Cluster|Page Tsx Cluster]]
+- [[_COMMUNITY_Page Tsx Cluster|Page Tsx Cluster]]
+- [[_COMMUNITY_Page Tsx Cluster|Page Tsx Cluster]]
+- [[_COMMUNITY_Page Tsx Cluster|Page Tsx Cluster]]
+- [[_COMMUNITY_Page Tsx Cluster|Page Tsx Cluster]]
+- [[_COMMUNITY_Page Tsx Cluster|Page Tsx Cluster]]
+- [[_COMMUNITY_Breadcrumbs Tsx Cluster|Breadcrumbs Tsx Cluster]]
+- [[_COMMUNITY_Skeletons Tsx Cluster|Skeletons Tsx Cluster]]
+- [[_COMMUNITY_List Toolbar Tsx|List Toolbar Tsx]]
+- [[_COMMUNITY_Prisma Cluster|Prisma Cluster]]
+- [[_COMMUNITY_Constants Cluster|Constants Cluster]]
+- [[_COMMUNITY_Supabase Postgres Prisma|Supabase Postgres Prisma]]
+- [[_COMMUNITY_Session Memory Context|Session Memory Context]]
 
 ## God Nodes (most connected - your core abstractions)
-1. `GearUp Servicing` - 4 edges
-2. `Express.js Backend on Render` - 4 edges
-3. `SupabaseStorage` - 3 edges
-4. `Next.js 14 App Router Frontend on Vercel` - 3 edges
-5. `onSubmit()` - 2 edges
-6. `submit()` - 2 edges
-7. `EmailClient` - 2 edges
-8. `WhatsAppClient` - 2 edges
-9. `AppError` - 2 edges
-10. `NotFoundError` - 2 edges
+1. `GET()` - 28 edges
+2. `POST()` - 13 edges
+3. `PATCH()` - 8 edges
+4. `Ultra-Detailed E2E Execution Contract` - 6 edges
+5. `verifyAuth()` - 4 edges
+6. `Current Single-App Architecture (apps/web)` - 4 edges
+7. `Service Request to Payment Lifecycle` - 4 edges
+8. `Role Permission Matrix` - 4 edges
+9. `P0 Go-Live Acceptance Scenarios` - 3 edges
+10. `Release Blocking Quality Gates` - 3 edges
 
 ## Surprising Connections (you probably didn't know these)
-- None detected - all connections are within the same source files.
+- `Next.js 14 App Router Stack` --semantically_similar_to--> `Current Single-App Architecture (apps/web)`  [INFERRED] [semantically similar]
+  README.md → docs/CODEBASE_CONTEXT.md
+- `Canonical Test Plan Pointer` --references--> `Ultra-Detailed E2E Execution Contract`  [EXTRACTED]
+  test plan.md → docs/TEST_PLAN.md
+- `Graphify Graph Report Summary` --conceptually_related_to--> `Current Single-App Architecture (apps/web)`  [INFERRED]
+  graphify-out/GRAPH_REPORT.md → docs/CODEBASE_CONTEXT.md
+- `Reported Core Stack Composition Hyperedge` --references--> `GearUp Servicing System`  [EXTRACTED]
+  graphify-out/GRAPH_REPORT.md → README.md
+- `Custom JWT and RBAC Auth Model` --conceptually_related_to--> `Role Permission Matrix`  [EXTRACTED]
+  README.md → docs/rbac.md
 
 ## Hyperedges (group relationships)
-- **GearUp Core Stack Composition** — readme_nextjs_frontend, readme_express_backend, readme_supabase_postgres_prisma, readme_supabase_storage, readme_sentry_monitoring, readme_pnpm_turborepo_monorepo, readme_gearup_servicing [INFERRED 0.85]
+- **Auth and RBAC Enforcement Group** — readme_custom_jwt_rbac, rbac_permission_matrix, rbac_require_permission_middleware, test_plan_release_gates, testing_checklist_verification [INFERRED 0.84]
+- **Workflow Chain Validation Group** — workflow_details_service_lifecycle, qa_matrix_p0_gate, test_plan_release_gates, e2e_report_2026_04_19, testing_checklist_verification [INFERRED 0.87]
+- **Deployment Model Documentation Cluster** — architecture_monorepo_split_apps_web_api, deployment_guide_split_frontend_backend, handoff_guide_split_frontend_backend, codebase_context_current_architecture [INFERRED 0.63]
 
 ## Communities
 
-### Community 0 - "index ts"
-Cohesion: 0.15
-Nodes (6): AppError, ConflictError, ForbiddenError, NotFoundError, UnauthorizedError, ValidationError
+### Community 0 - "Knowledge Cluster 0"
+Cohesion: 0.08
+Nodes (4): generateInvoiceHTML(), GET(), PATCH(), POST()
 
-### Community 1 - "docs Directory Documentation"
-Cohesion: 0.32
-Nodes (8): docs Directory Documentation, Express.js Backend on Render, GearUp Servicing, Next.js 14 App Router Frontend on Vercel, Sentry Monitoring, Supabase Postgres via Prisma, Supabase Storage, Vehicle Servicing Management System
+### Community 1 - "E2e Notification Production"
+Cohesion: 0.16
+Nodes (14): Production E2E Report (2026-04-19), Notification Deduplication Key Pattern, Notification Queue and Retry Pipeline, P0 Go-Live Acceptance Scenarios, Role Permission Matrix, requirePermission Backend Enforcement, Custom JWT and RBAC Auth Model, Canonical Test Plan Pointer (+6 more)
 
-### Community 2 - "id generators ts"
+### Community 2 - "Constructor Errors Apperror"
+Cohesion: 0.17
+Nodes (5): AppError, ForbiddenError, NotFoundError, UnauthorizedError, ValidationError
+
+### Community 3 - "Apps Web Legacy"
+Cohesion: 0.22
+Nodes (9): Legacy Express Backend on Render Model, API Route Handlers in apps/web, Current Single-App Architecture (apps/web), Reported Core Stack Composition Hyperedge, Graphify Graph Report Summary, GearUp Servicing System, Next.js 14 App Router Stack, Rationale: Prefer Current Route Handlers Over Legacy Docs (+1 more)
+
+### Community 4 - "Generators Generateappointmentref Generateinvoicenumber"
 Cohesion: 0.33
 Nodes (0): 
 
-### Community 3 - "page tsx"
+### Community 5 - "Authget Authpatch Authpost"
+Cohesion: 0.4
+Nodes (0): 
+
+### Community 6 - "Auth Getauthtoken Requireanypermission"
+Cohesion: 0.7
+Nodes (4): getAuthToken(), requireAnyPermission(), requirePermission(), verifyAuth()
+
+### Community 7 - "Page Tsx Set"
 Cohesion: 0.5
 Nodes (1): submit()
 
-### Community 4 - "storage ts"
-Cohesion: 0.5
-Nodes (1): SupabaseStorage
+### Community 8 - "Split Apps Deployment"
+Cohesion: 0.67
+Nodes (4): Split apps/web + apps/api Monorepo Model, Deployment Guide with Split Frontend/Backend Steps, Frontend and Backend Environment Variable Catalog, Post-Build Handoff with Split Deployment Steps
 
-### Community 5 - "pagination ts"
+### Community 9 - "Middleware Isratelimited Cluster"
+Cohesion: 1.0
+Nodes (2): isRateLimited(), middleware()
+
+### Community 10 - "Page Tsx Formataction"
 Cohesion: 0.67
 Nodes (0): 
 
-### Community 6 - "page tsx"
+### Community 11 - "Page Tsx Onsubmit"
 Cohesion: 0.67
 Nodes (1): onSubmit()
 
-### Community 7 - "linkCls"
+### Community 12 - "Linkcls Togglesub Sidebar"
 Cohesion: 0.67
 Nodes (0): 
 
-### Community 8 - "auth context tsx"
+### Community 13 - "Pagination Paginate Paginationmeta"
 Cohesion: 0.67
 Nodes (0): 
 
-### Community 9 - "theme context tsx"
+### Community 14 - "Auth Context Tsx"
 Cohesion: 0.67
 Nodes (0): 
 
-### Community 10 - "client ts"
-Cohesion: 0.67
-Nodes (1): EmailClient
-
-### Community 11 - "client ts"
-Cohesion: 0.67
-Nodes (1): WhatsAppClient
-
-### Community 12 - "auth ts"
+### Community 15 - "Theme Context Tsx"
 Cohesion: 0.67
 Nodes (0): 
 
-### Community 13 - "index ts"
+### Community 16 - "Emptystate Empty State"
 Cohesion: 1.0
-Nodes (2): safeRun(), startCronJobs()
-
-### Community 14 - "EmptyState"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 15 - "status badge tsx"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 16 - "page header tsx"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 17 - "stat card tsx"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 18 - "template renderer ts"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 19 - "middleware ts"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 20 - "layout tsx"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 21 - "layout tsx"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 22 - "page tsx"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 23 - "page tsx"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 24 - "page tsx"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 25 - "page tsx"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 26 - "page tsx"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 27 - "page tsx"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 28 - "page tsx"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 29 - "page tsx"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 30 - "page tsx"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 31 - "page tsx"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 32 - "page tsx"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 33 - "page tsx"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 34 - "page tsx"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 35 - "page tsx"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 36 - "page tsx"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 37 - "page tsx"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 38 - "page tsx"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 39 - "page tsx"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 40 - "page tsx"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 41 - "page tsx"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 42 - "page tsx"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 43 - "page tsx"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 44 - "page tsx"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 45 - "page tsx"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 46 - "layout tsx"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 47 - "page tsx"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 48 - "index tsx"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 49 - "pagination tsx"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 50 - "modal tsx"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 51 - "theme toggle tsx"
-Cohesion: 1.0
 Nodes (0): 
 
-### Community 52 - "client ts"
+### Community 17 - "Status Badge Tsx"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 53 - "seed ts"
+### Community 18 - "Page Header Tsx"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 54 - "server ts"
+### Community 19 - "Stat Card Tsx"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 55 - "sentry ts"
+### Community 20 - "Seed Main Cluster"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 56 - "env ts"
+### Community 21 - "Layout Tsx Rootlayout"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 57 - "error handler ts"
+### Community 22 - "Page Tsx Adminindexpage"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 58 - "request logger ts"
+### Community 23 - "Page Tsx Customerspage"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 59 - "async handler ts"
+### Community 24 - "Page Tsx Adminuserspage"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 60 - "logActivity"
+### Community 25 - "Page Tsx Integrationspage"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 61 - "notification retry job ts"
+### Community 26 - "Page Tsx Notificationsettingspage"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 62 - "missed appointment followup job"
+### Community 27 - "Page Tsx Paymentspage"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 63 - "ready for pickup reminder"
+### Community 28 - "Page Tsx Invoicedetailpage"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 64 - "daily summary job ts"
+### Community 29 - "Page Tsx Appointmentcalendarpage"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 65 - "notification processor job ts"
+### Community 30 - "Page Tsx Appointmentdetailpage"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 66 - "appointmentReminders"
+### Community 31 - "Page Tsx Expensespage"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 67 - "invoice reminder job ts"
+### Community 32 - "Page Tsx Expensecategoriespage"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 68 - "index ts"
+### Community 33 - "Page Tsx Servicerequestdetailpage"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 69 - "index ts"
+### Community 34 - "Page Tsx Activitylogspage"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 70 - "data table tsx"
+### Community 35 - "Page Tsx Supplierspage"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 71 - "api ts"
+### Community 36 - "Page Tsx Lowstockpage"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 72 - "index ts"
+### Community 37 - "Page Tsx Inventorycategoriespage"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 73 - "domain ts"
+### Community 38 - "Page Tsx Workercalendarpage"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 74 - "auth ts"
+### Community 39 - "Page Tsx Vehiclespage"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 75 - "client ts"
+### Community 40 - "Page Tsx Vehicledetailpage"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 76 - "index ts"
+### Community 41 - "Page Tsx Notificationtemplatespage"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 77 - "channels ts"
+### Community 42 - "Page Tsx Adminloginpage"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 78 - "templates ts"
+### Community 43 - "Page Tsx Jobcarddetailpage"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 79 - "events ts"
+### Community 44 - "Page Tsx Inventoryreportpage"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 80 - "index ts"
+### Community 45 - "Page Tsx Workersreportpage"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 81 - "tailwind config js"
+### Community 46 - "Layout Tsx Publiclayout"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 82 - "sentry server config ts"
+### Community 47 - "Page Tsx Contactpage"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 83 - "next env d ts"
+### Community 48 - "Index Tsx Providers"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 84 - "sentry client config ts"
+### Community 49 - "Pagination Tsx Cluster"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 85 - "sentry edge config ts"
+### Community 50 - "Modal Tsx Cluster"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 86 - "postcss config js"
+### Community 51 - "Theme Toggle Tsx"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 87 - "page tsx"
+### Community 52 - "Logactivity Activity Logger"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 88 - "page tsx"
+### Community 53 - "Client Request Cluster"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 89 - "page tsx"
+### Community 54 - "Region Alignment Optimization"
 Cohesion: 1.0
-Nodes (0): 
-
-### Community 90 - "page tsx"
-Cohesion: 1.0
-Nodes (0): 
+Nodes (2): Region Alignment Optimization Recommendation, Cross-Region Latency Finding
 
-### Community 91 - "page tsx"
+### Community 55 - "Production Ready Verdict"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (2): Production Ready Verdict, Settings Test Method Mismatch (POST vs PATCH)
 
-### Community 92 - "page tsx"
+### Community 56 - "Index Cluster"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 93 - "page tsx"
+### Community 57 - "Table Tsx Cluster"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 94 - "page tsx"
+### Community 58 - "Knowledge Cluster 58"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 95 - "page tsx"
+### Community 59 - "Index Cluster"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 96 - "page tsx"
+### Community 60 - "Domain Cluster"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 97 - "page tsx"
+### Community 61 - "Auth Cluster"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 98 - "page tsx"
+### Community 62 - "Tailwind Config Cluster"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 99 - "page tsx"
+### Community 63 - "Sentry Server Config"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 100 - "page tsx"
+### Community 64 - "Next Env Cluster"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 101 - "page tsx"
+### Community 65 - "Sentry Client Config"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 102 - "page tsx"
+### Community 66 - "Sentry Edge Config"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 103 - "page tsx"
+### Community 67 - "Playwright Config Cluster"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 104 - "list toolbar tsx"
+### Community 68 - "Postcss Config Cluster"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 105 - "app ts"
+### Community 69 - "Layout Tsx Cluster"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 106 - "constants ts"
+### Community 70 - "Page Tsx Cluster"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 107 - "cors ts"
+### Community 71 - "Page Tsx Cluster"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 108 - "index ts"
+### Community 72 - "Page Tsx Cluster"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 109 - "index ts"
+### Community 73 - "Page Tsx Cluster"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 110 - "customer routes ts"
+### Community 74 - "Page Tsx Cluster"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 111 - "settings routes ts"
+### Community 75 - "Page Tsx Cluster"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 112 - "payment routes ts"
+### Community 76 - "Page Tsx Cluster"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 113 - "invoice routes ts"
+### Community 77 - "Page Tsx Cluster"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 114 - "appointment routes ts"
+### Community 78 - "Page Tsx Cluster"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 115 - "auth routes ts"
+### Community 79 - "Page Tsx Cluster"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 116 - "expense routes ts"
+### Community 80 - "Page Tsx Cluster"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 117 - "health routes ts"
+### Community 81 - "Page Tsx Cluster"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 118 - "upload routes ts"
+### Community 82 - "Page Tsx Cluster"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 119 - "admin user routes ts"
+### Community 83 - "Page Tsx Cluster"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 120 - "service request routes ts"
+### Community 84 - "Page Tsx Cluster"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 121 - "public routes ts"
+### Community 85 - "Page Tsx Cluster"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 122 - "log routes ts"
+### Community 86 - "Breadcrumbs Tsx Cluster"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 123 - "inventory routes ts"
+### Community 87 - "Skeletons Tsx Cluster"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 124 - "worker routes ts"
+### Community 88 - "List Toolbar Tsx"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 125 - "vehicle routes ts"
+### Community 89 - "Prisma Cluster"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 126 - "notification routes ts"
+### Community 90 - "Constants Cluster"
 Cohesion: 1.0
 Nodes (0): 
 
-### Community 127 - "job card routes ts"
+### Community 91 - "Supabase Postgres Prisma"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (1): Supabase Postgres via Prisma
 
-### Community 128 - "report routes ts"
+### Community 92 - "Session Memory Context"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (1): Session Memory Context Stub
 
-### Community 129 - "pnpm Workspaces and Turborepo"
-Cohesion: 1.0
-Nodes (1): pnpm Workspaces and Turborepo Monorepo
+## Ambiguous Edges - Review These
+- `Current Single-App Architecture (apps/web)` → `Legacy Express Backend on Render Model`  [AMBIGUOUS]
+  docs/TEST_PLAN.md · relation: conceptually_related_to
 
 ## Knowledge Gaps
-- **4 isolated node(s):** `Vehicle Servicing Management System`, `Supabase Storage`, `pnpm Workspaces and Turborepo Monorepo`, `docs Directory Documentation`
+- **17 isolated node(s):** `Canonical Test Plan Pointer`, `GearUp Servicing System`, `Next.js 14 App Router Stack`, `Supabase Postgres via Prisma`, `Custom JWT and RBAC Auth Model` (+12 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **Thin community `EmptyState`** (2 nodes): `EmptyState()`, `empty-state.tsx`
+- **Thin community `Emptystate Empty State`** (2 nodes): `EmptyState()`, `empty-state.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `status badge tsx`** (2 nodes): `status-badge.tsx`, `StatusBadge()`
+- **Thin community `Status Badge Tsx`** (2 nodes): `status-badge.tsx`, `StatusBadge()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `page header tsx`** (2 nodes): `page-header.tsx`, `PageHeader()`
+- **Thin community `Page Header Tsx`** (2 nodes): `page-header.tsx`, `PageHeader()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `stat card tsx`** (2 nodes): `stat-card.tsx`, `StatCard()`
+- **Thin community `Stat Card Tsx`** (2 nodes): `stat-card.tsx`, `StatCard()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `template renderer ts`** (2 nodes): `template-renderer.ts`, `renderTemplate()`
+- **Thin community `Seed Main Cluster`** (2 nodes): `seed.ts`, `main()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `middleware ts`** (2 nodes): `middleware.ts`, `middleware()`
+- **Thin community `Layout Tsx Rootlayout`** (2 nodes): `layout.tsx`, `RootLayout()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `layout tsx`** (2 nodes): `layout.tsx`, `RootLayout()`
+- **Thin community `Page Tsx Adminindexpage`** (2 nodes): `page.tsx`, `AdminIndexPage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `layout tsx`** (2 nodes): `layout.tsx`, `AdminLayout()`
+- **Thin community `Page Tsx Customerspage`** (2 nodes): `page.tsx`, `CustomersPage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `page tsx`** (2 nodes): `page.tsx`, `AdminIndexPage()`
+- **Thin community `Page Tsx Adminuserspage`** (2 nodes): `page.tsx`, `AdminUsersPage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `page tsx`** (2 nodes): `page.tsx`, `CustomersPage()`
+- **Thin community `Page Tsx Integrationspage`** (2 nodes): `page.tsx`, `IntegrationsPage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `page tsx`** (2 nodes): `page.tsx`, `AdminUsersPage()`
+- **Thin community `Page Tsx Notificationsettingspage`** (2 nodes): `page.tsx`, `NotificationSettingsPage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `page tsx`** (2 nodes): `page.tsx`, `IntegrationsPage()`
+- **Thin community `Page Tsx Paymentspage`** (2 nodes): `page.tsx`, `PaymentsPage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `page tsx`** (2 nodes): `page.tsx`, `NotificationSettingsPage()`
+- **Thin community `Page Tsx Invoicedetailpage`** (2 nodes): `page.tsx`, `InvoiceDetailPage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `page tsx`** (2 nodes): `page.tsx`, `PaymentsPage()`
+- **Thin community `Page Tsx Appointmentcalendarpage`** (2 nodes): `page.tsx`, `AppointmentCalendarPage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `page tsx`** (2 nodes): `page.tsx`, `AppointmentCalendarPage()`
+- **Thin community `Page Tsx Appointmentdetailpage`** (2 nodes): `page.tsx`, `AppointmentDetailPage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `page tsx`** (2 nodes): `page.tsx`, `AppointmentDetailPage()`
+- **Thin community `Page Tsx Expensespage`** (2 nodes): `page.tsx`, `ExpensesPage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `page tsx`** (2 nodes): `page.tsx`, `ExpensesPage()`
+- **Thin community `Page Tsx Expensecategoriespage`** (2 nodes): `page.tsx`, `ExpenseCategoriesPage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `page tsx`** (2 nodes): `page.tsx`, `ExpenseCategoriesPage()`
+- **Thin community `Page Tsx Servicerequestdetailpage`** (2 nodes): `page.tsx`, `ServiceRequestDetailPage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `page tsx`** (2 nodes): `page.tsx`, `DashboardPage()`
+- **Thin community `Page Tsx Activitylogspage`** (2 nodes): `page.tsx`, `ActivityLogsPage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `page tsx`** (2 nodes): `page.tsx`, `ServiceRequestDetailPage()`
+- **Thin community `Page Tsx Supplierspage`** (2 nodes): `page.tsx`, `SuppliersPage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `page tsx`** (2 nodes): `page.tsx`, `ActivityLogsPage()`
+- **Thin community `Page Tsx Lowstockpage`** (2 nodes): `page.tsx`, `LowStockPage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `page tsx`** (2 nodes): `page.tsx`, `SuppliersPage()`
+- **Thin community `Page Tsx Inventorycategoriespage`** (2 nodes): `page.tsx`, `InventoryCategoriesPage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `page tsx`** (2 nodes): `page.tsx`, `LowStockPage()`
+- **Thin community `Page Tsx Workercalendarpage`** (2 nodes): `page.tsx`, `WorkerCalendarPage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `page tsx`** (2 nodes): `page.tsx`, `InventoryCategoriesPage()`
+- **Thin community `Page Tsx Vehiclespage`** (2 nodes): `page.tsx`, `VehiclesPage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `page tsx`** (2 nodes): `page.tsx`, `WorkerCalendarPage()`
+- **Thin community `Page Tsx Vehicledetailpage`** (2 nodes): `page.tsx`, `VehicleDetailPage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `page tsx`** (2 nodes): `page.tsx`, `VehiclesPage()`
+- **Thin community `Page Tsx Notificationtemplatespage`** (2 nodes): `page.tsx`, `NotificationTemplatesPage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `page tsx`** (2 nodes): `page.tsx`, `VehicleDetailPage()`
+- **Thin community `Page Tsx Adminloginpage`** (2 nodes): `page.tsx`, `AdminLoginPage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `page tsx`** (2 nodes): `page.tsx`, `NotificationTemplatesPage()`
+- **Thin community `Page Tsx Jobcarddetailpage`** (2 nodes): `page.tsx`, `JobCardDetailPage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `page tsx`** (2 nodes): `page.tsx`, `AdminLoginPage()`
+- **Thin community `Page Tsx Inventoryreportpage`** (2 nodes): `page.tsx`, `InventoryReportPage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `page tsx`** (2 nodes): `page.tsx`, `JobCardDetailPage()`
+- **Thin community `Page Tsx Workersreportpage`** (2 nodes): `page.tsx`, `WorkersReportPage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `page tsx`** (2 nodes): `page.tsx`, `InventoryReportPage()`
+- **Thin community `Layout Tsx Publiclayout`** (2 nodes): `layout.tsx`, `PublicLayout()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `page tsx`** (2 nodes): `page.tsx`, `WorkersReportPage()`
+- **Thin community `Page Tsx Contactpage`** (2 nodes): `page.tsx`, `ContactPage()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `layout tsx`** (2 nodes): `layout.tsx`, `PublicLayout()`
+- **Thin community `Index Tsx Providers`** (2 nodes): `index.tsx`, `Providers()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `page tsx`** (2 nodes): `page.tsx`, `ContactPage()`
+- **Thin community `Pagination Tsx Cluster`** (2 nodes): `pagination.tsx`, `Pagination()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `index tsx`** (2 nodes): `index.tsx`, `Providers()`
+- **Thin community `Modal Tsx Cluster`** (2 nodes): `modal.tsx`, `Modal()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `pagination tsx`** (2 nodes): `pagination.tsx`, `Pagination()`
+- **Thin community `Theme Toggle Tsx`** (2 nodes): `theme-toggle.tsx`, `ThemeToggle()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `modal tsx`** (2 nodes): `modal.tsx`, `Modal()`
+- **Thin community `Logactivity Activity Logger`** (2 nodes): `logActivity()`, `activity-logger.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `theme toggle tsx`** (2 nodes): `theme-toggle.tsx`, `ThemeToggle()`
+- **Thin community `Client Request Cluster`** (2 nodes): `client.ts`, `request()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `client ts`** (2 nodes): `client.ts`, `request()`
+- **Thin community `Region Alignment Optimization`** (2 nodes): `Region Alignment Optimization Recommendation`, `Cross-Region Latency Finding`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `seed ts`** (2 nodes): `seed.ts`, `main()`
+- **Thin community `Production Ready Verdict`** (2 nodes): `Production Ready Verdict`, `Settings Test Method Mismatch (POST vs PATCH)`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `server ts`** (2 nodes): `server.ts`, `shutdown()`
+- **Thin community `Index Cluster`** (1 nodes): `index.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `sentry ts`** (2 nodes): `sentry.ts`, `initSentry()`
+- **Thin community `Table Tsx Cluster`** (1 nodes): `data-table.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `env ts`** (2 nodes): `env.ts`, `loadEnv()`
+- **Thin community `Knowledge Cluster 58`** (1 nodes): `api.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `error handler ts`** (2 nodes): `error-handler.ts`, `errorHandler()`
+- **Thin community `Index Cluster`** (1 nodes): `index.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `request logger ts`** (2 nodes): `request-logger.ts`, `requestLogger()`
+- **Thin community `Domain Cluster`** (1 nodes): `domain.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `async handler ts`** (2 nodes): `async-handler.ts`, `asyncHandler()`
+- **Thin community `Auth Cluster`** (1 nodes): `auth.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `logActivity`** (2 nodes): `logActivity()`, `activity-logger.ts`
+- **Thin community `Tailwind Config Cluster`** (1 nodes): `tailwind.config.js`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `notification retry job ts`** (2 nodes): `notification-retry.job.ts`, `notificationRetry()`
+- **Thin community `Sentry Server Config`** (1 nodes): `sentry.server.config.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `missed appointment followup job`** (2 nodes): `missed-appointment-followup.job.ts`, `missedAppointmentFollowup()`
+- **Thin community `Next Env Cluster`** (1 nodes): `next-env.d.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `ready for pickup reminder`** (2 nodes): `ready-for-pickup-reminder.job.ts`, `readyForPickupReminder()`
+- **Thin community `Sentry Client Config`** (1 nodes): `sentry.client.config.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `daily summary job ts`** (2 nodes): `daily-summary.job.ts`, `dailySummary()`
+- **Thin community `Sentry Edge Config`** (1 nodes): `sentry.edge.config.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `notification processor job ts`** (2 nodes): `notification-processor.job.ts`, `notificationProcessor()`
+- **Thin community `Playwright Config Cluster`** (1 nodes): `playwright.config.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `appointmentReminders`** (2 nodes): `appointmentReminders()`, `appointment-reminders.job.ts`
+- **Thin community `Postcss Config Cluster`** (1 nodes): `postcss.config.js`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `invoice reminder job ts`** (2 nodes): `invoice-reminder.job.ts`, `invoiceReminder()`
+- **Thin community `Layout Tsx Cluster`** (1 nodes): `layout.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `index ts`** (2 nodes): `index.ts`, `registerRoutes()`
+- **Thin community `Page Tsx Cluster`** (1 nodes): `page.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `index ts`** (1 nodes): `index.ts`
+- **Thin community `Page Tsx Cluster`** (1 nodes): `page.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `data table tsx`** (1 nodes): `data-table.tsx`
+- **Thin community `Page Tsx Cluster`** (1 nodes): `page.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `api ts`** (1 nodes): `api.ts`
+- **Thin community `Page Tsx Cluster`** (1 nodes): `page.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `index ts`** (1 nodes): `index.ts`
+- **Thin community `Page Tsx Cluster`** (1 nodes): `page.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `domain ts`** (1 nodes): `domain.ts`
+- **Thin community `Page Tsx Cluster`** (1 nodes): `page.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `auth ts`** (1 nodes): `auth.ts`
+- **Thin community `Page Tsx Cluster`** (1 nodes): `page.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `client ts`** (1 nodes): `client.ts`
+- **Thin community `Page Tsx Cluster`** (1 nodes): `page.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `index ts`** (1 nodes): `index.ts`
+- **Thin community `Page Tsx Cluster`** (1 nodes): `page.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `channels ts`** (1 nodes): `channels.ts`
+- **Thin community `Page Tsx Cluster`** (1 nodes): `page.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `templates ts`** (1 nodes): `templates.ts`
+- **Thin community `Page Tsx Cluster`** (1 nodes): `page.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `events ts`** (1 nodes): `events.ts`
+- **Thin community `Page Tsx Cluster`** (1 nodes): `page.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `index ts`** (1 nodes): `index.ts`
+- **Thin community `Page Tsx Cluster`** (1 nodes): `page.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `tailwind config js`** (1 nodes): `tailwind.config.js`
+- **Thin community `Page Tsx Cluster`** (1 nodes): `page.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `sentry server config ts`** (1 nodes): `sentry.server.config.ts`
+- **Thin community `Page Tsx Cluster`** (1 nodes): `page.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `next env d ts`** (1 nodes): `next-env.d.ts`
+- **Thin community `Page Tsx Cluster`** (1 nodes): `page.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `sentry client config ts`** (1 nodes): `sentry.client.config.ts`
+- **Thin community `Breadcrumbs Tsx Cluster`** (1 nodes): `breadcrumbs.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `sentry edge config ts`** (1 nodes): `sentry.edge.config.ts`
+- **Thin community `Skeletons Tsx Cluster`** (1 nodes): `skeletons.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `postcss config js`** (1 nodes): `postcss.config.js`
+- **Thin community `List Toolbar Tsx`** (1 nodes): `list-toolbar.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `page tsx`** (1 nodes): `page.tsx`
+- **Thin community `Prisma Cluster`** (1 nodes): `prisma.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `page tsx`** (1 nodes): `page.tsx`
+- **Thin community `Constants Cluster`** (1 nodes): `constants.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `page tsx`** (1 nodes): `page.tsx`
+- **Thin community `Supabase Postgres Prisma`** (1 nodes): `Supabase Postgres via Prisma`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `page tsx`** (1 nodes): `page.tsx`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `page tsx`** (1 nodes): `page.tsx`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `page tsx`** (1 nodes): `page.tsx`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `page tsx`** (1 nodes): `page.tsx`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `page tsx`** (1 nodes): `page.tsx`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `page tsx`** (1 nodes): `page.tsx`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `page tsx`** (1 nodes): `page.tsx`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `page tsx`** (1 nodes): `page.tsx`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `page tsx`** (1 nodes): `page.tsx`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `page tsx`** (1 nodes): `page.tsx`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `page tsx`** (1 nodes): `page.tsx`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `page tsx`** (1 nodes): `page.tsx`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `page tsx`** (1 nodes): `page.tsx`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `page tsx`** (1 nodes): `page.tsx`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `list toolbar tsx`** (1 nodes): `list-toolbar.tsx`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `app ts`** (1 nodes): `app.ts`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `constants ts`** (1 nodes): `constants.ts`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `cors ts`** (1 nodes): `cors.ts`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `index ts`** (1 nodes): `index.ts`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `index ts`** (1 nodes): `index.ts`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `customer routes ts`** (1 nodes): `customer.routes.ts`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `settings routes ts`** (1 nodes): `settings.routes.ts`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `payment routes ts`** (1 nodes): `payment.routes.ts`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `invoice routes ts`** (1 nodes): `invoice.routes.ts`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `appointment routes ts`** (1 nodes): `appointment.routes.ts`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `auth routes ts`** (1 nodes): `auth.routes.ts`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `expense routes ts`** (1 nodes): `expense.routes.ts`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `health routes ts`** (1 nodes): `health.routes.ts`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `upload routes ts`** (1 nodes): `upload.routes.ts`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `admin user routes ts`** (1 nodes): `admin-user.routes.ts`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `service request routes ts`** (1 nodes): `service-request.routes.ts`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `public routes ts`** (1 nodes): `public.routes.ts`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `log routes ts`** (1 nodes): `log.routes.ts`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `inventory routes ts`** (1 nodes): `inventory.routes.ts`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `worker routes ts`** (1 nodes): `worker.routes.ts`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `vehicle routes ts`** (1 nodes): `vehicle.routes.ts`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `notification routes ts`** (1 nodes): `notification.routes.ts`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `job card routes ts`** (1 nodes): `job-card.routes.ts`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `report routes ts`** (1 nodes): `report.routes.ts`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `pnpm Workspaces and Turborepo`** (1 nodes): `pnpm Workspaces and Turborepo Monorepo`
+- **Thin community `Session Memory Context`** (1 nodes): `Session Memory Context Stub`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Are the 3 inferred relationships involving `Express.js Backend on Render` (e.g. with `Supabase Postgres via Prisma` and `Next.js 14 App Router Frontend on Vercel`) actually correct?**
-  _`Express.js Backend on Render` has 3 INFERRED edges - model-reasoned connections that need verification._
-- **Are the 2 inferred relationships involving `Next.js 14 App Router Frontend on Vercel` (e.g. with `Express.js Backend on Render` and `Sentry Monitoring`) actually correct?**
-  _`Next.js 14 App Router Frontend on Vercel` has 2 INFERRED edges - model-reasoned connections that need verification._
-- **What connects `Vehicle Servicing Management System`, `Supabase Storage`, `pnpm Workspaces and Turborepo Monorepo` to the rest of the system?**
-  _4 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **What is the exact relationship between `Current Single-App Architecture (apps/web)` and `Legacy Express Backend on Render Model`?**
+  _Edge tagged AMBIGUOUS (relation: conceptually_related_to) - confidence is low._
+- **Why does `Ultra-Detailed E2E Execution Contract` connect `E2e Notification Production` to `Apps Web Legacy`?**
+  _High betweenness centrality (0.006) - this node is a cross-community bridge._
+- **What connects `Canonical Test Plan Pointer`, `GearUp Servicing System`, `Next.js 14 App Router Stack` to the rest of the system?**
+  _17 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Should `Knowledge Cluster 0` be split into smaller, more focused modules?**
+  _Cohesion score 0.08 - nodes in this community are weakly interconnected._
