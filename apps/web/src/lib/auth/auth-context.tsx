@@ -36,7 +36,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => { fetchMe(); }, []);
 
-  const login = (token: string) => { localStorage.setItem('gearup_token', token); fetchMe(); };
+  const login = async (token: string) => { localStorage.setItem('gearup_token', token); await fetchMe(); };
   const logout = () => { localStorage.removeItem('gearup_token'); localStorage.removeItem('gearup_demo'); setUser(null); };
   const hasPermission = (p: string) => !!user?.permissions.includes(p);
 

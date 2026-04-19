@@ -22,7 +22,7 @@ export default function AdminLoginPage() {
     try {
       const res = await api.post<{ token: string }>('/admin/auth/login', { adminUserId, password });
       setLoading(false);
-      if (res.success && res.data) { login(res.data.token); router.push('/admin/dashboard'); return; }
+      if (res.success && res.data) { await login(res.data.token); router.push('/admin/dashboard'); return; }
       else setError(res.error?.message || 'Login failed');
     } catch {
       // Backend unreachable — use demo mode
