@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { generateReferenceId, generateAppointmentRef } from '../../common/utils/id-generators';
 import { ValidationError, NotFoundError } from '../../common/errors';
 import { logActivity } from '../../common/utils/activity-logger';
+import type { Prisma } from '@prisma/client';
 
 const router: Router = Router();
 
@@ -34,7 +35,7 @@ router.post('/service-requests', asyncHandler(async (req, res) => {
     let customer = await tx.customer.findFirst({ where: { phoneNumber: body.phoneNumber } });
     if (!customer) {
       customer = await tx.customer.create({
-        data: { fullName: body.fullName, phoneNumber: body.phoneNumber, alternatePhone: body.alternatePhone, email: body.email, source: 'PUBLIC_FORM' },
+        data: { fullName: body.fullName, phoneNumber: body.phoneNumber, alternatePhone: body.alternatePhone, email: body.email, source: 'PUBLIC_FORM' } as Prisma.CustomerCreateInput,
       });
     }
 
@@ -42,7 +43,7 @@ router.post('/service-requests', asyncHandler(async (req, res) => {
     let vehicle = await tx.vehicle.findFirst({ where: { registrationNumber: body.registrationNumber, customerId: customer.id } });
     if (!vehicle) {
       vehicle = await tx.vehicle.create({
-        data: { customerId: customer.id, vehicleType: body.vehicleType, registrationNumber: body.registrationNumber, brand: body.brand, model: body.model, variant: body.variant },
+        data: { customerId: customer.id, vehicleType: body.vehicleType, registrationNumber: body.registrationNumber, brand: body.brand, model: body.model, variant: body.variant } as Prisma.VehicleUncheckedCreateInput,
       });
     }
 
@@ -60,7 +61,7 @@ router.post('/service-requests', asyncHandler(async (req, res) => {
         notes: body.notes,
         source: 'PUBLIC_FORM',
         status: body.preferredDate ? 'APPOINTMENT_PENDING' : 'SUBMITTED',
-      },
+      } as unknown as Prisma.ServiceRequestUncheckedCreateInput,
     });
 
     let appointment = null;
@@ -76,7 +77,7 @@ router.post('/service-requests', asyncHandler(async (req, res) => {
           slotEnd: new Date(new Date(body.preferredDate).getTime() + 30 * 60_000),
           bookingSource: 'PUBLIC_FORM',
           status: 'REQUESTED',
-        },
+        } as unknown as Prisma.AppointmentUncheckedCreateInput,
       });
     }
 
@@ -101,7 +102,7 @@ router.get('/available-slots', asyncHandler(async (req, res) => {
   const rules = await prisma.appointmentSlotRule.findMany({ where: { dayOfWeek, isActive: true } });
   const holidays = await prisma.holiday.findMany({ where: { holidayDate: targetDate, isFullDay: true } });
   if (holidays.length) {
-    return res.json({ success: true, data: { date, slots: [], message: 'Closed – ' + holidays[0].holidayName } });
+    return res.json({ success: true, data: { date, slots: [], message: 'Closed \u2013 ' + holidays[0].holidayName } });
   }
 
   const blocked = await prisma.blockedSlot.findMany({ where: { blockDate: targetDate, appliesToAll: true } });
