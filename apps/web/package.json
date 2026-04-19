@@ -1,31 +1,44 @@
 {
   "name": "@gearup/web",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:seed": "tsx prisma/seed.ts",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@gearup/types": "workspace:*",
     "@gearup/ui": "workspace:*",
+    "@prisma/client": "^5.14.0",
     "@sentry/nextjs": "^8.0.0",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "lucide-react": "^0.378.0",
+    "nanoid": "^3.3.7",
     "next": "^14.2.0",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
-    "zod": "^3.23.0",
-    "lucide-react": "^0.378.0"
+    "zod": "^3.23.0"
   },
   "devDependencies": {
     "@gearup/tsconfig": "workspace:*",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.6",
     "@types/node": "^20.12.0",
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",
     "autoprefixer": "^10.4.19",
     "postcss": "^8.4.38",
+    "prisma": "^5.14.0",
     "tailwindcss": "^3.4.3",
+    "tsx": "^4.11.0",
     "typescript": "^5.4.0"
   }
 }
