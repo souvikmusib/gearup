@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';
 import { PageHeader, StatusBadge } from '@gearup/ui';
-import { FileText, CheckCircle, CreditCard, Download, ArrowLeft } from 'lucide-react';
+import { FileText, CheckCircle, CreditCard, Download } from 'lucide-react';
 
 export default function InvoiceDetailPage() {
   const { id } = useParams();
@@ -63,14 +63,7 @@ export default function InvoiceDetailPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <button onClick={() => router.push('/admin/invoices')} className="rounded-lg p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800">
-          <ArrowLeft className="h-5 w-5 text-gray-500" />
-        </button>
-        <div className="flex-1">
-          <PageHeader title={`Invoice ${data.invoiceNumber}`} description={`${data.customer?.fullName} • ${data.vehicle?.brand} ${data.vehicle?.model} (${data.vehicle?.registrationNumber})`} />
-        </div>
-      </div>
+      <PageHeader title={`Invoice ${data.invoiceNumber}`} description={`${data.customer?.fullName} • ${data.vehicle?.brand} ${data.vehicle?.model} (${data.vehicle?.registrationNumber})`} />
 
       {/* Status + Actions */}
       <div className="flex flex-wrap items-center gap-3">

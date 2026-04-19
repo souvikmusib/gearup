@@ -3,6 +3,7 @@ import { useAuth } from '@/lib/auth/auth-context';
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 import { AdminSidebar } from '@/components/layout/admin-sidebar';
+import { Breadcrumbs } from '@/components/shared/breadcrumbs';
 
 function LoadingSkeleton() {
   return (
@@ -47,6 +48,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <div className="flex h-screen overflow-hidden">
       <AdminSidebar />
       <main className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 p-6 lg:p-8">
+        <Breadcrumbs />
         {children}
       </main>
     </div>
