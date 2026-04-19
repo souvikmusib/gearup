@@ -9,7 +9,7 @@ export default function AppointmentsPage() {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  useEffect(() => { api.get<any>('/admin/appointments').then((r) => { if (r.success) setData(r.data ?? []); setLoading(false); }); }, []);
+  useEffect(() => { const { cached, promise } = api.getSWR<any>('/admin/appointments'); if (cached?.success) { setData(cached.data ?? []); setLoading(false); } promise.then((r) => { if (r.success) setData(r.data ?? []); setLoading(false); }); }, []);
 
   const columns = [
     { key: 'referenceId', header: 'Reference' },

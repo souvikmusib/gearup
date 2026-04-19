@@ -4,7 +4,11 @@ import { api } from '@/lib/api/client';
 import { PageHeader } from '@gearup/ui';
 export default function BusinessHoursPage() {
   const [data, setData] = useState<any>(null);
-  useEffect(() => { api.get<any>('/admin/settings/business-hours').then((r) => r.success && setData(r.data)); }, []);
+  useEffect(() => {
+    const { cached, promise } = api.getSWR<any>('/admin/settings/business-hours');
+    if (cached?.success) setData(cached.data);
+    promise.then((r) => r.success && setData(r.data));
+  }, []);
   if (!data) return <p className="py-8 text-center text-gray-500">Loading...</p>;
   const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   return (<div><PageHeader title="Business Hours" />

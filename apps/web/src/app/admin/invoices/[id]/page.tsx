@@ -15,7 +15,14 @@ export default function InvoiceDetailPage() {
   const [payRef, setPayRef] = useState('');
   const [loading, setLoading] = useState('');
 
-  const fetch = () => api.get<any>(`/admin/invoices/${id}`).then((r) => r.success && setData(r.data));
+  const fetch = () => {
+    const endpoint = `/admin/invoices/${id}`;
+    const { cached, promise } = api.getSWR<any>(endpoint);
+    if (cached?.success) setData(cached.data);
+    return promise.then((r) => {
+      if (r.success) setData(r.data);
+    });
+  };
   useEffect(() => { fetch(); }, [id]);
 
   const finalize = async () => {

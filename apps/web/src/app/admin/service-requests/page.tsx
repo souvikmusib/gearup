@@ -19,12 +19,20 @@ export default function ServiceRequestsPage() {
   const timer = useRef<NodeJS.Timeout>();
 
   const load = useCallback((s = search, st = status, p = page) => {
-    setLoading(true);
     const params = new URLSearchParams();
     if (s) params.set('search', s);
     if (st) params.set('status', st);
     params.set('page', String(p));
-    api.get<any>(`/admin/service-requests?${params}`).then((res) => {
+    const endpoint = `/admin/service-requests?${params}`;
+    const { cached, promise } = api.getSWR<any>(endpoint);
+    if (cached?.success) {
+      setData(cached.data?.items ?? cached.data ?? []);
+      setTotalPages(cached.data?.totalPages ?? 1);
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
+    promise.then((res) => {
       if (res.success) { setData(res.data?.items ?? res.data ?? []); setTotalPages(res.data?.totalPages ?? 1); }
       setLoading(false);
     });

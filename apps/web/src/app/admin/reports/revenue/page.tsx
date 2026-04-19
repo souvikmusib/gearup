@@ -13,7 +13,10 @@ export default function RevenueReportPage() {
     if (from) params.set('from', from);
     if (to) params.set('to', to);
     const qs = params.toString();
-    api.get<any>(`/admin/reports/revenue${qs ? `?${qs}` : ''}`).then((r) => r.success && setData(r.data));
+    const endpoint = `/admin/reports/revenue${qs ? `?${qs}` : ''}`;
+    const { cached, promise } = api.getSWR<any>(endpoint);
+    if (cached?.success) setData(cached.data);
+    promise.then((r) => r.success && setData(r.data));
   }, [from, to]);
 
   if (!data) return <p className="py-8 text-center text-gray-500">Loading...</p>;

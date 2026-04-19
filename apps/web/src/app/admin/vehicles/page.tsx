@@ -5,7 +5,7 @@ import { api } from '@/lib/api/client';
 import { PageHeader, DataTable } from '@gearup/ui';
 export default function VehiclesPage() {
   const [data, setData] = useState<any[]>([]); const [loading, setLoading] = useState(true); const router = useRouter();
-  useEffect(() => { api.get<any>('/admin/vehicles').then((r) => { if (r.success) setData(r.data ?? []); setLoading(false); }); }, []);
+  useEffect(() => { const { cached, promise } = api.getSWR<any>('/admin/vehicles'); if (cached?.success) { setData(cached.data ?? []); setLoading(false); } promise.then((r) => { if (r.success) setData(r.data ?? []); setLoading(false); }); }, []);
   const columns = [
     { key: 'registrationNumber', header: 'Reg No' }, { key: 'customer', header: 'Customer', render: (r: any) => r.customer?.fullName },
     { key: 'vehicleType', header: 'Type' }, { key: 'brand', header: 'Brand' }, { key: 'model', header: 'Model' },

@@ -4,6 +4,45 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 import { AdminSidebar } from '@/components/layout/admin-sidebar';
 import { Breadcrumbs } from '@/components/shared/breadcrumbs';
+import { api } from '@/lib/api/client';
+
+const WARM_PATHS = [
+  '/admin/dashboard',
+  '/admin/service-requests',
+  '/admin/job-cards',
+  '/admin/appointments',
+  '/admin/customers',
+  '/admin/vehicles',
+  '/admin/workers',
+  '/admin/invoices',
+  '/admin/payments',
+  '/admin/notifications',
+  '/admin/logs',
+  '/admin/expenses',
+  '/admin/inventory/items',
+  '/admin/inventory/low-stock',
+  '/admin/reports/revenue',
+  '/admin/reports/expenses',
+];
+
+const WARM_ENDPOINTS = [
+  '/admin/reports?type=dashboard',
+  '/admin/service-requests',
+  '/admin/job-cards',
+  '/admin/appointments',
+  '/admin/customers',
+  '/admin/vehicles',
+  '/admin/workers',
+  '/admin/invoices',
+  '/admin/payments',
+  '/admin/notifications',
+  '/admin/logs/activity',
+  '/admin/expenses',
+  '/admin/inventory/items?page=1',
+  '/admin/inventory/low-stock',
+  '/admin/reports/revenue',
+  '/admin/reports/expenses',
+];
 
 function LoadingSkeleton() {
   return (
@@ -38,6 +77,31 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   useEffect(() => {
     if (!loading && !user && !isLoginPage) router.replace('/admin/login');
+  }, [loading, user, isLoginPage, router]);
+
+  useEffect(() => {
+    if (loading || !user || isLoginPage) return;
+    const w = window as Window & {
+      requestIdleCallback?: (callback: IdleRequestCallback, options?: IdleRequestOptions) => number;
+      cancelIdleCallback?: (id: number) => void;
+    };
+
+    const runWarmup = () => {
+      WARM_PATHS.forEach((href) => router.prefetch(href));
+      WARM_ENDPOINTS.forEach((path, i) => {
+        setTimeout(() => {
+          void api.prefetch(path);
+        }, i * 120);
+      });
+    };
+
+    if (typeof w.requestIdleCallback === 'function') {
+      const id = w.requestIdleCallback(() => runWarmup(), { timeout: 1500 });
+      return () => w.cancelIdleCallback?.(id);
+    }
+
+    const t = setTimeout(runWarmup, 300);
+    return () => clearTimeout(t);
   }, [loading, user, isLoginPage, router]);
 
   if (isLoginPage) return <>{children}</>;

@@ -7,7 +7,12 @@ import { PageHeader, StatusBadge } from '@gearup/ui';
 export default function JobCardDetailPage() {
   const { id } = useParams();
   const [data, setData] = useState<any>(null);
-  useEffect(() => { api.get<any>(`/admin/job-cards/${id}`).then((r) => r.success && setData(r.data)); }, [id]);
+  useEffect(() => {
+    const endpoint = `/admin/job-cards/${id}`;
+    const { cached, promise } = api.getSWR<any>(endpoint);
+    if (cached?.success) setData(cached.data);
+    promise.then((r) => r.success && setData(r.data));
+  }, [id]);
   if (!data) return <p className="py-8 text-center text-gray-500">Loading...</p>;
   return (
     <div className="space-y-6">

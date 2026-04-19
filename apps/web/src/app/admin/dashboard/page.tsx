@@ -30,19 +30,35 @@ export default function DashboardPage() {
   const router = useRouter();
 
   useEffect(() => {
-    api.get<DashboardData>('/admin/reports?type=dashboard').then((res) => {
+    const dashboard = api.getSWR<DashboardData>('/admin/reports?type=dashboard');
+    if (dashboard.cached?.success && dashboard.cached.data) setData(dashboard.cached.data);
+    dashboard.promise.then((res) => {
       if (res.success && res.data) setData(res.data);
     });
-    api.get<any>('/admin/logs?pageSize=8').then((res) => {
+    const logsReq = api.getSWR<any>('/admin/logs?pageSize=8');
+    if (logsReq.cached?.success) setLogs(logsReq.cached.data ?? []);
+    logsReq.promise.then((res) => {
       if (res.success && res.data) setLogs(res.data);
     });
-    api.get<any>('/admin/customers?pageSize=1').then((res) => {
+    const customersReq = api.getSWR<any>('/admin/customers?pageSize=1');
+    if (customersReq.cached?.success) {
+      setCounts(c => ({ ...c, customers: customersReq.cached?.meta?.total || 0 }));
+    }
+    customersReq.promise.then((res) => {
       if (res.success) setCounts(c => ({ ...c, customers: res.meta?.total || 0 }));
     });
-    api.get<any>('/admin/vehicles?pageSize=1').then((res) => {
+    const vehiclesReq = api.getSWR<any>('/admin/vehicles?pageSize=1');
+    if (vehiclesReq.cached?.success) {
+      setCounts(c => ({ ...c, vehicles: vehiclesReq.cached?.meta?.total || 0 }));
+    }
+    vehiclesReq.promise.then((res) => {
       if (res.success) setCounts(c => ({ ...c, vehicles: res.meta?.total || 0 }));
     });
-    api.get<any>('/admin/workers?pageSize=1').then((res) => {
+    const workersReq = api.getSWR<any>('/admin/workers?pageSize=1');
+    if (workersReq.cached?.success) {
+      setCounts(c => ({ ...c, workers: workersReq.cached?.meta?.total || 0 }));
+    }
+    workersReq.promise.then((res) => {
       if (res.success) setCounts(c => ({ ...c, workers: res.meta?.total || 0 }));
     });
   }, []);

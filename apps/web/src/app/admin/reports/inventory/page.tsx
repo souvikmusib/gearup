@@ -7,7 +7,9 @@ export default function InventoryReportPage() {
   const [data, setData] = useState<any>(null);
 
   useEffect(() => {
-    api.get<any>('/admin/reports/inventory').then((r) => r.success && setData(r.data));
+    const { cached, promise } = api.getSWR<any>('/admin/reports/inventory');
+    if (cached?.success) setData(cached.data);
+    promise.then((r) => r.success && setData(r.data));
   }, []);
 
   if (!data) return <p className="py-8 text-center text-gray-500">Loading...</p>;

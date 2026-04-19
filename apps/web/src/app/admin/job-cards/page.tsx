@@ -8,7 +8,7 @@ export default function JobCardsPage() {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-  useEffect(() => { api.get<any>('/admin/job-cards').then((r) => { if (r.success) setData(r.data ?? []); setLoading(false); }); }, []);
+  useEffect(() => { const { cached, promise } = api.getSWR<any>('/admin/job-cards'); if (cached?.success) { setData(cached.data ?? []); setLoading(false); } promise.then((r) => { if (r.success) setData(r.data ?? []); setLoading(false); }); }, []);
   const columns = [
     { key: 'jobCardNumber', header: 'Job Card #' },
     { key: 'customer', header: 'Customer', render: (r: any) => r.customer?.fullName },

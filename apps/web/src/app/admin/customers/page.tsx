@@ -19,11 +19,19 @@ export default function CustomersPage() {
   const timer = useRef<NodeJS.Timeout>();
 
   const load = useCallback((s = search, p = page) => {
-    setLoading(true);
     const params = new URLSearchParams();
     if (s) params.set('search', s);
     params.set('page', String(p));
-    api.get<any>(`/admin/customers?${params}`).then((res) => {
+    const endpoint = `/admin/customers?${params}`;
+    const { cached, promise } = api.getSWR<any>(endpoint);
+    if (cached?.success) {
+      setData(cached.data?.items ?? cached.data ?? []);
+      setTotalPages(cached.data?.totalPages ?? 1);
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
+    promise.then((res) => {
       if (res.success) { setData(res.data?.items ?? res.data ?? []); setTotalPages(res.data?.totalPages ?? 1); }
       setLoading(false);
     });

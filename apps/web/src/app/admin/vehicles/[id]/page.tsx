@@ -5,7 +5,12 @@ import { api } from '@/lib/api/client';
 import { PageHeader } from '@gearup/ui';
 export default function VehicleDetailPage() {
   const { id } = useParams(); const [data, setData] = useState<any>(null);
-  useEffect(() => { api.get<any>(`/admin/vehicles/${id}`).then((r) => r.success && setData(r.data)); }, [id]);
+  useEffect(() => {
+    const endpoint = `/admin/vehicles/${id}`;
+    const { cached, promise } = api.getSWR<any>(endpoint);
+    if (cached?.success) setData(cached.data);
+    promise.then((r) => r.success && setData(r.data));
+  }, [id]);
   if (!data) return <p className="py-8 text-center text-gray-500">Loading...</p>;
   return (
     <div><PageHeader title={data.registrationNumber} description={`${data.brand} ${data.model}`} />

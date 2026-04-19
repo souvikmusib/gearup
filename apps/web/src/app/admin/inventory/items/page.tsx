@@ -21,7 +21,14 @@ export default function InventoryItemsPage() {
     const params = new URLSearchParams();
     if (s) params.set('search', s);
     params.set('page', String(p));
-    api.get<any>(`/admin/inventory/items?${params}`).then((res) => {
+    const endpoint = `/admin/inventory/items?${params.toString()}`;
+    const { cached, promise } = api.getSWR<any>(endpoint);
+    if (cached?.success) {
+      setData(cached.data?.items ?? cached.data ?? []);
+      setTotalPages(cached.data?.totalPages ?? 1);
+      setLoading(false);
+    }
+    promise.then((res) => {
       if (res.success) { setData(res.data?.items ?? res.data ?? []); setTotalPages(res.data?.totalPages ?? 1); }
       setLoading(false);
     });
