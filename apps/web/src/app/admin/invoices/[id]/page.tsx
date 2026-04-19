@@ -36,25 +36,19 @@ export default function InvoiceDetailPage() {
   };
 
   const openPdf = async () => {
+    const token = localStorage.getItem('gearup_token');
+    if (!token) { alert('Not authenticated. Please login again.'); return; }
     try {
-      const token = localStorage.getItem('gearup_token');
-      if (!token) { alert('Not authenticated. Please login again.'); return; }
-      const res = await fetch(`/api/admin/invoices/${id}/pdf`, {
+      const res = await window.fetch(`${window.location.origin}/api/admin/invoices/${id}/pdf`, {
+        method: 'GET',
         headers: { 'Authorization': `Bearer ${token}` },
       });
-      if (!res.ok) {
-        const err = await res.text();
-        console.error('PDF error:', res.status, err);
-        alert('Failed to generate PDF');
-        return;
-      }
+      if (!res.ok) { alert('Failed to generate PDF'); return; }
       const html = await res.text();
-      const blob = new Blob([html], { type: 'text/html' });
-      const url = URL.createObjectURL(blob);
-      const w = window.open(url, '_blank');
-      if (w) w.onload = () => URL.revokeObjectURL(url);
+      const w = window.open('', '_blank');
+      if (w) { w.document.write(html); w.document.close(); }
     } catch (e) {
-      console.error('PDF fetch error:', e);
+      console.error('PDF error:', e);
       alert('Failed to generate PDF');
     }
   };
