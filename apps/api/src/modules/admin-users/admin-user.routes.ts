@@ -30,7 +30,7 @@ router.get('/', requirePermission(PERMISSIONS.ADMIN_USERS_MANAGE), asyncHandler(
     { email: { contains: search, mode: 'insensitive' } },
   ];
   const [data, total] = await Promise.all([
-    prisma.adminUser.findMany({ where, ...p, orderBy: { createdAt: 'desc' }, include: { roles: { include: { role: true } } }, select: undefined }),
+    prisma.adminUser.findMany({ where, ...p, orderBy: { createdAt: 'desc' }, include: { roles: { include: { role: true } } } }),
     prisma.adminUser.count({ where }),
   ]);
   res.json({ success: true, data, meta: paginationMeta(total, Number(page) || 1, Number(pageSize) || 20) });
