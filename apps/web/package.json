@@ -18,6 +18,7 @@
     "@gearup/ui": "workspace:*",
     "@prisma/client": "^5.14.0",
     "@sentry/nextjs": "^8.0.0",
+    "@vercel/analytics": "^2.0.1",
     "bcryptjs": "^2.4.3",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.378.0",
