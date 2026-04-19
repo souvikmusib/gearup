@@ -33,5 +33,8 @@ export async function POST(req: NextRequest) {
     await logActivity({ entityType: 'AdminUser', entityId: user.id, action: 'auth.login', actorType: 'ADMIN', actorId: user.id, ipAddress: req.headers.get('x-forwarded-for') ?? undefined, userAgent: req.headers.get('user-agent') ?? undefined });
 
     return NextResponse.json({ success: true, data: { token, adminUser: { id: user.id, adminUserId: user.adminUserId, fullName: user.fullName, roles: roleKeys } } });
-  } catch (e) { return handleApiError(e); }
+  } catch (e: any) {
+    console.error('Login error:', e?.message, e?.stack);
+    return handleApiError(e);
+  }
 }
