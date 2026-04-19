@@ -2,8 +2,7 @@ import jwt from 'jsonwebtoken';
 import { headers } from 'next/headers';
 import type { AuthTokenPayload, PermissionKey } from '@gearup/types';
 import { UnauthorizedError, ForbiddenError } from './errors';
-
-const JWT_SECRET = process.env.JWT_SECRET!;
+import { getJwtSecret } from './jwt-secret';
 
 export function getAuthToken(): string {
   const h = headers();
@@ -15,7 +14,7 @@ export function getAuthToken(): string {
 export function verifyAuth(): AuthTokenPayload {
   const token = getAuthToken();
   try {
-    return jwt.verify(token, JWT_SECRET) as AuthTokenPayload;
+    return jwt.verify(token, getJwtSecret()) as AuthTokenPayload;
   } catch {
     throw new UnauthorizedError('Invalid or expired token');
   }

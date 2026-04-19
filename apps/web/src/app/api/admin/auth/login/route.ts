@@ -7,6 +7,7 @@ import { MAX_LOGIN_ATTEMPTS, LOCKOUT_DURATION_MINUTES, JWT_EXPIRY } from '@/lib/
 import { logActivity } from '@/lib/activity-logger';
 import { ROLE_PERMISSIONS, type RoleKey } from '@gearup/types';
 import { z } from 'zod';
+import { getJwtSecret } from '@/lib/jwt-secret';
 
 const loginSchema = z.object({ adminUserId: z.string().min(1), password: z.string().min(1) });
 
@@ -29,7 +30,7 @@ export async function POST(req: NextRequest) {
     await prisma.adminUser.update({ where: { id: user.id }, data: { failedLoginAttempts: 0, status: 'ACTIVE', lockedUntil: null, lastLoginAt: new Date() } });
     const roleKeys = user.roles.map((r: any) => r.role.key as RoleKey);
     const permissions = [...new Set(roleKeys.flatMap((k: RoleKey) => ROLE_PERMISSIONS[k] ?? []))];
-    const token = jwt.sign({ sub: user.id, adminUserId: user.adminUserId, roles: roleKeys, permissions }, process.env.JWT_SECRET!, { expiresIn: JWT_EXPIRY });
+    const token = jwt.sign({ sub: user.id, adminUserId: user.adminUserId, roles: roleKeys, permissions }, getJwtSecret(), { expiresIn: JWT_EXPIRY });
     await logActivity({ entityType: 'AdminUser', entityId: user.id, action: 'auth.login', actorType: 'ADMIN', actorId: user.id, ipAddress: req.headers.get('x-forwarded-for') ?? undefined, userAgent: req.headers.get('user-agent') ?? undefined });
 
     return NextResponse.json({ success: true, data: { token, adminUser: { id: user.id, adminUserId: user.adminUserId, fullName: user.fullName, roles: roleKeys } } });
