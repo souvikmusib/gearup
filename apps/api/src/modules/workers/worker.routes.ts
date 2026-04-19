@@ -7,6 +7,7 @@ import { PERMISSIONS } from '@gearup/types';
 import { logActivity } from '../../common/utils/activity-logger';
 import { generateWorkerCode } from '../../common/utils/id-generators';
 import { z } from 'zod';
+import type { Prisma } from '@prisma/client';
 
 const router: Router = Router();
 
@@ -43,7 +44,7 @@ router.get('/', requirePermission(PERMISSIONS.WORKERS_MANAGE), asyncHandler(asyn
 router.post('/', requirePermission(PERMISSIONS.WORKERS_MANAGE), asyncHandler(async (req, res) => {
   const body = workerSchema.parse(req.body);
   const worker = await prisma.worker.create({
-    data: { workerCode: generateWorkerCode(), ...body, joiningDate: body.joiningDate ? new Date(body.joiningDate) : undefined },
+    data: { workerCode: generateWorkerCode(), ...body, joiningDate: body.joiningDate ? new Date(body.joiningDate) : undefined } as Prisma.WorkerCreateInput,
   });
   await logActivity({ entityType: 'Worker', entityId: worker.id, action: 'worker.created', newValue: worker, actorType: 'ADMIN', actorId: req.user!.sub, requestId: req.requestId });
   res.status(201).json({ success: true, data: worker });
@@ -56,7 +57,7 @@ router.get('/:id', requirePermission(PERMISSIONS.WORKERS_MANAGE), asyncHandler(a
 
 router.patch('/:id', requirePermission(PERMISSIONS.WORKERS_MANAGE), asyncHandler(async (req, res) => {
   const body = workerSchema.partial().merge(z.object({ status: z.enum(['ACTIVE', 'INACTIVE', 'ON_LEAVE']).optional() })).parse(req.body);
-  const worker = await prisma.worker.update({ where: { id: req.params.id }, data: body as any });
+  const worker = await prisma.worker.update({ where: { id: req.params.id }, data: body as Prisma.WorkerUpdateInput });
   await logActivity({ entityType: 'Worker', entityId: worker.id, action: 'worker.updated', newValue: body, actorType: 'ADMIN', actorId: req.user!.sub, requestId: req.requestId });
   res.json({ success: true, data: worker });
 }));
@@ -64,7 +65,7 @@ router.patch('/:id', requirePermission(PERMISSIONS.WORKERS_MANAGE), asyncHandler
 router.post('/:id/leave', requirePermission(PERMISSIONS.WORKERS_LEAVES_MANAGE), asyncHandler(async (req, res) => {
   const body = z.object({ leaveType: z.string(), startDate: z.string(), endDate: z.string(), reason: z.string().optional(), partialDay: z.boolean().optional() }).parse(req.body);
   const leave = await prisma.workerLeave.create({
-    data: { workerId: req.params.id, ...body, startDate: new Date(body.startDate), endDate: new Date(body.endDate), status: 'APPROVED', approvedByAdminId: req.user!.sub },
+    data: { workerId: req.params.id, ...body, startDate: new Date(body.startDate), endDate: new Date(body.endDate), status: 'APPROVED', approvedByAdminId: req.user!.sub } as unknown as Prisma.WorkerLeaveUncheckedCreateInput,
   });
   res.status(201).json({ success: true, data: leave });
 }));

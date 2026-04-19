@@ -6,6 +6,7 @@ import { requirePermission } from '../../common/middleware/auth';
 import { PERMISSIONS } from '@gearup/types';
 import { logActivity } from '../../common/utils/activity-logger';
 import { z } from 'zod';
+import type { Prisma } from '@prisma/client';
 
 const router: Router = Router();
 
@@ -39,7 +40,7 @@ router.post('/', requirePermission(PERMISSIONS.EXPENSES_MANAGE), asyncHandler(as
     vendorName: z.string().optional(), paymentMode: z.string().optional(), referenceNumber: z.string().optional(),
     notes: z.string().optional(), attachmentUrl: z.string().optional(),
   }).parse(req.body);
-  const expense = await prisma.expense.create({ data: { ...body, expenseDate: new Date(body.expenseDate), paymentMode: body.paymentMode as any, createdByAdminId: req.user!.sub } });
+  const expense = await prisma.expense.create({ data: { ...body, expenseDate: new Date(body.expenseDate), paymentMode: body.paymentMode as any, createdByAdminId: req.user!.sub } as unknown as Prisma.ExpenseUncheckedCreateInput });
   await logActivity({ entityType: 'Expense', entityId: expense.id, action: 'expense.created', newValue: expense, actorType: 'ADMIN', actorId: req.user!.sub, requestId: req.requestId });
   res.status(201).json({ success: true, data: expense });
 }));

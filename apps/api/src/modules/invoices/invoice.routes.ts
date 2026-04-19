@@ -7,6 +7,7 @@ import { PERMISSIONS } from '@gearup/types';
 import { logActivity } from '../../common/utils/activity-logger';
 import { generateInvoiceNumber } from '../../common/utils/id-generators';
 import { z } from 'zod';
+import type { Prisma } from '@prisma/client';
 
 const router: Router = Router();
 
@@ -71,7 +72,7 @@ router.post('/', requirePermission(PERMISSIONS.INVOICES_CREATE), asyncHandler(as
         subtotal, taxTotal, discountType: body.discountType, discountValue: body.discountValue, discountAmount, grandTotal,
         amountDue: grandTotal, notes: body.notes, createdByAdminId: req.user!.sub,
         lineItems: { create: lines },
-      },
+      } as unknown as Prisma.InvoiceUncheckedCreateInput,
       include: { lineItems: true },
     });
     return inv;
