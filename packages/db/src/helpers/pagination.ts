@@ -12,4 +12,4 @@ export function paginationMeta(total: number, page: number, pageSize: number) {
   return { page, pageSize, total, totalPages: Math.ceil(total / pageSize) };
 }
 
-export type TransactionClient = Parameters<Parameters<PrismaClient['$transaction']>[0]>[0];
+export type TransactionClient = Omit<PrismaClient, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends">;

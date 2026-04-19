@@ -5,11 +5,11 @@ import { requirePermission } from '../../common/middleware/auth';
 import { PERMISSIONS } from '@gearup/types';
 import { logActivity } from '../../common/utils/activity-logger';
 
-const router = Router();
+const router: Router = Router();
 
 router.get('/', requirePermission(PERMISSIONS.SETTINGS_VIEW), asyncHandler(async (_req, res) => {
   const settings = await prisma.setting.findMany();
-  const map = Object.fromEntries(settings.map((s) => [s.key, s.value]));
+  const map = Object.fromEntries(settings.map((s: any) => [s.key, s.value]));
   res.json({ success: true, data: map });
 }));
 
@@ -42,7 +42,7 @@ router.patch('/business-hours', requirePermission(PERMISSIONS.SETTINGS_MANAGE), 
 
 router.get('/integrations', requirePermission(PERMISSIONS.SETTINGS_VIEW), asyncHandler(async (_req, res) => {
   const settings = await prisma.setting.findMany({ where: { key: { startsWith: 'integration.' } } });
-  res.json({ success: true, data: Object.fromEntries(settings.map((s) => [s.key, s.value])) });
+  res.json({ success: true, data: Object.fromEntries(settings.map((s: any) => [s.key, s.value])) });
 }));
 
 router.patch('/integrations', requirePermission(PERMISSIONS.SETTINGS_MANAGE), asyncHandler(async (req, res) => {

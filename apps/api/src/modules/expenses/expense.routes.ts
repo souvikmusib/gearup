@@ -7,7 +7,7 @@ import { PERMISSIONS } from '@gearup/types';
 import { logActivity } from '../../common/utils/activity-logger';
 import { z } from 'zod';
 
-const router = Router();
+const router: Router = Router();
 
 // Categories — MUST be before /:id to avoid route conflict
 router.get('/categories', requirePermission(PERMISSIONS.EXPENSES_VIEW), asyncHandler(async (_req, res) => {

@@ -7,7 +7,7 @@ import { PERMISSIONS } from '@gearup/types';
 import { z } from 'zod';
 import { logActivity } from '../../common/utils/activity-logger';
 
-const router = Router();
+const router: Router = Router();
 
 const vehicleSchema = z.object({
   customerId: z.string(),

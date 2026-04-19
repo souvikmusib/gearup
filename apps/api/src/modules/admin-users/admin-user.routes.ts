@@ -8,7 +8,7 @@ import { PERMISSIONS } from '@gearup/types';
 import { logActivity } from '../../common/utils/activity-logger';
 import { z } from 'zod';
 
-const router = Router();
+const router: Router = Router();
 
 const createSchema = z.object({
   adminUserId: z.string().min(1),

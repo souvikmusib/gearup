@@ -8,7 +8,7 @@ import { logActivity } from '../../common/utils/activity-logger';
 import { generateInvoiceNumber } from '../../common/utils/id-generators';
 import { z } from 'zod';
 
-const router = Router();
+const router: Router = Router();
 
 router.get('/', requirePermission(PERMISSIONS.INVOICES_VIEW), asyncHandler(async (req, res) => {
   const { page, pageSize, paymentStatus, invoiceStatus } = req.query as Record<string, string>;
@@ -49,7 +49,7 @@ const createSchema = z.object({
 router.post('/', requirePermission(PERMISSIONS.INVOICES_CREATE), asyncHandler(async (req, res) => {
   const body = createSchema.parse(req.body);
 
-  const invoice = await prisma.$transaction(async (tx) => {
+  const invoice = await prisma.$transaction(async (tx: any) => {
     let subtotal = 0, taxTotal = 0;
     const lines = body.lineItems.map((li) => {
       const lineTotal = li.quantity * li.unitPrice;
@@ -100,7 +100,7 @@ router.post('/:id/finalize', requirePermission(PERMISSIONS.INVOICES_FINALIZE), a
 router.post('/:id/payments', requirePermission(PERMISSIONS.PAYMENTS_RECORD), asyncHandler(async (req, res) => {
   const body = z.object({ amount: z.number().positive(), paymentMode: z.string(), paymentDate: z.string(), referenceNumber: z.string().optional(), notes: z.string().optional() }).parse(req.body);
 
-  const result = await prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx: any) => {
     const payment = await tx.payment.create({
       data: { invoiceId: req.params.id, amount: body.amount, paymentMode: body.paymentMode as any, paymentDate: new Date(body.paymentDate), referenceNumber: body.referenceNumber, notes: body.notes, receivedByAdminId: req.user!.sub },
     });

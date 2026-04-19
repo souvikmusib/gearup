@@ -7,7 +7,7 @@ import { PERMISSIONS } from '@gearup/types';
 import { logActivity } from '../../common/utils/activity-logger';
 import { z } from 'zod';
 
-const router = Router();
+const router: Router = Router();
 
 // Items
 router.get('/items', requirePermission(PERMISSIONS.INVENTORY_VIEW), asyncHandler(async (req, res) => {
@@ -64,7 +64,7 @@ router.post('/stock-movements', requirePermission(PERMISSIONS.INVENTORY_STOCK_MO
     reason: z.string().optional(), relatedEntityType: z.string().optional(), relatedEntityId: z.string().optional(),
   }).parse(req.body);
 
-  const result = await prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx: any) => {
     const item = await tx.inventoryItem.findUniqueOrThrow({ where: { id: body.inventoryItemId } });
     const prev = Number(item.quantityInStock);
     const delta = ['STOCK_IN', 'ADJUSTMENT_INCREASE', 'RETURNED', 'RELEASED'].includes(body.movementType) ? body.quantity : -body.quantity;

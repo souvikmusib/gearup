@@ -6,7 +6,7 @@ import { requirePermission } from '../../common/middleware/auth';
 import { PERMISSIONS } from '@gearup/types';
 import { z } from 'zod';
 
-const router = Router();
+const router: Router = Router();
 
 router.get('/', requirePermission(PERMISSIONS.NOTIFICATIONS_VIEW), asyncHandler(async (req, res) => {
   const { page, pageSize, channel, eventType, sendStatus } = req.query as Record<string, string>;

@@ -6,7 +6,7 @@ import { generateReferenceId, generateAppointmentRef } from '../../common/utils/
 import { ValidationError, NotFoundError } from '../../common/errors';
 import { logActivity } from '../../common/utils/activity-logger';
 
-const router = Router();
+const router: Router = Router();
 
 const serviceRequestSchema = z.object({
   fullName: z.string().min(1),
@@ -29,7 +29,7 @@ const serviceRequestSchema = z.object({
 router.post('/service-requests', asyncHandler(async (req, res) => {
   const body = serviceRequestSchema.parse(req.body);
 
-  const result = await prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx: any) => {
     // Upsert customer by phone
     let customer = await tx.customer.findFirst({ where: { phoneNumber: body.phoneNumber } });
     if (!customer) {
@@ -109,7 +109,7 @@ router.get('/available-slots', asyncHandler(async (req, res) => {
     where: { appointmentDate: targetDate, status: { notIn: ['CANCELLED', 'NO_SHOW'] } },
   });
 
-  const slots = rules.flatMap((rule) => {
+  const slots = rules.flatMap((rule: any) => {
     const result: { label: string; start: string; end: string; available: boolean }[] = [];
     const [openH, openM] = rule.openTime.split(':').map(Number);
     const [closeH, closeM] = rule.closeTime.split(':').map(Number);
@@ -125,7 +125,7 @@ router.get('/available-slots', asyncHandler(async (req, res) => {
       const fmt = (h: number, mn: number) => `${h.toString().padStart(2, '0')}:${mn.toString().padStart(2, '0')}`;
       const start = new Date(targetDate); start.setHours(startH, startM, 0, 0);
       const end = new Date(targetDate); end.setHours(endH, endMn, 0, 0);
-      const isBlocked = blocked.some((b) => start >= b.blockStartTime && end <= b.blockEndTime);
+      const isBlocked = blocked.some((b: any) => start >= b.blockStartTime && end <= b.blockEndTime);
       result.push({
         label: `${fmt(startH, startM)} - ${fmt(endH, endMn)}`,
         start: start.toISOString(),

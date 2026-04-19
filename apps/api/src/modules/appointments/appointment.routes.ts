@@ -8,7 +8,7 @@ import { logActivity } from '../../common/utils/activity-logger';
 import { generateAppointmentRef } from '../../common/utils/id-generators';
 import { z } from 'zod';
 
-const router = Router();
+const router: Router = Router();
 
 router.get('/', requirePermission(PERMISSIONS.APPOINTMENTS_VIEW), asyncHandler(async (req, res) => {
   const { page, pageSize, status, date } = req.query as Record<string, string>;

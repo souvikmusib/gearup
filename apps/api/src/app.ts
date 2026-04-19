@@ -7,7 +7,7 @@ import { errorHandler } from './common/middleware/error-handler';
 import healthRoutes from './modules/health/health.routes';
 import { registerRoutes } from './routes';
 
-const app = express();
+const app: express.Express = express();
 
 app.use(helmet());
 app.use(cors(corsOptions));

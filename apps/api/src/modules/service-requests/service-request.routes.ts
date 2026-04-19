@@ -7,7 +7,7 @@ import { PERMISSIONS } from '@gearup/types';
 import { logActivity } from '../../common/utils/activity-logger';
 import { z } from 'zod';
 
-const router = Router();
+const router: Router = Router();
 
 router.get('/', requirePermission(PERMISSIONS.SERVICE_REQUESTS_VIEW), asyncHandler(async (req, res) => {
   const { page, pageSize, search, status } = req.query as Record<string, string>;

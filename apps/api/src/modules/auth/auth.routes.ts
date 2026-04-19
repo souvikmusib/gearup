@@ -11,7 +11,7 @@ import { logActivity } from '../../common/utils/activity-logger';
 import { ROLE_PERMISSIONS, type RoleKey } from '@gearup/types';
 import { z } from 'zod';
 
-const router = Router();
+const router: Router = Router();
 
 const loginSchema = z.object({
   adminUserId: z.string().min(1),
@@ -51,8 +51,8 @@ router.post('/login', asyncHandler(async (req, res) => {
     data: { failedLoginAttempts: 0, status: 'ACTIVE', lockedUntil: null, lastLoginAt: new Date() },
   });
 
-  const roleKeys = user.roles.map((r) => r.role.key as RoleKey);
-  const permissions = [...new Set(roleKeys.flatMap((k) => ROLE_PERMISSIONS[k] ?? []))];
+  const roleKeys = user.roles.map((r: any) => r.role.key as RoleKey);
+  const permissions = [...new Set(roleKeys.flatMap((k: RoleKey) => ROLE_PERMISSIONS[k] ?? []))];
 
   const token = jwt.sign(
     { sub: user.id, adminUserId: user.adminUserId, roles: roleKeys, permissions },
@@ -81,8 +81,8 @@ router.get('/me', authenticate, asyncHandler(async (req, res) => {
     where: { id: req.user!.sub },
     include: { roles: { include: { role: true } } },
   });
-  const roleKeys = user.roles.map((r) => r.role.key as RoleKey);
-  const permissions = [...new Set(roleKeys.flatMap((k) => ROLE_PERMISSIONS[k] ?? []))];
+  const roleKeys = user.roles.map((r: any) => r.role.key as RoleKey);
+  const permissions = [...new Set(roleKeys.flatMap((k: RoleKey) => ROLE_PERMISSIONS[k] ?? []))];
   res.json({
     success: true,
     data: { id: user.id, adminUserId: user.adminUserId, fullName: user.fullName, email: user.email, roles: roleKeys, permissions },

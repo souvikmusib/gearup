@@ -17,8 +17,8 @@ export async function notificationProcessor() {
 
       // Render template with {{var}} replacement
       const vars = (notif.payloadJson as Record<string, string>) ?? {};
-      const rendered = template.messageBody.replace(/\{\{(\w+)\}\}/g, (_, key) => vars[key] ?? '');
-      const subject = template.subject?.replace(/\{\{(\w+)\}\}/g, (_, key) => vars[key] ?? '');
+      const rendered = template.messageBody.replace(/\{\{(\w+)\}\}/g, (_: string, key: string) => vars[key] ?? '');
+      const subject = template.subject?.replace(/\{\{(\w+)\}\}/g, (_: string, key: string) => vars[key] ?? '');
 
       // Dispatch to channel provider
       if (notif.channel === 'WHATSAPP') {

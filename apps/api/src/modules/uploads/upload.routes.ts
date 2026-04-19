@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { asyncHandler } from '../../common/utils/async-handler';
 import multer from 'multer';
 
-const router = Router();
+const router: Router = Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
 // POST /upload — stub: accepts file, returns metadata (Supabase Storage integration TODO)

@@ -8,7 +8,7 @@ import { logActivity } from '../../common/utils/activity-logger';
 import { generateJobCardNumber } from '../../common/utils/id-generators';
 import { z } from 'zod';
 
-const router = Router();
+const router: Router = Router();
 
 router.get('/', requirePermission(PERMISSIONS.JOB_CARDS_CREATE), asyncHandler(async (req, res) => {
   const { page, pageSize, status, search } = req.query as Record<string, string>;

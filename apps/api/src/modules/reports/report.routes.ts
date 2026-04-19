@@ -4,7 +4,7 @@ import { prisma } from '@gearup/db';
 import { requirePermission } from '../../common/middleware/auth';
 import { PERMISSIONS } from '@gearup/types';
 
-const router = Router();
+const router: Router = Router();
 
 router.get('/dashboard', requirePermission(PERMISSIONS.DASHBOARD_VIEW), asyncHandler(async (_req, res) => {
   const today = new Date(); today.setHours(0, 0, 0, 0);
@@ -14,7 +14,7 @@ router.get('/dashboard', requirePermission(PERMISSIONS.DASHBOARD_VIEW), asyncHan
     prisma.appointment.count({ where: { appointmentDate: { gte: today, lt: tomorrow }, status: { notIn: ['CANCELLED', 'NO_SHOW'] } } }),
     prisma.serviceRequest.count({ where: { status: { in: ['SUBMITTED', 'UNDER_REVIEW'] } } }),
     prisma.jobCard.count({ where: { status: { notIn: ['DELIVERED', 'CANCELLED', 'CLOSED'] } } }),
-    prisma.$queryRaw<[{count: bigint}]>`SELECT COUNT(*)::int as count FROM "InventoryItem" WHERE "reorderLevel" IS NOT NULL AND "quantityInStock" <= "reorderLevel" AND "isActive" = true`.then(r => Number(r[0]?.count ?? 0)).catch(() => 0),
+    prisma.$queryRaw<[{count: bigint}]>`SELECT COUNT(*)::int as count FROM "InventoryItem" WHERE "reorderLevel" IS NOT NULL AND "quantityInStock" <= "reorderLevel" AND "isActive" = true`.then((r: any) => Number(r[0]?.count ?? 0)).catch(() => 0),
     prisma.invoice.count({ where: { invoiceStatus: 'FINALIZED', paymentStatus: { in: ['UNPAID', 'PARTIALLY_PAID'] } } }),
     prisma.payment.aggregate({ where: { paymentDate: { gte: today, lt: tomorrow } }, _sum: { amount: true } }),
   ]);
@@ -52,7 +52,7 @@ router.get('/inventory', requirePermission(PERMISSIONS.REPORTS_VIEW), asyncHandl
 
 router.get('/workers', requirePermission(PERMISSIONS.REPORTS_VIEW), asyncHandler(async (_req, res) => {
   const workers = await prisma.worker.findMany({ where: { status: 'ACTIVE' }, include: { _count: { select: { assignments: true } } } });
-  res.json({ success: true, data: workers.map((w) => ({ id: w.id, fullName: w.fullName, activeAssignments: w._count.assignments })) });
+  res.json({ success: true, data: workers.map((w: any) => ({ id: w.id, fullName: w.fullName, activeAssignments: w._count.assignments })) });
 }));
 
 router.get('/expenses', requirePermission(PERMISSIONS.REPORTS_VIEW), asyncHandler(async (req, res) => {

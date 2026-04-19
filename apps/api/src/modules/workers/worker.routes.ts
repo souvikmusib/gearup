@@ -8,7 +8,7 @@ import { logActivity } from '../../common/utils/activity-logger';
 import { generateWorkerCode } from '../../common/utils/id-generators';
 import { z } from 'zod';
 
-const router = Router();
+const router: Router = Router();
 
 const workerSchema = z.object({
   fullName: z.string().min(1),

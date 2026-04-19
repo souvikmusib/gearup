@@ -5,7 +5,7 @@ import { paginate, paginationMeta } from '@gearup/db';
 import { requirePermission } from '../../common/middleware/auth';
 import { PERMISSIONS } from '@gearup/types';
 
-const router = Router();
+const router: Router = Router();
 
 router.get('/', requirePermission(PERMISSIONS.PAYMENTS_RECORD), asyncHandler(async (req, res) => {
   const { page, pageSize } = req.query as Record<string, string>;
