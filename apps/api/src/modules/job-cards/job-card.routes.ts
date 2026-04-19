@@ -7,6 +7,7 @@ import { PERMISSIONS } from '@gearup/types';
 import { logActivity } from '../../common/utils/activity-logger';
 import { generateJobCardNumber } from '../../common/utils/id-generators';
 import { z } from 'zod';
+import type { Prisma } from '@prisma/client';
 
 const router: Router = Router();
 
@@ -45,9 +46,8 @@ router.post('/', requirePermission(PERMISSIONS.JOB_CARDS_CREATE), asyncHandler(a
       ...body,
       intakeDate: new Date(),
       estimatedDeliveryAt: body.estimatedDeliveryAt ? new Date(body.estimatedDeliveryAt) : undefined,
-    },
+    } as unknown as Prisma.JobCardUncheckedCreateInput,
   });
-  // Update service request status if linked
   if (body.serviceRequestId) {
     await prisma.serviceRequest.update({ where: { id: body.serviceRequestId }, data: { status: 'CONVERTED_TO_JOB' } });
   }
@@ -76,7 +76,7 @@ router.patch('/:id', requirePermission(PERMISSIONS.JOB_CARDS_UPDATE_STATUS), asy
     finalLaborCost: z.number().optional(),
     finalTotal: z.number().optional(),
   })).parse(req.body);
-  const jc = await prisma.jobCard.update({ where: { id: req.params.id }, data: body as any });
+  const jc = await prisma.jobCard.update({ where: { id: req.params.id }, data: body as unknown as Prisma.JobCardUncheckedUpdateInput });
   await logActivity({ entityType: 'JobCard', entityId: jc.id, action: 'job-card.updated', newValue: body, actorType: 'ADMIN', actorId: req.user!.sub, requestId: req.requestId });
   res.json({ success: true, data: jc });
 }));
@@ -104,7 +104,7 @@ router.post('/:id/assign-workers', requirePermission(PERMISSIONS.JOB_CARDS_ASSIG
 
 router.post('/:id/tasks', requirePermission(PERMISSIONS.JOB_CARDS_UPDATE_STATUS), asyncHandler(async (req, res) => {
   const body = z.object({ taskName: z.string(), taskDescription: z.string().optional(), assignedWorkerId: z.string().optional(), estimatedMinutes: z.number().optional(), sortOrder: z.number().optional() }).parse(req.body);
-  const task = await prisma.jobCardTask.create({ data: { jobCardId: req.params.id, ...body, status: 'PENDING' } });
+  const task = await prisma.jobCardTask.create({ data: { jobCardId: req.params.id, ...body, status: 'PENDING' } as unknown as Prisma.JobCardTaskUncheckedCreateInput });
   res.status(201).json({ success: true, data: task });
 }));
 
@@ -116,7 +116,7 @@ router.patch('/:id/tasks/:taskId', requirePermission(PERMISSIONS.JOB_CARDS_UPDAT
 
 router.post('/:id/parts', requirePermission(PERMISSIONS.JOB_CARDS_UPDATE_STATUS), asyncHandler(async (req, res) => {
   const body = z.object({ inventoryItemId: z.string(), requiredQty: z.number(), unitPrice: z.number().optional(), notes: z.string().optional() }).parse(req.body);
-  const part = await prisma.jobCardPart.create({ data: { jobCardId: req.params.id, ...body } });
+  const part = await prisma.jobCardPart.create({ data: { jobCardId: req.params.id, ...body } as unknown as Prisma.JobCardPartUncheckedCreateInput });
   await logActivity({ entityType: 'JobCard', entityId: req.params.id, action: 'job-card.part.reserved', newValue: body, actorType: 'ADMIN', actorId: req.user!.sub, requestId: req.requestId });
   res.status(201).json({ success: true, data: part });
 }));
