@@ -45,7 +45,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       return payment;
     });
 
-    await logActivity({ entityType: 'Payment', entityId: result.id, action: 'payment.recorded', newValue: body, actorType: 'ADMIN', actorId: user.sub });
+    logActivity({ entityType: 'Payment', entityId: result.id, action: 'payment.recorded', newValue: body, actorType: 'ADMIN', actorId: user.sub });
     return NextResponse.json({ success: true, data: result }, { status: 201 });
   } catch (e) { return handleApiError(e); }
 }

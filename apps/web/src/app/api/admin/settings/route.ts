@@ -23,7 +23,7 @@ export async function PATCH(req: NextRequest) {
     const invalid = entries.filter(([key]) => !ALLOWED_PREFIXES.some((p) => key.startsWith(p)));
     if (invalid.length) throw new ValidationError(`Invalid setting keys: ${invalid.map(([k]) => k).join(', ')}. Allowed prefixes: ${ALLOWED_PREFIXES.join(', ')}`);
     await Promise.all(entries.map(([key, value]) => prisma.setting.upsert({ where: { key }, create: { key, value: value as any }, update: { value: value as any } })));
-    await logActivity({ entityType: 'Setting', action: 'settings.updated', newValue: body, actorType: 'ADMIN', actorId: user.sub });
+    logActivity({ entityType: 'Setting', action: 'settings.updated', newValue: body, actorType: 'ADMIN', actorId: user.sub });
     return NextResponse.json({ success: true });
   } catch (e) { return handleApiError(e); }
 }

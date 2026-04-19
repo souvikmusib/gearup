@@ -28,7 +28,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     const data: Record<string, unknown> = { ...body };
     if (body.dueDate) data.dueDate = new Date(body.dueDate);
     const invoice = await prisma.invoice.update({ where: { id: params.id }, data });
-    await logActivity({ entityType: 'Invoice', entityId: invoice.id, action: 'invoice.updated', newValue: body, actorType: 'ADMIN', actorId: user.sub });
+    logActivity({ entityType: 'Invoice', entityId: invoice.id, action: 'invoice.updated', newValue: body, actorType: 'ADMIN', actorId: user.sub });
     return NextResponse.json({ success: true, data: invoice });
   } catch (e) { return handleApiError(e); }
 }

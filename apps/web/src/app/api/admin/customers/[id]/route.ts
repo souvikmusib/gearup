@@ -27,7 +27,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     const body = updateSchema.parse(await req.json());
     const prev = await prisma.customer.findUniqueOrThrow({ where: { id: params.id } });
     const customer = await prisma.customer.update({ where: { id: params.id }, data: body as any });
-    await logActivity({ entityType: 'Customer', entityId: customer.id, action: 'customer.updated', previousValue: prev, newValue: customer, actorType: 'ADMIN', actorId: user.sub });
+    logActivity({ entityType: 'Customer', entityId: customer.id, action: 'customer.updated', previousValue: prev, newValue: customer, actorType: 'ADMIN', actorId: user.sub });
     return NextResponse.json({ success: true, data: customer });
   } catch (e) { return handleApiError(e); }
 }

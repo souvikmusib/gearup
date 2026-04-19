@@ -23,7 +23,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     if (body.slotStart) data.slotStart = new Date(body.slotStart);
     if (body.slotEnd) data.slotEnd = new Date(body.slotEnd);
     const appt = await prisma.appointment.update({ where: { id: params.id }, data });
-    await logActivity({ entityType: 'Appointment', entityId: appt.id, action: 'appointment.updated', newValue: body, actorType: 'ADMIN', actorId: user.sub });
+    logActivity({ entityType: 'Appointment', entityId: appt.id, action: 'appointment.updated', newValue: body, actorType: 'ADMIN', actorId: user.sub });
     return NextResponse.json({ success: true, data: appt });
   } catch (e) { return handleApiError(e); }
 }

@@ -19,7 +19,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     const user = requirePermission(PERMISSIONS.WORKERS_MANAGE);
     const body = z.object({ fullName: z.string().optional(), phoneNumber: z.string().optional(), status: z.enum(['ACTIVE', 'INACTIVE', 'ON_LEAVE']).optional(), notes: z.string().optional() }).parse(await req.json());
     const worker = await prisma.worker.update({ where: { id: params.id }, data: body as any });
-    await logActivity({ entityType: 'Worker', entityId: worker.id, action: 'worker.updated', newValue: body, actorType: 'ADMIN', actorId: user.sub });
+    logActivity({ entityType: 'Worker', entityId: worker.id, action: 'worker.updated', newValue: body, actorType: 'ADMIN', actorId: user.sub });
     return NextResponse.json({ success: true, data: worker });
   } catch (e) { return handleApiError(e); }
 }

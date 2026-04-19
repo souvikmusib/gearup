@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
     const user = await prisma.adminUser.findUniqueOrThrow({ where: { id: auth.sub } });
     if (!(await bcrypt.compare(currentPassword, user.passwordHash))) throw new UnauthorizedError('Current password incorrect');
     await prisma.adminUser.update({ where: { id: user.id }, data: { passwordHash: await bcrypt.hash(newPassword, 12) } });
-    await logActivity({ entityType: 'AdminUser', entityId: user.id, action: 'auth.password-changed', actorType: 'ADMIN', actorId: user.id });
+    logActivity({ entityType: 'AdminUser', entityId: user.id, action: 'auth.password-changed', actorType: 'ADMIN', actorId: user.id });
     return NextResponse.json({ success: true });
   } catch (e) { return handleApiError(e); }
 }

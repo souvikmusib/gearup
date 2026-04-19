@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
     const user = requirePermission(PERMISSIONS.VEHICLES_EDIT);
     const body = vehicleSchema.parse(await req.json());
     const vehicle = await prisma.vehicle.create({ data: body as any });
-    await logActivity({ entityType: 'Vehicle', entityId: vehicle.id, action: 'vehicle.created', newValue: vehicle, actorType: 'ADMIN', actorId: user.sub });
+    logActivity({ entityType: 'Vehicle', entityId: vehicle.id, action: 'vehicle.created', newValue: vehicle, actorType: 'ADMIN', actorId: user.sub });
     return NextResponse.json({ success: true, data: vehicle }, { status: 201 });
   } catch (e) { return handleApiError(e); }
 }

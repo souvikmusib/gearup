@@ -14,7 +14,7 @@ export async function POST(_req: NextRequest, { params }: { params: { id: string
       where: { id: params.id },
       data: { invoiceStatus: 'FINALIZED', finalizedAt: new Date() },
     });
-    await logActivity({ entityType: 'Invoice', entityId: invoice.id, action: 'invoice.finalized', actorType: 'ADMIN', actorId: user.sub });
+    logActivity({ entityType: 'Invoice', entityId: invoice.id, action: 'invoice.finalized', actorType: 'ADMIN', actorId: user.sub });
     return NextResponse.json({ success: true, data: invoice });
   } catch (e) { return handleApiError(e); }
 }

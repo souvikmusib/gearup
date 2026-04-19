@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
       storageLocation: z.string().optional(), barcode: z.string().optional(),
     }).parse(await req.json());
     const item = await prisma.inventoryItem.create({ data: body as any });
-    await logActivity({ entityType: 'InventoryItem', entityId: item.id, action: 'inventory.item.created', newValue: item, actorType: 'ADMIN', actorId: user.sub });
+    logActivity({ entityType: 'InventoryItem', entityId: item.id, action: 'inventory.item.created', newValue: item, actorType: 'ADMIN', actorId: user.sub });
     return NextResponse.json({ success: true, data: item }, { status: 201 });
   } catch (e) { return handleApiError(e); }
 }

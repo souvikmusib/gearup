@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
       }
       return { referenceId, serviceRequestId: sr.id, appointmentId: appointment?.id ?? null, status: sr.status };
     });
-    await logActivity({ entityType: 'ServiceRequest', entityId: result.serviceRequestId, action: 'service-request.created', newValue: result, actorType: 'PUBLIC' });
+    logActivity({ entityType: 'ServiceRequest', entityId: result.serviceRequestId, action: 'service-request.created', newValue: result, actorType: 'PUBLIC' });
     return NextResponse.json({ success: true, data: { ...result, message: 'Service request submitted successfully.' } }, { status: 201 });
   } catch (e) { return handleApiError(e); }
 }
