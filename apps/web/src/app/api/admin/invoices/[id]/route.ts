@@ -4,6 +4,14 @@ import { requirePermission } from '@/lib/auth';
 import { handleApiError } from '@/lib/errors';
 import { logActivity } from '@/lib/activity-logger';
 import { PERMISSIONS } from '@gearup/types';
+import { z } from 'zod';
+
+const updateSchema = z.object({
+  notes: z.string().optional(),
+  dueDate: z.string().optional(),
+  discountType: z.string().optional(),
+  discountValue: z.number().optional(),
+}).strict();
 
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -15,8 +23,12 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    requirePermission(PERMISSIONS.INVOICES_CREATE);
-    const invoice = await prisma.invoice.update({ where: { id: params.id }, data: await req.json() });
+    const user = requirePermission(PERMISSIONS.INVOICES_CREATE);
+    const body = updateSchema.parse(await req.json());
+    const data: Record<string, unknown> = { ...body };
+    if (body.dueDate) data.dueDate = new Date(body.dueDate);
+    const invoice = await prisma.invoice.update({ where: { id: params.id }, data });
+    await logActivity({ entityType: 'Invoice', entityId: invoice.id, action: 'invoice.updated', newValue: body, actorType: 'ADMIN', actorId: user.sub });
     return NextResponse.json({ success: true, data: invoice });
   } catch (e) { return handleApiError(e); }
 }
