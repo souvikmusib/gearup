@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { prisma } from '@gearup/db';
 
-const router = Router();
+const router: Router = Router();
 
 router.get('/health', async (_req, res) => {
   try {
