@@ -26,7 +26,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     const data: Record<string, unknown> = { ...body };
     if (body.status === 'DELIVERED') data.actualDeliveryAt = new Date();
     const jc = await prisma.jobCard.update({ where: { id: params.id }, data });
-    await logActivity({ entityType: 'JobCard', entityId: jc.id, action: 'job-card.updated', newValue: body, actorType: 'ADMIN', actorId: user.sub });
+    logActivity({ entityType: 'JobCard', entityId: jc.id, action: 'job-card.updated', newValue: body, actorType: 'ADMIN', actorId: user.sub });
     return NextResponse.json({ success: true, data: jc });
   } catch (e) { return handleApiError(e); }
 }

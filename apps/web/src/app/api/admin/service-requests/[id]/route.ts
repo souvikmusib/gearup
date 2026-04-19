@@ -21,7 +21,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     const data: Record<string, unknown> = { ...body };
     if (body.status && ['CANCELLED', 'CLOSED'].includes(body.status)) data.closedAt = new Date();
     const sr = await prisma.serviceRequest.update({ where: { id: params.id }, data });
-    await logActivity({ entityType: 'ServiceRequest', entityId: sr.id, action: 'service-request.updated', newValue: body, actorType: 'ADMIN', actorId: user.sub });
+    logActivity({ entityType: 'ServiceRequest', entityId: sr.id, action: 'service-request.updated', newValue: body, actorType: 'ADMIN', actorId: user.sub });
     return NextResponse.json({ success: true, data: sr });
   } catch (e) { return handleApiError(e); }
 }

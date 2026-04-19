@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';
 import { PageHeader } from '@gearup/ui';
+import { DashboardSkeleton } from '@/components/shared/skeletons';
 import { Calendar, FileText, Wrench, AlertTriangle, Receipt, DollarSign, Users, Car, ClipboardList, Plus, ArrowRight, Clock } from 'lucide-react';
 
 interface DashboardData {
@@ -46,7 +47,7 @@ export default function DashboardPage() {
     });
   }, []);
 
-  if (!data) return <div className="py-12 text-center text-gray-500 animate-pulse">Loading dashboard...</div>;
+  if (!data) return <DashboardSkeleton />;
 
   const kpis = [
     { label: "Today's Appointments", value: data.todayAppointments, icon: Calendar, color: 'bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400', href: '/admin/appointments' },

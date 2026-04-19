@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
       notes: z.string().optional(),
     }).parse(await req.json());
     const expense = await prisma.expense.create({ data: { ...body, expenseDate: new Date(body.expenseDate), paymentMode: body.paymentMode as any, createdByAdminId: user.sub } as any });
-    await logActivity({ entityType: 'Expense', entityId: expense.id, action: 'expense.created', newValue: expense, actorType: 'ADMIN', actorId: user.sub });
+    logActivity({ entityType: 'Expense', entityId: expense.id, action: 'expense.created', newValue: expense, actorType: 'ADMIN', actorId: user.sub });
     return NextResponse.json({ success: true, data: expense }, { status: 201 });
   } catch (e) { return handleApiError(e); }
 }

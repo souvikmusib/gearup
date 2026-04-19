@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
     const user = requirePermission(PERMISSIONS.WORKERS_MANAGE);
     const body = workerSchema.parse(await req.json());
     const worker = await prisma.worker.create({ data: { workerCode: generateWorkerCode(), ...body, joiningDate: body.joiningDate ? new Date(body.joiningDate) : undefined } as any });
-    await logActivity({ entityType: 'Worker', entityId: worker.id, action: 'worker.created', newValue: worker, actorType: 'ADMIN', actorId: user.sub });
+    logActivity({ entityType: 'Worker', entityId: worker.id, action: 'worker.created', newValue: worker, actorType: 'ADMIN', actorId: user.sub });
     return NextResponse.json({ success: true, data: worker }, { status: 201 });
   } catch (e) { return handleApiError(e); }
 }

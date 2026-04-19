@@ -1,0 +1,51 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { requirePermission } from '@/lib/auth';
+import { handleApiError, ValidationError } from '@/lib/errors';
+import { logActivity } from '@/lib/activity-logger';
+import { PERMISSIONS } from '@gearup/types';
+import { z } from 'zod';
+
+const schema = z.object({
+  amount: z.number().positive(),
+  paymentMode: z.string(),
+  paymentDate: z.string(),
+  referenceNumber: z.string().optional(),
+  notes: z.string().optional(),
+});
+
+export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    const user = requirePermission(PERMISSIONS.PAYMENTS_RECORD);
+    const body = schema.parse(await req.json());
+
+    const result = await prisma.$transaction(async (tx: any) => {
+      const invoice = await tx.invoice.findUniqueOrThrow({ where: { id: params.id } });
+      if (invoice.invoiceStatus !== 'FINALIZED') throw new ValidationError('Payments can only be recorded against FINALIZED invoices');
+      if (invoice.paymentStatus === 'PAID') throw new ValidationError('Invoice is already fully paid');
+
+      const currentDue = Number(invoice.amountDue);
+      if (body.amount > currentDue) throw new ValidationError(`Payment amount (${body.amount}) exceeds balance due (${currentDue})`);
+
+      const payment = await tx.payment.create({
+        data: {
+          invoiceId: params.id, amount: body.amount, paymentMode: body.paymentMode as any,
+          paymentDate: new Date(body.paymentDate), referenceNumber: body.referenceNumber,
+          notes: body.notes, receivedByAdminId: user.sub,
+        },
+      });
+
+      const newPaid = Number(invoice.amountPaid) + body.amount;
+      const newDue = Number(invoice.grandTotal) - newPaid;
+      const paymentStatus = newDue <= 0 ? 'PAID' : 'PARTIALLY_PAID';
+      await tx.invoice.update({
+        where: { id: params.id },
+        data: { amountPaid: newPaid, amountDue: Math.max(0, newDue), paymentStatus: paymentStatus as any },
+      });
+      return payment;
+    });
+
+    logActivity({ entityType: 'Payment', entityId: result.id, action: 'payment.recorded', newValue: body, actorType: 'ADMIN', actorId: user.sub });
+    return NextResponse.json({ success: true, data: result }, { status: 201 });
+  } catch (e) { return handleApiError(e); }
+}

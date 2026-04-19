@@ -14,8 +14,9 @@ interface LogActivityParams {
   userAgent?: string;
 }
 
-export async function logActivity(params: LogActivityParams) {
-  await prisma.activityLog.create({
+/** Fire-and-forget activity logger. Does not block the response. */
+export function logActivity(params: LogActivityParams) {
+  prisma.activityLog.create({
     data: {
       entityType: params.entityType,
       entityId: params.entityId,
@@ -28,5 +29,5 @@ export async function logActivity(params: LogActivityParams) {
       ipAddress: params.ipAddress,
       userAgent: params.userAgent,
     },
-  });
+  }).catch((e) => console.error('Activity log failed:', e.message));
 }

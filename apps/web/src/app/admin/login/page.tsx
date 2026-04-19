@@ -18,22 +18,13 @@ export default function AdminLoginPage() {
     e.preventDefault();
     setError(''); setLoading(true);
 
-    // Try real API first, fall back to demo mode if backend is unreachable
     try {
       const res = await api.post<{ token: string }>('/admin/auth/login', { adminUserId, password });
       setLoading(false);
-      if (res.success && res.data) { login(res.data.token); router.push('/admin/dashboard'); return; }
+      if (res.success && res.data) { await login(res.data.token); router.push('/admin/dashboard'); return; }
       else setError(res.error?.message || 'Login failed');
     } catch {
-      // Backend unreachable — use demo mode
-      if (adminUserId === 'superadmin' && password === 'admin123') {
-        const demoToken = 'demo-token';
-        localStorage.setItem('gearup_token', demoToken);
-        localStorage.setItem('gearup_demo', 'true');
-        router.push('/admin/dashboard');
-      } else {
-        setError('Backend unavailable. Demo login: superadmin / admin123');
-      }
+      setError('Unable to reach server. Please try again.');
       setLoading(false);
     }
   };

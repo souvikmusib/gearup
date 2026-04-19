@@ -548,7 +548,7 @@ test.describe('12. Remaining Modules', () => {
   });
 
   test('12.8 Settings update', async ({ page }) => {
-    const { body } = await authPost(page, '/api/admin/settings', token, { 'pw.test': 'playwright' });
+    const { body } = await authPatch(page, '/api/admin/settings', token, { 'pw.test': 'playwright' });
     // Settings uses PATCH but let's test via the endpoint
     const read = await authGet(page, '/api/admin/settings', token);
     expect(read.body.success).toBe(true);

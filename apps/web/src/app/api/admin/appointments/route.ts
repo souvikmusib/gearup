@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
     const appt = await prisma.appointment.create({
       data: { referenceId: generateAppointmentRef(), ...body, appointmentDate: new Date(body.appointmentDate), slotStart: new Date(body.slotStart), slotEnd: new Date(body.slotEnd), status: 'CONFIRMED', confirmedByAdminId: user.sub } as any,
     });
-    await logActivity({ entityType: 'Appointment', entityId: appt.id, action: 'appointment.created', newValue: appt, actorType: 'ADMIN', actorId: user.sub });
+    logActivity({ entityType: 'Appointment', entityId: appt.id, action: 'appointment.created', newValue: appt, actorType: 'ADMIN', actorId: user.sub });
     return NextResponse.json({ success: true, data: appt }, { status: 201 });
   } catch (e) { return handleApiError(e); }
 }

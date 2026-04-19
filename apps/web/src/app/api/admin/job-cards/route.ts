@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { paginate, paginationMeta } from '@/lib/pagination';
-import { requirePermission } from '@/lib/auth';
+import { requireAnyPermission } from '@/lib/auth';
 import { handleApiError } from '@/lib/errors';
 import { logActivity } from '@/lib/activity-logger';
 import { generateJobCardNumber } from '@/lib/id-generators';
@@ -16,7 +16,7 @@ const createSchema = z.object({
 
 export async function GET(req: NextRequest) {
   try {
-    requirePermission(PERMISSIONS.JOB_CARDS_CREATE);
+    const user = requireAnyPermission(PERMISSIONS.JOB_CARDS_CREATE, PERMISSIONS.JOB_CARDS_VIEW_OWN);
     const sp = req.nextUrl.searchParams;
     const page = Number(sp.get('page')) || 1;
     const pageSize = Number(sp.get('pageSize')) || 20;
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
     const body = createSchema.parse(await req.json());
     const jc = await prisma.jobCard.create({ data: { jobCardNumber: generateJobCardNumber(), ...body, intakeDate: new Date(), estimatedDeliveryAt: body.estimatedDeliveryAt ? new Date(body.estimatedDeliveryAt) : undefined } as any });
     if (body.serviceRequestId) await prisma.serviceRequest.update({ where: { id: body.serviceRequestId }, data: { status: 'CONVERTED_TO_JOB' } });
-    await logActivity({ entityType: 'JobCard', entityId: jc.id, action: 'job-card.created', newValue: jc, actorType: 'ADMIN', actorId: user.sub });
+    logActivity({ entityType: 'JobCard', entityId: jc.id, action: 'job-card.created', newValue: jc, actorType: 'ADMIN', actorId: user.sub });
     return NextResponse.json({ success: true, data: jc }, { status: 201 });
   } catch (e) { return handleApiError(e); }
 }

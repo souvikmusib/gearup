@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
         include: { lineItems: true },
       });
     });
-    await logActivity({ entityType: 'Invoice', entityId: invoice.id, action: 'invoice.created', newValue: { invoiceNumber: invoice.invoiceNumber }, actorType: 'ADMIN', actorId: user.sub });
+    logActivity({ entityType: 'Invoice', entityId: invoice.id, action: 'invoice.created', newValue: { invoiceNumber: invoice.invoiceNumber }, actorType: 'ADMIN', actorId: user.sub });
     return NextResponse.json({ success: true, data: invoice }, { status: 201 });
   } catch (e) { return handleApiError(e); }
 }

@@ -17,7 +17,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
   try {
     const user = requirePermission(PERMISSIONS.EXPENSES_MANAGE);
     await prisma.expense.delete({ where: { id: params.id } });
-    await logActivity({ entityType: 'Expense', entityId: params.id, action: 'expense.deleted', actorType: 'ADMIN', actorId: user.sub });
+    logActivity({ entityType: 'Expense', entityId: params.id, action: 'expense.deleted', actorType: 'ADMIN', actorId: user.sub });
     return NextResponse.json({ success: true });
   } catch (e) { return handleApiError(e); }
 }
