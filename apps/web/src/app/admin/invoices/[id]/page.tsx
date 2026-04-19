@@ -35,9 +35,16 @@ export default function InvoiceDetailPage() {
     setLoading('');
   };
 
-  const openPdf = () => {
+  const openPdf = async () => {
     const token = localStorage.getItem('gearup_token');
-    window.open(`/api/admin/invoices/${id}/pdf`, '_blank');
+    const res = await fetch(`/api/admin/invoices/${id}/pdf`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const html = await res.text();
+    const blob = new Blob([html], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const w = window.open(url, '_blank');
+    if (w) w.onload = () => URL.revokeObjectURL(url);
   };
 
   if (!data) return <div className="py-12 text-center text-gray-500 animate-pulse">Loading invoice...</div>;
