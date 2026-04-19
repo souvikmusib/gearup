@@ -7,6 +7,7 @@ import { requirePermission } from '../../common/middleware/auth';
 import { PERMISSIONS } from '@gearup/types';
 import { logActivity } from '../../common/utils/activity-logger';
 import { z } from 'zod';
+import type { Prisma } from '@prisma/client';
 
 const router: Router = Router();
 
@@ -39,7 +40,7 @@ router.get('/', requirePermission(PERMISSIONS.ADMIN_USERS_MANAGE), asyncHandler(
 // Create
 router.post('/', requirePermission(PERMISSIONS.ADMIN_USERS_MANAGE), asyncHandler(async (req, res) => {
   const { password, ...body } = createSchema.parse(req.body);
-  const user = await prisma.adminUser.create({ data: { ...body, passwordHash: await bcrypt.hash(password, 12) } });
+  const user = await prisma.adminUser.create({ data: { ...body, passwordHash: await bcrypt.hash(password, 12) } as Prisma.AdminUserCreateInput });
   await logActivity({ entityType: 'AdminUser', entityId: user.id, action: 'admin-user.created', newValue: { ...user, passwordHash: undefined }, actorType: 'ADMIN', actorId: req.user!.sub, requestId: req.requestId });
   res.status(201).json({ success: true, data: user });
 }));
@@ -47,7 +48,7 @@ router.post('/', requirePermission(PERMISSIONS.ADMIN_USERS_MANAGE), asyncHandler
 // Update
 router.patch('/:id', requirePermission(PERMISSIONS.ADMIN_USERS_MANAGE), asyncHandler(async (req, res) => {
   const body = z.object({ fullName: z.string().optional(), email: z.string().email().optional(), phone: z.string().optional() }).parse(req.body);
-  const user = await prisma.adminUser.update({ where: { id: req.params.id }, data: body });
+  const user = await prisma.adminUser.update({ where: { id: req.params.id }, data: body as Prisma.AdminUserUpdateInput });
   await logActivity({ entityType: 'AdminUser', entityId: user.id, action: 'admin-user.updated', newValue: body, actorType: 'ADMIN', actorId: req.user!.sub, requestId: req.requestId });
   res.json({ success: true, data: user });
 }));
