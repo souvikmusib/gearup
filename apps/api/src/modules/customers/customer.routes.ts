@@ -6,6 +6,7 @@ import { requirePermission } from '../../common/middleware/auth';
 import { PERMISSIONS } from '@gearup/types';
 import { z } from 'zod';
 import { logActivity } from '../../common/utils/activity-logger';
+import type { Prisma } from '@prisma/client';
 
 const router: Router = Router();
 
@@ -42,7 +43,7 @@ router.get('/', requirePermission(PERMISSIONS.CUSTOMERS_VIEW), asyncHandler(asyn
 
 router.post('/', requirePermission(PERMISSIONS.CUSTOMERS_EDIT), asyncHandler(async (req, res) => {
   const body = createCustomerSchema.parse(req.body);
-  const customer = await prisma.customer.create({ data: body });
+  const customer = await prisma.customer.create({ data: body as Prisma.CustomerCreateInput });
   await logActivity({ entityType: 'Customer', entityId: customer.id, action: 'customer.created', newValue: customer, actorType: 'ADMIN', actorId: req.user!.sub, requestId: req.requestId });
   res.status(201).json({ success: true, data: customer });
 }));
@@ -55,7 +56,7 @@ router.get('/:id', requirePermission(PERMISSIONS.CUSTOMERS_VIEW), asyncHandler(a
 router.patch('/:id', requirePermission(PERMISSIONS.CUSTOMERS_EDIT), asyncHandler(async (req, res) => {
   const body = createCustomerSchema.partial().parse(req.body);
   const prev = await prisma.customer.findUniqueOrThrow({ where: { id: req.params.id } });
-  const customer = await prisma.customer.update({ where: { id: req.params.id }, data: body });
+  const customer = await prisma.customer.update({ where: { id: req.params.id }, data: body as Prisma.CustomerUpdateInput });
   await logActivity({ entityType: 'Customer', entityId: customer.id, action: 'customer.updated', previousValue: prev, newValue: customer, actorType: 'ADMIN', actorId: req.user!.sub, requestId: req.requestId });
   res.json({ success: true, data: customer });
 }));
