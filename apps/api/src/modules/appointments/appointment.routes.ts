@@ -7,6 +7,7 @@ import { PERMISSIONS } from '@gearup/types';
 import { logActivity } from '../../common/utils/activity-logger';
 import { generateAppointmentRef } from '../../common/utils/id-generators';
 import { z } from 'zod';
+import type { Prisma } from '@prisma/client';
 
 const router: Router = Router();
 
@@ -46,7 +47,7 @@ router.post('/', requirePermission(PERMISSIONS.APPOINTMENTS_CONFIRM), asyncHandl
       slotEnd: new Date(body.slotEnd),
       status: 'CONFIRMED',
       confirmedByAdminId: req.user!.sub,
-    },
+    } as unknown as Prisma.AppointmentUncheckedCreateInput,
   });
   await logActivity({ entityType: 'Appointment', entityId: appt.id, action: 'appointment.created', newValue: appt, actorType: 'ADMIN', actorId: req.user!.sub, requestId: req.requestId });
   res.status(201).json({ success: true, data: appt });

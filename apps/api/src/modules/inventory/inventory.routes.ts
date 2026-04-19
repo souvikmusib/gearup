@@ -6,6 +6,7 @@ import { requirePermission } from '../../common/middleware/auth';
 import { PERMISSIONS } from '@gearup/types';
 import { logActivity } from '../../common/utils/activity-logger';
 import { z } from 'zod';
+import type { Prisma } from '@prisma/client';
 
 const router: Router = Router();
 
@@ -34,7 +35,7 @@ router.post('/items', requirePermission(PERMISSIONS.INVENTORY_EDIT), asyncHandle
     quantityInStock: z.number().optional(), reorderLevel: z.number().optional(), reorderQuantity: z.number().optional(),
     storageLocation: z.string().optional(), barcode: z.string().optional(),
   }).parse(req.body);
-  const item = await prisma.inventoryItem.create({ data: body });
+  const item = await prisma.inventoryItem.create({ data: body as unknown as Prisma.InventoryItemUncheckedCreateInput });
   await logActivity({ entityType: 'InventoryItem', entityId: item.id, action: 'inventory.item.created', newValue: item, actorType: 'ADMIN', actorId: req.user!.sub, requestId: req.requestId });
   res.status(201).json({ success: true, data: item });
 }));
@@ -114,7 +115,7 @@ router.get('/suppliers', requirePermission(PERMISSIONS.INVENTORY_VIEW), asyncHan
 
 router.post('/suppliers', requirePermission(PERMISSIONS.INVENTORY_EDIT), asyncHandler(async (req, res) => {
   const body = z.object({ supplierName: z.string(), phone: z.string().optional(), email: z.string().optional(), address: z.string().optional(), contactPerson: z.string().optional(), notes: z.string().optional() }).parse(req.body);
-  const supplier = await prisma.supplier.create({ data: body });
+  const supplier = await prisma.supplier.create({ data: body as Prisma.SupplierCreateInput });
   res.status(201).json({ success: true, data: supplier });
 }));
 
