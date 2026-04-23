@@ -10,7 +10,6 @@ interface TrackResult {
   jobCardStatus: string | null;
   invoiceStatus: string | null;
   paymentStatus: string | null;
-  publicTimeline: { label: string; timestamp: string | null; status: string }[];
 }
 
 export default function TrackPage() {
@@ -56,23 +55,6 @@ export default function TrackPage() {
               {result.appointmentStatus && <StatusBadge status={result.appointmentStatus} />}
               {result.jobCardStatus && <StatusBadge status={result.jobCardStatus} />}
               {result.paymentStatus && <StatusBadge status={result.paymentStatus} />}
-            </div>
-          </div>
-
-          <div className="rounded-lg border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-800">
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Timeline</h3>
-            <div className="space-y-3">
-              {result.publicTimeline.map((t, i) => (
-                <div key={i} className="flex items-start gap-3">
-                  <div className="mt-1 h-2 w-2 rounded-full bg-blue-600 flex-shrink-0" />
-                  <div>
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">{t.label}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {t.timestamp ? new Date(t.timestamp).toLocaleString() : '—'} · <StatusBadge status={t.status} />
-                    </p>
-                  </div>
-                </div>
-              ))}
             </div>
           </div>
 

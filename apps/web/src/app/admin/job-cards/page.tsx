@@ -3,12 +3,44 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';
 import { PageHeader, DataTable, StatusBadge } from '@gearup/ui';
+import { Modal } from '@/components/shared/modal';
 
 export default function JobCardsPage() {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showCreate, setShowCreate] = useState(false);
+  const [customers, setCustomers] = useState<any[]>([]);
+  const [vehicles, setVehicles] = useState<any[]>([]);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const [form, setForm] = useState({ customerId: '', vehicleId: '', issueSummary: '', priority: '', customerComplaints: '' });
   const router = useRouter();
-  useEffect(() => { const { cached, promise } = api.getSWR<any>('/admin/job-cards'); if (cached?.success) { setData(cached.data ?? []); setLoading(false); } promise.then((r) => { if (r.success) setData(r.data ?? []); setLoading(false); }); }, []);
+
+  const load = () => api.get<any>('/admin/job-cards').then((r) => { if (r.success) setData(r.data?.items ?? r.data ?? []); setLoading(false); });
+  useEffect(() => { load(); }, []);
+
+  const openCreate = async () => {
+    setShowCreate(true); setError('');
+    const res = await api.get<any>('/admin/customers?pageSize=200');
+    if (res.success) setCustomers(res.data?.items ?? res.data ?? []);
+  };
+
+  const onCustomerChange = async (customerId: string) => {
+    setForm((f) => ({ ...f, customerId, vehicleId: '' }));
+    if (!customerId) { setVehicles([]); return; }
+    const res = await api.get<any>(`/admin/vehicles?customerId=${customerId}&pageSize=100`);
+    if (res.success) setVehicles(res.data?.items ?? res.data ?? []);
+  };
+
+  const submit = async () => {
+    if (!form.customerId || !form.vehicleId || !form.issueSummary) { setError('Fill all required fields'); return; }
+    setSaving(true); setError('');
+    const res = await api.post<any>('/admin/job-cards', form);
+    setSaving(false);
+    if (res.success) { setShowCreate(false); setForm({ customerId: '', vehicleId: '', issueSummary: '', priority: '', customerComplaints: '' }); load(); }
+    else setError(res.error?.message || 'Failed to create');
+  };
+
   const columns = [
     { key: 'jobCardNumber', header: 'Job Card #' },
     { key: 'customer', header: 'Customer', render: (r: any) => r.customer?.fullName },
@@ -18,6 +50,48 @@ export default function JobCardsPage() {
     { key: 'priority', header: 'Priority', render: (r: any) => r.priority ?? '—' },
     { key: 'workers', header: 'Workers', render: (r: any) => r.assignments?.map((a: any) => a.worker?.fullName).join(', ') || '—' },
   ];
+
+  const inputCls = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white';
+
   if (loading) return <p className="py-8 text-center text-gray-500">Loading...</p>;
-  return (<div><PageHeader title="Job Cards" description="Active and completed work orders" /><DataTable columns={columns} data={data} keyField="id" onRowClick={(r: any) => router.push(`/admin/job-cards/${r.id}`)} /></div>);
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <PageHeader title="Job Cards" description="Active and completed work orders" />
+        <button onClick={openCreate} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">+ New Job Card</button>
+      </div>
+      <DataTable columns={columns} data={data} keyField="id" onRowClick={(r: any) => router.push(`/admin/job-cards/${r.id}`)} />
+
+      <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Create Job Card">
+        <div className="space-y-4">
+          {error && <p className="text-sm text-red-600">{error}</p>}
+          <div>
+            <label className="block text-sm font-medium mb-1">Customer *</label>
+            <select className={inputCls} value={form.customerId} onChange={(e) => onCustomerChange(e.target.value)}>
+              <option value="">Select customer...</option>
+              {customers.map((c: any) => <option key={c.id} value={c.id}>{c.fullName} ({c.phoneNumber})</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Vehicle *</label>
+            <select className={inputCls} value={form.vehicleId} onChange={(e) => setForm((f) => ({ ...f, vehicleId: e.target.value }))}>
+              <option value="">Select vehicle...</option>
+              {vehicles.map((v: any) => <option key={v.id} value={v.id}>{v.registrationNumber} — {v.brand} {v.model}</option>)}
+            </select>
+          </div>
+          <div><label className="block text-sm font-medium mb-1">Issue Summary *</label><textarea className={inputCls} rows={2} value={form.issueSummary} onChange={(e) => setForm((f) => ({ ...f, issueSummary: e.target.value }))} /></div>
+          <div><label className="block text-sm font-medium mb-1">Customer Complaints</label><textarea className={inputCls} rows={2} value={form.customerComplaints} onChange={(e) => setForm((f) => ({ ...f, customerComplaints: e.target.value }))} /></div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Priority</label>
+            <select className={inputCls} value={form.priority} onChange={(e) => setForm((f) => ({ ...f, priority: e.target.value }))}>
+              <option value="">Normal</option><option value="HIGH">High</option><option value="URGENT">Urgent</option>
+            </select>
+          </div>
+          <button onClick={submit} disabled={saving} className="w-full rounded-lg bg-blue-600 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50">
+            {saving ? 'Creating...' : 'Create Job Card'}
+          </button>
+        </div>
+      </Modal>
+    </div>
+  );
 }
