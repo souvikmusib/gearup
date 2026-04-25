@@ -17,15 +17,16 @@ export default function InvoiceDetailPage() {
   const [newLine, setNewLine] = useState({ lineType: 'CUSTOM_CHARGE', description: '', quantity: '1', unitPrice: '', taxRate: '0' });
   const [addingLine, setAddingLine] = useState(false);
 
-  const fetch = () => {
+  const fetch = (useCache = false) => {
     const endpoint = `/admin/invoices/${id}`;
-    const { cached, promise } = api.getSWR<any>(endpoint);
-    if (cached?.success) setData(cached.data);
-    return promise.then((r) => {
-      if (r.success) setData(r.data);
-    });
+    if (useCache) {
+      const { cached, promise } = api.getSWR<any>(endpoint);
+      if (cached?.success) setData(cached.data);
+      return promise.then((r) => { if (r.success) setData(r.data); });
+    }
+    return api.get<any>(endpoint).then((r) => { if (r.success) setData(r.data); });
   };
-  useEffect(() => { fetch(); }, [id]);
+  useEffect(() => { fetch(true); }, [id]);
 
   const finalize = async () => {
     setLoading('finalize');
