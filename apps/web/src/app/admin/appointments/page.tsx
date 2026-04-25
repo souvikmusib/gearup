@@ -8,6 +8,8 @@ import { Modal } from '@/components/shared/modal';
 export default function AppointmentsPage() {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const [showCreate, setShowCreate] = useState(false);
   const [customers, setCustomers] = useState<any[]>([]);
   const [vehicles, setVehicles] = useState<any[]>([]);
@@ -16,7 +18,12 @@ export default function AppointmentsPage() {
   const [form, setForm] = useState({ customerId: '', vehicleId: '', appointmentDate: '', slotStart: '', slotEnd: '' });
   const router = useRouter();
 
-  const load = () => api.get<any>('/admin/appointments').then((r) => { if (r.success) setData(r.data?.items ?? r.data ?? []); setLoading(false); });
+  const load = (s = search, st = statusFilter) => {
+    const p = new URLSearchParams();
+    if (s) p.set('search', s);
+    if (st) p.set('status', st);
+    api.get<any>(`/admin/appointments?${p}`).then((r) => { if (r.success) setData(r.data?.items ?? r.data ?? []); setLoading(false); });
+  };
   useEffect(() => { load(); }, []);
 
   const openCreate = async () => {
@@ -65,6 +72,13 @@ export default function AppointmentsPage() {
       <div className="flex items-center justify-between mb-4">
         <PageHeader title="Appointments" description="Manage appointment schedule" />
         <button onClick={openCreate} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">+ New Appointment</button>
+      </div>
+      <div className="flex gap-2 mb-4">
+        <input className={inputCls + ' max-w-xs'} placeholder="Search appointments..." value={search} onChange={(e) => { setSearch(e.target.value); load(e.target.value, statusFilter); }} />
+        <select className={inputCls + ' w-48'} value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); load(search, e.target.value); }}>
+          <option value="">All Statuses</option>
+          {['REQUESTED','PENDING_REVIEW','CONFIRMED','RESCHEDULED','CANCELLED','NO_SHOW','CHECKED_IN','COMPLETED'].map((s) => <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>)}
+        </select>
       </div>
       <DataTable columns={columns} data={data} keyField="id" onRowClick={(r: any) => router.push(`/admin/appointments/${r.id}`)} />
 

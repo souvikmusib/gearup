@@ -22,10 +22,12 @@ export async function GET(req: NextRequest) {
     const pageSize = Number(sp.get('pageSize')) || 20;
     const status = sp.get('status') || '';
     const date = sp.get('date') || '';
+    const search = sp.get('search') || '';
     const p = paginate({ page, pageSize });
     const where: Record<string, unknown> = {};
     if (status) where.status = status;
     if (date) where.appointmentDate = new Date(date);
+    if (search) where.OR = [{ referenceId: { contains: search, mode: 'insensitive' } }, { customer: { fullName: { contains: search, mode: 'insensitive' } } }];
     const [data, total] = await Promise.all([
       prisma.appointment.findMany({ where, ...p, orderBy: { appointmentDate: 'asc' }, include: { customer: { select: { fullName: true, phoneNumber: true } }, vehicle: { select: { registrationNumber: true, brand: true, model: true } }, worker: { select: { fullName: true } } } }),
       prisma.appointment.count({ where }),

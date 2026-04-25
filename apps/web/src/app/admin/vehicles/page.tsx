@@ -8,6 +8,7 @@ import { Modal } from '@/components/shared/modal';
 export default function VehiclesPage() {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
   const [showCreate, setShowCreate] = useState(false);
   const [customers, setCustomers] = useState<any[]>([]);
   const [saving, setSaving] = useState(false);
@@ -15,7 +16,11 @@ export default function VehiclesPage() {
   const [form, setForm] = useState({ customerId: '', vehicleType: 'CAR', registrationNumber: '', brand: '', model: '', variant: '', fuelType: '' });
   const router = useRouter();
 
-  const load = () => api.get<any>('/admin/vehicles').then((r) => { if (r.success) setData(r.data?.items ?? r.data ?? []); setLoading(false); });
+  const load = (s = search) => {
+    const p = new URLSearchParams();
+    if (s) p.set('search', s);
+    api.get<any>(`/admin/vehicles?${p}`).then((r) => { if (r.success) setData(r.data?.items ?? r.data ?? []); setLoading(false); });
+  };
   useEffect(() => { load(); }, []);
 
   const openCreate = async () => {
@@ -45,6 +50,9 @@ export default function VehiclesPage() {
       <div className="flex items-center justify-between mb-4">
         <PageHeader title="Vehicles" />
         <button onClick={openCreate} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">+ Add Vehicle</button>
+      </div>
+      <div className="mb-4">
+        <input className="w-full max-w-xs rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white" placeholder="Search by reg number, brand..." value={search} onChange={(e) => { setSearch(e.target.value); load(e.target.value); }} />
       </div>
       <DataTable columns={columns} data={data} keyField="id" onRowClick={(r: any) => router.push(`/admin/vehicles/${r.id}`)} />
 

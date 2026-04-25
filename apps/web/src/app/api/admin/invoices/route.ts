@@ -42,6 +42,9 @@ export async function POST(req: NextRequest) {
   try {
     const user = requirePermission(PERMISSIONS.INVOICES_CREATE);
     const body = createSchema.parse(await req.json());
+    // Enforce 1 invoice per job card
+    const existing = await prisma.invoice.findFirst({ where: { jobCardId: body.jobCardId } });
+    if (existing) return NextResponse.json({ success: false, error: { message: `Invoice ${existing.invoiceNumber} already exists for this job card` } }, { status: 409 });
     const invoice = await prisma.$transaction(async (tx: any) => {
       let subtotal = 0, taxTotal = 0;
       const lines = body.lineItems.map((li) => {
