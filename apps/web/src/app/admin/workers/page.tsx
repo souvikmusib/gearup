@@ -17,7 +17,7 @@ export default function WorkersPage() {
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('');
   const [showCreate, setShowCreate] = useState(false);
-  const [form, setForm] = useState({ fullName: '', designation: '', specialization: '', shiftStart: '', shiftEnd: '' });
+  const [form, setForm] = useState({ fullName: '', phoneNumber: '', email: '', designation: '', specialization: '', shiftStart: '', shiftEnd: '' });
   const router = useRouter();
   const timer = useRef<NodeJS.Timeout>();
 
@@ -52,7 +52,7 @@ export default function WorkersPage() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const res = await api.post('/admin/workers', form);
-    if (res.success) { setShowCreate(false); setForm({ fullName: '', designation: '', specialization: '', shiftStart: '', shiftEnd: '' }); load(); }
+    if (res.success) { setShowCreate(false); setForm({ fullName: '', phoneNumber: '', email: '', designation: '', specialization: '', shiftStart: '', shiftEnd: '' }); load(); }
   };
 
   const columns = [
@@ -79,11 +79,19 @@ export default function WorkersPage() {
       <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Create Worker">
         <form onSubmit={onSubmit} className="space-y-3">
-          <input className={inputCls} placeholder="Full Name" required value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} />
-          <input className={inputCls} placeholder="Designation" required value={form.designation} onChange={(e) => setForm({ ...form, designation: e.target.value })} />
-          <input className={inputCls} placeholder="Specialization" value={form.specialization} onChange={(e) => setForm({ ...form, specialization: e.target.value })} />
-          <input className={inputCls} placeholder="Shift Start (e.g. 09:00)" type="time" value={form.shiftStart} onChange={(e) => setForm({ ...form, shiftStart: e.target.value })} />
-          <input className={inputCls} placeholder="Shift End (e.g. 18:00)" type="time" value={form.shiftEnd} onChange={(e) => setForm({ ...form, shiftEnd: e.target.value })} />
+          <input className={inputCls} placeholder="Full Name *" required value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} />
+          <div className="grid grid-cols-2 gap-3">
+            <input className={inputCls} placeholder="Phone" value={form.phoneNumber} onChange={(e) => setForm({ ...form, phoneNumber: e.target.value })} />
+            <input className={inputCls} placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <input className={inputCls} placeholder="Designation *" required value={form.designation} onChange={(e) => setForm({ ...form, designation: e.target.value })} />
+            <input className={inputCls} placeholder="Specialization" value={form.specialization} onChange={(e) => setForm({ ...form, specialization: e.target.value })} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <input className={inputCls} placeholder="Shift Start" type="time" value={form.shiftStart} onChange={(e) => setForm({ ...form, shiftStart: e.target.value })} />
+            <input className={inputCls} placeholder="Shift End" type="time" value={form.shiftEnd} onChange={(e) => setForm({ ...form, shiftEnd: e.target.value })} />
+          </div>
           <button type="submit" className="w-full rounded-lg bg-blue-600 py-2 text-sm font-medium text-white hover:bg-blue-700">Create</button>
         </form>
       </Modal>

@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react';
 import { api } from '@/lib/api/client';
 import { PageHeader } from '@gearup/ui';
 
+import Link from 'next/link';
+
 export default function SettingsPage() {
   const [settings, setSettings] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(true);
@@ -44,6 +46,20 @@ export default function SettingsPage() {
           {msg && <span className="text-sm text-gray-500">{msg}</span>}
           <button onClick={save} disabled={saving} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50">{saving ? 'Saving...' : 'Save Changes'}</button>
         </div>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {[
+          { label: 'Shop Holidays', href: '/admin/settings/holidays', desc: 'Manage holidays & closures' },
+          { label: 'Business Hours', href: '/admin/settings/business-hours', desc: 'Slot rules & capacity' },
+          { label: 'Admin Users', href: '/admin/settings/admins', desc: 'Manage admin accounts' },
+          { label: 'Notifications', href: '/admin/settings/notifications', desc: 'Templates & channels' },
+        ].map((item) => (
+          <Link key={item.href} href={item.href} className="rounded-lg border border-gray-200 bg-white p-4 hover:border-blue-300 hover:shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:hover:border-blue-700">
+            <p className="font-semibold text-gray-900 dark:text-white text-sm">{item.label}</p>
+            <p className="text-xs text-gray-500 mt-1">{item.desc}</p>
+          </Link>
+        ))}
       </div>
 
       {Object.keys(groups).length === 0 && <p className="text-sm text-gray-500">No settings configured yet.</p>}

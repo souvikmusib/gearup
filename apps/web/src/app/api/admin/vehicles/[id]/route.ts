@@ -9,7 +9,7 @@ import { z } from 'zod';
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
   try {
     requirePermission(PERMISSIONS.VEHICLES_VIEW);
-    const vehicle = await prisma.vehicle.findUniqueOrThrow({ where: { id: params.id }, include: { customer: true, serviceRequests: { orderBy: { createdAt: 'desc' }, take: 10 }, jobCards: { orderBy: { createdAt: 'desc' }, take: 10 } } });
+    const vehicle = await prisma.vehicle.findUniqueOrThrow({ where: { id: params.id }, include: { customer: true, serviceRequests: { orderBy: { createdAt: 'desc' }, take: 10 }, jobCards: { orderBy: { createdAt: 'desc' }, take: 20, include: { parts: { include: { inventoryItem: { select: { itemName: true } } } }, assignments: { include: { worker: { select: { fullName: true } } } }, invoices: { select: { id: true, invoiceNumber: true, grandTotal: true, paymentStatus: true } } } }, invoices: { orderBy: { createdAt: 'desc' }, take: 10, select: { id: true, invoiceNumber: true, invoiceStatus: true, paymentStatus: true, grandTotal: true, createdAt: true } } } });
     return NextResponse.json({ success: true, data: vehicle });
   } catch (e) { return handleApiError(e); }
 }

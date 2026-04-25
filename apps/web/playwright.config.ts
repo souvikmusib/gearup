@@ -8,7 +8,7 @@ export default defineConfig({
   retries: 0,
   reporter: [['list'], ['json', { outputFile: 'e2e/test-results.json' }]],
   use: {
-    baseURL: 'https://gearup.sgnk.ai',
+    baseURL: process.env.E2E_BASE_URL || 'http://localhost:3000',
     headless: true,
     screenshot: 'only-on-failure',
     trace: 'off',

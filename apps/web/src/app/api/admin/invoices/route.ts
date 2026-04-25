@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
     const user = requirePermission(PERMISSIONS.INVOICES_CREATE);
     const body = createSchema.parse(await req.json());
     // Enforce 1 invoice per job card
-    const existing = await prisma.invoice.findUnique({ where: { jobCardId: body.jobCardId } });
+    const existing = await prisma.invoice.findFirst({ where: { jobCardId: body.jobCardId } });
     if (existing) return NextResponse.json({ success: false, error: { message: `Invoice ${existing.invoiceNumber} already exists for this job card` } }, { status: 409 });
     let invoice;
     try {
@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
       });
     } catch (e) {
       if (!isUniqueJobCardInvoiceError(e)) throw e;
-      const existing = await prisma.invoice.findUnique({ where: { jobCardId: body.jobCardId } });
+      const existing = await prisma.invoice.findFirst({ where: { jobCardId: body.jobCardId } });
       return NextResponse.json({ success: false, error: { message: existing ? `Invoice ${existing.invoiceNumber} already exists for this job card` : 'Invoice already exists for this job card' } }, { status: 409 });
     }
     logActivity({ entityType: 'Invoice', entityId: invoice.id, action: 'invoice.created', newValue: { invoiceNumber: invoice.invoiceNumber }, actorType: 'ADMIN', actorId: user.sub });

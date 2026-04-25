@@ -10,6 +10,7 @@ function withServerlessPoolLimits(databaseUrl?: string) {
     const isSupabasePooler = url.hostname.includes('pooler.supabase.com');
     if (!isSupabasePooler) return databaseUrl;
 
+    if (!url.searchParams.has('pgbouncer')) url.searchParams.set('pgbouncer', 'true');
     if (!url.searchParams.has('connection_limit')) url.searchParams.set('connection_limit', '1');
     if (!url.searchParams.has('pool_timeout')) url.searchParams.set('pool_timeout', '20');
     return url.toString();
