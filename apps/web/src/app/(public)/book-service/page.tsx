@@ -11,12 +11,25 @@ function titleCase(s: string) {
 }
 
 function formatRegNumber(raw: string) {
+  // Strip everything except letters and digits, uppercase
   const clean = raw.toUpperCase().replace(/[^A-Z0-9]/g, '');
-  // Auto-format as AB-00-AB-1234
-  if (clean.length <= 2) return clean;
-  if (clean.length <= 4) return clean.slice(0, 2) + '-' + clean.slice(2);
-  if (clean.length <= 6) return clean.slice(0, 2) + '-' + clean.slice(2, 4) + '-' + clean.slice(4);
-  return clean.slice(0, 2) + '-' + clean.slice(2, 4) + '-' + clean.slice(4, 6) + '-' + clean.slice(6, 10);
+  // Indian format: AA-00-A(A)-0000
+  // Part 1: 2 letters (state), Part 2: 2 digits (district), Part 3: 1-2 letters (series), Part 4: 1-4 digits (number)
+  const parts: string[] = [];
+  let i = 0;
+  // State: first 2 letters
+  const state = clean.slice(i).match(/^[A-Z]{0,2}/)?.[0] || '';
+  if (state) { parts.push(state); i += state.length; }
+  // District: next 2 digits
+  const dist = clean.slice(i).match(/^[0-9]{0,2}/)?.[0] || '';
+  if (dist) { parts.push(dist); i += dist.length; }
+  // Series: next 1-2 letters
+  const series = clean.slice(i).match(/^[A-Z]{0,2}/)?.[0] || '';
+  if (series) { parts.push(series); i += series.length; }
+  // Number: remaining up to 4 digits
+  const num = clean.slice(i).match(/^[0-9]{0,4}/)?.[0] || '';
+  if (num) { parts.push(num); i += num.length; }
+  return parts.filter(Boolean).join('-');
 }
 
 function validate(form: Record<string, unknown>): FieldErrors {
@@ -32,7 +45,7 @@ function validate(form: Record<string, unknown>): FieldErrors {
   if (s('email') && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s('email'))) e.email = 'Enter a valid email address';
 
   if (!s('registrationNumber')) e.registrationNumber = 'Registration number is required';
-  else if (!/^[A-Z]{2}-\d{2}-[A-Z]{1,2}-\d{1,4}$/.test(s('registrationNumber'))) e.registrationNumber = 'Format: AB-00-AB-1234';
+  else if (!/^[A-Z]{2}-\d{2}-[A-Z]{1,2}-\d{1,4}$/.test(s('registrationNumber'))) e.registrationNumber = 'Format: KA-01-AB-1234';
 
   if (!s('brand')) e.brand = 'Brand is required';
   if (!s('model')) e.model = 'Model is required';
