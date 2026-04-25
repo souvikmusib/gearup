@@ -22,7 +22,16 @@ export default function AppointmentsPage() {
     const p = new URLSearchParams();
     if (s) p.set('search', s);
     if (st) p.set('status', st);
-    api.get<any>(`/admin/appointments?${p}`).then((r) => { if (r.success) setData(r.data?.items ?? r.data ?? []); setLoading(false); });
+    const qs = p.toString();
+    const endpoint = `/admin/appointments${qs ? `?${qs}` : ''}`;
+    const { cached, promise } = api.getSWR<any>(endpoint);
+    if (cached?.success) {
+      setData(cached.data?.items ?? cached.data ?? []);
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
+    promise.then((r) => { if (r.success) setData(r.data?.items ?? r.data ?? []); setLoading(false); });
   };
   useEffect(() => { load(); }, []);
 

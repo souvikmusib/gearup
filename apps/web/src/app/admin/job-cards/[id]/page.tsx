@@ -25,9 +25,14 @@ export default function JobCardDetailPage() {
   const [taskForm, setTaskForm] = useState({ taskName: '', estimatedMinutes: '' });
   const [creatingInvoice, setCreatingInvoice] = useState(false);
 
-  const load = () => api.get<any>(`/admin/job-cards/${id}`).then((r) => {
-    if (r.success) { setData(r.data); setNotes({ diagnosisNotes: r.data.diagnosisNotes || '', internalNotes: r.data.internalNotes || '' }); }
-  });
+  const load = () => {
+    const apply = (r: any) => {
+      if (r.success) { setData(r.data); setNotes({ diagnosisNotes: r.data.diagnosisNotes || '', internalNotes: r.data.internalNotes || '' }); }
+    };
+    const { cached, promise } = api.getSWR<any>(`/admin/job-cards/${id}`);
+    if (cached) apply(cached);
+    promise.then(apply);
+  };
   useEffect(() => { load(); }, [id]);
 
   const updateStatus = async (status: string) => {

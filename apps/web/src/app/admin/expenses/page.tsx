@@ -22,9 +22,23 @@ export default function ExpensesPage() {
     const p = new URLSearchParams();
     if (s) p.set('search', s);
     if (cat) p.set('categoryId', cat);
-    api.get<any>(`/admin/expenses?${p}`).then((r) => { if (r.success) setData(r.data?.items ?? r.data ?? []); setLoading(false); });
+    const qs = p.toString();
+    const endpoint = `/admin/expenses${qs ? `?${qs}` : ''}`;
+    const { cached, promise } = api.getSWR<any>(endpoint);
+    if (cached?.success) {
+      setData(cached.data?.items ?? cached.data ?? []);
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
+    promise.then((r) => { if (r.success) setData(r.data?.items ?? r.data ?? []); setLoading(false); });
   };
-  useEffect(() => { load(); api.get<any>('/admin/expenses/categories').then((r) => { if (r.success) setCategories(r.data ?? []); }); }, []);
+  useEffect(() => {
+    load();
+    const { cached, promise } = api.getSWR<any>('/admin/expenses/categories');
+    if (cached?.success) setCategories(cached.data ?? []);
+    promise.then((r) => { if (r.success) setCategories(r.data ?? []); });
+  }, []);
 
   const openCreate = async () => {
     setShowCreate(true); setError('');

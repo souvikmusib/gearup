@@ -15,10 +15,12 @@ export default function WorkerCalendarPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([
-      api.get<any>('/admin/workers?pageSize=200'),
-      api.get<any>('/admin/appointments?pageSize=200'),
-    ]).then(([workerRes, appointmentRes]) => {
+    const workersReq = api.getSWR<any>('/admin/workers?pageSize=200');
+    const appointmentsReq = api.getSWR<any>('/admin/appointments?pageSize=200');
+    if (workersReq.cached?.success) setWorkers(workersReq.cached.data?.items ?? workersReq.cached.data ?? []);
+    if (appointmentsReq.cached?.success) setAppointments(appointmentsReq.cached.data?.items ?? appointmentsReq.cached.data ?? []);
+    if (workersReq.cached?.success && appointmentsReq.cached?.success) setLoading(false);
+    Promise.all([workersReq.promise, appointmentsReq.promise]).then(([workerRes, appointmentRes]) => {
       if (workerRes.success) setWorkers(workerRes.data?.items ?? workerRes.data ?? []);
       if (appointmentRes.success) setAppointments(appointmentRes.data?.items ?? appointmentRes.data ?? []);
       setLoading(false);

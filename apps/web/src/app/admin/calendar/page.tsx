@@ -1,149 +1,178 @@
 'use client';
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import { api } from '@/lib/api/client';
 import { PageHeader } from '@gearup/ui';
-import FullCalendar from '@fullcalendar/react';
-import dayGridPlugin from '@fullcalendar/daygrid';
-import timeGridPlugin from '@fullcalendar/timegrid';
-import interactionPlugin from '@fullcalendar/interaction';
 
-const APPT_COLORS: Record<string, string> = {
-  REQUESTED: '#f59e0b', PENDING_REVIEW: '#f59e0b', CONFIRMED: '#3b82f6',
-  RESCHEDULED: '#8b5cf6', CHECKED_IN: '#10b981', COMPLETED: '#6b7280',
-  CANCELLED: '#ef4444', NO_SHOW: '#ef4444',
+const statusTone: Record<string, string> = {
+  REQUESTED: 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-200',
+  PENDING_REVIEW: 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-200',
+  CONFIRMED: 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-200',
+  RESCHEDULED: 'bg-violet-50 text-violet-700 dark:bg-violet-900/30 dark:text-violet-200',
+  CHECKED_IN: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-200',
+  COMPLETED: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-200',
+  CANCELLED: 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-200',
+  NO_SHOW: 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-200',
 };
 
-const calendarCls = "rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800 [&_.fc]:text-sm [&_.fc-toolbar-title]:text-lg [&_.fc-toolbar-title]:font-semibold [&_.fc-button]:!rounded-lg [&_.fc-button]:!text-xs [&_.fc-button]:!px-3 [&_.fc-button]:!py-1.5 [&_.fc-button-primary]:!bg-blue-600 [&_.fc-button-primary]:!border-blue-600 [&_.fc-button-primary.fc-button-active]:!bg-blue-700 [&_.fc-event]:!rounded [&_.fc-event]:!px-1 [&_.fc-event]:!text-xs [&_.fc-event]:cursor-pointer";
+function dayKey(value: string) {
+  return new Date(value).toISOString().slice(0, 10);
+}
+
+function fmtDate(value: string) {
+  return new Date(value).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+}
+
+function fmtTime(value: string) {
+  return new Date(value).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+}
 
 export default function CalendarPage() {
   const [tab, setTab] = useState<'shop' | 'worker'>('shop');
-  const [apptEvents, setApptEvents] = useState<any[]>([]);
-  const [workerEvents, setWorkerEvents] = useState<any[]>([]);
+  const [appointments, setAppointments] = useState<any[]>([]);
+  const [holidays, setHolidays] = useState<any[]>([]);
   const [workers, setWorkers] = useState<any[]>([]);
+  const [leaves, setLeaves] = useState<any[]>([]);
+  const [assignments, setAssignments] = useState<any[]>([]);
   const [selectedWorker, setSelectedWorker] = useState('');
-  const router = useRouter();
+  const [loadingShop, setLoadingShop] = useState(true);
+  const [loadingWorkers, setLoadingWorkers] = useState(true);
 
   useEffect(() => {
-    // Load appointments + holidays in parallel
-    Promise.all([
-      api.get<any>('/admin/appointments?pageSize=500'),
-      api.get<any>('/admin/settings/holidays'),
-    ]).then(([apptRes, holRes]) => {
-      const events: any[] = [];
-      if (apptRes.success) {
-        (apptRes.data?.items ?? apptRes.data ?? []).forEach((a: any) => {
-          events.push({
-            id: a.id, title: `${a.customer?.fullName || 'Customer'} — ${a.vehicle?.registrationNumber || ''}`,
-            start: a.slotStart, end: a.slotEnd,
-            backgroundColor: APPT_COLORS[a.status] || '#6b7280', borderColor: APPT_COLORS[a.status] || '#6b7280',
-          });
-        });
+    const apptReq = api.getSWR<any>('/admin/appointments?pageSize=500');
+    const holReq = api.getSWR<any>('/admin/settings/holidays');
+    const applyShop = (apptRes: any, holRes: any) => {
+      if (apptRes.success) setAppointments(apptRes.data?.items ?? apptRes.data ?? []);
+      if (holRes.success) setHolidays(holRes.data ?? []);
+      setLoadingShop(false);
+    };
+    if (apptReq.cached?.success && holReq.cached?.success) applyShop(apptReq.cached, holReq.cached);
+    Promise.all([apptReq.promise, holReq.promise]).then(([apptRes, holRes]) => applyShop(apptRes, holRes));
+
+    const workerReq = api.getSWR<any>('/admin/workers/calendar');
+    const applyWorkers = (res: any) => {
+      if (res.success) {
+        setWorkers(res.data?.workers ?? []);
+        setLeaves(res.data?.leaves ?? []);
+        setAssignments(res.data?.assignments ?? []);
       }
-      if (holRes.success) {
-        (holRes.data ?? []).forEach((h: any) => {
-          events.push({ id: `hol-${h.id}`, title: `🚫 ${h.holidayName}`, start: h.holidayDate, allDay: true, backgroundColor: '#ef4444', borderColor: '#ef4444' });
-        });
-      }
-      setApptEvents(events);
-    });
-    // Load worker data
-    api.get<any>('/admin/workers/calendar').then((res) => {
-      if (!res.success) return;
-      const { workers: w, leaves, assignments } = res.data;
-      setWorkers(w);
-      const evts: any[] = [];
-      leaves.forEach((l: any) => {
-        const worker = w.find((wr: any) => wr.id === l.workerId);
-        evts.push({
-          id: `leave-${l.id}`, title: `🏖 ${worker?.fullName || 'Worker'} — ${l.leaveType}`,
-          start: l.startDate, end: l.endDate, allDay: true,
-          backgroundColor: l.status === 'APPROVED' ? '#f59e0b' : '#d1d5db', borderColor: l.status === 'APPROVED' ? '#f59e0b' : '#d1d5db', textColor: '#1f2937',
-          extendedProps: { type: 'leave', workerId: l.workerId },
-        });
-      });
-      assignments.forEach((a: any) => {
-        const jc = a.jobCard; if (!jc) return;
-        const color = jc.status === 'DELIVERED' || jc.status === 'CLOSED' ? '#6b7280' : jc.status === 'WORK_IN_PROGRESS' ? '#3b82f6' : '#10b981';
-        evts.push({
-          id: `assign-${a.id}`, title: `🔧 ${a.worker?.fullName} — ${jc.jobCardNumber}`,
-          start: jc.intakeDate, end: jc.estimatedDeliveryAt || jc.intakeDate, allDay: true,
-          backgroundColor: color, borderColor: color,
-          extendedProps: { type: 'assignment', jobCardId: a.jobCardId, workerId: a.workerId },
-        });
-      });
-      setWorkerEvents(evts);
-    });
+      setLoadingWorkers(false);
+    };
+    if (workerReq.cached?.success) applyWorkers(workerReq.cached);
+    workerReq.promise.then(applyWorkers);
   }, []);
 
-  const filteredWorkerEvents = selectedWorker ? workerEvents.filter((e) => e.extendedProps?.workerId === selectedWorker) : workerEvents;
-  const tabCls = (t: string) => `px-4 py-2 text-sm font-medium rounded-lg ${tab === t ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300'}`;
+  const shopDays = useMemo(() => {
+    const grouped: Record<string, { appointments: any[]; holidays: any[] }> = {};
+    appointments.forEach((appointment) => {
+      const key = dayKey(appointment.appointmentDate);
+      grouped[key] ??= { appointments: [], holidays: [] };
+      grouped[key].appointments.push(appointment);
+    });
+    holidays.forEach((holiday) => {
+      const key = dayKey(holiday.holidayDate);
+      grouped[key] ??= { appointments: [], holidays: [] };
+      grouped[key].holidays.push(holiday);
+    });
+    return Object.entries(grouped).sort(([a], [b]) => a.localeCompare(b)).slice(0, 21);
+  }, [appointments, holidays]);
+
+  const workerCards = useMemo(() => {
+    const visibleWorkers = selectedWorker ? workers.filter((worker) => worker.id === selectedWorker) : workers;
+    return visibleWorkers.map((worker) => {
+      const workerLeaves = leaves.filter((leave) => leave.workerId === worker.id);
+      const workerAssignments = assignments.filter((assignment) => assignment.workerId === worker.id);
+      return { worker, workerLeaves, workerAssignments };
+    });
+  }, [assignments, leaves, selectedWorker, workers]);
+
+  const tabCls = (value: 'shop' | 'worker') =>
+    `px-4 py-2 text-sm font-medium rounded-lg ${tab === value ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300'}`;
 
   return (
-    <div>
-      <PageHeader title="Calendar" description="Shop appointments & worker schedules" />
-      <div className="mt-4 flex items-center gap-2 mb-4">
+    <div className="space-y-6">
+      <PageHeader title="Calendar" description="Shop appointments and worker schedules" />
+      <div className="flex flex-wrap items-center gap-2">
         <button onClick={() => setTab('shop')} className={tabCls('shop')}>Shop Calendar</button>
         <button onClick={() => setTab('worker')} className={tabCls('worker')}>Worker Calendar</button>
         <div className="ml-auto flex gap-2">
-          <button onClick={() => router.push('/admin/appointments/calendar')} className="rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-600 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-800">Appointments Card View</button>
-          <button onClick={() => router.push('/admin/workers/calendar')} className="rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-600 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-800">Workers Card View</button>
+          <Link href="/admin/appointments/calendar" className="rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-600 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-800">Appointments Card View</Link>
+          <Link href="/admin/workers/calendar" className="rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-600 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-800">Workers Card View</Link>
         </div>
         {tab === 'worker' && (
-          <select className="ml-auto rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white" value={selectedWorker} onChange={(e) => setSelectedWorker(e.target.value)}>
+          <select className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white" value={selectedWorker} onChange={(e) => setSelectedWorker(e.target.value)}>
             <option value="">All Workers</option>
-            {workers.map((w: any) => <option key={w.id} value={w.id}>{w.fullName}</option>)}
+            {workers.map((worker) => <option key={worker.id} value={worker.id}>{worker.fullName}</option>)}
           </select>
         )}
       </div>
 
       {tab === 'shop' && (
-        <div className={calendarCls}>
-          <FullCalendar
-            plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-            initialView="timeGridWeek"
-            headerToolbar={{ left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' }}
-            events={apptEvents}
-            eventClick={(info) => router.push(`/admin/appointments/${info.event.id}`)}
-            slotMinTime="07:00:00" slotMaxTime="21:00:00" allDaySlot
-            height="auto" nowIndicator slotDuration="00:30:00"
-          />
-        </div>
+        loadingShop ? <p className="py-8 text-center text-gray-500">Loading...</p> : (
+          <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
+            {shopDays.length === 0 && <p className="text-sm text-gray-500">No calendar entries yet.</p>}
+            {shopDays.map(([date, day]) => (
+              <section key={date} className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                <h3 className="mb-3 font-semibold text-gray-900 dark:text-white">{fmtDate(date)}</h3>
+                <div className="space-y-3">
+                  {day.holidays.map((holiday) => (
+                    <div key={holiday.id} className="rounded-lg border border-red-100 bg-red-50 p-3 text-sm text-red-700 dark:border-red-900/40 dark:bg-red-900/20 dark:text-red-200">
+                      Closed: {holiday.holidayName}
+                    </div>
+                  ))}
+                  {day.appointments.map((appointment) => (
+                    <Link key={appointment.id} href={`/admin/appointments/${appointment.id}`} className="block rounded-lg border border-gray-100 p-3 hover:border-blue-300 hover:bg-blue-50/40 dark:border-gray-700 dark:hover:border-blue-700 dark:hover:bg-blue-950/20">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-sm font-medium text-gray-900 dark:text-white">{fmtTime(appointment.slotStart)} - {fmtTime(appointment.slotEnd)}</span>
+                        <span className={`rounded-full px-2 py-1 text-xs font-medium ${statusTone[appointment.status] ?? statusTone.COMPLETED}`}>{appointment.status.replace(/_/g, ' ')}</span>
+                      </div>
+                      <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">{appointment.customer?.fullName ?? 'Customer'}</p>
+                      <p className="text-xs text-gray-500">{appointment.vehicle?.registrationNumber ?? 'Vehicle'} {appointment.worker?.fullName ? `- ${appointment.worker.fullName}` : ''}</p>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            ))}
+          </div>
+        )
       )}
 
       {tab === 'worker' && (
-        <div className={calendarCls}>
-          <FullCalendar
-            plugins={[dayGridPlugin, timeGridPlugin]}
-            initialView="dayGridMonth"
-            headerToolbar={{ left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek' }}
-            events={filteredWorkerEvents}
-            eventClick={(info) => {
-              const props = info.event.extendedProps;
-              if (props?.workerId) router.push(`/admin/workers/${props.workerId}`);
-            }}
-            height="auto" nowIndicator
-          />
-        </div>
-      )}
-
-      <div className="mt-3 flex flex-wrap gap-3 text-xs">
-        {tab === 'shop' ? (
-          <>
-            {Object.entries(APPT_COLORS).map(([s, c]) => (
-              <span key={s} className="flex items-center gap-1"><span className="inline-block h-3 w-3 rounded" style={{ backgroundColor: c }} />{s.replace(/_/g, ' ')}</span>
+        loadingWorkers ? <p className="py-8 text-center text-gray-500">Loading...</p> : (
+          <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
+            {workerCards.map(({ worker, workerLeaves, workerAssignments }) => (
+              <section key={worker.id} className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                <Link href={`/admin/workers/${worker.id}`} className="font-semibold text-gray-900 hover:text-blue-600 dark:text-white">{worker.fullName}</Link>
+                <p className="text-sm text-gray-500">{worker.workerCode} - {worker.designation ?? 'Worker'}</p>
+                <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
+                  <div className="rounded-lg bg-gray-50 p-3 dark:bg-gray-900">
+                    <p className="text-xs text-gray-500">Assignments</p>
+                    <p className="font-medium text-gray-900 dark:text-white">{workerAssignments.length}</p>
+                  </div>
+                  <div className="rounded-lg bg-gray-50 p-3 dark:bg-gray-900">
+                    <p className="text-xs text-gray-500">Leaves</p>
+                    <p className="font-medium text-gray-900 dark:text-white">{workerLeaves.length}</p>
+                  </div>
+                </div>
+                <div className="mt-4 space-y-2">
+                  {workerAssignments.slice(0, 4).map((assignment) => (
+                    <Link key={assignment.id} href={`/admin/job-cards/${assignment.jobCardId}`} className="block rounded-lg border border-gray-100 p-2 text-sm hover:border-blue-300 dark:border-gray-700">
+                      <span className="font-medium text-gray-900 dark:text-white">{assignment.jobCard?.jobCardNumber ?? 'Job Card'}</span>
+                      <span className="ml-2 text-gray-500">{assignment.jobCard?.status?.replace(/_/g, ' ')}</span>
+                    </Link>
+                  ))}
+                  {workerLeaves.slice(0, 3).map((leave) => (
+                    <div key={leave.id} className="rounded-lg border border-amber-100 bg-amber-50 p-2 text-sm text-amber-700 dark:border-amber-900/40 dark:bg-amber-900/20 dark:text-amber-200">
+                      {leave.leaveType} leave: {fmtDate(leave.startDate)} - {fmtDate(leave.endDate)}
+                    </div>
+                  ))}
+                  {workerAssignments.length === 0 && workerLeaves.length === 0 && <p className="text-sm text-gray-500">No assignments or leave records.</p>}
+                </div>
+              </section>
             ))}
-          </>
-        ) : (
-          <>
-            <span className="flex items-center gap-1"><span className="inline-block h-3 w-3 rounded bg-blue-500" /> Work In Progress</span>
-            <span className="flex items-center gap-1"><span className="inline-block h-3 w-3 rounded bg-green-500" /> Assigned</span>
-            <span className="flex items-center gap-1"><span className="inline-block h-3 w-3 rounded bg-gray-500" /> Completed</span>
-            <span className="flex items-center gap-1"><span className="inline-block h-3 w-3 rounded bg-amber-500" /> On Leave</span>
-            <span className="flex items-center gap-1"><span className="inline-block h-3 w-3 rounded bg-gray-300" /> Leave Pending</span>
-          </>
-        )}
-      </div>
+          </div>
+        )
+      )}
     </div>
   );
 }

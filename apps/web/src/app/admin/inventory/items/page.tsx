@@ -32,7 +32,6 @@ export default function InventoryItemsPage() {
   };
 
   const load = useCallback((s = search, p = page) => {
-    setLoading(true);
     const params = new URLSearchParams();
     if (s) params.set('search', s);
     params.set('page', String(p));
@@ -42,6 +41,8 @@ export default function InventoryItemsPage() {
       setData(cached.data?.items ?? cached.data ?? []);
       setTotalPages(cached.data?.totalPages ?? 1);
       setLoading(false);
+    } else {
+      setLoading(true);
     }
     promise.then((res) => {
       if (res.success) { setData(res.data?.items ?? res.data ?? []); setTotalPages(res.data?.totalPages ?? 1); }

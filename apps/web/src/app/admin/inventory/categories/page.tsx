@@ -13,7 +13,12 @@ export default function InventoryCategoriesPage() {
   const [editForm, setEditForm] = useState({ categoryName: '', description: '' });
   const [saving, setSaving] = useState(false);
 
-  const load = () => api.get<any>('/admin/inventory/categories').then((r) => { if (r.success) setData(r.data ?? []); setLoading(false); });
+  const load = () => {
+    const { cached, promise } = api.getSWR<any>('/admin/inventory/categories');
+    if (cached?.success) { setData(cached.data ?? []); setLoading(false); }
+    else setLoading(true);
+    promise.then((r) => { if (r.success) setData(r.data ?? []); setLoading(false); });
+  };
   useEffect(() => { load(); }, []);
 
   const submit = async (e: React.FormEvent) => {

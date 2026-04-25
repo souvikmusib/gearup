@@ -13,7 +13,13 @@ export default function SettingsPage() {
   const [msg, setMsg] = useState('');
 
   useEffect(() => {
-    api.get<any>('/admin/settings').then((r) => { if (r.success) { setSettings(r.data ?? {}); setEdited(r.data ?? {}); } setLoading(false); });
+    const { cached, promise } = api.getSWR<any>('/admin/settings');
+    if (cached?.success) {
+      setSettings(cached.data ?? {});
+      setEdited(cached.data ?? {});
+      setLoading(false);
+    }
+    promise.then((r) => { if (r.success) { setSettings(r.data ?? {}); setEdited(r.data ?? {}); } setLoading(false); });
   }, []);
 
   const save = async () => {

@@ -9,13 +9,16 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get<any>('/admin/settings/admins').then((res) => {
+    const apply = (res: any) => {
       if (res.success) {
         setData(res.data?.admins ?? []);
         setRoles(res.data?.roles ?? []);
       }
       setLoading(false);
-    });
+    };
+    const { cached, promise } = api.getSWR<any>('/admin/settings/admins');
+    if (cached) apply(cached);
+    promise.then(apply);
   }, []);
 
   return (

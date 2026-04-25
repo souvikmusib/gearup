@@ -15,7 +15,11 @@ export default function WorkerDetailPage() {
   const [leaveForm, setLeaveForm] = useState({ leaveType: 'CASUAL', startDate: '', endDate: '', reason: '' });
   const [showLeave, setShowLeave] = useState(false);
 
-  const load = () => api.get<any>(`/admin/workers/${id}`).then((r) => { if (r.success) { setData(r.data); setForm(r.data); } });
+  const load = () => {
+    const { cached, promise } = api.getSWR<any>(`/admin/workers/${id}`);
+    if (cached?.success) { setData(cached.data); setForm(cached.data); }
+    promise.then((r) => { if (r.success) { setData(r.data); setForm(r.data); } });
+  };
   useEffect(() => { load(); }, [id]);
 
   const save = async () => {

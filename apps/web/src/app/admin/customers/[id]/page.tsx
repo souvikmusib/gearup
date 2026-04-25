@@ -13,7 +13,11 @@ export default function CustomerDetailPage() {
   const [form, setForm] = useState<any>({});
   const [saving, setSaving] = useState(false);
 
-  const load = () => api.get<any>(`/admin/customers/${id}`).then((r) => { if (r.success) { setData(r.data); setForm(r.data); } });
+  const load = () => {
+    const { cached, promise } = api.getSWR<any>(`/admin/customers/${id}`);
+    if (cached?.success) { setData(cached.data); setForm(cached.data); }
+    promise.then((r) => { if (r.success) { setData(r.data); setForm(r.data); } });
+  };
   useEffect(() => { load(); }, [id]);
 
   const save = async () => {

@@ -19,12 +19,17 @@ export default function NotificationSettingsPage() {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    api.get<any>('/admin/settings').then((res) => {
-      const settings = res.success ? res.data ?? {} : {};
+    const apply = (settings: Record<string, any>) => {
       const merged = { ...DEFAULTS, ...Object.fromEntries(Object.keys(DEFAULTS).map((key) => [key, settings[key] ?? DEFAULTS[key as keyof typeof DEFAULTS]])) };
       setInitial(merged);
       setForm(merged);
       setLoading(false);
+    };
+    const { cached, promise } = api.getSWR<any>('/admin/settings');
+    if (cached?.success) apply(cached.data ?? {});
+    promise.then((res) => {
+      const settings = res.success ? res.data ?? {} : {};
+      apply(settings);
     });
   }, []);
 

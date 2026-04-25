@@ -17,7 +17,12 @@ export default function AppointmentCalendarPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get<any>('/admin/appointments?pageSize=200').then((res) => {
+    const { cached, promise } = api.getSWR<any>('/admin/appointments?pageSize=200');
+    if (cached?.success) {
+      setItems(cached.data?.items ?? cached.data ?? []);
+      setLoading(false);
+    }
+    promise.then((res) => {
       if (res.success) setItems(res.data?.items ?? res.data ?? []);
       setLoading(false);
     });

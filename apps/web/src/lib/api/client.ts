@@ -15,6 +15,10 @@ function now() {
   return Date.now();
 }
 
+function normalizePath(path: string) {
+  return path.endsWith('?') ? path.slice(0, -1) : path;
+}
+
 function cacheKey(path: string, token: string | null) {
   return `GET:${token ?? 'public'}:${path}`;
 }
@@ -23,7 +27,8 @@ function clearGetCache() {
   responseCache.clear();
 }
 
-async function request<T>(path: string, opts: RequestInit = {}): Promise<ApiResponse<T>> {
+async function request<T>(rawPath: string, opts: RequestInit = {}): Promise<ApiResponse<T>> {
+  const path = normalizePath(rawPath);
   const method = (opts.method ?? 'GET').toUpperCase();
   const isGet = method === 'GET';
   const token = typeof window !== 'undefined' ? localStorage.getItem('gearup_token') : null;
@@ -81,7 +86,8 @@ async function request<T>(path: string, opts: RequestInit = {}): Promise<ApiResp
   }
 }
 
-function peek<T>(path: string): { data: ApiResponse<T>; stale: boolean } | null {
+function peek<T>(rawPath: string): { data: ApiResponse<T>; stale: boolean } | null {
+  const path = normalizePath(rawPath);
   const token = typeof window !== 'undefined' ? localStorage.getItem('gearup_token') : null;
   const entry = responseCache.get(cacheKey(path, token));
   if (!entry) return null;
@@ -105,7 +111,8 @@ export const api = {
   clearCache: () => clearGetCache(),
 };
 
-async function fetchAndStore<T>(path: string): Promise<ApiResponse<T>> {
+async function fetchAndStore<T>(rawPath: string): Promise<ApiResponse<T>> {
+  const path = normalizePath(rawPath);
   const token = typeof window !== 'undefined' ? localStorage.getItem('gearup_token') : null;
   const key = cacheKey(path, token);
   const pending = inFlight.get(key);

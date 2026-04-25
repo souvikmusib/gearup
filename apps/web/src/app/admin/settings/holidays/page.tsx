@@ -13,7 +13,12 @@ export default function HolidaysPage() {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ holidayName: '', holidayDate: '', holidayType: 'PUBLIC_HOLIDAY', isFullDay: true, startTime: '', endTime: '', notes: '' });
 
-  const load = () => api.get<any>('/admin/settings/holidays').then((r) => { if (r.success) setData(r.data ?? []); setLoading(false); });
+  const load = () => {
+    const { cached, promise } = api.getSWR<any>('/admin/settings/holidays');
+    if (cached?.success) { setData(cached.data ?? []); setLoading(false); }
+    else setLoading(true);
+    promise.then((r) => { if (r.success) setData(r.data ?? []); setLoading(false); });
+  };
   useEffect(() => { load(); }, []);
 
   const submit = async (e: React.FormEvent) => {

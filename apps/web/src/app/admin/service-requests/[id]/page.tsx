@@ -32,7 +32,11 @@ export default function ServiceRequestDetailPage() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState('');
 
-  const load = () => api.get<any>(`/admin/service-requests/${id}`).then((r) => r.success && setData(r.data));
+  const load = () => {
+    const { cached, promise } = api.getSWR<any>(`/admin/service-requests/${id}`);
+    if (cached?.success) setData(cached.data);
+    promise.then((r) => r.success && setData(r.data));
+  };
   useEffect(() => { load(); }, [id]);
 
   const updateStatus = async (status: string) => {

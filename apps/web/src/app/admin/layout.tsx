@@ -4,6 +4,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 import { AdminSidebar } from '@/components/layout/admin-sidebar';
 import { Breadcrumbs } from '@/components/shared/breadcrumbs';
+import { api } from '@/lib/api/client';
 
 const PREFETCH_PATHS = [
   '/admin/dashboard',
@@ -22,6 +23,43 @@ const PREFETCH_PATHS = [
   '/admin/inventory/low-stock',
   '/admin/reports/revenue',
   '/admin/reports/expenses',
+];
+
+const PREFETCH_ENDPOINTS = [
+  '/admin/reports?type=dashboard',
+  '/admin/logs?pageSize=8',
+  '/admin/logs',
+  '/admin/service-requests?page=1',
+  '/admin/job-cards?page=1',
+  '/admin/appointments?page=1',
+  '/admin/appointments?pageSize=200',
+  '/admin/customers?page=1',
+  '/admin/customers?pageSize=200',
+  '/admin/vehicles',
+  '/admin/workers?page=1',
+  '/admin/workers?pageSize=200',
+  '/admin/invoices?page=1',
+  '/admin/payments',
+  '/admin/notifications',
+  '/admin/notifications/templates',
+  '/admin/expenses',
+  '/admin/expenses/categories',
+  '/admin/inventory/items?page=1',
+  '/admin/inventory/categories',
+  '/admin/inventory/low-stock',
+  '/admin/inventory/movements',
+  '/admin/inventory/suppliers',
+  '/admin/settings',
+  '/admin/settings/admins',
+  '/admin/settings/business-hours',
+  '/admin/settings/holidays',
+  '/admin/reports?type=revenue',
+  '/admin/reports?type=expenses',
+  '/admin/reports?type=jobs',
+  '/admin/reports?type=appointments',
+  '/admin/reports?type=inventory',
+  '/admin/reports?type=workers',
+  '/admin/workers/calendar',
 ];
 
 function LoadingSkeleton() {
@@ -61,6 +99,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   useEffect(() => {
     if (loading || !user || isLoginPage) return;
+    let cancelled = false;
+    const timers: number[] = [];
     const w = window as Window & {
       requestIdleCallback?: (callback: IdleRequestCallback, options?: IdleRequestOptions) => number;
       cancelIdleCallback?: (id: number) => void;
@@ -68,17 +108,41 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
     const runRoutePrefetch = () => {
       PREFETCH_PATHS.forEach((href, i) => {
-        setTimeout(() => router.prefetch(href), i * 50);
+        timers.push(window.setTimeout(() => router.prefetch(href), i * 50));
       });
     };
 
+    const runDataPrefetch = async () => {
+      for (const endpoint of PREFETCH_ENDPOINTS) {
+        if (cancelled || document.hidden) return;
+        await api.prefetch(endpoint);
+        if (cancelled) return;
+        await new Promise<void>((resolve) => {
+          timers.push(window.setTimeout(resolve, 900));
+        });
+      }
+    };
+
+    const runWarmup = () => {
+      runRoutePrefetch();
+      timers.push(window.setTimeout(() => { void runDataPrefetch(); }, 1800));
+    };
+
     if (typeof w.requestIdleCallback === 'function') {
-      const id = w.requestIdleCallback(() => runRoutePrefetch(), { timeout: 1500 });
-      return () => w.cancelIdleCallback?.(id);
+      const id = w.requestIdleCallback(runWarmup, { timeout: 1500 });
+      return () => {
+        cancelled = true;
+        w.cancelIdleCallback?.(id);
+        timers.forEach(clearTimeout);
+      };
     }
 
-    const t = setTimeout(runRoutePrefetch, 300);
-    return () => clearTimeout(t);
+    const t = window.setTimeout(runWarmup, 300);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+      timers.forEach(clearTimeout);
+    };
   }, [loading, user, isLoginPage, router]);
 
   if (isLoginPage) return <>{children}</>;

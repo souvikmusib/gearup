@@ -39,10 +39,16 @@ export default function AppointmentDetailPage() {
   const [rescheduleDate, setRescheduleDate] = useState('');
   const [rescheduleReason, setRescheduleReason] = useState('');
 
-  const load = () => api.get<any>(`/admin/appointments/${id}`).then((r) => r.success && setData(r.data));
+  const load = () => {
+    const { cached, promise } = api.getSWR<any>(`/admin/appointments/${id}`);
+    if (cached?.success) setData(cached.data);
+    promise.then((r) => r.success && setData(r.data));
+  };
   useEffect(() => {
     load();
-    api.get<any>('/admin/workers?pageSize=100').then((r) => r.success && setWorkers(r.data?.items ?? r.data ?? []));
+    const { cached, promise } = api.getSWR<any>('/admin/workers?pageSize=100');
+    if (cached?.success) setWorkers(cached.data?.items ?? cached.data ?? []);
+    promise.then((r) => r.success && setWorkers(r.data?.items ?? r.data ?? []));
   }, [id]);
 
   const updateStatus = async (status: string) => {
