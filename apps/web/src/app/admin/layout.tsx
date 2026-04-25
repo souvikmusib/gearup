@@ -6,25 +6,6 @@ import { AdminSidebar } from '@/components/layout/admin-sidebar';
 import { Breadcrumbs } from '@/components/shared/breadcrumbs';
 import { api } from '@/lib/api/client';
 
-const PREFETCH_PATHS = [
-  '/admin/dashboard',
-  '/admin/service-requests',
-  '/admin/job-cards',
-  '/admin/appointments',
-  '/admin/customers',
-  '/admin/vehicles',
-  '/admin/workers',
-  '/admin/invoices',
-  '/admin/payments',
-  '/admin/notifications',
-  '/admin/logs',
-  '/admin/expenses',
-  '/admin/inventory/items',
-  '/admin/inventory/low-stock',
-  '/admin/reports/revenue',
-  '/admin/reports/expenses',
-];
-
 const PREFETCH_ENDPOINTS = [
   '/admin/reports?type=dashboard',
   '/admin/logs?pageSize=8',
@@ -106,12 +87,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       cancelIdleCallback?: (id: number) => void;
     };
 
-    const runRoutePrefetch = () => {
-      PREFETCH_PATHS.forEach((href, i) => {
-        timers.push(window.setTimeout(() => router.prefetch(href), i * 50));
-      });
-    };
-
     const runDataPrefetch = async () => {
       for (const endpoint of PREFETCH_ENDPOINTS) {
         if (cancelled || document.hidden) return;
@@ -124,8 +99,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     };
 
     const runWarmup = () => {
-      runRoutePrefetch();
-      timers.push(window.setTimeout(() => { void runDataPrefetch(); }, 1800));
+      timers.push(window.setTimeout(() => { void runDataPrefetch(); }, 1200));
     };
 
     if (typeof w.requestIdleCallback === 'function') {
