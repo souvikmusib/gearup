@@ -18,6 +18,7 @@ const NAV = [
   { label: 'Customers', href: '/admin/customers', icon: Users },
   { label: 'Vehicles', href: '/admin/vehicles', icon: Bike },
   { label: 'Workers', href: '/admin/workers', icon: UserCog },
+  { label: 'Calendar', href: '/admin/calendar', icon: Calendar },
   {
     label: 'Inventory', icon: Package, children: [
       { label: 'Items', href: '/admin/inventory/items' },

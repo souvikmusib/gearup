@@ -2,28 +2,29 @@ import { PrismaClient } from '@prisma/client';
 
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient | undefined };
 
-function withServerlessPoolLimits(databaseUrl?: string) {
-  if (!databaseUrl || process.env.PRISMA_DISABLE_URL_TUNING === '1') return databaseUrl;
-
+function buildUrl() {
+  const url = process.env.DATABASE_URL ?? '';
+  if (!url) return url;
   try {
-    const url = new URL(databaseUrl);
-    const isSupabasePooler = url.hostname.includes('pooler.supabase.com');
-    if (!isSupabasePooler) return databaseUrl;
-
-    if (!url.searchParams.has('connection_limit')) url.searchParams.set('connection_limit', '1');
-    if (!url.searchParams.has('pool_timeout')) url.searchParams.set('pool_timeout', '20');
-    return url.toString();
+    const parsed = new URL(url);
+    const isSupabasePooler = parsed.hostname.includes('pooler.supabase.com');
+    if (isSupabasePooler) {
+      if (!parsed.searchParams.has('pgbouncer')) parsed.searchParams.set('pgbouncer', 'true');
+      if (!parsed.searchParams.has('connection_limit')) parsed.searchParams.set('connection_limit', '3');
+      if (!parsed.searchParams.has('pool_timeout')) parsed.searchParams.set('pool_timeout', '10');
+    }
+    return parsed.toString();
   } catch {
-    return databaseUrl;
+    const sep = url.includes('?') ? '&' : '?';
+    return url + sep + 'pgbouncer=true&connection_limit=3&pool_timeout=10';
   }
 }
-
-process.env.DATABASE_URL = withServerlessPoolLimits(process.env.DATABASE_URL);
 
 export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({
     log: process.env.NODE_ENV === 'development' ? ['warn', 'error'] : ['error'],
+    datasourceUrl: buildUrl(),
   });
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;

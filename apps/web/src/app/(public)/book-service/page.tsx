@@ -156,7 +156,7 @@ export default function BookServicePage() {
             <label className={labelCls}>Service Category *</label>
             <select className={inputCls('serviceCategory')} value={form.serviceCategory} onChange={(e) => set('serviceCategory', e.target.value)} onBlur={() => blur('serviceCategory')}>
               <option value="">Select...</option>
-              {['General Service', 'Engine Repair', 'Brake & Suspension', 'Electrical', 'AC Service', 'Body & Paint', 'Tyre & Alignment', 'Diagnostics', 'Other'].map((c) => <option key={c} value={c}>{c}</option>)}
+              {['General Service', 'Engine Repair', 'Brake & Clutch', 'Electrical & Wiring', 'Chain & Sprocket', 'Body & Paint', 'Tyre & Wheel Alignment', 'Diagnostics', 'Other'].map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
             {err('serviceCategory')}
           </div>

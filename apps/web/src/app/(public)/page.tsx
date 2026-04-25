@@ -29,7 +29,7 @@ export default function HomePage() {
         <div className="mx-auto max-w-6xl px-4">
           <h2 className="text-center text-2xl font-bold text-gray-900 dark:text-white">Our Services</h2>
           <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {['General Service', 'Engine Repair', 'Brake & Suspension', 'Electrical Work', 'AC Service', 'Body & Paint', 'Tyre & Alignment', 'Diagnostics'].map((s) => (
+            {['General Service', 'Engine Repair', 'Brake & Clutch', 'Electrical & Wiring', 'Chain & Sprocket', 'Body & Paint', 'Tyre & Wheel Alignment', 'Diagnostics'].map((s) => (
               <div key={s} className="rounded-lg border border-gray-200 bg-white p-5 text-center shadow-sm dark:border-gray-700 dark:bg-gray-800">
                 <Wrench className="mx-auto mb-3 text-blue-600" size={28} />
                 <h3 className="font-semibold text-gray-900 dark:text-white">{s}</h3>
