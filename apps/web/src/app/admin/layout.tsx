@@ -36,12 +36,12 @@ const WARM_ENDPOINTS = [
   '/admin/invoices',
   '/admin/payments',
   '/admin/notifications',
-  '/admin/logs/activity',
+  '/admin/logs',
   '/admin/expenses',
   '/admin/inventory/items?page=1',
   '/admin/inventory/low-stock',
-  '/admin/reports/revenue',
-  '/admin/reports/expenses',
+  '/admin/reports?type=revenue',
+  '/admin/reports?type=expenses',
 ];
 
 function LoadingSkeleton() {

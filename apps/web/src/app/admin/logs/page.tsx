@@ -5,7 +5,7 @@ import { PageHeader, DataTable } from '@gearup/ui';
 export default function ActivityLogsPage() {
   const [data, setData] = useState<any[]>([]); const [loading, setLoading] = useState(true);
   useEffect(() => {
-    const { cached, promise } = api.getSWR<any>('/admin/logs/activity');
+    const { cached, promise } = api.getSWR<any>('/admin/logs');
     if (cached?.success) { setData(cached.data ?? []); setLoading(false); }
     promise.then((r) => { if (r.success) setData(r.data ?? []); setLoading(false); });
   }, []);

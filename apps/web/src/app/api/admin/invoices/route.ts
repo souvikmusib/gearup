@@ -20,6 +20,14 @@ const createSchema = z.object({
   discountValue: z.number().optional(), notes: z.string().optional(), lineItems: z.array(lineItemSchema),
 });
 
+function isUniqueJobCardInvoiceError(error: unknown) {
+  if (typeof error !== 'object' || error === null || !('code' in error)) return false;
+  const e = error as { code?: unknown; meta?: { target?: unknown } };
+  if (e.code !== 'P2002') return false;
+  const target = e.meta?.target;
+  return Array.isArray(target) ? target.includes('jobCardId') : target === 'jobCardId';
+}
+
 export async function GET(req: NextRequest) {
   try {
     requirePermission(PERMISSIONS.INVOICES_VIEW);
@@ -43,23 +51,30 @@ export async function POST(req: NextRequest) {
     const user = requirePermission(PERMISSIONS.INVOICES_CREATE);
     const body = createSchema.parse(await req.json());
     // Enforce 1 invoice per job card
-    const existing = await prisma.invoice.findFirst({ where: { jobCardId: body.jobCardId } });
+    const existing = await prisma.invoice.findUnique({ where: { jobCardId: body.jobCardId } });
     if (existing) return NextResponse.json({ success: false, error: { message: `Invoice ${existing.invoiceNumber} already exists for this job card` } }, { status: 409 });
-    const invoice = await prisma.$transaction(async (tx: any) => {
-      let subtotal = 0, taxTotal = 0;
-      const lines = body.lineItems.map((li) => {
-        const lineTotal = li.quantity * li.unitPrice;
-        const taxAmount = lineTotal * (li.taxRate / 100);
-        subtotal += lineTotal; taxTotal += taxAmount;
-        return { ...li, taxAmount, lineTotal: lineTotal + taxAmount };
+    let invoice;
+    try {
+      invoice = await prisma.$transaction(async (tx: any) => {
+        let subtotal = 0, taxTotal = 0;
+        const lines = body.lineItems.map((li) => {
+          const lineTotal = li.quantity * li.unitPrice;
+          const taxAmount = lineTotal * (li.taxRate / 100);
+          subtotal += lineTotal; taxTotal += taxAmount;
+          return { ...li, taxAmount, lineTotal: lineTotal + taxAmount };
+        });
+        const discountAmount = body.discountType === 'PERCENTAGE' ? subtotal * ((body.discountValue ?? 0) / 100) : (body.discountValue ?? 0);
+        const grandTotal = subtotal + taxTotal - discountAmount;
+        return tx.invoice.create({
+          data: { invoiceNumber: generateInvoiceNumber(), customerId: body.customerId, vehicleId: body.vehicleId, jobCardId: body.jobCardId, appointmentId: body.appointmentId, invoiceDate: new Date(body.invoiceDate), dueDate: body.dueDate ? new Date(body.dueDate) : undefined, subtotal, taxTotal, discountType: body.discountType, discountValue: body.discountValue, discountAmount, grandTotal, amountDue: grandTotal, notes: body.notes, createdByAdminId: user.sub, lineItems: { create: lines } } as any,
+          include: { lineItems: true },
+        });
       });
-      const discountAmount = body.discountType === 'PERCENTAGE' ? subtotal * ((body.discountValue ?? 0) / 100) : (body.discountValue ?? 0);
-      const grandTotal = subtotal + taxTotal - discountAmount;
-      return tx.invoice.create({
-        data: { invoiceNumber: generateInvoiceNumber(), customerId: body.customerId, vehicleId: body.vehicleId, jobCardId: body.jobCardId, appointmentId: body.appointmentId, invoiceDate: new Date(body.invoiceDate), dueDate: body.dueDate ? new Date(body.dueDate) : undefined, subtotal, taxTotal, discountType: body.discountType, discountValue: body.discountValue, discountAmount, grandTotal, amountDue: grandTotal, notes: body.notes, createdByAdminId: user.sub, lineItems: { create: lines } } as any,
-        include: { lineItems: true },
-      });
-    });
+    } catch (e) {
+      if (!isUniqueJobCardInvoiceError(e)) throw e;
+      const existing = await prisma.invoice.findUnique({ where: { jobCardId: body.jobCardId } });
+      return NextResponse.json({ success: false, error: { message: existing ? `Invoice ${existing.invoiceNumber} already exists for this job card` : 'Invoice already exists for this job card' } }, { status: 409 });
+    }
     logActivity({ entityType: 'Invoice', entityId: invoice.id, action: 'invoice.created', newValue: { invoiceNumber: invoice.invoiceNumber }, actorType: 'ADMIN', actorId: user.sub });
     return NextResponse.json({ success: true, data: invoice }, { status: 201 });
   } catch (e) { return handleApiError(e); }

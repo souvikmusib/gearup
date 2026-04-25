@@ -20,13 +20,26 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     const body = schema.parse(await req.json());
 
     const result = await prisma.$transaction(async (tx: any) => {
+      const updated = await tx.invoice.updateMany({
+        where: {
+          id: params.id,
+          invoiceStatus: 'FINALIZED',
+          paymentStatus: { not: 'PAID' },
+          amountDue: { gte: body.amount },
+        },
+        data: {
+          amountPaid: { increment: body.amount },
+          amountDue: { decrement: body.amount },
+        },
+      });
+      if (updated.count === 0) {
+        const invoice = await tx.invoice.findUniqueOrThrow({ where: { id: params.id } });
+        if (invoice.invoiceStatus !== 'FINALIZED') throw new ValidationError('Payments can only be recorded against FINALIZED invoices');
+        if (invoice.paymentStatus === 'PAID') throw new ValidationError('Invoice is already fully paid');
+        throw new ValidationError(`Payment amount (${body.amount}) exceeds balance due (${Number(invoice.amountDue)})`);
+      }
+
       const invoice = await tx.invoice.findUniqueOrThrow({ where: { id: params.id } });
-      if (invoice.invoiceStatus !== 'FINALIZED') throw new ValidationError('Payments can only be recorded against FINALIZED invoices');
-      if (invoice.paymentStatus === 'PAID') throw new ValidationError('Invoice is already fully paid');
-
-      const currentDue = Number(invoice.amountDue);
-      if (body.amount > currentDue) throw new ValidationError(`Payment amount (${body.amount}) exceeds balance due (${currentDue})`);
-
       const payment = await tx.payment.create({
         data: {
           invoiceId: params.id, amount: body.amount, paymentMode: body.paymentMode as any,
@@ -35,12 +48,11 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         },
       });
 
-      const newPaid = Number(invoice.amountPaid) + body.amount;
-      const newDue = Number(invoice.grandTotal) - newPaid;
+      const newDue = Number(invoice.amountDue);
       const paymentStatus = newDue <= 0 ? 'PAID' : 'PARTIALLY_PAID';
       await tx.invoice.update({
         where: { id: params.id },
-        data: { amountPaid: newPaid, amountDue: Math.max(0, newDue), paymentStatus: paymentStatus as any },
+        data: { amountDue: Math.max(0, newDue), paymentStatus: paymentStatus as any },
       });
       return payment;
     });

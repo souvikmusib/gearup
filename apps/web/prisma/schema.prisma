@@ -627,7 +627,7 @@ model Invoice {
 
   @@index([customerId])
   @@index([vehicleId])
-  @@index([jobCardId])
+  @@unique([jobCardId])
   @@index([invoiceDate])
   @@index([paymentStatus])
 }

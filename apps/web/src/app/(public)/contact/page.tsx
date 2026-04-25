@@ -26,9 +26,18 @@ export default function ContactPage() {
           </div>
         </div>
 
-        <div className="rounded-lg border border-gray-200 bg-gray-100 p-8 text-center dark:border-gray-700 dark:bg-gray-800">
-          <MapPin className="mx-auto mb-2 text-gray-400" size={32} />
-          <p className="text-sm text-gray-500 dark:text-gray-400">Map integration placeholder</p>
+        <div className="rounded-lg border border-gray-200 bg-white p-8 dark:border-gray-700 dark:bg-gray-800">
+          <MapPin className="mb-3 text-blue-600" size={32} />
+          <p className="font-semibold text-gray-900 dark:text-white">Visit Our Service Center</p>
+          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+            Book a service request first so the team can confirm bay availability and share exact directions.
+          </p>
+          <a
+            href="/book-service"
+            className="mt-5 inline-flex rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+          >
+            Book Service
+          </a>
         </div>
       </div>
     </div>

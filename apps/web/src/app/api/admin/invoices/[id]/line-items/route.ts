@@ -14,7 +14,7 @@ async function ensureDraft(invoiceId: string) {
 
 async function recalcTotals(invoiceId: string) {
   const lines = await prisma.invoiceLineItem.findMany({ where: { invoiceId } });
-  const subtotal = lines.reduce((s, l) => s + Number(l.lineTotal), 0);
+  const subtotal = lines.reduce((s, l) => s + Number(l.lineTotal) - Number(l.taxAmount), 0);
   const taxTotal = lines.reduce((s, l) => s + Number(l.taxAmount), 0);
   const inv = await prisma.invoice.findUniqueOrThrow({ where: { id: invoiceId } });
   const grandTotal = subtotal + taxTotal - Number(inv.discountAmount);

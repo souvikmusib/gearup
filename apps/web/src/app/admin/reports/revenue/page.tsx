@@ -13,7 +13,7 @@ export default function RevenueReportPage() {
     if (from) params.set('from', from);
     if (to) params.set('to', to);
     const qs = params.toString();
-    const endpoint = `/admin/reports/revenue${qs ? `?${qs}` : ''}`;
+    const endpoint = `/admin/reports?type=revenue${qs ? `&${qs}` : ''}`;
     const { cached, promise } = api.getSWR<any>(endpoint);
     if (cached?.success) setData(cached.data);
     promise.then((r) => r.success && setData(r.data));

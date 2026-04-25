@@ -22,14 +22,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!token) { setLoading(false); return; }
     const res = await api.get<MeResponse>('/admin/auth/me');
     if (res.success && res.data) setUser(res.data);
-    else localStorage.removeItem('gearup_token');
+    else {
+      localStorage.removeItem('gearup_token');
+      api.clearCache();
+    }
     setLoading(false);
   };
 
   useEffect(() => { fetchMe(); }, []);
 
-  const login = async (token: string) => { localStorage.setItem('gearup_token', token); await fetchMe(); };
-  const logout = () => { localStorage.removeItem('gearup_token'); setUser(null); };
+  const login = async (token: string) => { api.clearCache(); localStorage.setItem('gearup_token', token); await fetchMe(); };
+  const logout = () => { localStorage.removeItem('gearup_token'); api.clearCache(); setUser(null); };
   const hasPermission = (p: string) => !!user?.permissions.includes(p);
 
   return <AuthContext.Provider value={{ user, loading, login, logout, hasPermission }}>{children}</AuthContext.Provider>;

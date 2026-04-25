@@ -28,15 +28,8 @@ export default function ExpensesPage() {
 
   const openCreate = async () => {
     setShowCreate(true); setError('');
-    const res = await api.get<any>('/admin/expenses?categoryId=_categories');
-    // Try to get categories from a separate endpoint or extract from existing data
     if (categories.length === 0) {
-      const catRes = await api.get<any>('/admin/expenses?pageSize=200');
-      if (catRes.success) {
-        const cats = new Map();
-        (catRes.data?.items ?? catRes.data ?? []).forEach((e: any) => { if (e.category) cats.set(e.category.categoryName, e.categoryId); });
-        setCategories(Array.from(cats, ([name, id]) => ({ id, categoryName: name })));
-      }
+      await loadCategories();
     }
   };
 
@@ -67,11 +60,9 @@ export default function ExpensesPage() {
   };
 
   const loadCategories = async () => {
-    const catRes = await api.get<any>('/admin/expenses?pageSize=200');
+    const catRes = await api.get<any>('/admin/expenses/categories');
     if (catRes.success) {
-      const cats = new Map();
-      (catRes.data?.items ?? catRes.data ?? []).forEach((e: any) => { if (e.category) cats.set(e.category.categoryName, e.categoryId); });
-      setCategories(Array.from(cats, ([name, id]) => ({ id, categoryName: name })));
+      setCategories(catRes.data ?? []);
     }
   };
 

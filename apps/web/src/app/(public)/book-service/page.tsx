@@ -1,5 +1,5 @@
 'use client';
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { api } from '@/lib/api/client';
 import { CheckCircle } from 'lucide-react';
 
@@ -63,9 +63,6 @@ export default function BookServicePage() {
     brand: '', model: '', registrationNumber: '', serviceCategory: '',
     issueDescription: '', preferredDate: '', pickupDropRequired: false, notes: '',
   });
-  const [savedVehicles, setSavedVehicles] = useState<any[]>([]);
-  const [selectedVehicle, setSelectedVehicle] = useState<any>(null);
-  const lookupTimer = useRef<NodeJS.Timeout>();
 
   const set = (k: string, v: unknown) => {
     setForm((p) => ({ ...p, [k]: v }));
@@ -78,27 +75,6 @@ export default function BookServicePage() {
 
   const onPhoneChange = (phone: string) => {
     set('phoneNumber', phone);
-    clearTimeout(lookupTimer.current);
-    if (phone.replace(/\D/g, '').length >= 7) {
-      lookupTimer.current = setTimeout(async () => {
-        const res = await api.get<any>(`/public/customer-lookup?phone=${encodeURIComponent(phone)}`);
-        if (res.success && res.data?.customer) {
-          if (!form.fullName) set('fullName', res.data.customer.fullName);
-          if (!form.email && res.data.customer.email) set('email', res.data.customer.email);
-          setSavedVehicles(res.data.vehicles ?? []);
-        } else { setSavedVehicles([]); }
-      }, 500);
-    } else { setSavedVehicles([]); }
-  };
-
-  const pickVehicle = (v: any) => {
-    setSelectedVehicle(v);
-    setForm((p) => ({ ...p, registrationNumber: v.registrationNumber, brand: v.brand, model: v.model, vehicleType: v.vehicleType }));
-  };
-
-  const clearVehicle = () => {
-    setSelectedVehicle(null);
-    setForm((p) => ({ ...p, registrationNumber: '', brand: '', model: '', vehicleType: 'BIKE' }));
   };
 
   const blur = (k: string) => {
@@ -160,42 +136,17 @@ export default function BookServicePage() {
         {/* Vehicle */}
         <fieldset className="space-y-4">
           <legend className="text-lg font-semibold text-gray-900 dark:text-white">Vehicle Details</legend>
-          {selectedVehicle ? (
-            <div className="rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-900/20 flex items-center justify-between">
-              <div>
-                <p className="font-semibold text-gray-900 dark:text-white">{selectedVehicle.brand} {selectedVehicle.model}</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">**{selectedVehicle.registrationNumber.slice(-4)}</p>
-              </div>
-              <button type="button" onClick={clearVehicle} className="text-xs text-red-600 hover:underline">Change</button>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className={labelCls}>Vehicle Type *</label>
+              <select className={inputCls('vehicleType')} value={form.vehicleType} onChange={(e) => set('vehicleType', e.target.value)}>
+                <option value="BIKE">Motorcycle</option><option value="OTHER">Scooter / Other</option>
+              </select>
             </div>
-          ) : (
-            <>
-              {savedVehicles.length > 0 && (
-                <div className="rounded-lg border border-green-200 bg-green-50 p-3 dark:border-green-800 dark:bg-green-900/20">
-                  <p className="text-xs font-medium text-green-700 dark:text-green-300 mb-2">We found your bikes — tap to select:</p>
-                  <div className="flex flex-wrap gap-2">
-                    {savedVehicles.map((v: any) => (
-                      <button key={v.registrationNumber} type="button" onClick={() => pickVehicle(v)}
-                        className="rounded-lg border border-green-300 bg-white px-3 py-1.5 text-xs font-medium text-green-800 hover:bg-green-100 dark:border-green-700 dark:bg-green-900/40 dark:text-green-200">
-                        **{v.registrationNumber.slice(-4)} — {v.brand} {v.model}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <label className={labelCls}>Vehicle Type *</label>
-                  <select className={inputCls('vehicleType')} value={form.vehicleType} onChange={(e) => set('vehicleType', e.target.value)}>
-                    <option value="BIKE">Motorcycle</option><option value="OTHER">Scooter / Other</option>
-                  </select>
-                </div>
-                <div><label className={labelCls}>Registration Number *</label><input className={inputCls('registrationNumber')} placeholder="AB-00-AB-1234" value={form.registrationNumber} onChange={(e) => set('registrationNumber', formatRegNumber(e.target.value))} onBlur={() => blur('registrationNumber')} />{err('registrationNumber')}</div>
-                <div><label className={labelCls}>Brand *</label><input className={inputCls('brand')} value={form.brand} onChange={(e) => set('brand', titleCase(e.target.value))} onBlur={() => blur('brand')} />{err('brand')}</div>
-                <div><label className={labelCls}>Model *</label><input className={inputCls('model')} value={form.model} onChange={(e) => set('model', titleCase(e.target.value))} onBlur={() => blur('model')} />{err('model')}</div>
-              </div>
-            </>
-          )}
+            <div><label className={labelCls}>Registration Number *</label><input className={inputCls('registrationNumber')} placeholder="AB-00-AB-1234" value={form.registrationNumber} onChange={(e) => set('registrationNumber', formatRegNumber(e.target.value))} onBlur={() => blur('registrationNumber')} />{err('registrationNumber')}</div>
+            <div><label className={labelCls}>Brand *</label><input className={inputCls('brand')} value={form.brand} onChange={(e) => set('brand', titleCase(e.target.value))} onBlur={() => blur('brand')} />{err('brand')}</div>
+            <div><label className={labelCls}>Model *</label><input className={inputCls('model')} value={form.model} onChange={(e) => set('model', titleCase(e.target.value))} onBlur={() => blur('model')} />{err('model')}</div>
+          </div>
         </fieldset>
 
         {/* Service */}

@@ -56,7 +56,7 @@
       "source_file": "packages/ui/src/index.ts",
       "source_location": "L1",
       "id": "packages_ui_src_index_ts",
-      "community": 56,
+      "community": 54,
       "norm_label": "index.ts"
     },
     {
@@ -65,7 +65,7 @@
       "source_file": "packages/ui/src/components/data-table.tsx",
       "source_location": "L1",
       "id": "packages_ui_src_components_data_table_tsx",
-      "community": 57,
+      "community": 55,
       "norm_label": "data-table.tsx"
     },
     {
@@ -74,7 +74,7 @@
       "source_file": "packages/ui/src/components/empty-state.tsx",
       "source_location": "L1",
       "id": "packages_ui_src_components_empty_state_tsx",
-      "community": 16,
+      "community": 19,
       "norm_label": "empty-state.tsx"
     },
     {
@@ -83,7 +83,7 @@
       "source_file": "packages/ui/src/components/empty-state.tsx",
       "source_location": "L4",
       "id": "empty_state_emptystate",
-      "community": 16,
+      "community": 19,
       "norm_label": "emptystate()"
     },
     {
@@ -92,7 +92,7 @@
       "source_file": "packages/ui/src/components/status-badge.tsx",
       "source_location": "L1",
       "id": "packages_ui_src_components_status_badge_tsx",
-      "community": 17,
+      "community": 20,
       "norm_label": "status-badge.tsx"
     },
     {
@@ -101,7 +101,7 @@
       "source_file": "packages/ui/src/components/status-badge.tsx",
       "source_location": "L23",
       "id": "status_badge_statusbadge",
-      "community": 17,
+      "community": 20,
       "norm_label": "statusbadge()"
     },
     {
@@ -110,7 +110,7 @@
       "source_file": "packages/ui/src/components/page-header.tsx",
       "source_location": "L1",
       "id": "packages_ui_src_components_page_header_tsx",
-      "community": 18,
+      "community": 21,
       "norm_label": "page-header.tsx"
     },
     {
@@ -119,7 +119,7 @@
       "source_file": "packages/ui/src/components/page-header.tsx",
       "source_location": "L4",
       "id": "page_header_pageheader",
-      "community": 18,
+      "community": 21,
       "norm_label": "pageheader()"
     },
     {
@@ -128,7 +128,7 @@
       "source_file": "packages/ui/src/components/stat-card.tsx",
       "source_location": "L1",
       "id": "packages_ui_src_components_stat_card_tsx",
-      "community": 19,
+      "community": 22,
       "norm_label": "stat-card.tsx"
     },
     {
@@ -137,7 +137,7 @@
       "source_file": "packages/ui/src/components/stat-card.tsx",
       "source_location": "L4",
       "id": "stat_card_statcard",
-      "community": 19,
+      "community": 22,
       "norm_label": "statcard()"
     },
     {
@@ -146,7 +146,7 @@
       "source_file": "packages/types/src/api.ts",
       "source_location": "L1",
       "id": "packages_types_src_api_ts",
-      "community": 58,
+      "community": 56,
       "norm_label": "api.ts"
     },
     {
@@ -155,7 +155,7 @@
       "source_file": "packages/types/src/index.ts",
       "source_location": "L1",
       "id": "packages_types_src_index_ts",
-      "community": 59,
+      "community": 57,
       "norm_label": "index.ts"
     },
     {
@@ -164,7 +164,7 @@
       "source_file": "packages/types/src/domain.ts",
       "source_location": "L1",
       "id": "packages_types_src_domain_ts",
-      "community": 60,
+      "community": 58,
       "norm_label": "domain.ts"
     },
     {
@@ -173,7 +173,7 @@
       "source_file": "packages/types/src/auth.ts",
       "source_location": "L1",
       "id": "packages_types_src_auth_ts",
-      "community": 61,
+      "community": 59,
       "norm_label": "auth.ts"
     },
     {
@@ -182,7 +182,7 @@
       "source_file": "apps/web/tailwind.config.js",
       "source_location": "L1",
       "id": "apps_web_tailwind_config_js",
-      "community": 62,
+      "community": 60,
       "norm_label": "tailwind.config.js"
     },
     {
@@ -191,7 +191,7 @@
       "source_file": "apps/web/sentry.server.config.ts",
       "source_location": "L1",
       "id": "apps_web_sentry_server_config_ts",
-      "community": 63,
+      "community": 61,
       "norm_label": "sentry.server.config.ts"
     },
     {
@@ -200,7 +200,7 @@
       "source_file": "apps/web/next-env.d.ts",
       "source_location": "L1",
       "id": "apps_web_next_env_d_ts",
-      "community": 64,
+      "community": 62,
       "norm_label": "next-env.d.ts"
     },
     {
@@ -209,7 +209,7 @@
       "source_file": "apps/web/sentry.client.config.ts",
       "source_location": "L1",
       "id": "apps_web_sentry_client_config_ts",
-      "community": 65,
+      "community": 63,
       "norm_label": "sentry.client.config.ts"
     },
     {
@@ -218,7 +218,7 @@
       "source_file": "apps/web/sentry.edge.config.ts",
       "source_location": "L1",
       "id": "apps_web_sentry_edge_config_ts",
-      "community": 66,
+      "community": 64,
       "norm_label": "sentry.edge.config.ts"
     },
     {
@@ -227,7 +227,7 @@
       "source_file": "apps/web/playwright.config.ts",
       "source_location": "L1",
       "id": "apps_web_playwright_config_ts",
-      "community": 67,
+      "community": 65,
       "norm_label": "playwright.config.ts"
     },
     {
@@ -236,7 +236,7 @@
       "source_file": "apps/web/postcss.config.js",
       "source_location": "L1",
       "id": "apps_web_postcss_config_js",
-      "community": 68,
+      "community": 66,
       "norm_label": "postcss.config.js"
     },
     {
@@ -245,7 +245,7 @@
       "source_file": "apps/web/prisma/seed.ts",
       "source_location": "L1",
       "id": "apps_web_prisma_seed_ts",
-      "community": 20,
+      "community": 23,
       "norm_label": "seed.ts"
     },
     {
@@ -254,7 +254,7 @@
       "source_file": "apps/web/prisma/seed.ts",
       "source_location": "L6",
       "id": "seed_main",
-      "community": 20,
+      "community": 23,
       "norm_label": "main()"
     },
     {
@@ -263,7 +263,7 @@
       "source_file": "apps/web/e2e/admin-e2e.spec.ts",
       "source_location": "L1",
       "id": "apps_web_e2e_admin_e2e_spec_ts",
-      "community": 5,
+      "community": 7,
       "norm_label": "admin-e2e.spec.ts"
     },
     {
@@ -272,7 +272,7 @@
       "source_file": "apps/web/e2e/admin-e2e.spec.ts",
       "source_location": "L6",
       "id": "admin_e2e_spec_login",
-      "community": 5,
+      "community": 7,
       "norm_label": "login()"
     },
     {
@@ -281,7 +281,7 @@
       "source_file": "apps/web/e2e/admin-e2e.spec.ts",
       "source_location": "L16",
       "id": "admin_e2e_spec_authget",
-      "community": 5,
+      "community": 7,
       "norm_label": "authget()"
     },
     {
@@ -290,7 +290,7 @@
       "source_file": "apps/web/e2e/admin-e2e.spec.ts",
       "source_location": "L24",
       "id": "admin_e2e_spec_authpost",
-      "community": 5,
+      "community": 7,
       "norm_label": "authpost()"
     },
     {
@@ -299,7 +299,7 @@
       "source_file": "apps/web/e2e/admin-e2e.spec.ts",
       "source_location": "L33",
       "id": "admin_e2e_spec_authpatch",
-      "community": 5,
+      "community": 7,
       "norm_label": "authpatch()"
     },
     {
@@ -308,7 +308,7 @@
       "source_file": "apps/web/src/middleware.ts",
       "source_location": "L1",
       "id": "apps_web_src_middleware_ts",
-      "community": 9,
+      "community": 12,
       "norm_label": "middleware.ts"
     },
     {
@@ -317,7 +317,7 @@
       "source_file": "apps/web/src/middleware.ts",
       "source_location": "L9",
       "id": "middleware_isratelimited",
-      "community": 9,
+      "community": 12,
       "norm_label": "isratelimited()"
     },
     {
@@ -326,7 +326,7 @@
       "source_file": "apps/web/src/middleware.ts",
       "source_location": "L20",
       "id": "middleware_middleware",
-      "community": 9,
+      "community": 12,
       "norm_label": "middleware()"
     },
     {
@@ -335,7 +335,7 @@
       "source_file": "apps/web/src/app/layout.tsx",
       "source_location": "L1",
       "id": "apps_web_src_app_layout_tsx",
-      "community": 21,
+      "community": 24,
       "norm_label": "layout.tsx"
     },
     {
@@ -344,7 +344,7 @@
       "source_file": "apps/web/src/app/layout.tsx",
       "source_location": "L12",
       "id": "layout_rootlayout",
-      "community": 21,
+      "community": 24,
       "norm_label": "rootlayout()"
     },
     {
@@ -353,8 +353,17 @@
       "source_file": "apps/web/src/app/admin/layout.tsx",
       "source_location": "L1",
       "id": "apps_web_src_app_admin_layout_tsx",
-      "community": 69,
+      "community": 25,
       "norm_label": "layout.tsx"
+    },
+    {
+      "label": "runWarmup()",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/admin/layout.tsx",
+      "source_location": "L89",
+      "id": "layout_runwarmup",
+      "community": 25,
+      "norm_label": "runwarmup()"
     },
     {
       "label": "page.tsx",
@@ -362,7 +371,7 @@
       "source_file": "apps/web/src/app/admin/page.tsx",
       "source_location": "L1",
       "id": "apps_web_src_app_admin_page_tsx",
-      "community": 22,
+      "community": 26,
       "norm_label": "page.tsx"
     },
     {
@@ -371,7 +380,7 @@
       "source_file": "apps/web/src/app/admin/page.tsx",
       "source_location": "L3",
       "id": "page_adminindexpage",
-      "community": 22,
+      "community": 26,
       "norm_label": "adminindexpage()"
     },
     {
@@ -380,7 +389,7 @@
       "source_file": "apps/web/src/app/admin/customers/page.tsx",
       "source_location": "L1",
       "id": "apps_web_src_app_admin_customers_page_tsx",
-      "community": 23,
+      "community": 27,
       "norm_label": "page.tsx"
     },
     {
@@ -389,7 +398,7 @@
       "source_file": "apps/web/src/app/admin/customers/page.tsx",
       "source_location": "L10",
       "id": "page_customerspage",
-      "community": 23,
+      "community": 27,
       "norm_label": "customerspage()"
     },
     {
@@ -398,8 +407,17 @@
       "source_file": "apps/web/src/app/admin/customers/[id]/page.tsx",
       "source_location": "L1",
       "id": "apps_web_src_app_admin_customers_id_page_tsx",
-      "community": 70,
+      "community": 28,
       "norm_label": "page.tsx"
+    },
+    {
+      "label": "CustomerDetailPage()",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/admin/customers/[id]/page.tsx",
+      "source_location": "L8",
+      "id": "page_customerdetailpage",
+      "community": 28,
+      "norm_label": "customerdetailpage()"
     },
     {
       "label": "page.tsx",
@@ -407,8 +425,17 @@
       "source_file": "apps/web/src/app/admin/settings/page.tsx",
       "source_location": "L1",
       "id": "apps_web_src_app_admin_settings_page_tsx",
-      "community": 71,
+      "community": 29,
       "norm_label": "page.tsx"
+    },
+    {
+      "label": "SettingsPage()",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/admin/settings/page.tsx",
+      "source_location": "L6",
+      "id": "page_settingspage",
+      "community": 29,
+      "norm_label": "settingspage()"
     },
     {
       "label": "page.tsx",
@@ -416,7 +443,7 @@
       "source_file": "apps/web/src/app/admin/settings/business-hours/page.tsx",
       "source_location": "L1",
       "id": "apps_web_src_app_admin_settings_business_hours_page_tsx",
-      "community": 72,
+      "community": 67,
       "norm_label": "page.tsx"
     },
     {
@@ -425,17 +452,8 @@
       "source_file": "apps/web/src/app/admin/settings/admins/page.tsx",
       "source_location": "L1",
       "id": "apps_web_src_app_admin_settings_admins_page_tsx",
-      "community": 24,
+      "community": 68,
       "norm_label": "page.tsx"
-    },
-    {
-      "label": "AdminUsersPage()",
-      "file_type": "code",
-      "source_file": "apps/web/src/app/admin/settings/admins/page.tsx",
-      "source_location": "L3",
-      "id": "page_adminuserspage",
-      "community": 24,
-      "norm_label": "adminuserspage()"
     },
     {
       "label": "page.tsx",
@@ -443,7 +461,7 @@
       "source_file": "apps/web/src/app/admin/settings/integrations/page.tsx",
       "source_location": "L1",
       "id": "apps_web_src_app_admin_settings_integrations_page_tsx",
-      "community": 25,
+      "community": 30,
       "norm_label": "page.tsx"
     },
     {
@@ -452,7 +470,7 @@
       "source_file": "apps/web/src/app/admin/settings/integrations/page.tsx",
       "source_location": "L3",
       "id": "page_integrationspage",
-      "community": 25,
+      "community": 30,
       "norm_label": "integrationspage()"
     },
     {
@@ -461,17 +479,26 @@
       "source_file": "apps/web/src/app/admin/settings/notifications/page.tsx",
       "source_location": "L1",
       "id": "apps_web_src_app_admin_settings_notifications_page_tsx",
-      "community": 26,
+      "community": 13,
       "norm_label": "page.tsx"
     },
     {
-      "label": "NotificationSettingsPage()",
+      "label": "save()",
       "file_type": "code",
       "source_file": "apps/web/src/app/admin/settings/notifications/page.tsx",
-      "source_location": "L3",
-      "id": "page_notificationsettingspage",
-      "community": 26,
-      "norm_label": "notificationsettingspage()"
+      "source_location": "L31",
+      "id": "page_save",
+      "community": 13,
+      "norm_label": "save()"
+    },
+    {
+      "label": "boolField()",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/admin/settings/notifications/page.tsx",
+      "source_location": "L49",
+      "id": "page_boolfield",
+      "community": 13,
+      "norm_label": "boolfield()"
     },
     {
       "label": "page.tsx",
@@ -479,7 +506,7 @@
       "source_file": "apps/web/src/app/admin/payments/page.tsx",
       "source_location": "L1",
       "id": "apps_web_src_app_admin_payments_page_tsx",
-      "community": 27,
+      "community": 31,
       "norm_label": "page.tsx"
     },
     {
@@ -488,7 +515,7 @@
       "source_file": "apps/web/src/app/admin/payments/page.tsx",
       "source_location": "L5",
       "id": "page_paymentspage",
-      "community": 27,
+      "community": 31,
       "norm_label": "paymentspage()"
     },
     {
@@ -497,8 +524,62 @@
       "source_file": "apps/web/src/app/admin/invoices/page.tsx",
       "source_location": "L1",
       "id": "apps_web_src_app_admin_invoices_page_tsx",
-      "community": 73,
+      "community": 8,
       "norm_label": "page.tsx"
+    },
+    {
+      "label": "openCreate()",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/admin/job-cards/page.tsx",
+      "source_location": "L33",
+      "id": "page_opencreate",
+      "community": 1,
+      "norm_label": "opencreate()"
+    },
+    {
+      "label": "onJobCardSelect()",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/admin/invoices/page.tsx",
+      "source_location": "L64",
+      "id": "page_onjobcardselect",
+      "community": 8,
+      "norm_label": "onjobcardselect()"
+    },
+    {
+      "label": "addLine()",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/admin/invoices/page.tsx",
+      "source_location": "L77",
+      "id": "page_addline",
+      "community": 8,
+      "norm_label": "addline()"
+    },
+    {
+      "label": "removeLine()",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/admin/invoices/page.tsx",
+      "source_location": "L78",
+      "id": "page_removeline",
+      "community": 8,
+      "norm_label": "removeline()"
+    },
+    {
+      "label": "updateLine()",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/admin/invoices/page.tsx",
+      "source_location": "L79",
+      "id": "page_updateline",
+      "community": 8,
+      "norm_label": "updateline()"
+    },
+    {
+      "label": "submit()",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/(public)/track/page.tsx",
+      "source_location": "L22",
+      "id": "page_submit",
+      "community": 1,
+      "norm_label": "submit()"
     },
     {
       "label": "page.tsx",
@@ -506,7 +587,7 @@
       "source_file": "apps/web/src/app/admin/invoices/[id]/page.tsx",
       "source_location": "L1",
       "id": "apps_web_src_app_admin_invoices_id_page_tsx",
-      "community": 28,
+      "community": 32,
       "norm_label": "page.tsx"
     },
     {
@@ -515,7 +596,7 @@
       "source_file": "apps/web/src/app/admin/invoices/[id]/page.tsx",
       "source_location": "L8",
       "id": "page_invoicedetailpage",
-      "community": 28,
+      "community": 32,
       "norm_label": "invoicedetailpage()"
     },
     {
@@ -524,8 +605,26 @@
       "source_file": "apps/web/src/app/admin/appointments/page.tsx",
       "source_location": "L1",
       "id": "apps_web_src_app_admin_appointments_page_tsx",
-      "community": 74,
+      "community": 1,
       "norm_label": "page.tsx"
+    },
+    {
+      "label": "load()",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/admin/job-cards/[id]/page.tsx",
+      "source_location": "L28",
+      "id": "page_load",
+      "community": 1,
+      "norm_label": "load()"
+    },
+    {
+      "label": "onCustomerChange()",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/admin/job-cards/page.tsx",
+      "source_location": "L39",
+      "id": "page_oncustomerchange",
+      "community": 1,
+      "norm_label": "oncustomerchange()"
     },
     {
       "label": "page.tsx",
@@ -533,17 +632,26 @@
       "source_file": "apps/web/src/app/admin/appointments/calendar/page.tsx",
       "source_location": "L1",
       "id": "apps_web_src_app_admin_appointments_calendar_page_tsx",
-      "community": 29,
+      "community": 10,
       "norm_label": "page.tsx"
     },
     {
-      "label": "AppointmentCalendarPage()",
+      "label": "fmtDate()",
       "file_type": "code",
       "source_file": "apps/web/src/app/admin/appointments/calendar/page.tsx",
-      "source_location": "L3",
-      "id": "page_appointmentcalendarpage",
-      "community": 29,
-      "norm_label": "appointmentcalendarpage()"
+      "source_location": "L7",
+      "id": "page_fmtdate",
+      "community": 10,
+      "norm_label": "fmtdate()"
+    },
+    {
+      "label": "fmtTime()",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/admin/workers/calendar/page.tsx",
+      "source_location": "L7",
+      "id": "page_fmttime",
+      "community": 10,
+      "norm_label": "fmttime()"
     },
     {
       "label": "page.tsx",
@@ -551,16 +659,16 @@
       "source_file": "apps/web/src/app/admin/appointments/[id]/page.tsx",
       "source_location": "L1",
       "id": "apps_web_src_app_admin_appointments_id_page_tsx",
-      "community": 30,
+      "community": 33,
       "norm_label": "page.tsx"
     },
     {
       "label": "AppointmentDetailPage()",
       "file_type": "code",
       "source_file": "apps/web/src/app/admin/appointments/[id]/page.tsx",
-      "source_location": "L7",
+      "source_location": "L32",
       "id": "page_appointmentdetailpage",
-      "community": 30,
+      "community": 33,
       "norm_label": "appointmentdetailpage()"
     },
     {
@@ -569,17 +677,44 @@
       "source_file": "apps/web/src/app/admin/expenses/page.tsx",
       "source_location": "L1",
       "id": "apps_web_src_app_admin_expenses_page_tsx",
-      "community": 31,
+      "community": 1,
       "norm_label": "page.tsx"
     },
     {
-      "label": "ExpensesPage()",
+      "label": "deleteExpense()",
       "file_type": "code",
       "source_file": "apps/web/src/app/admin/expenses/page.tsx",
-      "source_location": "L5",
-      "id": "page_expensespage",
-      "community": 31,
-      "norm_label": "expensespage()"
+      "source_location": "L45",
+      "id": "page_deleteexpense",
+      "community": 1,
+      "norm_label": "deleteexpense()"
+    },
+    {
+      "label": "openEdit()",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/admin/inventory/items/page.tsx",
+      "source_location": "L68",
+      "id": "page_openedit",
+      "community": 1,
+      "norm_label": "openedit()"
+    },
+    {
+      "label": "loadCategories()",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/admin/expenses/page.tsx",
+      "source_location": "L62",
+      "id": "page_loadcategories",
+      "community": 1,
+      "norm_label": "loadcategories()"
+    },
+    {
+      "label": "saveEdit()",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/admin/inventory/items/page.tsx",
+      "source_location": "L78",
+      "id": "page_saveedit",
+      "community": 1,
+      "norm_label": "saveedit()"
     },
     {
       "label": "page.tsx",
@@ -587,16 +722,16 @@
       "source_file": "apps/web/src/app/admin/expenses/categories/page.tsx",
       "source_location": "L1",
       "id": "apps_web_src_app_admin_expenses_categories_page_tsx",
-      "community": 32,
+      "community": 34,
       "norm_label": "page.tsx"
     },
     {
       "label": "ExpenseCategoriesPage()",
       "file_type": "code",
       "source_file": "apps/web/src/app/admin/expenses/categories/page.tsx",
-      "source_location": "L5",
+      "source_location": "L7",
       "id": "page_expensecategoriespage",
-      "community": 32,
+      "community": 34,
       "norm_label": "expensecategoriespage()"
     },
     {
@@ -605,25 +740,25 @@
       "source_file": "apps/web/src/app/admin/dashboard/page.tsx",
       "source_location": "L1",
       "id": "apps_web_src_app_admin_dashboard_page_tsx",
-      "community": 10,
+      "community": 14,
       "norm_label": "page.tsx"
     },
     {
       "label": "formatTime()",
       "file_type": "code",
       "source_file": "apps/web/src/app/admin/dashboard/page.tsx",
-      "source_location": "L67",
+      "source_location": "L83",
       "id": "page_formattime",
-      "community": 10,
+      "community": 14,
       "norm_label": "formattime()"
     },
     {
       "label": "formatAction()",
       "file_type": "code",
       "source_file": "apps/web/src/app/admin/dashboard/page.tsx",
-      "source_location": "L77",
+      "source_location": "L93",
       "id": "page_formataction",
-      "community": 10,
+      "community": 14,
       "norm_label": "formataction()"
     },
     {
@@ -632,7 +767,7 @@
       "source_file": "apps/web/src/app/admin/service-requests/page.tsx",
       "source_location": "L1",
       "id": "apps_web_src_app_admin_service_requests_page_tsx",
-      "community": 75,
+      "community": 69,
       "norm_label": "page.tsx"
     },
     {
@@ -641,16 +776,16 @@
       "source_file": "apps/web/src/app/admin/service-requests/[id]/page.tsx",
       "source_location": "L1",
       "id": "apps_web_src_app_admin_service_requests_id_page_tsx",
-      "community": 33,
+      "community": 35,
       "norm_label": "page.tsx"
     },
     {
       "label": "ServiceRequestDetailPage()",
       "file_type": "code",
       "source_file": "apps/web/src/app/admin/service-requests/[id]/page.tsx",
-      "source_location": "L7",
+      "source_location": "L29",
       "id": "page_servicerequestdetailpage",
-      "community": 33,
+      "community": 35,
       "norm_label": "servicerequestdetailpage()"
     },
     {
@@ -659,7 +794,7 @@
       "source_file": "apps/web/src/app/admin/logs/page.tsx",
       "source_location": "L1",
       "id": "apps_web_src_app_admin_logs_page_tsx",
-      "community": 34,
+      "community": 36,
       "norm_label": "page.tsx"
     },
     {
@@ -668,7 +803,7 @@
       "source_file": "apps/web/src/app/admin/logs/page.tsx",
       "source_location": "L5",
       "id": "page_activitylogspage",
-      "community": 34,
+      "community": 36,
       "norm_label": "activitylogspage()"
     },
     {
@@ -677,17 +812,26 @@
       "source_file": "apps/web/src/app/admin/inventory/suppliers/page.tsx",
       "source_location": "L1",
       "id": "apps_web_src_app_admin_inventory_suppliers_page_tsx",
-      "community": 35,
+      "community": 1,
       "norm_label": "page.tsx"
     },
     {
-      "label": "SuppliersPage()",
+      "label": "remove()",
       "file_type": "code",
       "source_file": "apps/web/src/app/admin/inventory/suppliers/page.tsx",
-      "source_location": "L5",
-      "id": "page_supplierspage",
-      "community": 35,
-      "norm_label": "supplierspage()"
+      "source_location": "L40",
+      "id": "page_remove",
+      "community": 1,
+      "norm_label": "remove()"
+    },
+    {
+      "label": "fields()",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/admin/inventory/suppliers/page.tsx",
+      "source_location": "L50",
+      "id": "page_fields",
+      "community": 1,
+      "norm_label": "fields()"
     },
     {
       "label": "page.tsx",
@@ -695,7 +839,7 @@
       "source_file": "apps/web/src/app/admin/inventory/low-stock/page.tsx",
       "source_location": "L1",
       "id": "apps_web_src_app_admin_inventory_low_stock_page_tsx",
-      "community": 36,
+      "community": 37,
       "norm_label": "page.tsx"
     },
     {
@@ -704,7 +848,7 @@
       "source_file": "apps/web/src/app/admin/inventory/low-stock/page.tsx",
       "source_location": "L5",
       "id": "page_lowstockpage",
-      "community": 36,
+      "community": 37,
       "norm_label": "lowstockpage()"
     },
     {
@@ -713,7 +857,7 @@
       "source_file": "apps/web/src/app/admin/inventory/movements/page.tsx",
       "source_location": "L1",
       "id": "apps_web_src_app_admin_inventory_movements_page_tsx",
-      "community": 76,
+      "community": 70,
       "norm_label": "page.tsx"
     },
     {
@@ -722,17 +866,44 @@
       "source_file": "apps/web/src/app/admin/inventory/items/page.tsx",
       "source_location": "L1",
       "id": "apps_web_src_app_admin_inventory_items_page_tsx",
-      "community": 11,
+      "community": 1,
       "norm_label": "page.tsx"
+    },
+    {
+      "label": "loadLookups()",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/admin/inventory/items/page.tsx",
+      "source_location": "L27",
+      "id": "page_loadlookups",
+      "community": 1,
+      "norm_label": "loadlookups()"
     },
     {
       "label": "onSubmit()",
       "file_type": "code",
       "source_file": "apps/web/src/app/admin/workers/page.tsx",
-      "source_location": "L44",
+      "source_location": "L52",
       "id": "page_onsubmit",
-      "community": 11,
+      "community": 1,
       "norm_label": "onsubmit()"
+    },
+    {
+      "label": "openStock()",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/admin/inventory/items/page.tsx",
+      "source_location": "L93",
+      "id": "page_openstock",
+      "community": 1,
+      "norm_label": "openstock()"
+    },
+    {
+      "label": "submitStock()",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/admin/inventory/items/page.tsx",
+      "source_location": "L99",
+      "id": "page_submitstock",
+      "community": 1,
+      "norm_label": "submitstock()"
     },
     {
       "label": "page.tsx",
@@ -740,16 +911,16 @@
       "source_file": "apps/web/src/app/admin/inventory/categories/page.tsx",
       "source_location": "L1",
       "id": "apps_web_src_app_admin_inventory_categories_page_tsx",
-      "community": 37,
+      "community": 38,
       "norm_label": "page.tsx"
     },
     {
       "label": "InventoryCategoriesPage()",
       "file_type": "code",
       "source_file": "apps/web/src/app/admin/inventory/categories/page.tsx",
-      "source_location": "L5",
+      "source_location": "L7",
       "id": "page_inventorycategoriespage",
-      "community": 37,
+      "community": 38,
       "norm_label": "inventorycategoriespage()"
     },
     {
@@ -758,7 +929,7 @@
       "source_file": "apps/web/src/app/admin/workers/page.tsx",
       "source_location": "L1",
       "id": "apps_web_src_app_admin_workers_page_tsx",
-      "community": 11,
+      "community": 1,
       "norm_label": "page.tsx"
     },
     {
@@ -767,17 +938,8 @@
       "source_file": "apps/web/src/app/admin/workers/calendar/page.tsx",
       "source_location": "L1",
       "id": "apps_web_src_app_admin_workers_calendar_page_tsx",
-      "community": 38,
+      "community": 10,
       "norm_label": "page.tsx"
-    },
-    {
-      "label": "WorkerCalendarPage()",
-      "file_type": "code",
-      "source_file": "apps/web/src/app/admin/workers/calendar/page.tsx",
-      "source_location": "L3",
-      "id": "page_workercalendarpage",
-      "community": 38,
-      "norm_label": "workercalendarpage()"
     },
     {
       "label": "page.tsx",
@@ -785,8 +947,17 @@
       "source_file": "apps/web/src/app/admin/workers/[id]/page.tsx",
       "source_location": "L1",
       "id": "apps_web_src_app_admin_workers_id_page_tsx",
-      "community": 77,
+      "community": 39,
       "norm_label": "page.tsx"
+    },
+    {
+      "label": "WorkerDetailPage()",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/admin/workers/[id]/page.tsx",
+      "source_location": "L8",
+      "id": "page_workerdetailpage",
+      "community": 39,
+      "norm_label": "workerdetailpage()"
     },
     {
       "label": "page.tsx",
@@ -794,17 +965,8 @@
       "source_file": "apps/web/src/app/admin/vehicles/page.tsx",
       "source_location": "L1",
       "id": "apps_web_src_app_admin_vehicles_page_tsx",
-      "community": 39,
+      "community": 1,
       "norm_label": "page.tsx"
-    },
-    {
-      "label": "VehiclesPage()",
-      "file_type": "code",
-      "source_file": "apps/web/src/app/admin/vehicles/page.tsx",
-      "source_location": "L6",
-      "id": "page_vehiclespage",
-      "community": 39,
-      "norm_label": "vehiclespage()"
     },
     {
       "label": "page.tsx",
@@ -819,7 +981,7 @@
       "label": "VehicleDetailPage()",
       "file_type": "code",
       "source_file": "apps/web/src/app/admin/vehicles/[id]/page.tsx",
-      "source_location": "L6",
+      "source_location": "L8",
       "id": "page_vehicledetailpage",
       "community": 40,
       "norm_label": "vehicledetailpage()"
@@ -830,7 +992,7 @@
       "source_file": "apps/web/src/app/admin/notifications/page.tsx",
       "source_location": "L1",
       "id": "apps_web_src_app_admin_notifications_page_tsx",
-      "community": 78,
+      "community": 71,
       "norm_label": "page.tsx"
     },
     {
@@ -875,8 +1037,26 @@
       "source_file": "apps/web/src/app/admin/job-cards/page.tsx",
       "source_location": "L1",
       "id": "apps_web_src_app_admin_job_cards_page_tsx",
-      "community": 79,
+      "community": 1,
       "norm_label": "page.tsx"
+    },
+    {
+      "label": "createCustomer()",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/admin/job-cards/page.tsx",
+      "source_location": "L46",
+      "id": "page_createcustomer",
+      "community": 1,
+      "norm_label": "createcustomer()"
+    },
+    {
+      "label": "createVehicle()",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/admin/job-cards/page.tsx",
+      "source_location": "L60",
+      "id": "page_createvehicle",
+      "community": 1,
+      "norm_label": "createvehicle()"
     },
     {
       "label": "page.tsx",
@@ -884,17 +1064,152 @@
       "source_file": "apps/web/src/app/admin/job-cards/[id]/page.tsx",
       "source_location": "L1",
       "id": "apps_web_src_app_admin_job_cards_id_page_tsx",
-      "community": 43,
+      "community": 1,
       "norm_label": "page.tsx"
     },
     {
-      "label": "JobCardDetailPage()",
+      "label": "updateStatus()",
       "file_type": "code",
       "source_file": "apps/web/src/app/admin/job-cards/[id]/page.tsx",
-      "source_location": "L7",
-      "id": "page_jobcarddetailpage",
-      "community": 43,
-      "norm_label": "jobcarddetailpage()"
+      "source_location": "L33",
+      "id": "page_updatestatus",
+      "community": 1,
+      "norm_label": "updatestatus()"
+    },
+    {
+      "label": "saveNotes()",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/admin/job-cards/[id]/page.tsx",
+      "source_location": "L40",
+      "id": "page_savenotes",
+      "community": 1,
+      "norm_label": "savenotes()"
+    },
+    {
+      "label": "saveCost()",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/admin/job-cards/[id]/page.tsx",
+      "source_location": "L47",
+      "id": "page_savecost",
+      "community": 1,
+      "norm_label": "savecost()"
+    },
+    {
+      "label": "loadInventory()",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/admin/job-cards/[id]/page.tsx",
+      "source_location": "L57",
+      "id": "page_loadinventory",
+      "community": 1,
+      "norm_label": "loadinventory()"
+    },
+    {
+      "label": "onItemSelect()",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/admin/job-cards/[id]/page.tsx",
+      "source_location": "L63",
+      "id": "page_onitemselect",
+      "community": 1,
+      "norm_label": "onitemselect()"
+    },
+    {
+      "label": "addPart()",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/admin/job-cards/[id]/page.tsx",
+      "source_location": "L68",
+      "id": "page_addpart",
+      "community": 1,
+      "norm_label": "addpart()"
+    },
+    {
+      "label": "removePart()",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/admin/job-cards/[id]/page.tsx",
+      "source_location": "L79",
+      "id": "page_removepart",
+      "community": 1,
+      "norm_label": "removepart()"
+    },
+    {
+      "label": "updatePart()",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/admin/job-cards/[id]/page.tsx",
+      "source_location": "L84",
+      "id": "page_updatepart",
+      "community": 1,
+      "norm_label": "updatepart()"
+    },
+    {
+      "label": "loadWorkers()",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/admin/job-cards/[id]/page.tsx",
+      "source_location": "L92",
+      "id": "page_loadworkers",
+      "community": 1,
+      "norm_label": "loadworkers()"
+    },
+    {
+      "label": "assignWorker()",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/admin/job-cards/[id]/page.tsx",
+      "source_location": "L97",
+      "id": "page_assignworker",
+      "community": 1,
+      "norm_label": "assignworker()"
+    },
+    {
+      "label": "unassignWorker()",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/admin/job-cards/[id]/page.tsx",
+      "source_location": "L102",
+      "id": "page_unassignworker",
+      "community": 1,
+      "norm_label": "unassignworker()"
+    },
+    {
+      "label": "addTask()",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/admin/job-cards/[id]/page.tsx",
+      "source_location": "L108",
+      "id": "page_addtask",
+      "community": 1,
+      "norm_label": "addtask()"
+    },
+    {
+      "label": "updateTaskStatus()",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/admin/job-cards/[id]/page.tsx",
+      "source_location": "L113",
+      "id": "page_updatetaskstatus",
+      "community": 1,
+      "norm_label": "updatetaskstatus()"
+    },
+    {
+      "label": "removeTask()",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/admin/job-cards/[id]/page.tsx",
+      "source_location": "L117",
+      "id": "page_removetask",
+      "community": 1,
+      "norm_label": "removetask()"
+    },
+    {
+      "label": "goToInvoice()",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/admin/job-cards/[id]/page.tsx",
+      "source_location": "L123",
+      "id": "page_gotoinvoice",
+      "community": 1,
+      "norm_label": "gotoinvoice()"
+    },
+    {
+      "label": "Number()",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/admin/job-cards/[id]/page.tsx",
+      "source_location": "L240",
+      "id": "page_number",
+      "community": 1,
+      "norm_label": "number()"
     },
     {
       "label": "page.tsx",
@@ -902,7 +1217,7 @@
       "source_file": "apps/web/src/app/admin/reports/page.tsx",
       "source_location": "L1",
       "id": "apps_web_src_app_admin_reports_page_tsx",
-      "community": 80,
+      "community": 72,
       "norm_label": "page.tsx"
     },
     {
@@ -911,7 +1226,7 @@
       "source_file": "apps/web/src/app/admin/reports/appointments/page.tsx",
       "source_location": "L1",
       "id": "apps_web_src_app_admin_reports_appointments_page_tsx",
-      "community": 81,
+      "community": 73,
       "norm_label": "page.tsx"
     },
     {
@@ -920,7 +1235,7 @@
       "source_file": "apps/web/src/app/admin/reports/expenses/page.tsx",
       "source_location": "L1",
       "id": "apps_web_src_app_admin_reports_expenses_page_tsx",
-      "community": 82,
+      "community": 74,
       "norm_label": "page.tsx"
     },
     {
@@ -929,7 +1244,7 @@
       "source_file": "apps/web/src/app/admin/reports/inventory/page.tsx",
       "source_location": "L1",
       "id": "apps_web_src_app_admin_reports_inventory_page_tsx",
-      "community": 44,
+      "community": 43,
       "norm_label": "page.tsx"
     },
     {
@@ -938,7 +1253,7 @@
       "source_file": "apps/web/src/app/admin/reports/inventory/page.tsx",
       "source_location": "L6",
       "id": "page_inventoryreportpage",
-      "community": 44,
+      "community": 43,
       "norm_label": "inventoryreportpage()"
     },
     {
@@ -947,7 +1262,7 @@
       "source_file": "apps/web/src/app/admin/reports/workers/page.tsx",
       "source_location": "L1",
       "id": "apps_web_src_app_admin_reports_workers_page_tsx",
-      "community": 45,
+      "community": 44,
       "norm_label": "page.tsx"
     },
     {
@@ -956,7 +1271,7 @@
       "source_file": "apps/web/src/app/admin/reports/workers/page.tsx",
       "source_location": "L6",
       "id": "page_workersreportpage",
-      "community": 45,
+      "community": 44,
       "norm_label": "workersreportpage()"
     },
     {
@@ -965,7 +1280,7 @@
       "source_file": "apps/web/src/app/admin/reports/jobs/page.tsx",
       "source_location": "L1",
       "id": "apps_web_src_app_admin_reports_jobs_page_tsx",
-      "community": 83,
+      "community": 75,
       "norm_label": "page.tsx"
     },
     {
@@ -974,7 +1289,7 @@
       "source_file": "apps/web/src/app/admin/reports/revenue/page.tsx",
       "source_location": "L1",
       "id": "apps_web_src_app_admin_reports_revenue_page_tsx",
-      "community": 84,
+      "community": 76,
       "norm_label": "page.tsx"
     },
     {
@@ -983,7 +1298,7 @@
       "source_file": "apps/web/src/app/(public)/layout.tsx",
       "source_location": "L1",
       "id": "apps_web_src_app_public_layout_tsx",
-      "community": 46,
+      "community": 45,
       "norm_label": "layout.tsx"
     },
     {
@@ -992,7 +1307,7 @@
       "source_file": "apps/web/src/app/(public)/layout.tsx",
       "source_location": "L4",
       "id": "layout_publiclayout",
-      "community": 46,
+      "community": 45,
       "norm_label": "publiclayout()"
     },
     {
@@ -1001,7 +1316,7 @@
       "source_file": "apps/web/src/app/(public)/page.tsx",
       "source_location": "L1",
       "id": "apps_web_src_app_public_page_tsx",
-      "community": 85,
+      "community": 77,
       "norm_label": "page.tsx"
     },
     {
@@ -1010,7 +1325,7 @@
       "source_file": "apps/web/src/app/(public)/contact/page.tsx",
       "source_location": "L1",
       "id": "apps_web_src_app_public_contact_page_tsx",
-      "community": 47,
+      "community": 46,
       "norm_label": "page.tsx"
     },
     {
@@ -1019,7 +1334,7 @@
       "source_file": "apps/web/src/app/(public)/contact/page.tsx",
       "source_location": "L3",
       "id": "page_contactpage",
-      "community": 47,
+      "community": 46,
       "norm_label": "contactpage()"
     },
     {
@@ -1028,26 +1343,71 @@
       "source_file": "apps/web/src/app/(public)/book-service/page.tsx",
       "source_location": "L1",
       "id": "apps_web_src_app_public_book_service_page_tsx",
-      "community": 7,
+      "community": 4,
       "norm_label": "page.tsx"
+    },
+    {
+      "label": "titleCase()",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/(public)/book-service/page.tsx",
+      "source_location": "L9",
+      "id": "page_titlecase",
+      "community": 4,
+      "norm_label": "titlecase()"
+    },
+    {
+      "label": "formatRegNumber()",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/(public)/book-service/page.tsx",
+      "source_location": "L13",
+      "id": "page_formatregnumber",
+      "community": 4,
+      "norm_label": "formatregnumber()"
+    },
+    {
+      "label": "validate()",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/(public)/book-service/page.tsx",
+      "source_location": "L22",
+      "id": "page_validate",
+      "community": 4,
+      "norm_label": "validate()"
     },
     {
       "label": "set()",
       "file_type": "code",
       "source_file": "apps/web/src/app/(public)/book-service/page.tsx",
-      "source_location": "L20",
+      "source_location": "L67",
       "id": "page_set",
-      "community": 7,
+      "community": 4,
       "norm_label": "set()"
     },
     {
-      "label": "submit()",
+      "label": "onPhoneChange()",
       "file_type": "code",
-      "source_file": "apps/web/src/app/(public)/track/page.tsx",
-      "source_location": "L23",
-      "id": "page_submit",
-      "community": 7,
-      "norm_label": "submit()"
+      "source_file": "apps/web/src/app/(public)/book-service/page.tsx",
+      "source_location": "L76",
+      "id": "page_onphonechange",
+      "community": 4,
+      "norm_label": "onphonechange()"
+    },
+    {
+      "label": "blur()",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/(public)/book-service/page.tsx",
+      "source_location": "L80",
+      "id": "page_blur",
+      "community": 4,
+      "norm_label": "blur()"
+    },
+    {
+      "label": "inputCls()",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/(public)/book-service/page.tsx",
+      "source_location": "L113",
+      "id": "page_inputcls",
+      "community": 4,
+      "norm_label": "inputcls()"
     },
     {
       "label": "page.tsx",
@@ -1055,7 +1415,7 @@
       "source_file": "apps/web/src/app/(public)/track/page.tsx",
       "source_location": "L1",
       "id": "apps_web_src_app_public_track_page_tsx",
-      "community": 7,
+      "community": 1,
       "norm_label": "page.tsx"
     },
     {
@@ -1106,8 +1466,8 @@
     {
       "label": "PATCH()",
       "file_type": "code",
-      "source_file": "apps/web/src/app/api/admin/job-cards/[id]/route.ts",
-      "source_location": "L17",
+      "source_file": "apps/web/src/app/api/admin/job-cards/[id]/parts/route.ts",
+      "source_location": "L65",
       "id": "route_patch",
       "community": 0,
       "norm_label": "patch()"
@@ -1133,6 +1493,24 @@
     {
       "label": "route.ts",
       "file_type": "code",
+      "source_file": "apps/web/src/app/api/admin/settings/business-hours/route.ts",
+      "source_location": "L1",
+      "id": "apps_web_src_app_api_admin_settings_business_hours_route_ts",
+      "community": 0,
+      "norm_label": "route.ts"
+    },
+    {
+      "label": "route.ts",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/api/admin/settings/admins/route.ts",
+      "source_location": "L1",
+      "id": "apps_web_src_app_api_admin_settings_admins_route_ts",
+      "community": 0,
+      "norm_label": "route.ts"
+    },
+    {
+      "label": "route.ts",
+      "file_type": "code",
       "source_file": "apps/web/src/app/api/admin/payments/route.ts",
       "source_location": "L1",
       "id": "apps_web_src_app_api_admin_payments_route_ts",
@@ -1147,6 +1525,15 @@
       "id": "apps_web_src_app_api_admin_invoices_route_ts",
       "community": 0,
       "norm_label": "route.ts"
+    },
+    {
+      "label": "isUniqueJobCardInvoiceError()",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/api/admin/invoices/route.ts",
+      "source_location": "L23",
+      "id": "route_isuniquejobcardinvoiceerror",
+      "community": 0,
+      "norm_label": "isuniquejobcardinvoiceerror()"
     },
     {
       "label": "route.ts",
@@ -1165,6 +1552,42 @@
       "id": "apps_web_src_app_api_admin_invoices_id_payments_route_ts",
       "community": 0,
       "norm_label": "route.ts"
+    },
+    {
+      "label": "route.ts",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/api/admin/invoices/[id]/line-items/route.ts",
+      "source_location": "L1",
+      "id": "apps_web_src_app_api_admin_invoices_id_line_items_route_ts",
+      "community": 0,
+      "norm_label": "route.ts"
+    },
+    {
+      "label": "ensureDraft()",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/api/admin/invoices/[id]/line-items/route.ts",
+      "source_location": "L9",
+      "id": "route_ensuredraft",
+      "community": 0,
+      "norm_label": "ensuredraft()"
+    },
+    {
+      "label": "recalcTotals()",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/api/admin/invoices/[id]/line-items/route.ts",
+      "source_location": "L15",
+      "id": "route_recalctotals",
+      "community": 0,
+      "norm_label": "recalctotals()"
+    },
+    {
+      "label": "DELETE()",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/api/admin/job-cards/[id]/workers/route.ts",
+      "source_location": "L22",
+      "id": "route_delete",
+      "community": 0,
+      "norm_label": "delete()"
     },
     {
       "label": "route.ts",
@@ -1248,13 +1671,22 @@
       "norm_label": "route.ts"
     },
     {
-      "label": "DELETE()",
+      "label": "route.ts",
       "file_type": "code",
-      "source_file": "apps/web/src/app/api/admin/expenses/[id]/route.ts",
-      "source_location": "L16",
-      "id": "route_delete",
+      "source_file": "apps/web/src/app/api/admin/expenses/categories/route.ts",
+      "source_location": "L1",
+      "id": "apps_web_src_app_api_admin_expenses_categories_route_ts",
       "community": 0,
-      "norm_label": "delete()"
+      "norm_label": "route.ts"
+    },
+    {
+      "label": "route.ts",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/api/admin/expenses/categories/[id]/route.ts",
+      "source_location": "L1",
+      "id": "apps_web_src_app_api_admin_expenses_categories_id_route_ts",
+      "community": 0,
+      "norm_label": "route.ts"
     },
     {
       "label": "route.ts",
@@ -1286,9 +1718,81 @@
     {
       "label": "route.ts",
       "file_type": "code",
+      "source_file": "apps/web/src/app/api/admin/inventory/suppliers/route.ts",
+      "source_location": "L1",
+      "id": "apps_web_src_app_api_admin_inventory_suppliers_route_ts",
+      "community": 0,
+      "norm_label": "route.ts"
+    },
+    {
+      "label": "route.ts",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/api/admin/inventory/suppliers/[id]/route.ts",
+      "source_location": "L1",
+      "id": "apps_web_src_app_api_admin_inventory_suppliers_id_route_ts",
+      "community": 0,
+      "norm_label": "route.ts"
+    },
+    {
+      "label": "route.ts",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/api/admin/inventory/low-stock/route.ts",
+      "source_location": "L1",
+      "id": "apps_web_src_app_api_admin_inventory_low_stock_route_ts",
+      "community": 0,
+      "norm_label": "route.ts"
+    },
+    {
+      "label": "route.ts",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/api/admin/inventory/movements/route.ts",
+      "source_location": "L1",
+      "id": "apps_web_src_app_api_admin_inventory_movements_route_ts",
+      "community": 0,
+      "norm_label": "route.ts"
+    },
+    {
+      "label": "route.ts",
+      "file_type": "code",
       "source_file": "apps/web/src/app/api/admin/inventory/items/route.ts",
       "source_location": "L1",
       "id": "apps_web_src_app_api_admin_inventory_items_route_ts",
+      "community": 0,
+      "norm_label": "route.ts"
+    },
+    {
+      "label": "route.ts",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/api/admin/inventory/items/[id]/route.ts",
+      "source_location": "L1",
+      "id": "apps_web_src_app_api_admin_inventory_items_id_route_ts",
+      "community": 0,
+      "norm_label": "route.ts"
+    },
+    {
+      "label": "route.ts",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/api/admin/inventory/items/[id]/stock/route.ts",
+      "source_location": "L1",
+      "id": "apps_web_src_app_api_admin_inventory_items_id_stock_route_ts",
+      "community": 0,
+      "norm_label": "route.ts"
+    },
+    {
+      "label": "route.ts",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/api/admin/inventory/categories/route.ts",
+      "source_location": "L1",
+      "id": "apps_web_src_app_api_admin_inventory_categories_route_ts",
+      "community": 0,
+      "norm_label": "route.ts"
+    },
+    {
+      "label": "route.ts",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/api/admin/inventory/categories/[id]/route.ts",
+      "source_location": "L1",
+      "id": "apps_web_src_app_api_admin_inventory_categories_id_route_ts",
       "community": 0,
       "norm_label": "route.ts"
     },
@@ -1340,6 +1844,15 @@
     {
       "label": "route.ts",
       "file_type": "code",
+      "source_file": "apps/web/src/app/api/admin/notifications/templates/route.ts",
+      "source_location": "L1",
+      "id": "apps_web_src_app_api_admin_notifications_templates_route_ts",
+      "community": 0,
+      "norm_label": "route.ts"
+    },
+    {
+      "label": "route.ts",
+      "file_type": "code",
       "source_file": "apps/web/src/app/api/admin/job-cards/route.ts",
       "source_location": "L1",
       "id": "apps_web_src_app_api_admin_job_cards_route_ts",
@@ -1352,6 +1865,51 @@
       "source_file": "apps/web/src/app/api/admin/job-cards/[id]/route.ts",
       "source_location": "L1",
       "id": "apps_web_src_app_api_admin_job_cards_id_route_ts",
+      "community": 0,
+      "norm_label": "route.ts"
+    },
+    {
+      "label": "route.ts",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/api/admin/job-cards/[id]/tasks/route.ts",
+      "source_location": "L1",
+      "id": "apps_web_src_app_api_admin_job_cards_id_tasks_route_ts",
+      "community": 0,
+      "norm_label": "route.ts"
+    },
+    {
+      "label": "route.ts",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/api/admin/job-cards/[id]/parts/route.ts",
+      "source_location": "L1",
+      "id": "apps_web_src_app_api_admin_job_cards_id_parts_route_ts",
+      "community": 0,
+      "norm_label": "route.ts"
+    },
+    {
+      "label": "recalcEstimates()",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/api/admin/job-cards/[id]/parts/route.ts",
+      "source_location": "L9",
+      "id": "route_recalcestimates",
+      "community": 0,
+      "norm_label": "recalcestimates()"
+    },
+    {
+      "label": "adjustStock()",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/api/admin/job-cards/[id]/parts/route.ts",
+      "source_location": "L20",
+      "id": "route_adjuststock",
+      "community": 0,
+      "norm_label": "adjuststock()"
+    },
+    {
+      "label": "route.ts",
+      "file_type": "code",
+      "source_file": "apps/web/src/app/api/admin/job-cards/[id]/workers/route.ts",
+      "source_location": "L1",
+      "id": "apps_web_src_app_api_admin_job_cards_id_workers_route_ts",
       "community": 0,
       "norm_label": "route.ts"
     },
@@ -1385,6 +1943,15 @@
     {
       "label": "route.ts",
       "file_type": "code",
+      "source_file": "apps/web/src/app/api/public/customer-lookup/route.ts",
+      "source_location": "L1",
+      "id": "apps_web_src_app_api_public_customer_lookup_route_ts",
+      "community": 0,
+      "norm_label": "route.ts"
+    },
+    {
+      "label": "route.ts",
+      "file_type": "code",
       "source_file": "apps/web/src/app/api/public/available-slots/route.ts",
       "source_location": "L1",
       "id": "apps_web_src_app_api_public_available_slots_route_ts",
@@ -1397,7 +1964,7 @@
       "source_file": "apps/web/src/providers/index.tsx",
       "source_location": "L1",
       "id": "apps_web_src_providers_index_tsx",
-      "community": 48,
+      "community": 47,
       "norm_label": "index.tsx"
     },
     {
@@ -1406,7 +1973,7 @@
       "source_file": "apps/web/src/providers/index.tsx",
       "source_location": "L6",
       "id": "index_providers",
-      "community": 48,
+      "community": 47,
       "norm_label": "providers()"
     },
     {
@@ -1415,7 +1982,7 @@
       "source_file": "apps/web/src/components/layout/admin-sidebar.tsx",
       "source_location": "L1",
       "id": "apps_web_src_components_layout_admin_sidebar_tsx",
-      "community": 12,
+      "community": 15,
       "norm_label": "admin-sidebar.tsx"
     },
     {
@@ -1424,7 +1991,7 @@
       "source_file": "apps/web/src/components/layout/admin-sidebar.tsx",
       "source_location": "L56",
       "id": "admin_sidebar_togglesub",
-      "community": 12,
+      "community": 15,
       "norm_label": "togglesub()"
     },
     {
@@ -1433,7 +2000,7 @@
       "source_file": "apps/web/src/components/layout/admin-sidebar.tsx",
       "source_location": "L62",
       "id": "admin_sidebar_linkcls",
-      "community": 12,
+      "community": 15,
       "norm_label": "linkcls()"
     },
     {
@@ -1442,7 +2009,7 @@
       "source_file": "apps/web/src/components/shared/pagination.tsx",
       "source_location": "L1",
       "id": "apps_web_src_components_shared_pagination_tsx",
-      "community": 49,
+      "community": 48,
       "norm_label": "pagination.tsx"
     },
     {
@@ -1451,7 +2018,7 @@
       "source_file": "apps/web/src/components/shared/pagination.tsx",
       "source_location": "L2",
       "id": "pagination_pagination",
-      "community": 49,
+      "community": 48,
       "norm_label": "pagination()"
     },
     {
@@ -1460,7 +2027,7 @@
       "source_file": "apps/web/src/components/shared/breadcrumbs.tsx",
       "source_location": "L1",
       "id": "apps_web_src_components_shared_breadcrumbs_tsx",
-      "community": 86,
+      "community": 78,
       "norm_label": "breadcrumbs.tsx"
     },
     {
@@ -1469,7 +2036,7 @@
       "source_file": "apps/web/src/components/shared/skeletons.tsx",
       "source_location": "L1",
       "id": "apps_web_src_components_shared_skeletons_tsx",
-      "community": 87,
+      "community": 79,
       "norm_label": "skeletons.tsx"
     },
     {
@@ -1478,7 +2045,7 @@
       "source_file": "apps/web/src/components/shared/modal.tsx",
       "source_location": "L1",
       "id": "apps_web_src_components_shared_modal_tsx",
-      "community": 50,
+      "community": 49,
       "norm_label": "modal.tsx"
     },
     {
@@ -1487,7 +2054,7 @@
       "source_file": "apps/web/src/components/shared/modal.tsx",
       "source_location": "L4",
       "id": "modal_modal",
-      "community": 50,
+      "community": 49,
       "norm_label": "modal()"
     },
     {
@@ -1496,7 +2063,7 @@
       "source_file": "apps/web/src/components/shared/list-toolbar.tsx",
       "source_location": "L1",
       "id": "apps_web_src_components_shared_list_toolbar_tsx",
-      "community": 88,
+      "community": 80,
       "norm_label": "list-toolbar.tsx"
     },
     {
@@ -1505,7 +2072,7 @@
       "source_file": "apps/web/src/components/shared/theme-toggle.tsx",
       "source_location": "L1",
       "id": "apps_web_src_components_shared_theme_toggle_tsx",
-      "community": 51,
+      "community": 50,
       "norm_label": "theme-toggle.tsx"
     },
     {
@@ -1514,7 +2081,7 @@
       "source_file": "apps/web/src/components/shared/theme-toggle.tsx",
       "source_location": "L5",
       "id": "theme_toggle_themetoggle",
-      "community": 51,
+      "community": 50,
       "norm_label": "themetoggle()"
     },
     {
@@ -1523,7 +2090,7 @@
       "source_file": "apps/web/src/lib/prisma.ts",
       "source_location": "L1",
       "id": "apps_web_src_lib_prisma_ts",
-      "community": 89,
+      "community": 81,
       "norm_label": "prisma.ts"
     },
     {
@@ -1532,7 +2099,7 @@
       "source_file": "apps/web/src/lib/pagination.ts",
       "source_location": "L1",
       "id": "apps_web_src_lib_pagination_ts",
-      "community": 13,
+      "community": 16,
       "norm_label": "pagination.ts"
     },
     {
@@ -1541,7 +2108,7 @@
       "source_file": "apps/web/src/lib/pagination.ts",
       "source_location": "L1",
       "id": "pagination_paginate",
-      "community": 13,
+      "community": 16,
       "norm_label": "paginate()"
     },
     {
@@ -1550,7 +2117,7 @@
       "source_file": "apps/web/src/lib/pagination.ts",
       "source_location": "L7",
       "id": "pagination_paginationmeta",
-      "community": 13,
+      "community": 16,
       "norm_label": "paginationmeta()"
     },
     {
@@ -1559,7 +2126,7 @@
       "source_file": "apps/web/src/lib/errors.ts",
       "source_location": "L1",
       "id": "apps_web_src_lib_errors_ts",
-      "community": 2,
+      "community": 3,
       "norm_label": "errors.ts"
     },
     {
@@ -1568,7 +2135,7 @@
       "source_file": "apps/web/src/lib/errors.ts",
       "source_location": "L3",
       "id": "errors_apperror",
-      "community": 2,
+      "community": 3,
       "norm_label": "apperror"
     },
     {
@@ -1577,7 +2144,7 @@
       "source_file": "apps/web/src/lib/errors.ts",
       "source_location": "L4",
       "id": "errors_apperror_constructor",
-      "community": 2,
+      "community": 3,
       "norm_label": ".constructor()"
     },
     {
@@ -1586,7 +2153,7 @@
       "source_file": "apps/web/src/lib/errors.ts",
       "source_location": "L15",
       "id": "errors_notfounderror",
-      "community": 2,
+      "community": 3,
       "norm_label": "notfounderror"
     },
     {
@@ -1595,7 +2162,7 @@
       "source_file": "apps/web/src/lib/errors.ts",
       "source_location": "L16",
       "id": "errors_notfounderror_constructor",
-      "community": 2,
+      "community": 3,
       "norm_label": ".constructor()"
     },
     {
@@ -1604,7 +2171,7 @@
       "source_file": "apps/web/src/lib/errors.ts",
       "source_location": "L21",
       "id": "errors_validationerror",
-      "community": 2,
+      "community": 3,
       "norm_label": "validationerror"
     },
     {
@@ -1613,7 +2180,7 @@
       "source_file": "apps/web/src/lib/errors.ts",
       "source_location": "L22",
       "id": "errors_validationerror_constructor",
-      "community": 2,
+      "community": 3,
       "norm_label": ".constructor()"
     },
     {
@@ -1622,7 +2189,7 @@
       "source_file": "apps/web/src/lib/errors.ts",
       "source_location": "L27",
       "id": "errors_unauthorizederror",
-      "community": 2,
+      "community": 3,
       "norm_label": "unauthorizederror"
     },
     {
@@ -1631,7 +2198,7 @@
       "source_file": "apps/web/src/lib/errors.ts",
       "source_location": "L28",
       "id": "errors_unauthorizederror_constructor",
-      "community": 2,
+      "community": 3,
       "norm_label": ".constructor()"
     },
     {
@@ -1640,7 +2207,7 @@
       "source_file": "apps/web/src/lib/errors.ts",
       "source_location": "L33",
       "id": "errors_forbiddenerror",
-      "community": 2,
+      "community": 3,
       "norm_label": "forbiddenerror"
     },
     {
@@ -1649,7 +2216,7 @@
       "source_file": "apps/web/src/lib/errors.ts",
       "source_location": "L34",
       "id": "errors_forbiddenerror_constructor",
-      "community": 2,
+      "community": 3,
       "norm_label": ".constructor()"
     },
     {
@@ -1658,7 +2225,7 @@
       "source_file": "apps/web/src/lib/errors.ts",
       "source_location": "L39",
       "id": "errors_handleapierror",
-      "community": 2,
+      "community": 3,
       "norm_label": "handleapierror()"
     },
     {
@@ -1667,7 +2234,7 @@
       "source_file": "apps/web/src/lib/activity-logger.ts",
       "source_location": "L1",
       "id": "apps_web_src_lib_activity_logger_ts",
-      "community": 52,
+      "community": 51,
       "norm_label": "activity-logger.ts"
     },
     {
@@ -1676,7 +2243,7 @@
       "source_file": "apps/web/src/lib/activity-logger.ts",
       "source_location": "L18",
       "id": "activity_logger_logactivity",
-      "community": 52,
+      "community": 51,
       "norm_label": "logactivity()"
     },
     {
@@ -1685,7 +2252,7 @@
       "source_file": "apps/web/src/lib/constants.ts",
       "source_location": "L1",
       "id": "apps_web_src_lib_constants_ts",
-      "community": 90,
+      "community": 82,
       "norm_label": "constants.ts"
     },
     {
@@ -1694,7 +2261,7 @@
       "source_file": "apps/web/src/lib/id-generators.ts",
       "source_location": "L1",
       "id": "apps_web_src_lib_id_generators_ts",
-      "community": 4,
+      "community": 6,
       "norm_label": "id-generators.ts"
     },
     {
@@ -1703,7 +2270,7 @@
       "source_file": "apps/web/src/lib/id-generators.ts",
       "source_location": "L6",
       "id": "id_generators_generatereferenceid",
-      "community": 4,
+      "community": 6,
       "norm_label": "generatereferenceid()"
     },
     {
@@ -1712,7 +2279,7 @@
       "source_file": "apps/web/src/lib/id-generators.ts",
       "source_location": "L7",
       "id": "id_generators_generatejobcardnumber",
-      "community": 4,
+      "community": 6,
       "norm_label": "generatejobcardnumber()"
     },
     {
@@ -1721,7 +2288,7 @@
       "source_file": "apps/web/src/lib/id-generators.ts",
       "source_location": "L8",
       "id": "id_generators_generateinvoicenumber",
-      "community": 4,
+      "community": 6,
       "norm_label": "generateinvoicenumber()"
     },
     {
@@ -1730,7 +2297,7 @@
       "source_file": "apps/web/src/lib/id-generators.ts",
       "source_location": "L9",
       "id": "id_generators_generateappointmentref",
-      "community": 4,
+      "community": 6,
       "norm_label": "generateappointmentref()"
     },
     {
@@ -1739,7 +2306,7 @@
       "source_file": "apps/web/src/lib/id-generators.ts",
       "source_location": "L10",
       "id": "id_generators_generateworkercode",
-      "community": 4,
+      "community": 6,
       "norm_label": "generateworkercode()"
     },
     {
@@ -1748,7 +2315,7 @@
       "source_file": "apps/web/src/lib/auth.ts",
       "source_location": "L1",
       "id": "apps_web_src_lib_auth_ts",
-      "community": 6,
+      "community": 9,
       "norm_label": "auth.ts"
     },
     {
@@ -1757,7 +2324,7 @@
       "source_file": "apps/web/src/lib/auth.ts",
       "source_location": "L7",
       "id": "auth_getauthtoken",
-      "community": 6,
+      "community": 9,
       "norm_label": "getauthtoken()"
     },
     {
@@ -1766,7 +2333,7 @@
       "source_file": "apps/web/src/lib/auth.ts",
       "source_location": "L14",
       "id": "auth_verifyauth",
-      "community": 6,
+      "community": 9,
       "norm_label": "verifyauth()"
     },
     {
@@ -1775,7 +2342,7 @@
       "source_file": "apps/web/src/lib/auth.ts",
       "source_location": "L24",
       "id": "auth_requirepermission",
-      "community": 6,
+      "community": 9,
       "norm_label": "requirepermission()"
     },
     {
@@ -1784,7 +2351,7 @@
       "source_file": "apps/web/src/lib/auth.ts",
       "source_location": "L33",
       "id": "auth_requireanypermission",
-      "community": 6,
+      "community": 9,
       "norm_label": "requireanypermission()"
     },
     {
@@ -1793,7 +2360,7 @@
       "source_file": "apps/web/src/lib/auth/auth-context.tsx",
       "source_location": "L1",
       "id": "apps_web_src_lib_auth_auth_context_tsx",
-      "community": 14,
+      "community": 17,
       "norm_label": "auth-context.tsx"
     },
     {
@@ -1802,16 +2369,16 @@
       "source_file": "apps/web/src/lib/auth/auth-context.tsx",
       "source_location": "L16",
       "id": "auth_context_authprovider",
-      "community": 14,
+      "community": 17,
       "norm_label": "authprovider()"
     },
     {
       "label": "useAuth()",
       "file_type": "code",
       "source_file": "apps/web/src/lib/auth/auth-context.tsx",
-      "source_location": "L38",
+      "source_location": "L41",
       "id": "auth_context_useauth",
-      "community": 14,
+      "community": 17,
       "norm_label": "useauth()"
     },
     {
@@ -1820,7 +2387,7 @@
       "source_file": "apps/web/src/lib/theme/theme-context.tsx",
       "source_location": "L1",
       "id": "apps_web_src_lib_theme_theme_context_tsx",
-      "community": 15,
+      "community": 18,
       "norm_label": "theme-context.tsx"
     },
     {
@@ -1829,7 +2396,7 @@
       "source_file": "apps/web/src/lib/theme/theme-context.tsx",
       "source_location": "L7",
       "id": "theme_context_themeprovider",
-      "community": 15,
+      "community": 18,
       "norm_label": "themeprovider()"
     },
     {
@@ -1838,7 +2405,7 @@
       "source_file": "apps/web/src/lib/theme/theme-context.tsx",
       "source_location": "L27",
       "id": "theme_context_usetheme",
-      "community": 15,
+      "community": 18,
       "norm_label": "usetheme()"
     },
     {
@@ -1847,17 +2414,62 @@
       "source_file": "apps/web/src/lib/api/client.ts",
       "source_location": "L1",
       "id": "apps_web_src_lib_api_client_ts",
-      "community": 53,
+      "community": 5,
       "norm_label": "client.ts"
+    },
+    {
+      "label": "now()",
+      "file_type": "code",
+      "source_file": "apps/web/src/lib/api/client.ts",
+      "source_location": "L14",
+      "id": "client_now",
+      "community": 5,
+      "norm_label": "now()"
+    },
+    {
+      "label": "cacheKey()",
+      "file_type": "code",
+      "source_file": "apps/web/src/lib/api/client.ts",
+      "source_location": "L18",
+      "id": "client_cachekey",
+      "community": 5,
+      "norm_label": "cachekey()"
+    },
+    {
+      "label": "clearGetCache()",
+      "file_type": "code",
+      "source_file": "apps/web/src/lib/api/client.ts",
+      "source_location": "L22",
+      "id": "client_cleargetcache",
+      "community": 5,
+      "norm_label": "cleargetcache()"
     },
     {
       "label": "request()",
       "file_type": "code",
       "source_file": "apps/web/src/lib/api/client.ts",
-      "source_location": "L5",
+      "source_location": "L26",
       "id": "client_request",
-      "community": 53,
+      "community": 5,
       "norm_label": "request()"
+    },
+    {
+      "label": "peek()",
+      "file_type": "code",
+      "source_file": "apps/web/src/lib/api/client.ts",
+      "source_location": "L84",
+      "id": "client_peek",
+      "community": 5,
+      "norm_label": "peek()"
+    },
+    {
+      "label": "fetchAndStore()",
+      "file_type": "code",
+      "source_file": "apps/web/src/lib/api/client.ts",
+      "source_location": "L108",
+      "id": "client_fetchandstore",
+      "community": 5,
+      "norm_label": "fetchandstore()"
     },
     {
       "label": "Canonical Test Plan Pointer",
@@ -1868,9 +2480,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "test_plan_alias_docs_test_plan",
-      "community": 1,
-      "norm_label": "canonical test plan pointer"
+      "community": 2,
+      "norm_label": "canonical test plan pointer",
+      "id": "test_plan_alias_docs_test_plan"
     },
     {
       "label": "GearUp Servicing System",
@@ -1881,9 +2493,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "readme_gearup_servicing",
-      "community": 3,
-      "norm_label": "gearup servicing system"
+      "community": 2,
+      "norm_label": "gearup servicing system",
+      "id": "readme_gearup_servicing"
     },
     {
       "label": "Next.js 14 App Router Stack",
@@ -1894,9 +2506,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "readme_nextjs14_app_router",
-      "community": 3,
-      "norm_label": "next.js 14 app router stack"
+      "community": 2,
+      "norm_label": "next.js 14 app router stack",
+      "id": "readme_nextjs14_app_router"
     },
     {
       "label": "Supabase Postgres via Prisma",
@@ -1907,9 +2519,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "readme_supabase_prisma",
-      "community": 91,
-      "norm_label": "supabase postgres via prisma"
+      "community": 83,
+      "norm_label": "supabase postgres via prisma",
+      "id": "readme_supabase_prisma"
     },
     {
       "label": "Custom JWT and RBAC Auth Model",
@@ -1920,9 +2532,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "readme_custom_jwt_rbac",
-      "community": 1,
-      "norm_label": "custom jwt and rbac auth model"
+      "community": 2,
+      "norm_label": "custom jwt and rbac auth model",
+      "id": "readme_custom_jwt_rbac"
     },
     {
       "label": "Current Single-App Architecture (apps/web)",
@@ -1933,9 +2545,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "codebase_context_current_architecture",
-      "community": 3,
-      "norm_label": "current single-app architecture (apps/web)"
+      "community": 2,
+      "norm_label": "current single-app architecture (apps/web)",
+      "id": "codebase_context_current_architecture"
     },
     {
       "label": "API Route Handlers in apps/web",
@@ -1946,9 +2558,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "codebase_context_api_in_apps_web",
-      "community": 3,
-      "norm_label": "api route handlers in apps/web"
+      "community": 2,
+      "norm_label": "api route handlers in apps/web",
+      "id": "codebase_context_api_in_apps_web"
     },
     {
       "label": "Legacy Express Backend on Render Model",
@@ -1959,9 +2571,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "architecture_legacy_express_backend",
-      "community": 3,
-      "norm_label": "legacy express backend on render model"
+      "community": 2,
+      "norm_label": "legacy express backend on render model",
+      "id": "architecture_legacy_express_backend"
     },
     {
       "label": "Split apps/web + apps/api Monorepo Model",
@@ -1972,9 +2584,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "architecture_monorepo_split_apps_web_api",
-      "community": 8,
-      "norm_label": "split apps/web + apps/api monorepo model"
+      "community": 11,
+      "norm_label": "split apps/web + apps/api monorepo model",
+      "id": "architecture_monorepo_split_apps_web_api"
     },
     {
       "label": "Service Request to Payment Lifecycle",
@@ -1985,9 +2597,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "workflow_details_service_lifecycle",
-      "community": 1,
-      "norm_label": "service request to payment lifecycle"
+      "community": 2,
+      "norm_label": "service request to payment lifecycle",
+      "id": "workflow_details_service_lifecycle"
     },
     {
       "label": "CRUD vs Dependent Module Classification",
@@ -1998,9 +2610,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "workflow_details_crud_vs_dependent_modules",
-      "community": 1,
-      "norm_label": "crud vs dependent module classification"
+      "community": 2,
+      "norm_label": "crud vs dependent module classification",
+      "id": "workflow_details_crud_vs_dependent_modules"
     },
     {
       "label": "Notification Queue and Retry Pipeline",
@@ -2011,9 +2623,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "notifications_delivery_pipeline",
-      "community": 1,
-      "norm_label": "notification queue and retry pipeline"
+      "community": 2,
+      "norm_label": "notification queue and retry pipeline",
+      "id": "notifications_delivery_pipeline"
     },
     {
       "label": "Notification Deduplication Key Pattern",
@@ -2024,9 +2636,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "notifications_dedupe_key",
-      "community": 1,
-      "norm_label": "notification deduplication key pattern"
+      "community": 2,
+      "norm_label": "notification deduplication key pattern",
+      "id": "notifications_dedupe_key"
     },
     {
       "label": "Role Permission Matrix",
@@ -2037,9 +2649,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "rbac_permission_matrix",
-      "community": 1,
-      "norm_label": "role permission matrix"
+      "community": 2,
+      "norm_label": "role permission matrix",
+      "id": "rbac_permission_matrix"
     },
     {
       "label": "requirePermission Backend Enforcement",
@@ -2050,9 +2662,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "rbac_require_permission_middleware",
-      "community": 1,
-      "norm_label": "requirepermission backend enforcement"
+      "community": 2,
+      "norm_label": "requirepermission backend enforcement",
+      "id": "rbac_require_permission_middleware"
     },
     {
       "label": "P0 Go-Live Acceptance Scenarios",
@@ -2063,9 +2675,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "qa_matrix_p0_gate",
-      "community": 1,
-      "norm_label": "p0 go-live acceptance scenarios"
+      "community": 2,
+      "norm_label": "p0 go-live acceptance scenarios",
+      "id": "qa_matrix_p0_gate"
     },
     {
       "label": "Testing Checklist Verification Status",
@@ -2076,9 +2688,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "testing_checklist_verification",
-      "community": 1,
-      "norm_label": "testing checklist verification status"
+      "community": 2,
+      "norm_label": "testing checklist verification status",
+      "id": "testing_checklist_verification"
     },
     {
       "label": "Open Security Hardening Items",
@@ -2089,9 +2701,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "testing_checklist_open_security_items",
-      "community": 1,
-      "norm_label": "open security hardening items"
+      "community": 2,
+      "norm_label": "open security hardening items",
+      "id": "testing_checklist_open_security_items"
     },
     {
       "label": "Cross-Region Latency Finding",
@@ -2102,9 +2714,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "testing_checklist_cross_region_latency_issue",
-      "community": 54,
-      "norm_label": "cross-region latency finding"
+      "community": 52,
+      "norm_label": "cross-region latency finding",
+      "id": "testing_checklist_cross_region_latency_issue"
     },
     {
       "label": "Ultra-Detailed E2E Execution Contract",
@@ -2115,9 +2727,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "test_plan_e2e_contract",
-      "community": 1,
-      "norm_label": "ultra-detailed e2e execution contract"
+      "community": 2,
+      "norm_label": "ultra-detailed e2e execution contract",
+      "id": "test_plan_e2e_contract"
     },
     {
       "label": "Release Blocking Quality Gates",
@@ -2128,9 +2740,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "test_plan_release_gates",
-      "community": 1,
-      "norm_label": "release blocking quality gates"
+      "community": 2,
+      "norm_label": "release blocking quality gates",
+      "id": "test_plan_release_gates"
     },
     {
       "label": "apps/web API Source-of-Truth Rule",
@@ -2141,9 +2753,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "test_plan_source_of_truth_apps_web_api",
-      "community": 3,
-      "norm_label": "apps/web api source-of-truth rule"
+      "community": 2,
+      "norm_label": "apps/web api source-of-truth rule",
+      "id": "test_plan_source_of_truth_apps_web_api"
     },
     {
       "label": "Rationale: Prefer Current Route Handlers Over Legacy Docs",
@@ -2154,9 +2766,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "test_plan_legacy_doc_conflict_note",
-      "community": 3,
-      "norm_label": "rationale: prefer current route handlers over legacy docs"
+      "community": 2,
+      "norm_label": "rationale: prefer current route handlers over legacy docs",
+      "id": "test_plan_legacy_doc_conflict_note"
     },
     {
       "label": "Production E2E Report (2026-04-19)",
@@ -2167,9 +2779,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "e2e_report_2026_04_19",
-      "community": 1,
-      "norm_label": "production e2e report (2026-04-19)"
+      "community": 2,
+      "norm_label": "production e2e report (2026-04-19)",
+      "id": "e2e_report_2026_04_19"
     },
     {
       "label": "Settings Test Method Mismatch (POST vs PATCH)",
@@ -2180,9 +2792,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "e2e_report_settings_post_bug",
-      "community": 55,
-      "norm_label": "settings test method mismatch (post vs patch)"
+      "community": 53,
+      "norm_label": "settings test method mismatch (post vs patch)",
+      "id": "e2e_report_settings_post_bug"
     },
     {
       "label": "Production Ready Verdict",
@@ -2193,9 +2805,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "e2e_report_production_ready_verdict",
-      "community": 55,
-      "norm_label": "production ready verdict"
+      "community": 53,
+      "norm_label": "production ready verdict",
+      "id": "e2e_report_production_ready_verdict"
     },
     {
       "label": "Deployment Guide with Split Frontend/Backend Steps",
@@ -2206,9 +2818,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "deployment_guide_split_frontend_backend",
-      "community": 8,
-      "norm_label": "deployment guide with split frontend/backend steps"
+      "community": 11,
+      "norm_label": "deployment guide with split frontend/backend steps",
+      "id": "deployment_guide_split_frontend_backend"
     },
     {
       "label": "Post-Build Handoff with Split Deployment Steps",
@@ -2219,9 +2831,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "handoff_guide_split_frontend_backend",
-      "community": 8,
-      "norm_label": "post-build handoff with split deployment steps"
+      "community": 11,
+      "norm_label": "post-build handoff with split deployment steps",
+      "id": "handoff_guide_split_frontend_backend"
     },
     {
       "label": "Frontend and Backend Environment Variable Catalog",
@@ -2232,9 +2844,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "env_doc_frontend_backend_vars",
-      "community": 8,
-      "norm_label": "frontend and backend environment variable catalog"
+      "community": 11,
+      "norm_label": "frontend and backend environment variable catalog",
+      "id": "env_doc_frontend_backend_vars"
     },
     {
       "label": "Graphify Graph Report Summary",
@@ -2245,9 +2857,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "graph_report_summary",
-      "community": 3,
-      "norm_label": "graphify graph report summary"
+      "community": 2,
+      "norm_label": "graphify graph report summary",
+      "id": "graph_report_summary"
     },
     {
       "label": "Reported Core Stack Composition Hyperedge",
@@ -2258,9 +2870,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "graph_report_stack_hyperedge",
-      "community": 3,
-      "norm_label": "reported core stack composition hyperedge"
+      "community": 2,
+      "norm_label": "reported core stack composition hyperedge",
+      "id": "graph_report_stack_hyperedge"
     },
     {
       "label": "Session Memory Context Stub",
@@ -2271,9 +2883,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "agents_memory_context",
-      "community": 92,
-      "norm_label": "session memory context stub"
+      "community": 84,
+      "norm_label": "session memory context stub",
+      "id": "agents_memory_context"
     },
     {
       "label": "Region Alignment Optimization Recommendation",
@@ -2284,9 +2896,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "latency_region_alignment_recommendation",
-      "community": 54,
-      "norm_label": "region alignment optimization recommendation"
+      "community": 52,
+      "norm_label": "region alignment optimization recommendation",
+      "id": "latency_region_alignment_recommendation"
     }
   ],
   "links": [
@@ -2449,6 +3061,18 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/layout.tsx",
+      "source_location": "L89",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_layout_tsx",
+      "_tgt": "layout_runwarmup",
+      "source": "apps_web_src_app_admin_layout_tsx",
+      "target": "layout_runwarmup",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "apps/web/src/app/admin/page.tsx",
       "source_location": "L3",
       "weight": 1.0,
@@ -2473,13 +3097,25 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "apps/web/src/app/admin/settings/admins/page.tsx",
-      "source_location": "L3",
+      "source_file": "apps/web/src/app/admin/customers/[id]/page.tsx",
+      "source_location": "L8",
       "weight": 1.0,
-      "_src": "apps_web_src_app_admin_settings_admins_page_tsx",
-      "_tgt": "page_adminuserspage",
-      "source": "apps_web_src_app_admin_settings_admins_page_tsx",
-      "target": "page_adminuserspage",
+      "_src": "apps_web_src_app_admin_customers_id_page_tsx",
+      "_tgt": "page_customerdetailpage",
+      "source": "apps_web_src_app_admin_customers_id_page_tsx",
+      "target": "page_customerdetailpage",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/settings/page.tsx",
+      "source_location": "L6",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_settings_page_tsx",
+      "_tgt": "page_settingspage",
+      "source": "apps_web_src_app_admin_settings_page_tsx",
+      "target": "page_settingspage",
       "confidence_score": 1.0
     },
     {
@@ -2498,12 +3134,24 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/web/src/app/admin/settings/notifications/page.tsx",
-      "source_location": "L3",
+      "source_location": "L31",
       "weight": 1.0,
       "_src": "apps_web_src_app_admin_settings_notifications_page_tsx",
-      "_tgt": "page_notificationsettingspage",
+      "_tgt": "page_save",
       "source": "apps_web_src_app_admin_settings_notifications_page_tsx",
-      "target": "page_notificationsettingspage",
+      "target": "page_save",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/settings/notifications/page.tsx",
+      "source_location": "L49",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_settings_notifications_page_tsx",
+      "_tgt": "page_boolfield",
+      "source": "apps_web_src_app_admin_settings_notifications_page_tsx",
+      "target": "page_boolfield",
       "confidence_score": 1.0
     },
     {
@@ -2521,6 +3169,246 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/invoices/page.tsx",
+      "source_location": "L58",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_invoices_page_tsx",
+      "_tgt": "page_opencreate",
+      "source": "apps_web_src_app_admin_invoices_page_tsx",
+      "target": "page_opencreate",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/invoices/page.tsx",
+      "source_location": "L64",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_invoices_page_tsx",
+      "_tgt": "page_onjobcardselect",
+      "source": "apps_web_src_app_admin_invoices_page_tsx",
+      "target": "page_onjobcardselect",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/invoices/page.tsx",
+      "source_location": "L77",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_invoices_page_tsx",
+      "_tgt": "page_addline",
+      "source": "apps_web_src_app_admin_invoices_page_tsx",
+      "target": "page_addline",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/invoices/page.tsx",
+      "source_location": "L78",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_invoices_page_tsx",
+      "_tgt": "page_removeline",
+      "source": "apps_web_src_app_admin_invoices_page_tsx",
+      "target": "page_removeline",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/invoices/page.tsx",
+      "source_location": "L79",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_invoices_page_tsx",
+      "_tgt": "page_updateline",
+      "source": "apps_web_src_app_admin_invoices_page_tsx",
+      "target": "page_updateline",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/invoices/page.tsx",
+      "source_location": "L81",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_invoices_page_tsx",
+      "_tgt": "page_submit",
+      "source": "apps_web_src_app_admin_invoices_page_tsx",
+      "target": "page_submit",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/appointments/page.tsx",
+      "source_location": "L29",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_appointments_page_tsx",
+      "_tgt": "page_opencreate",
+      "source": "page_opencreate",
+      "target": "apps_web_src_app_admin_appointments_page_tsx",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/expenses/page.tsx",
+      "source_location": "L29",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_expenses_page_tsx",
+      "_tgt": "page_opencreate",
+      "source": "page_opencreate",
+      "target": "apps_web_src_app_admin_expenses_page_tsx",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/expenses/page.tsx",
+      "source_location": "L32",
+      "weight": 1.0,
+      "_src": "page_opencreate",
+      "_tgt": "page_loadcategories",
+      "source": "page_opencreate",
+      "target": "page_loadcategories",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/vehicles/page.tsx",
+      "source_location": "L26",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_vehicles_page_tsx",
+      "_tgt": "page_opencreate",
+      "source": "page_opencreate",
+      "target": "apps_web_src_app_admin_vehicles_page_tsx",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/job-cards/page.tsx",
+      "source_location": "L33",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_job_cards_page_tsx",
+      "_tgt": "page_opencreate",
+      "source": "page_opencreate",
+      "target": "apps_web_src_app_admin_job_cards_page_tsx",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/appointments/page.tsx",
+      "source_location": "L43",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_appointments_page_tsx",
+      "_tgt": "page_submit",
+      "source": "page_submit",
+      "target": "apps_web_src_app_admin_appointments_page_tsx",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/job-cards/page.tsx",
+      "source_location": "L79",
+      "weight": 1.0,
+      "_src": "page_submit",
+      "_tgt": "page_load",
+      "source": "page_submit",
+      "target": "page_load",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/expenses/page.tsx",
+      "source_location": "L36",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_expenses_page_tsx",
+      "_tgt": "page_submit",
+      "source": "page_submit",
+      "target": "apps_web_src_app_admin_expenses_page_tsx",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/inventory/suppliers/page.tsx",
+      "source_location": "L21",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_inventory_suppliers_page_tsx",
+      "_tgt": "page_submit",
+      "source": "page_submit",
+      "target": "apps_web_src_app_admin_inventory_suppliers_page_tsx",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/vehicles/page.tsx",
+      "source_location": "L32",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_vehicles_page_tsx",
+      "_tgt": "page_submit",
+      "source": "page_submit",
+      "target": "apps_web_src_app_admin_vehicles_page_tsx",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/job-cards/page.tsx",
+      "source_location": "L74",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_job_cards_page_tsx",
+      "_tgt": "page_submit",
+      "source": "page_submit",
+      "target": "apps_web_src_app_admin_job_cards_page_tsx",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/(public)/book-service/page.tsx",
+      "source_location": "L86",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_public_book_service_page_tsx",
+      "_tgt": "page_submit",
+      "source": "page_submit",
+      "target": "apps_web_src_app_public_book_service_page_tsx",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/(public)/book-service/page.tsx",
+      "source_location": "L88",
+      "weight": 1.0,
+      "_src": "page_submit",
+      "_tgt": "page_validate",
+      "source": "page_submit",
+      "target": "page_validate",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/(public)/track/page.tsx",
+      "source_location": "L22",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_public_track_page_tsx",
+      "_tgt": "page_submit",
+      "source": "page_submit",
+      "target": "apps_web_src_app_public_track_page_tsx",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "apps/web/src/app/admin/invoices/[id]/page.tsx",
       "source_location": "L8",
       "weight": 1.0,
@@ -2533,20 +3421,272 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/appointments/page.tsx",
+      "source_location": "L21",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_appointments_page_tsx",
+      "_tgt": "page_load",
+      "source": "apps_web_src_app_admin_appointments_page_tsx",
+      "target": "page_load",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/appointments/page.tsx",
+      "source_location": "L36",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_appointments_page_tsx",
+      "_tgt": "page_oncustomerchange",
+      "source": "apps_web_src_app_admin_appointments_page_tsx",
+      "target": "page_oncustomerchange",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/expenses/page.tsx",
+      "source_location": "L21",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_expenses_page_tsx",
+      "_tgt": "page_load",
+      "source": "page_load",
+      "target": "apps_web_src_app_admin_expenses_page_tsx",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/expenses/page.tsx",
+      "source_location": "L49",
+      "weight": 1.0,
+      "_src": "page_deleteexpense",
+      "_tgt": "page_load",
+      "source": "page_load",
+      "target": "page_deleteexpense",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/inventory/suppliers/page.tsx",
+      "source_location": "L37",
+      "weight": 1.0,
+      "_src": "page_saveedit",
+      "_tgt": "page_load",
+      "source": "page_load",
+      "target": "page_saveedit",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/inventory/suppliers/page.tsx",
+      "source_location": "L18",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_inventory_suppliers_page_tsx",
+      "_tgt": "page_load",
+      "source": "page_load",
+      "target": "apps_web_src_app_admin_inventory_suppliers_page_tsx",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/inventory/suppliers/page.tsx",
+      "source_location": "L44",
+      "weight": 1.0,
+      "_src": "page_remove",
+      "_tgt": "page_load",
+      "source": "page_load",
+      "target": "page_remove",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/vehicles/page.tsx",
+      "source_location": "L19",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_vehicles_page_tsx",
+      "_tgt": "page_load",
+      "source": "page_load",
+      "target": "apps_web_src_app_admin_vehicles_page_tsx",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/job-cards/page.tsx",
+      "source_location": "L25",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_job_cards_page_tsx",
+      "_tgt": "page_load",
+      "source": "page_load",
+      "target": "apps_web_src_app_admin_job_cards_page_tsx",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/job-cards/[id]/page.tsx",
+      "source_location": "L28",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_job_cards_id_page_tsx",
+      "_tgt": "page_load",
+      "source": "page_load",
+      "target": "apps_web_src_app_admin_job_cards_id_page_tsx",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/job-cards/[id]/page.tsx",
+      "source_location": "L76",
+      "weight": 1.0,
+      "_src": "page_addpart",
+      "_tgt": "page_load",
+      "source": "page_load",
+      "target": "page_addpart",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/job-cards/[id]/page.tsx",
+      "source_location": "L81",
+      "weight": 1.0,
+      "_src": "page_removepart",
+      "_tgt": "page_load",
+      "source": "page_load",
+      "target": "page_removepart",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/job-cards/[id]/page.tsx",
+      "source_location": "L88",
+      "weight": 1.0,
+      "_src": "page_updatepart",
+      "_tgt": "page_load",
+      "source": "page_load",
+      "target": "page_updatepart",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/job-cards/[id]/page.tsx",
+      "source_location": "L100",
+      "weight": 1.0,
+      "_src": "page_assignworker",
+      "_tgt": "page_load",
+      "source": "page_load",
+      "target": "page_assignworker",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/job-cards/[id]/page.tsx",
+      "source_location": "L104",
+      "weight": 1.0,
+      "_src": "page_unassignworker",
+      "_tgt": "page_load",
+      "source": "page_load",
+      "target": "page_unassignworker",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/job-cards/[id]/page.tsx",
+      "source_location": "L111",
+      "weight": 1.0,
+      "_src": "page_addtask",
+      "_tgt": "page_load",
+      "source": "page_load",
+      "target": "page_addtask",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/job-cards/[id]/page.tsx",
+      "source_location": "L115",
+      "weight": 1.0,
+      "_src": "page_updatetaskstatus",
+      "_tgt": "page_load",
+      "source": "page_load",
+      "target": "page_updatetaskstatus",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/job-cards/[id]/page.tsx",
+      "source_location": "L119",
+      "weight": 1.0,
+      "_src": "page_removetask",
+      "_tgt": "page_load",
+      "source": "page_load",
+      "target": "page_removetask",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/job-cards/page.tsx",
+      "source_location": "L39",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_job_cards_page_tsx",
+      "_tgt": "page_oncustomerchange",
+      "source": "page_oncustomerchange",
+      "target": "apps_web_src_app_admin_job_cards_page_tsx",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "apps/web/src/app/admin/appointments/calendar/page.tsx",
-      "source_location": "L3",
+      "source_location": "L7",
       "weight": 1.0,
       "_src": "apps_web_src_app_admin_appointments_calendar_page_tsx",
-      "_tgt": "page_appointmentcalendarpage",
+      "_tgt": "page_fmtdate",
       "source": "apps_web_src_app_admin_appointments_calendar_page_tsx",
-      "target": "page_appointmentcalendarpage",
+      "target": "page_fmtdate",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/appointments/calendar/page.tsx",
+      "source_location": "L50",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_appointments_calendar_page_tsx",
+      "_tgt": "page_fmttime",
+      "source": "apps_web_src_app_admin_appointments_calendar_page_tsx",
+      "target": "page_fmttime",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/workers/calendar/page.tsx",
+      "source_location": "L55",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_workers_calendar_page_tsx",
+      "_tgt": "page_fmttime",
+      "source": "page_fmttime",
+      "target": "apps_web_src_app_admin_workers_calendar_page_tsx",
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/web/src/app/admin/appointments/[id]/page.tsx",
-      "source_location": "L7",
+      "source_location": "L32",
       "weight": 1.0,
       "_src": "apps_web_src_app_admin_appointments_id_page_tsx",
       "_tgt": "page_appointmentdetailpage",
@@ -2558,19 +3698,127 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/web/src/app/admin/expenses/page.tsx",
-      "source_location": "L5",
+      "source_location": "L45",
       "weight": 1.0,
       "_src": "apps_web_src_app_admin_expenses_page_tsx",
-      "_tgt": "page_expensespage",
+      "_tgt": "page_deleteexpense",
       "source": "apps_web_src_app_admin_expenses_page_tsx",
-      "target": "page_expensespage",
+      "target": "page_deleteexpense",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/expenses/page.tsx",
+      "source_location": "L52",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_expenses_page_tsx",
+      "_tgt": "page_openedit",
+      "source": "apps_web_src_app_admin_expenses_page_tsx",
+      "target": "page_openedit",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/expenses/page.tsx",
+      "source_location": "L62",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_expenses_page_tsx",
+      "_tgt": "page_loadcategories",
+      "source": "apps_web_src_app_admin_expenses_page_tsx",
+      "target": "page_loadcategories",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/expenses/page.tsx",
+      "source_location": "L69",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_expenses_page_tsx",
+      "_tgt": "page_saveedit",
+      "source": "apps_web_src_app_admin_expenses_page_tsx",
+      "target": "page_saveedit",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/expenses/page.tsx",
+      "source_location": "L59",
+      "weight": 1.0,
+      "_src": "page_openedit",
+      "_tgt": "page_loadcategories",
+      "source": "page_openedit",
+      "target": "page_loadcategories",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/inventory/suppliers/page.tsx",
+      "source_location": "L28",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_inventory_suppliers_page_tsx",
+      "_tgt": "page_openedit",
+      "source": "page_openedit",
+      "target": "apps_web_src_app_admin_inventory_suppliers_page_tsx",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/inventory/items/page.tsx",
+      "source_location": "L68",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_inventory_items_page_tsx",
+      "_tgt": "page_openedit",
+      "source": "page_openedit",
+      "target": "apps_web_src_app_admin_inventory_items_page_tsx",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/inventory/items/page.tsx",
+      "source_location": "L75",
+      "weight": 1.0,
+      "_src": "page_openedit",
+      "_tgt": "page_loadlookups",
+      "source": "page_openedit",
+      "target": "page_loadlookups",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/inventory/suppliers/page.tsx",
+      "source_location": "L33",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_inventory_suppliers_page_tsx",
+      "_tgt": "page_saveedit",
+      "source": "page_saveedit",
+      "target": "apps_web_src_app_admin_inventory_suppliers_page_tsx",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/inventory/items/page.tsx",
+      "source_location": "L78",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_inventory_items_page_tsx",
+      "_tgt": "page_saveedit",
+      "source": "page_saveedit",
+      "target": "apps_web_src_app_admin_inventory_items_page_tsx",
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/web/src/app/admin/expenses/categories/page.tsx",
-      "source_location": "L5",
+      "source_location": "L7",
       "weight": 1.0,
       "_src": "apps_web_src_app_admin_expenses_categories_page_tsx",
       "_tgt": "page_expensecategoriespage",
@@ -2582,7 +3830,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/web/src/app/admin/dashboard/page.tsx",
-      "source_location": "L67",
+      "source_location": "L83",
       "weight": 1.0,
       "_src": "apps_web_src_app_admin_dashboard_page_tsx",
       "_tgt": "page_formattime",
@@ -2594,7 +3842,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/web/src/app/admin/dashboard/page.tsx",
-      "source_location": "L77",
+      "source_location": "L93",
       "weight": 1.0,
       "_src": "apps_web_src_app_admin_dashboard_page_tsx",
       "_tgt": "page_formataction",
@@ -2606,7 +3854,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/web/src/app/admin/service-requests/[id]/page.tsx",
-      "source_location": "L7",
+      "source_location": "L29",
       "weight": 1.0,
       "_src": "apps_web_src_app_admin_service_requests_id_page_tsx",
       "_tgt": "page_servicerequestdetailpage",
@@ -2630,12 +3878,24 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/web/src/app/admin/inventory/suppliers/page.tsx",
-      "source_location": "L5",
+      "source_location": "L40",
       "weight": 1.0,
       "_src": "apps_web_src_app_admin_inventory_suppliers_page_tsx",
-      "_tgt": "page_supplierspage",
+      "_tgt": "page_remove",
       "source": "apps_web_src_app_admin_inventory_suppliers_page_tsx",
-      "target": "page_supplierspage",
+      "target": "page_remove",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/inventory/suppliers/page.tsx",
+      "source_location": "L50",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_inventory_suppliers_page_tsx",
+      "_tgt": "page_fields",
+      "source": "apps_web_src_app_admin_inventory_suppliers_page_tsx",
+      "target": "page_fields",
       "confidence_score": 1.0
     },
     {
@@ -2654,7 +3914,19 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/web/src/app/admin/inventory/items/page.tsx",
-      "source_location": "L38",
+      "source_location": "L27",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_inventory_items_page_tsx",
+      "_tgt": "page_loadlookups",
+      "source": "apps_web_src_app_admin_inventory_items_page_tsx",
+      "target": "page_loadlookups",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/inventory/items/page.tsx",
+      "source_location": "L60",
       "weight": 1.0,
       "_src": "apps_web_src_app_admin_inventory_items_page_tsx",
       "_tgt": "page_onsubmit",
@@ -2665,8 +3937,32 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/inventory/items/page.tsx",
+      "source_location": "L93",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_inventory_items_page_tsx",
+      "_tgt": "page_openstock",
+      "source": "apps_web_src_app_admin_inventory_items_page_tsx",
+      "target": "page_openstock",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/inventory/items/page.tsx",
+      "source_location": "L99",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_inventory_items_page_tsx",
+      "_tgt": "page_submitstock",
+      "source": "apps_web_src_app_admin_inventory_items_page_tsx",
+      "target": "page_submitstock",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "apps/web/src/app/admin/workers/page.tsx",
-      "source_location": "L44",
+      "source_location": "L52",
       "weight": 1.0,
       "_src": "apps_web_src_app_admin_workers_page_tsx",
       "_tgt": "page_onsubmit",
@@ -2678,7 +3974,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/web/src/app/admin/inventory/categories/page.tsx",
-      "source_location": "L5",
+      "source_location": "L7",
       "weight": 1.0,
       "_src": "apps_web_src_app_admin_inventory_categories_page_tsx",
       "_tgt": "page_inventorycategoriespage",
@@ -2689,32 +3985,20 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "apps/web/src/app/admin/workers/calendar/page.tsx",
-      "source_location": "L3",
+      "source_file": "apps/web/src/app/admin/workers/[id]/page.tsx",
+      "source_location": "L8",
       "weight": 1.0,
-      "_src": "apps_web_src_app_admin_workers_calendar_page_tsx",
-      "_tgt": "page_workercalendarpage",
-      "source": "apps_web_src_app_admin_workers_calendar_page_tsx",
-      "target": "page_workercalendarpage",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "apps/web/src/app/admin/vehicles/page.tsx",
-      "source_location": "L6",
-      "weight": 1.0,
-      "_src": "apps_web_src_app_admin_vehicles_page_tsx",
-      "_tgt": "page_vehiclespage",
-      "source": "apps_web_src_app_admin_vehicles_page_tsx",
-      "target": "page_vehiclespage",
+      "_src": "apps_web_src_app_admin_workers_id_page_tsx",
+      "_tgt": "page_workerdetailpage",
+      "source": "apps_web_src_app_admin_workers_id_page_tsx",
+      "target": "page_workerdetailpage",
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/web/src/app/admin/vehicles/[id]/page.tsx",
-      "source_location": "L6",
+      "source_location": "L8",
       "weight": 1.0,
       "_src": "apps_web_src_app_admin_vehicles_id_page_tsx",
       "_tgt": "page_vehicledetailpage",
@@ -2749,13 +4033,289 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/job-cards/page.tsx",
+      "source_location": "L46",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_job_cards_page_tsx",
+      "_tgt": "page_createcustomer",
+      "source": "apps_web_src_app_admin_job_cards_page_tsx",
+      "target": "page_createcustomer",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/job-cards/page.tsx",
+      "source_location": "L60",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_job_cards_page_tsx",
+      "_tgt": "page_createvehicle",
+      "source": "apps_web_src_app_admin_job_cards_page_tsx",
+      "target": "page_createvehicle",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "apps/web/src/app/admin/job-cards/[id]/page.tsx",
-      "source_location": "L7",
+      "source_location": "L33",
       "weight": 1.0,
       "_src": "apps_web_src_app_admin_job_cards_id_page_tsx",
-      "_tgt": "page_jobcarddetailpage",
+      "_tgt": "page_updatestatus",
       "source": "apps_web_src_app_admin_job_cards_id_page_tsx",
-      "target": "page_jobcarddetailpage",
+      "target": "page_updatestatus",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/job-cards/[id]/page.tsx",
+      "source_location": "L40",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_job_cards_id_page_tsx",
+      "_tgt": "page_savenotes",
+      "source": "apps_web_src_app_admin_job_cards_id_page_tsx",
+      "target": "page_savenotes",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/job-cards/[id]/page.tsx",
+      "source_location": "L47",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_job_cards_id_page_tsx",
+      "_tgt": "page_savecost",
+      "source": "apps_web_src_app_admin_job_cards_id_page_tsx",
+      "target": "page_savecost",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/job-cards/[id]/page.tsx",
+      "source_location": "L57",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_job_cards_id_page_tsx",
+      "_tgt": "page_loadinventory",
+      "source": "apps_web_src_app_admin_job_cards_id_page_tsx",
+      "target": "page_loadinventory",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/job-cards/[id]/page.tsx",
+      "source_location": "L63",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_job_cards_id_page_tsx",
+      "_tgt": "page_onitemselect",
+      "source": "apps_web_src_app_admin_job_cards_id_page_tsx",
+      "target": "page_onitemselect",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/job-cards/[id]/page.tsx",
+      "source_location": "L68",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_job_cards_id_page_tsx",
+      "_tgt": "page_addpart",
+      "source": "apps_web_src_app_admin_job_cards_id_page_tsx",
+      "target": "page_addpart",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/job-cards/[id]/page.tsx",
+      "source_location": "L79",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_job_cards_id_page_tsx",
+      "_tgt": "page_removepart",
+      "source": "apps_web_src_app_admin_job_cards_id_page_tsx",
+      "target": "page_removepart",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/job-cards/[id]/page.tsx",
+      "source_location": "L84",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_job_cards_id_page_tsx",
+      "_tgt": "page_updatepart",
+      "source": "apps_web_src_app_admin_job_cards_id_page_tsx",
+      "target": "page_updatepart",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/job-cards/[id]/page.tsx",
+      "source_location": "L92",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_job_cards_id_page_tsx",
+      "_tgt": "page_loadworkers",
+      "source": "apps_web_src_app_admin_job_cards_id_page_tsx",
+      "target": "page_loadworkers",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/job-cards/[id]/page.tsx",
+      "source_location": "L97",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_job_cards_id_page_tsx",
+      "_tgt": "page_assignworker",
+      "source": "apps_web_src_app_admin_job_cards_id_page_tsx",
+      "target": "page_assignworker",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/job-cards/[id]/page.tsx",
+      "source_location": "L102",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_job_cards_id_page_tsx",
+      "_tgt": "page_unassignworker",
+      "source": "apps_web_src_app_admin_job_cards_id_page_tsx",
+      "target": "page_unassignworker",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/job-cards/[id]/page.tsx",
+      "source_location": "L108",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_job_cards_id_page_tsx",
+      "_tgt": "page_addtask",
+      "source": "apps_web_src_app_admin_job_cards_id_page_tsx",
+      "target": "page_addtask",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/job-cards/[id]/page.tsx",
+      "source_location": "L113",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_job_cards_id_page_tsx",
+      "_tgt": "page_updatetaskstatus",
+      "source": "apps_web_src_app_admin_job_cards_id_page_tsx",
+      "target": "page_updatetaskstatus",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/job-cards/[id]/page.tsx",
+      "source_location": "L117",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_job_cards_id_page_tsx",
+      "_tgt": "page_removetask",
+      "source": "apps_web_src_app_admin_job_cards_id_page_tsx",
+      "target": "page_removetask",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/job-cards/[id]/page.tsx",
+      "source_location": "L123",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_job_cards_id_page_tsx",
+      "_tgt": "page_gotoinvoice",
+      "source": "apps_web_src_app_admin_job_cards_id_page_tsx",
+      "target": "page_gotoinvoice",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/job-cards/[id]/page.tsx",
+      "source_location": "L240",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_admin_job_cards_id_page_tsx",
+      "_tgt": "page_number",
+      "source": "apps_web_src_app_admin_job_cards_id_page_tsx",
+      "target": "page_number",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/job-cards/[id]/page.tsx",
+      "source_location": "L48",
+      "weight": 1.0,
+      "_src": "page_savecost",
+      "_tgt": "page_number",
+      "source": "page_savecost",
+      "target": "page_number",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/job-cards/[id]/page.tsx",
+      "source_location": "L65",
+      "weight": 1.0,
+      "_src": "page_onitemselect",
+      "_tgt": "page_number",
+      "source": "page_onitemselect",
+      "target": "page_number",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/job-cards/[id]/page.tsx",
+      "source_location": "L72",
+      "weight": 1.0,
+      "_src": "page_addpart",
+      "_tgt": "page_number",
+      "source": "page_addpart",
+      "target": "page_number",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/job-cards/[id]/page.tsx",
+      "source_location": "L85",
+      "weight": 1.0,
+      "_src": "page_updatepart",
+      "_tgt": "page_number",
+      "source": "page_updatepart",
+      "target": "page_number",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/job-cards/[id]/page.tsx",
+      "source_location": "L110",
+      "weight": 1.0,
+      "_src": "page_addtask",
+      "_tgt": "page_number",
+      "source": "page_addtask",
+      "target": "page_number",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/admin/job-cards/[id]/page.tsx",
+      "source_location": "L133",
+      "weight": 1.0,
+      "_src": "page_gotoinvoice",
+      "_tgt": "page_number",
+      "source": "page_gotoinvoice",
+      "target": "page_number",
       "confidence_score": 1.0
     },
     {
@@ -2810,7 +4370,43 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/web/src/app/(public)/book-service/page.tsx",
-      "source_location": "L20",
+      "source_location": "L9",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_public_book_service_page_tsx",
+      "_tgt": "page_titlecase",
+      "source": "apps_web_src_app_public_book_service_page_tsx",
+      "target": "page_titlecase",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/(public)/book-service/page.tsx",
+      "source_location": "L13",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_public_book_service_page_tsx",
+      "_tgt": "page_formatregnumber",
+      "source": "apps_web_src_app_public_book_service_page_tsx",
+      "target": "page_formatregnumber",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/(public)/book-service/page.tsx",
+      "source_location": "L22",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_public_book_service_page_tsx",
+      "_tgt": "page_validate",
+      "source": "apps_web_src_app_public_book_service_page_tsx",
+      "target": "page_validate",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/(public)/book-service/page.tsx",
+      "source_location": "L67",
       "weight": 1.0,
       "_src": "apps_web_src_app_public_book_service_page_tsx",
       "_tgt": "page_set",
@@ -2822,24 +4418,72 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/web/src/app/(public)/book-service/page.tsx",
-      "source_location": "L22",
+      "source_location": "L76",
       "weight": 1.0,
       "_src": "apps_web_src_app_public_book_service_page_tsx",
-      "_tgt": "page_submit",
+      "_tgt": "page_onphonechange",
       "source": "apps_web_src_app_public_book_service_page_tsx",
-      "target": "page_submit",
+      "target": "page_onphonechange",
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "apps/web/src/app/(public)/track/page.tsx",
-      "source_location": "L23",
+      "source_file": "apps/web/src/app/(public)/book-service/page.tsx",
+      "source_location": "L80",
       "weight": 1.0,
-      "_src": "apps_web_src_app_public_track_page_tsx",
-      "_tgt": "page_submit",
-      "source": "page_submit",
-      "target": "apps_web_src_app_public_track_page_tsx",
+      "_src": "apps_web_src_app_public_book_service_page_tsx",
+      "_tgt": "page_blur",
+      "source": "apps_web_src_app_public_book_service_page_tsx",
+      "target": "page_blur",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/(public)/book-service/page.tsx",
+      "source_location": "L113",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_public_book_service_page_tsx",
+      "_tgt": "page_inputcls",
+      "source": "apps_web_src_app_public_book_service_page_tsx",
+      "target": "page_inputcls",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/(public)/book-service/page.tsx",
+      "source_location": "L71",
+      "weight": 1.0,
+      "_src": "page_set",
+      "_tgt": "page_validate",
+      "source": "page_validate",
+      "target": "page_set",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/(public)/book-service/page.tsx",
+      "source_location": "L82",
+      "weight": 1.0,
+      "_src": "page_blur",
+      "_tgt": "page_validate",
+      "source": "page_validate",
+      "target": "page_blur",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/(public)/book-service/page.tsx",
+      "source_location": "L77",
+      "weight": 1.0,
+      "_src": "page_onphonechange",
+      "_tgt": "page_set",
+      "source": "page_set",
+      "target": "page_onphonechange",
       "confidence_score": 1.0
     },
     {
@@ -2905,6 +4549,30 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/api/admin/settings/business-hours/route.ts",
+      "source_location": "L7",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_api_admin_settings_business_hours_route_ts",
+      "_tgt": "route_get",
+      "source": "route_get",
+      "target": "apps_web_src_app_api_admin_settings_business_hours_route_ts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/api/admin/settings/admins/route.ts",
+      "source_location": "L7",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_api_admin_settings_admins_route_ts",
+      "_tgt": "route_get",
+      "source": "route_get",
+      "target": "apps_web_src_app_api_admin_settings_admins_route_ts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "apps/web/src/app/api/admin/payments/route.ts",
       "source_location": "L8",
       "weight": 1.0,
@@ -2918,7 +4586,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/web/src/app/api/admin/invoices/route.ts",
-      "source_location": "L23",
+      "source_location": "L31",
       "weight": 1.0,
       "_src": "apps_web_src_app_api_admin_invoices_route_ts",
       "_tgt": "route_get",
@@ -3014,12 +4682,24 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/web/src/app/api/admin/expenses/[id]/route.ts",
-      "source_location": "L8",
+      "source_location": "L9",
       "weight": 1.0,
       "_src": "apps_web_src_app_api_admin_expenses_id_route_ts",
       "_tgt": "route_get",
       "source": "route_get",
       "target": "apps_web_src_app_api_admin_expenses_id_route_ts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/api/admin/expenses/categories/route.ts",
+      "source_location": "L9",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_api_admin_expenses_categories_route_ts",
+      "_tgt": "route_get",
+      "source": "route_get",
+      "target": "apps_web_src_app_api_admin_expenses_categories_route_ts",
       "confidence_score": 1.0
     },
     {
@@ -3061,6 +4741,42 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/api/admin/inventory/suppliers/route.ts",
+      "source_location": "L9",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_api_admin_inventory_suppliers_route_ts",
+      "_tgt": "route_get",
+      "source": "route_get",
+      "target": "apps_web_src_app_api_admin_inventory_suppliers_route_ts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/api/admin/inventory/low-stock/route.ts",
+      "source_location": "L7",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_api_admin_inventory_low_stock_route_ts",
+      "_tgt": "route_get",
+      "source": "route_get",
+      "target": "apps_web_src_app_api_admin_inventory_low_stock_route_ts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/api/admin/inventory/movements/route.ts",
+      "source_location": "L8",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_api_admin_inventory_movements_route_ts",
+      "_tgt": "route_get",
+      "source": "route_get",
+      "target": "apps_web_src_app_api_admin_inventory_movements_route_ts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "apps/web/src/app/api/admin/inventory/items/route.ts",
       "source_location": "L10",
       "weight": 1.0,
@@ -3068,6 +4784,30 @@
       "_tgt": "route_get",
       "source": "route_get",
       "target": "apps_web_src_app_api_admin_inventory_items_route_ts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/api/admin/inventory/items/[id]/route.ts",
+      "source_location": "L9",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_api_admin_inventory_items_id_route_ts",
+      "_tgt": "route_get",
+      "source": "route_get",
+      "target": "apps_web_src_app_api_admin_inventory_items_id_route_ts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/api/admin/inventory/categories/route.ts",
+      "source_location": "L9",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_api_admin_inventory_categories_route_ts",
+      "_tgt": "route_get",
+      "source": "route_get",
+      "target": "apps_web_src_app_api_admin_inventory_categories_route_ts",
       "confidence_score": 1.0
     },
     {
@@ -3133,6 +4873,18 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/api/admin/notifications/templates/route.ts",
+      "source_location": "L7",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_api_admin_notifications_templates_route_ts",
+      "_tgt": "route_get",
+      "source": "route_get",
+      "target": "apps_web_src_app_api_admin_notifications_templates_route_ts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "apps/web/src/app/api/admin/job-cards/route.ts",
       "source_location": "L17",
       "weight": 1.0,
@@ -3169,6 +4921,18 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/api/public/customer-lookup/route.ts",
+      "source_location": "L4",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_api_public_customer_lookup_route_ts",
+      "_tgt": "route_get",
+      "source": "route_get",
+      "target": "apps_web_src_app_api_public_customer_lookup_route_ts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "apps/web/src/app/api/public/available-slots/route.ts",
       "source_location": "L5",
       "weight": 1.0,
@@ -3194,12 +4958,24 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/web/src/app/api/admin/invoices/route.ts",
-      "source_location": "L41",
+      "source_location": "L49",
       "weight": 1.0,
       "_src": "apps_web_src_app_api_admin_invoices_route_ts",
       "_tgt": "route_post",
       "source": "route_post",
       "target": "apps_web_src_app_api_admin_invoices_route_ts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/api/admin/invoices/route.ts",
+      "source_location": "L74",
+      "weight": 1.0,
+      "_src": "route_post",
+      "_tgt": "route_isuniquejobcardinvoiceerror",
+      "source": "route_post",
+      "target": "route_isuniquejobcardinvoiceerror",
       "confidence_score": 1.0
     },
     {
@@ -3212,6 +4988,42 @@
       "_tgt": "route_post",
       "source": "route_post",
       "target": "apps_web_src_app_api_admin_invoices_id_payments_route_ts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/api/admin/invoices/[id]/line-items/route.ts",
+      "source_location": "L24",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_api_admin_invoices_id_line_items_route_ts",
+      "_tgt": "route_post",
+      "source": "route_post",
+      "target": "apps_web_src_app_api_admin_invoices_id_line_items_route_ts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/api/admin/invoices/[id]/line-items/route.ts",
+      "source_location": "L27",
+      "weight": 1.0,
+      "_src": "route_post",
+      "_tgt": "route_ensuredraft",
+      "source": "route_post",
+      "target": "route_ensuredraft",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/api/admin/invoices/[id]/line-items/route.ts",
+      "source_location": "L36",
+      "weight": 1.0,
+      "_src": "route_post",
+      "_tgt": "route_recalctotals",
+      "source": "route_post",
+      "target": "route_recalctotals",
       "confidence_score": 1.0
     },
     {
@@ -3230,7 +5042,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/web/src/app/api/admin/appointments/route.ts",
-      "source_location": "L37",
+      "source_location": "L39",
       "weight": 1.0,
       "_src": "apps_web_src_app_api_admin_appointments_route_ts",
       "_tgt": "route_post",
@@ -3254,12 +5066,36 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/web/src/app/api/admin/expenses/route.ts",
-      "source_location": "L28",
+      "source_location": "L30",
       "weight": 1.0,
       "_src": "apps_web_src_app_api_admin_expenses_route_ts",
       "_tgt": "route_post",
       "source": "route_post",
       "target": "apps_web_src_app_api_admin_expenses_route_ts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/api/admin/expenses/categories/route.ts",
+      "source_location": "L17",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_api_admin_expenses_categories_route_ts",
+      "_tgt": "route_post",
+      "source": "route_post",
+      "target": "apps_web_src_app_api_admin_expenses_categories_route_ts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/api/admin/inventory/suppliers/route.ts",
+      "source_location": "L17",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_api_admin_inventory_suppliers_route_ts",
+      "_tgt": "route_post",
+      "source": "route_post",
+      "target": "apps_web_src_app_api_admin_inventory_suppliers_route_ts",
       "confidence_score": 1.0
     },
     {
@@ -3272,6 +5108,30 @@
       "_tgt": "route_post",
       "source": "route_post",
       "target": "apps_web_src_app_api_admin_inventory_items_route_ts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/api/admin/inventory/items/[id]/stock/route.ts",
+      "source_location": "L15",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_api_admin_inventory_items_id_stock_route_ts",
+      "_tgt": "route_post",
+      "source": "route_post",
+      "target": "apps_web_src_app_api_admin_inventory_items_id_stock_route_ts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/api/admin/inventory/categories/route.ts",
+      "source_location": "L17",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_api_admin_inventory_categories_route_ts",
+      "_tgt": "route_post",
+      "source": "route_post",
+      "target": "apps_web_src_app_api_admin_inventory_categories_route_ts",
       "confidence_score": 1.0
     },
     {
@@ -3308,6 +5168,42 @@
       "_tgt": "route_post",
       "source": "route_post",
       "target": "apps_web_src_app_api_admin_job_cards_route_ts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/api/admin/job-cards/[id]/tasks/route.ts",
+      "source_location": "L9",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_api_admin_job_cards_id_tasks_route_ts",
+      "_tgt": "route_post",
+      "source": "route_post",
+      "target": "apps_web_src_app_api_admin_job_cards_id_tasks_route_ts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/api/admin/job-cards/[id]/parts/route.ts",
+      "source_location": "L43",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_api_admin_job_cards_id_parts_route_ts",
+      "_tgt": "route_post",
+      "source": "route_post",
+      "target": "apps_web_src_app_api_admin_job_cards_id_parts_route_ts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/api/admin/job-cards/[id]/workers/route.ts",
+      "source_location": "L9",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_api_admin_job_cards_id_workers_route_ts",
+      "_tgt": "route_post",
+      "source": "route_post",
+      "target": "apps_web_src_app_api_admin_job_cards_id_workers_route_ts",
       "confidence_score": 1.0
     },
     {
@@ -3373,6 +5269,42 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/api/admin/invoices/[id]/line-items/route.ts",
+      "source_location": "L42",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_api_admin_invoices_id_line_items_route_ts",
+      "_tgt": "route_patch",
+      "source": "route_patch",
+      "target": "apps_web_src_app_api_admin_invoices_id_line_items_route_ts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/api/admin/invoices/[id]/line-items/route.ts",
+      "source_location": "L45",
+      "weight": 1.0,
+      "_src": "route_patch",
+      "_tgt": "route_ensuredraft",
+      "source": "route_patch",
+      "target": "route_ensuredraft",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/api/admin/invoices/[id]/line-items/route.ts",
+      "source_location": "L57",
+      "weight": 1.0,
+      "_src": "route_patch",
+      "_tgt": "route_recalctotals",
+      "source": "route_patch",
+      "target": "route_recalctotals",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "apps/web/src/app/api/admin/appointments/[id]/route.ts",
       "source_location": "L17",
       "weight": 1.0,
@@ -3385,6 +5317,30 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/api/admin/expenses/[id]/route.ts",
+      "source_location": "L17",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_api_admin_expenses_id_route_ts",
+      "_tgt": "route_patch",
+      "source": "route_patch",
+      "target": "apps_web_src_app_api_admin_expenses_id_route_ts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/api/admin/expenses/categories/[id]/route.ts",
+      "source_location": "L9",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_api_admin_expenses_categories_id_route_ts",
+      "_tgt": "route_patch",
+      "source": "route_patch",
+      "target": "apps_web_src_app_api_admin_expenses_categories_id_route_ts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "apps/web/src/app/api/admin/service-requests/[id]/route.ts",
       "source_location": "L17",
       "weight": 1.0,
@@ -3392,6 +5348,42 @@
       "_tgt": "route_patch",
       "source": "route_patch",
       "target": "apps_web_src_app_api_admin_service_requests_id_route_ts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/api/admin/inventory/suppliers/[id]/route.ts",
+      "source_location": "L9",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_api_admin_inventory_suppliers_id_route_ts",
+      "_tgt": "route_patch",
+      "source": "route_patch",
+      "target": "apps_web_src_app_api_admin_inventory_suppliers_id_route_ts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/api/admin/inventory/items/[id]/route.ts",
+      "source_location": "L17",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_api_admin_inventory_items_id_route_ts",
+      "_tgt": "route_patch",
+      "source": "route_patch",
+      "target": "apps_web_src_app_api_admin_inventory_items_id_route_ts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/api/admin/inventory/categories/[id]/route.ts",
+      "source_location": "L9",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_api_admin_inventory_categories_id_route_ts",
+      "_tgt": "route_patch",
+      "source": "route_patch",
+      "target": "apps_web_src_app_api_admin_inventory_categories_id_route_ts",
       "confidence_score": 1.0
     },
     {
@@ -3433,6 +5425,186 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/api/admin/job-cards/[id]/tasks/route.ts",
+      "source_location": "L26",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_api_admin_job_cards_id_tasks_route_ts",
+      "_tgt": "route_patch",
+      "source": "route_patch",
+      "target": "apps_web_src_app_api_admin_job_cards_id_tasks_route_ts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/api/admin/job-cards/[id]/parts/route.ts",
+      "source_location": "L65",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_api_admin_job_cards_id_parts_route_ts",
+      "_tgt": "route_patch",
+      "source": "route_patch",
+      "target": "apps_web_src_app_api_admin_job_cards_id_parts_route_ts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/api/admin/invoices/route.ts",
+      "source_location": "L23",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_api_admin_invoices_route_ts",
+      "_tgt": "route_isuniquejobcardinvoiceerror",
+      "source": "apps_web_src_app_api_admin_invoices_route_ts",
+      "target": "route_isuniquejobcardinvoiceerror",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/api/admin/invoices/[id]/line-items/route.ts",
+      "source_location": "L9",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_api_admin_invoices_id_line_items_route_ts",
+      "_tgt": "route_ensuredraft",
+      "source": "apps_web_src_app_api_admin_invoices_id_line_items_route_ts",
+      "target": "route_ensuredraft",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/api/admin/invoices/[id]/line-items/route.ts",
+      "source_location": "L15",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_api_admin_invoices_id_line_items_route_ts",
+      "_tgt": "route_recalctotals",
+      "source": "apps_web_src_app_api_admin_invoices_id_line_items_route_ts",
+      "target": "route_recalctotals",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/api/admin/invoices/[id]/line-items/route.ts",
+      "source_location": "L63",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_api_admin_invoices_id_line_items_route_ts",
+      "_tgt": "route_delete",
+      "source": "apps_web_src_app_api_admin_invoices_id_line_items_route_ts",
+      "target": "route_delete",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/api/admin/invoices/[id]/line-items/route.ts",
+      "source_location": "L66",
+      "weight": 1.0,
+      "_src": "route_delete",
+      "_tgt": "route_ensuredraft",
+      "source": "route_ensuredraft",
+      "target": "route_delete",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/api/admin/invoices/[id]/line-items/route.ts",
+      "source_location": "L70",
+      "weight": 1.0,
+      "_src": "route_delete",
+      "_tgt": "route_recalctotals",
+      "source": "route_recalctotals",
+      "target": "route_delete",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/api/admin/expenses/[id]/route.ts",
+      "source_location": "L34",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_api_admin_expenses_id_route_ts",
+      "_tgt": "route_delete",
+      "source": "route_delete",
+      "target": "apps_web_src_app_api_admin_expenses_id_route_ts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/api/admin/expenses/categories/[id]/route.ts",
+      "source_location": "L19",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_api_admin_expenses_categories_id_route_ts",
+      "_tgt": "route_delete",
+      "source": "route_delete",
+      "target": "apps_web_src_app_api_admin_expenses_categories_id_route_ts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/api/admin/inventory/suppliers/[id]/route.ts",
+      "source_location": "L23",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_api_admin_inventory_suppliers_id_route_ts",
+      "_tgt": "route_delete",
+      "source": "route_delete",
+      "target": "apps_web_src_app_api_admin_inventory_suppliers_id_route_ts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/api/admin/inventory/categories/[id]/route.ts",
+      "source_location": "L19",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_api_admin_inventory_categories_id_route_ts",
+      "_tgt": "route_delete",
+      "source": "route_delete",
+      "target": "apps_web_src_app_api_admin_inventory_categories_id_route_ts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/api/admin/job-cards/[id]/tasks/route.ts",
+      "source_location": "L40",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_api_admin_job_cards_id_tasks_route_ts",
+      "_tgt": "route_delete",
+      "source": "route_delete",
+      "target": "apps_web_src_app_api_admin_job_cards_id_tasks_route_ts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/api/admin/job-cards/[id]/parts/route.ts",
+      "source_location": "L92",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_api_admin_job_cards_id_parts_route_ts",
+      "_tgt": "route_delete",
+      "source": "route_delete",
+      "target": "apps_web_src_app_api_admin_job_cards_id_parts_route_ts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/api/admin/job-cards/[id]/workers/route.ts",
+      "source_location": "L22",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_api_admin_job_cards_id_workers_route_ts",
+      "_tgt": "route_delete",
+      "source": "route_delete",
+      "target": "apps_web_src_app_api_admin_job_cards_id_workers_route_ts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "apps/web/src/app/api/admin/invoices/[id]/pdf/route.ts",
       "source_location": "L7",
       "weight": 1.0,
@@ -3445,13 +5617,25 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "apps/web/src/app/api/admin/expenses/[id]/route.ts",
-      "source_location": "L16",
+      "source_file": "apps/web/src/app/api/admin/job-cards/[id]/parts/route.ts",
+      "source_location": "L9",
       "weight": 1.0,
-      "_src": "apps_web_src_app_api_admin_expenses_id_route_ts",
-      "_tgt": "route_delete",
-      "source": "apps_web_src_app_api_admin_expenses_id_route_ts",
-      "target": "route_delete",
+      "_src": "apps_web_src_app_api_admin_job_cards_id_parts_route_ts",
+      "_tgt": "route_recalcestimates",
+      "source": "apps_web_src_app_api_admin_job_cards_id_parts_route_ts",
+      "target": "route_recalcestimates",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/app/api/admin/job-cards/[id]/parts/route.ts",
+      "source_location": "L20",
+      "weight": 1.0,
+      "_src": "apps_web_src_app_api_admin_job_cards_id_parts_route_ts",
+      "_tgt": "route_adjuststock",
+      "source": "apps_web_src_app_api_admin_job_cards_id_parts_route_ts",
+      "target": "route_adjuststock",
       "confidence_score": 1.0
     },
     {
@@ -3854,7 +6038,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/web/src/lib/auth/auth-context.tsx",
-      "source_location": "L38",
+      "source_location": "L41",
       "weight": 1.0,
       "_src": "apps_web_src_lib_auth_auth_context_tsx",
       "_tgt": "auth_context_useauth",
@@ -3890,12 +6074,132 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "apps/web/src/lib/api/client.ts",
-      "source_location": "L5",
+      "source_location": "L14",
+      "weight": 1.0,
+      "_src": "apps_web_src_lib_api_client_ts",
+      "_tgt": "client_now",
+      "source": "apps_web_src_lib_api_client_ts",
+      "target": "client_now",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/lib/api/client.ts",
+      "source_location": "L18",
+      "weight": 1.0,
+      "_src": "apps_web_src_lib_api_client_ts",
+      "_tgt": "client_cachekey",
+      "source": "apps_web_src_lib_api_client_ts",
+      "target": "client_cachekey",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/lib/api/client.ts",
+      "source_location": "L22",
+      "weight": 1.0,
+      "_src": "apps_web_src_lib_api_client_ts",
+      "_tgt": "client_cleargetcache",
+      "source": "apps_web_src_lib_api_client_ts",
+      "target": "client_cleargetcache",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/lib/api/client.ts",
+      "source_location": "L26",
       "weight": 1.0,
       "_src": "apps_web_src_lib_api_client_ts",
       "_tgt": "client_request",
       "source": "apps_web_src_lib_api_client_ts",
       "target": "client_request",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/lib/api/client.ts",
+      "source_location": "L84",
+      "weight": 1.0,
+      "_src": "apps_web_src_lib_api_client_ts",
+      "_tgt": "client_peek",
+      "source": "apps_web_src_lib_api_client_ts",
+      "target": "client_peek",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/lib/api/client.ts",
+      "source_location": "L108",
+      "weight": 1.0,
+      "_src": "apps_web_src_lib_api_client_ts",
+      "_tgt": "client_fetchandstore",
+      "source": "apps_web_src_lib_api_client_ts",
+      "target": "client_fetchandstore",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/lib/api/client.ts",
+      "source_location": "L34",
+      "weight": 1.0,
+      "_src": "client_request",
+      "_tgt": "client_now",
+      "source": "client_now",
+      "target": "client_request",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/lib/api/client.ts",
+      "source_location": "L90",
+      "weight": 1.0,
+      "_src": "client_peek",
+      "_tgt": "client_now",
+      "source": "client_now",
+      "target": "client_peek",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/lib/api/client.ts",
+      "source_location": "L30",
+      "weight": 1.0,
+      "_src": "client_request",
+      "_tgt": "client_cachekey",
+      "source": "client_cachekey",
+      "target": "client_request",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/lib/api/client.ts",
+      "source_location": "L86",
+      "weight": 1.0,
+      "_src": "client_peek",
+      "_tgt": "client_cachekey",
+      "source": "client_cachekey",
+      "target": "client_peek",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "apps/web/src/lib/api/client.ts",
+      "source_location": "L110",
+      "weight": 1.0,
+      "_src": "client_fetchandstore",
+      "_tgt": "client_cachekey",
+      "source": "client_cachekey",
+      "target": "client_fetchandstore",
       "confidence_score": 1.0
     },
     {
@@ -3917,8 +6221,8 @@
       "source_file": "graphify-out/GRAPH_REPORT.md",
       "source_location": null,
       "weight": 1.0,
-      "_src": "graph_report_stack_hyperedge",
-      "_tgt": "readme_gearup_servicing",
+      "_src": "readme_gearup_servicing",
+      "_tgt": "graph_report_stack_hyperedge",
       "source": "readme_gearup_servicing",
       "target": "graph_report_stack_hyperedge"
     },
@@ -3953,8 +6257,8 @@
       "source_file": "docs/TEST_PLAN.md",
       "source_location": null,
       "weight": 1.0,
-      "_src": "test_plan_e2e_contract",
-      "_tgt": "codebase_context_current_architecture",
+      "_src": "codebase_context_current_architecture",
+      "_tgt": "test_plan_e2e_contract",
       "source": "codebase_context_current_architecture",
       "target": "test_plan_e2e_contract"
     },
@@ -3965,8 +6269,8 @@
       "source_file": "graphify-out/GRAPH_REPORT.md",
       "source_location": null,
       "weight": 1.0,
-      "_src": "graph_report_summary",
-      "_tgt": "codebase_context_current_architecture",
+      "_src": "codebase_context_current_architecture",
+      "_tgt": "graph_report_summary",
       "source": "codebase_context_current_architecture",
       "target": "graph_report_summary"
     },
@@ -3989,8 +6293,8 @@
       "source_file": "docs/TEST_PLAN.md",
       "source_location": null,
       "weight": 1.0,
-      "_src": "test_plan_source_of_truth_apps_web_api",
-      "_tgt": "codebase_context_api_in_apps_web",
+      "_src": "codebase_context_api_in_apps_web",
+      "_tgt": "test_plan_source_of_truth_apps_web_api",
       "source": "codebase_context_api_in_apps_web",
       "target": "test_plan_source_of_truth_apps_web_api"
     },
@@ -4001,8 +6305,8 @@
       "source_file": "docs/TEST_PLAN.md",
       "source_location": null,
       "weight": 1.0,
-      "_src": "test_plan_legacy_doc_conflict_note",
-      "_tgt": "architecture_legacy_express_backend",
+      "_src": "architecture_legacy_express_backend",
+      "_tgt": "test_plan_legacy_doc_conflict_note",
       "source": "architecture_legacy_express_backend",
       "target": "test_plan_legacy_doc_conflict_note"
     },
@@ -4025,8 +6329,8 @@
       "source_file": "docs/TEST_PLAN.md",
       "source_location": null,
       "weight": 1.0,
-      "_src": "test_plan_e2e_contract",
-      "_tgt": "workflow_details_service_lifecycle",
+      "_src": "workflow_details_service_lifecycle",
+      "_tgt": "test_plan_e2e_contract",
       "source": "workflow_details_service_lifecycle",
       "target": "test_plan_e2e_contract"
     },
@@ -4061,8 +6365,8 @@
       "source_file": "docs/WORKFLOW_DETAILS.md",
       "source_location": null,
       "weight": 1.0,
-      "_src": "workflow_details_crud_vs_dependent_modules",
-      "_tgt": "workflow_details_service_lifecycle",
+      "_src": "workflow_details_service_lifecycle",
+      "_tgt": "workflow_details_crud_vs_dependent_modules",
       "source": "workflow_details_service_lifecycle",
       "target": "workflow_details_crud_vs_dependent_modules"
     },
@@ -4073,8 +6377,8 @@
       "source_file": "docs/TEST_PLAN.md",
       "source_location": null,
       "weight": 1.0,
-      "_src": "test_plan_e2e_contract",
-      "_tgt": "notifications_delivery_pipeline",
+      "_src": "notifications_delivery_pipeline",
+      "_tgt": "test_plan_e2e_contract",
       "source": "notifications_delivery_pipeline",
       "target": "test_plan_e2e_contract"
     },
@@ -4097,8 +6401,8 @@
       "source_file": "docs/TEST_PLAN.md",
       "source_location": null,
       "weight": 1.0,
-      "_src": "test_plan_e2e_contract",
-      "_tgt": "rbac_permission_matrix",
+      "_src": "rbac_permission_matrix",
+      "_tgt": "test_plan_e2e_contract",
       "source": "rbac_permission_matrix",
       "target": "test_plan_e2e_contract"
     },
@@ -4133,8 +6437,8 @@
       "source_file": "docs/TEST_PLAN.md",
       "source_location": null,
       "weight": 1.0,
-      "_src": "test_plan_e2e_contract",
-      "_tgt": "qa_matrix_p0_gate",
+      "_src": "qa_matrix_p0_gate",
+      "_tgt": "test_plan_e2e_contract",
       "source": "qa_matrix_p0_gate",
       "target": "test_plan_e2e_contract"
     },
@@ -4145,8 +6449,8 @@
       "source_file": "docs/TESTING_CHECKLIST.md",
       "source_location": null,
       "weight": 1.0,
-      "_src": "testing_checklist_verification",
-      "_tgt": "qa_matrix_p0_gate",
+      "_src": "qa_matrix_p0_gate",
+      "_tgt": "testing_checklist_verification",
       "source": "qa_matrix_p0_gate",
       "target": "testing_checklist_verification"
     },
@@ -4157,8 +6461,8 @@
       "source_file": "docs/E2E_TESTING_REPORT.md",
       "source_location": null,
       "weight": 1.0,
-      "_src": "e2e_report_2026_04_19",
-      "_tgt": "testing_checklist_verification",
+      "_src": "testing_checklist_verification",
+      "_tgt": "e2e_report_2026_04_19",
       "source": "testing_checklist_verification",
       "target": "e2e_report_2026_04_19"
     },
@@ -4193,8 +6497,8 @@
       "source_file": "docs/TEST_PLAN.md",
       "source_location": null,
       "weight": 1.0,
-      "_src": "test_plan_legacy_doc_conflict_note",
-      "_tgt": "test_plan_source_of_truth_apps_web_api",
+      "_src": "test_plan_source_of_truth_apps_web_api",
+      "_tgt": "test_plan_legacy_doc_conflict_note",
       "source": "test_plan_source_of_truth_apps_web_api",
       "target": "test_plan_legacy_doc_conflict_note"
     },

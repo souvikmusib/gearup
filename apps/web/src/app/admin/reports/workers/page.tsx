@@ -7,7 +7,7 @@ export default function WorkersReportPage() {
   const [data, setData] = useState<any[]>([]);
 
   useEffect(() => {
-    const { cached, promise } = api.getSWR<any>('/admin/reports/workers');
+    const { cached, promise } = api.getSWR<any>('/admin/reports?type=workers');
     if (cached?.success) setData(cached.data ?? []);
     promise.then((r) => r.success && setData(r.data ?? []));
   }, []);

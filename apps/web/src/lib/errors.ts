@@ -37,6 +37,15 @@ export class ForbiddenError extends AppError {
 }
 
 export function handleApiError(error: unknown) {
+  if (
+    typeof error === 'object' &&
+    error !== null &&
+    'digest' in error &&
+    (error as { digest?: unknown }).digest === 'DYNAMIC_SERVER_USAGE'
+  ) {
+    throw error;
+  }
+
   if (error instanceof AppError) {
     return NextResponse.json(
       { success: false, error: { code: error.code, message: error.message, details: error.details } },
