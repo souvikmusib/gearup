@@ -58,6 +58,58 @@ export default function VehicleDetailPage() {
         </div>
       </div>
 
+      {/* Service History Timeline */}
+      {data.jobCards?.length > 0 && (
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Service History</h3>
+          <div className="relative border-l-2 border-gray-200 dark:border-gray-700 ml-3 space-y-6">
+            {data.jobCards.map((jc: any) => (
+              <div key={jc.id} className="relative pl-8">
+                <div className="absolute -left-[9px] top-1 h-4 w-4 rounded-full border-2 border-white dark:border-gray-900 bg-blue-500" />
+                <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
+                  <div className="flex items-center justify-between mb-2">
+                    <button onClick={() => router.push(`/admin/job-cards/${jc.id}`)} className="font-semibold text-blue-600 hover:underline">{jc.jobCardNumber}</button>
+                    <StatusBadge status={jc.status} />
+                  </div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{jc.issueSummary}</p>
+                  <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
+                    <span>Intake: {new Date(jc.intakeDate).toLocaleDateString()}</span>
+                    {jc.actualDeliveryAt && <span>Delivered: {new Date(jc.actualDeliveryAt).toLocaleDateString()}</span>}
+                    {Number(jc.finalTotal) > 0 && <span>Cost: ₹{Number(jc.finalTotal).toLocaleString()}</span>}
+                  </div>
+                  {jc.parts?.length > 0 && (
+                    <div className="mt-2">
+                      <p className="text-xs font-medium text-gray-500 mb-1">Parts used:</p>
+                      <div className="flex flex-wrap gap-1">
+                        {jc.parts.map((p: any) => (
+                          <span key={p.id} className="rounded bg-gray-100 dark:bg-gray-700 px-2 py-0.5 text-xs text-gray-600 dark:text-gray-300">{p.inventoryItem?.itemName} ×{Number(p.requiredQty)}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {jc.assignments?.length > 0 && (
+                    <p className="mt-1 text-xs text-gray-500">Mechanic: {jc.assignments.map((a: any) => a.worker?.fullName).filter(Boolean).join(', ')}</p>
+                  )}
+                  {jc.invoices?.length > 0 && (
+                    <div className="mt-2 flex gap-2">
+                      {jc.invoices.map((inv: any) => (
+                        <button key={inv.id} onClick={() => router.push(`/admin/invoices/${inv.id}`)} className="text-xs text-blue-600 hover:underline">
+                          {inv.invoiceNumber} · ₹{Number(inv.grandTotal).toLocaleString()} · <StatusBadge status={inv.paymentStatus} />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {data.jobCards?.length === 0 && (
+        <div className="rounded-lg border-2 border-dashed border-gray-200 dark:border-gray-700 p-8 text-center text-gray-500">No service history for this vehicle yet.</div>
+      )}
+
       <Modal open={showEdit} onClose={() => setShowEdit(false)} title="Edit Vehicle">
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
