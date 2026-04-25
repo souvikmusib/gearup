@@ -22,8 +22,11 @@ export async function GET(req: NextRequest) {
     const page = Number(sp.get('page')) || 1;
     const pageSize = Number(sp.get('pageSize')) || 20;
     const search = sp.get('search') || '';
+    const customerId = sp.get('customerId') || '';
     const p = paginate({ page, pageSize });
-    const where = search ? { OR: [{ registrationNumber: { contains: search, mode: 'insensitive' as const } }, { brand: { contains: search, mode: 'insensitive' as const } }, { model: { contains: search, mode: 'insensitive' as const } }] } : {};
+    const where: Record<string, unknown> = {};
+    if (customerId) where.customerId = customerId;
+    if (search) where.OR = [{ registrationNumber: { contains: search, mode: 'insensitive' as const } }, { brand: { contains: search, mode: 'insensitive' as const } }, { model: { contains: search, mode: 'insensitive' as const } }];
     const [data, total] = await Promise.all([
       prisma.vehicle.findMany({ where, ...p, orderBy: { createdAt: 'desc' }, include: { customer: { select: { id: true, fullName: true, phoneNumber: true } } } }),
       prisma.vehicle.count({ where }),

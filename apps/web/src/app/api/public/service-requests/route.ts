@@ -9,7 +9,7 @@ const schema = z.object({
   fullName: z.string().min(1), phoneNumber: z.string().min(5), alternatePhone: z.string().optional(),
   email: z.string().email().optional(), vehicleType: z.enum(['CAR', 'BIKE', 'OTHER']),
   brand: z.string().min(1), model: z.string().min(1), variant: z.string().optional(),
-  registrationNumber: z.string().min(1), serviceCategory: z.string().min(1), issueDescription: z.string().min(1),
+  vehicleId: z.string().optional(), registrationNumber: z.string().min(1), serviceCategory: z.string().min(1), issueDescription: z.string().min(1),
   preferredDate: z.string().optional(), preferredSlotLabel: z.string().optional(),
   pickupDropRequired: z.boolean().default(false), notes: z.string().optional(),
 });
@@ -17,11 +17,21 @@ const schema = z.object({
 export async function POST(req: NextRequest) {
   try {
     const body = schema.parse(await req.json());
+    const phoneNumber = body.phoneNumber.replace(/\D/g, '');
+    const registrationNumber = body.registrationNumber.toUpperCase().trim();
     const result = await prisma.$transaction(async (tx: any) => {
-      let customer = await tx.customer.findFirst({ where: { phoneNumber: body.phoneNumber } });
-      if (!customer) customer = await tx.customer.create({ data: { fullName: body.fullName, phoneNumber: body.phoneNumber, alternatePhone: body.alternatePhone, email: body.email, source: 'PUBLIC_FORM' } });
-      let vehicle = await tx.vehicle.findFirst({ where: { registrationNumber: body.registrationNumber, customerId: customer.id } });
-      if (!vehicle) vehicle = await tx.vehicle.create({ data: { customerId: customer.id, vehicleType: body.vehicleType, registrationNumber: body.registrationNumber, brand: body.brand, model: body.model, variant: body.variant } });
+      let customer = await tx.customer.findFirst({ where: { phoneNumber } });
+      if (!customer) {
+        customer = await tx.customer.create({ data: { fullName: body.fullName, phoneNumber, alternatePhone: body.alternatePhone, email: body.email, source: 'PUBLIC_FORM' } });
+      } else {
+        customer = await tx.customer.update({ where: { id: customer.id }, data: { fullName: body.fullName || customer.fullName, email: body.email || customer.email } });
+      }
+
+      let vehicle = body.vehicleId
+        ? await tx.vehicle.findFirst({ where: { id: body.vehicleId, customerId: customer.id } })
+        : null;
+      if (!vehicle) vehicle = await tx.vehicle.findFirst({ where: { registrationNumber, customerId: customer.id } });
+      if (!vehicle) vehicle = await tx.vehicle.create({ data: { customerId: customer.id, vehicleType: body.vehicleType, registrationNumber, brand: body.brand, model: body.model, variant: body.variant } });
       const referenceId = generateReferenceId();
       const sr = await tx.serviceRequest.create({ data: { referenceId, customerId: customer.id, vehicleId: vehicle.id, serviceCategory: body.serviceCategory, issueDescription: body.issueDescription, preferredDate: body.preferredDate ? new Date(body.preferredDate) : undefined, preferredSlotLabel: body.preferredSlotLabel, pickupDropRequired: body.pickupDropRequired, notes: body.notes, source: 'PUBLIC_FORM', status: body.preferredDate ? 'APPOINTMENT_PENDING' : 'SUBMITTED' } });
       let appointment = null;

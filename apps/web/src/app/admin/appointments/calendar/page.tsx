@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { api } from '@/lib/api/client';
 import { PageHeader } from '@gearup/ui';
+import { ProcessLoader } from '@/components/shared/process-loader';
 
 function fmtDate(value: string) {
   return new Date(value).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
@@ -39,7 +40,7 @@ export default function AppointmentCalendarPage() {
   return (
     <div className="space-y-6">
       <PageHeader title="Appointment Calendar" description="Visual calendar view of booked service slots" />
-      {loading ? <p className="py-8 text-center text-gray-500">Loading...</p> : (
+      {loading ? <ProcessLoader title="Loading appointment calendar" steps={['Fetching booked appointments', 'Grouping slots by date', 'Preparing calendar cards']} /> : (
         <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
           {Object.keys(grouped).length === 0 && <p className="text-sm text-gray-500">No appointments scheduled.</p>}
           {Object.entries(grouped).map(([date, dayItems]) => (

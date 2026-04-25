@@ -6,6 +6,7 @@ import { PageHeader, DataTable, StatusBadge } from '@gearup/ui';
 import { ListToolbar } from '@/components/shared/list-toolbar';
 import { Pagination } from '@/components/shared/pagination';
 import { Modal } from '@/components/shared/modal';
+import { ProcessLoader } from '@/components/shared/process-loader';
 
 const PAYMENT_STATUSES = ['UNPAID','PARTIALLY_PAID','PAID'].map(s => ({ label: s.replace(/_/g, ' '), value: s }));
 const INVOICE_STATUSES = ['DRAFT','FINALIZED','CANCELLED'].map(s => ({ label: s, value: s }));
@@ -22,6 +23,7 @@ export default function InvoicesPage() {
   const [selectedJC, setSelectedJC] = useState<any>(null);
   const [lineItems, setLineItems] = useState<any[]>([]);
   const [saving, setSaving] = useState(false);
+  const [modalLoading, setModalLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
   const timer = useRef<NodeJS.Timeout>();
@@ -57,13 +59,17 @@ export default function InvoicesPage() {
 
   const openCreate = async () => {
     setShowCreate(true); setError(''); setSelectedJC(null); setLineItems([]);
+    setModalLoading(true);
     const res = await api.get<any>('/admin/job-cards?pageSize=100');
+    setModalLoading(false);
     if (res.success) setJobCards((res.data?.items ?? res.data ?? []).filter((jc: any) => !['CANCELLED', 'CREATED'].includes(jc.status)));
   };
 
   const onJobCardSelect = async (jcId: string) => {
     if (!jcId) { setSelectedJC(null); setLineItems([]); return; }
+    setModalLoading(true);
     const res = await api.get<any>(`/admin/job-cards/${jcId}`);
+    setModalLoading(false);
     if (res.success) {
       setSelectedJC(res.data);
       const items: any[] = [];
@@ -110,13 +116,14 @@ export default function InvoicesPage() {
       <ListToolbar searchPlaceholder="Search invoices..." onSearch={onSearch}
         filters={[{ label: 'Payment Status', value: 'paymentStatus', options: PAYMENT_STATUSES }, { label: 'Invoice Status', value: 'invoiceStatus', options: INVOICE_STATUSES }]}
         onFilterChange={(k, v) => { setFilters(prev => ({ ...prev, [k]: v })); setPage(1); }} />
-      {loading ? <p className="py-8 text-center text-gray-500">Loading...</p> :
+      {loading ? <ProcessLoader title="Loading invoices" steps={['Fetching latest invoice list', 'Checking payment status', 'Preparing table rows']} /> :
         <DataTable columns={columns} data={data} keyField="id" onRowClick={(r: any) => router.push(`/admin/invoices/${r.id}`)} />}
       <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
 
       <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Create Invoice">
         <div className="space-y-4 max-h-[70vh] overflow-y-auto">
           {error && <p className="text-sm text-red-600">{error}</p>}
+          {modalLoading && <ProcessLoader title="Preparing invoice form" steps={['Loading eligible job cards', 'Reading selected job-card parts', 'Calculating starter line items']} />}
           <div>
             <label className="block text-sm font-medium mb-1">Job Card *</label>
             <select className={inputCls} value={selectedJC?.id || ''} onChange={(e) => onJobCardSelect(e.target.value)}>
@@ -144,7 +151,7 @@ export default function InvoicesPage() {
                 ))}
               </div>
               <button onClick={submit} disabled={saving} className="w-full rounded-lg bg-blue-600 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50">
-                {saving ? 'Creating...' : 'Create Invoice'}
+                {saving ? 'Creating invoice...' : 'Create Invoice'}
               </button>
             </>
           )}

@@ -56,6 +56,7 @@ export default function SettingsPage() {
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {[
+          { label: 'Garage Config', href: '/admin/settings/garage', desc: 'Workers, roles & capacity overview' },
           { label: 'Shop Holidays', href: '/admin/settings/holidays', desc: 'Manage holidays & closures' },
           { label: 'Business Hours', href: '/admin/settings/business-hours', desc: 'Slot rules & capacity' },
           { label: 'Admin Users', href: '/admin/settings/admins', desc: 'Manage admin accounts' },

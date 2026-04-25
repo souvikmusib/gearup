@@ -85,7 +85,10 @@ export default function WorkersPage() {
             <input className={inputCls} placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <input className={inputCls} placeholder="Designation *" required value={form.designation} onChange={(e) => setForm({ ...form, designation: e.target.value })} />
+            <select className={inputCls} required value={form.designation} onChange={(e) => setForm({ ...form, designation: e.target.value })}>
+              <option value="">Select role *</option>
+              {['Role A', 'Role B', 'Role C', 'Role D', 'Mechanic', 'Electrician', 'Service Advisor', 'Supervisor'].map((role) => <option key={role} value={role}>{role}</option>)}
+            </select>
             <input className={inputCls} placeholder="Specialization" value={form.specialization} onChange={(e) => setForm({ ...form, specialization: e.target.value })} />
           </div>
           <div className="grid grid-cols-2 gap-3">

@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { api } from '@/lib/api/client';
 import { PageHeader } from '@gearup/ui';
+import { ProcessLoader } from '@/components/shared/process-loader';
 
 function fmtTime(value?: string | null) {
   if (!value) return 'Not set';
@@ -38,7 +39,7 @@ export default function WorkerCalendarPage() {
   return (
     <div className="space-y-6">
       <PageHeader title="Worker Calendar" description="View shifts, assigned appointments, and active load" />
-      {loading ? <p className="py-8 text-center text-gray-500">Loading...</p> : (
+      {loading ? <ProcessLoader title="Loading worker calendar" steps={['Fetching worker roster', 'Checking assigned appointments', 'Preparing availability cards']} /> : (
         <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
           {workers.map((worker) => {
             const assigned = byWorker[worker.id] ?? [];

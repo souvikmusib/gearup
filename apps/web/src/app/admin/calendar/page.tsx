@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { api } from '@/lib/api/client';
 import { PageHeader } from '@gearup/ui';
+import { ProcessLoader } from '@/components/shared/process-loader';
 
 const statusTone: Record<string, string> = {
   REQUESTED: 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-200',
@@ -108,7 +109,7 @@ export default function CalendarPage() {
       </div>
 
       {tab === 'shop' && (
-        loadingShop ? <p className="py-8 text-center text-gray-500">Loading...</p> : (
+        loadingShop ? <ProcessLoader title="Loading shop calendar" steps={['Fetching appointments', 'Checking holidays and closures', 'Preparing day cards']} /> : (
           <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
             {shopDays.length === 0 && <p className="text-sm text-gray-500">No calendar entries yet.</p>}
             {shopDays.map(([date, day]) => (
@@ -138,7 +139,7 @@ export default function CalendarPage() {
       )}
 
       {tab === 'worker' && (
-        loadingWorkers ? <p className="py-8 text-center text-gray-500">Loading...</p> : (
+        loadingWorkers ? <ProcessLoader title="Loading worker calendar" steps={['Fetching workers', 'Checking leaves', 'Mapping active assignments']} /> : (
           <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
             {workerCards.map(({ worker, workerLeaves, workerAssignments }) => (
               <section key={worker.id} className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
