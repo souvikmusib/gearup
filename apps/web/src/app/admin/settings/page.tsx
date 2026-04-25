@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react';
 import { api } from '@/lib/api/client';
 import { PageHeader } from '@gearup/ui';
 
+import Link from 'next/link';
+
 export default function SettingsPage() {
   const [settings, setSettings] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(true);
@@ -53,10 +55,10 @@ export default function SettingsPage() {
           { label: 'Admin Users', href: '/admin/settings/admins', desc: 'Manage admin accounts' },
           { label: 'Notifications', href: '/admin/settings/notifications', desc: 'Templates & channels' },
         ].map((item) => (
-          <a key={item.href} href={item.href} className="rounded-lg border border-gray-200 bg-white p-4 hover:border-blue-300 hover:shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:hover:border-blue-700">
+          <Link key={item.href} href={item.href} className="rounded-lg border border-gray-200 bg-white p-4 hover:border-blue-300 hover:shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:hover:border-blue-700">
             <p className="font-semibold text-gray-900 dark:text-white text-sm">{item.label}</p>
             <p className="text-xs text-gray-500 mt-1">{item.desc}</p>
-          </a>
+          </Link>
         ))}
       </div>
 
