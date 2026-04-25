@@ -19,7 +19,7 @@ export default function JobCardsPage() {
   const [newCust, setNewCust] = useState(false);
   const [custForm, setCustForm] = useState({ fullName: '', phoneNumber: '', email: '' });
   const [newVeh, setNewVeh] = useState(false);
-  const [vehForm, setVehForm] = useState({ vehicleType: 'CAR' as string, registrationNumber: '', brand: '', model: '' });
+  const [vehForm, setVehForm] = useState({ vehicleType: 'BIKE' as string, registrationNumber: '', brand: '', model: '' });
   const router = useRouter();
 
   const load = (s = search, st = statusFilter) => {
@@ -67,7 +67,7 @@ export default function JobCardsPage() {
       setVehicles((prev) => [res.data, ...prev]);
       setForm((f) => ({ ...f, vehicleId: res.data.id }));
       setNewVeh(false);
-      setVehForm({ vehicleType: 'CAR', registrationNumber: '', brand: '', model: '' });
+      setVehForm({ vehicleType: 'BIKE', registrationNumber: '', brand: '', model: '' });
     } else { setError(res.error?.message || 'Failed to create vehicle'); }
   };
 
@@ -161,7 +161,7 @@ export default function JobCardsPage() {
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <select className={inputCls} value={vehForm.vehicleType} onChange={(e) => setVehForm({ ...vehForm, vehicleType: e.target.value })}>
-                  <option value="CAR">Car</option><option value="BIKE">Bike</option><option value="OTHER">Other</option>
+                  <option value="BIKE">Motorcycle</option><option value="OTHER">Scooter / Other</option>
                 </select>
                 <input className={inputCls} placeholder="Reg. Number *" value={vehForm.registrationNumber} onChange={(e) => setVehForm({ ...vehForm, registrationNumber: e.target.value })} />
               </div>

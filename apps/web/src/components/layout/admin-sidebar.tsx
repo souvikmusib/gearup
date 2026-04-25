@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth/auth-context';
 import { ThemeToggle } from '@/components/shared/theme-toggle';
 import {
-  LayoutDashboard, FileText, Calendar, Wrench, Users, Car, UserCog,
+  LayoutDashboard, FileText, Calendar, Wrench, Users, Bike, UserCog,
   Package, Receipt, CreditCard, DollarSign, Bell, BarChart3, ScrollText,
   Settings, LogOut, Menu, X, ChevronDown,
 } from 'lucide-react';
@@ -16,7 +16,7 @@ const NAV = [
   { label: 'Appointments', href: '/admin/appointments', icon: Calendar },
   { label: 'Job Cards', href: '/admin/job-cards', icon: Wrench },
   { label: 'Customers', href: '/admin/customers', icon: Users },
-  { label: 'Vehicles', href: '/admin/vehicles', icon: Car },
+  { label: 'Vehicles', href: '/admin/vehicles', icon: Bike },
   { label: 'Workers', href: '/admin/workers', icon: UserCog },
   {
     label: 'Inventory', icon: Package, children: [

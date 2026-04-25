@@ -13,7 +13,7 @@ export default function VehiclesPage() {
   const [customers, setCustomers] = useState<any[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [form, setForm] = useState({ customerId: '', vehicleType: 'CAR', registrationNumber: '', brand: '', model: '', variant: '', fuelType: '' });
+  const [form, setForm] = useState({ customerId: '', vehicleType: 'BIKE', registrationNumber: '', brand: '', model: '', variant: '', fuelType: '' });
   const router = useRouter();
 
   const load = (s = search) => {
@@ -34,7 +34,7 @@ export default function VehiclesPage() {
     setSaving(true); setError('');
     const res = await api.post<any>('/admin/vehicles', form);
     setSaving(false);
-    if (res.success) { setShowCreate(false); setForm({ customerId: '', vehicleType: 'CAR', registrationNumber: '', brand: '', model: '', variant: '', fuelType: '' }); load(); }
+    if (res.success) { setShowCreate(false); setForm({ customerId: '', vehicleType: 'BIKE', registrationNumber: '', brand: '', model: '', variant: '', fuelType: '' }); load(); }
     else setError(res.error?.message || 'Failed');
   };
 
@@ -68,7 +68,7 @@ export default function VehiclesPage() {
           <div className="grid grid-cols-2 gap-3">
             <div><label className="block text-xs font-medium mb-1">Type *</label>
               <select className={inputCls} value={form.vehicleType} onChange={(e) => setForm({ ...form, vehicleType: e.target.value })}>
-                <option value="CAR">Car</option><option value="BIKE">Bike</option><option value="OTHER">Other</option>
+                <option value="BIKE">Motorcycle</option><option value="OTHER">Scooter / Other</option>
               </select>
             </div>
             <div><label className="block text-xs font-medium mb-1">Reg Number *</label><input className={inputCls} value={form.registrationNumber} onChange={(e) => setForm({ ...form, registrationNumber: e.target.value })} /></div>

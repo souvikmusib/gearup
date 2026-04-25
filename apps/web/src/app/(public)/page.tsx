@@ -8,10 +8,10 @@ export default function HomePage() {
       <section className="bg-gradient-to-br from-blue-50 to-white dark:from-gray-900 dark:to-gray-950 py-20">
         <div className="mx-auto max-w-6xl px-4 text-center">
           <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 dark:text-white sm:text-5xl">
-            Professional Vehicle Servicing<br />You Can <span className="text-blue-600">Trust</span>
+            Professional Motorcycle Servicing<br />You Can <span className="text-blue-600">Trust</span>
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-600 dark:text-gray-400">
-            Book your service online, track progress in real-time, and get your vehicle back on the road — hassle-free.
+            Book your bike service online, track progress in real-time, and get your ride back on the road — hassle-free.
           </p>
           <div className="mt-8 flex justify-center gap-4">
             <Link href="/book-service" className="rounded-lg bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow hover:bg-blue-700">
@@ -45,8 +45,8 @@ export default function HomePage() {
           <h2 className="text-center text-2xl font-bold text-gray-900 dark:text-white">How It Works</h2>
           <div className="mt-10 grid gap-8 sm:grid-cols-3">
             {[
-              { icon: <Wrench size={24} />, title: '1. Book Online', desc: 'Fill in your vehicle details and choose a convenient slot.' },
-              { icon: <Clock size={24} />, title: '2. Get Serviced', desc: 'Our team inspects, diagnoses, and services your vehicle.' },
+              { icon: <Wrench size={24} />, title: '1. Book Online', desc: 'Fill in your bike details and choose a convenient slot.' },
+              { icon: <Clock size={24} />, title: '2. Get Serviced', desc: 'Our team inspects, diagnoses, and services your motorcycle.' },
               { icon: <Search size={24} />, title: '3. Track & Collect', desc: 'Track progress online and pick up when ready.' },
             ].map((step) => (
               <div key={step.title} className="text-center">
@@ -63,7 +63,7 @@ export default function HomePage() {
       <section className="py-16">
         <div className="mx-auto max-w-6xl px-4 text-center">
           <Shield className="mx-auto mb-4 text-green-600" size={36} />
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Trusted by Vehicle Owners</h2>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Trusted by Bike Owners</h2>
           <p className="mx-auto mt-2 max-w-xl text-gray-600 dark:text-gray-400">
             Transparent pricing, real-time updates, and quality workmanship. No surprises.
           </p>

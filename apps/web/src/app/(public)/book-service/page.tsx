@@ -44,7 +44,7 @@ export default function BookServicePage() {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   const [form, setForm] = useState({
-    fullName: '', phoneNumber: '', email: '', vehicleType: 'CAR' as const,
+    fullName: '', phoneNumber: '', email: '', vehicleType: 'BIKE' as const,
     brand: '', model: '', registrationNumber: '', serviceCategory: '',
     issueDescription: '', preferredDate: '', pickupDropRequired: false, notes: '',
   });
@@ -121,7 +121,7 @@ export default function BookServicePage() {
             <div>
               <label className={labelCls}>Vehicle Type *</label>
               <select className={inputCls('vehicleType')} value={form.vehicleType} onChange={(e) => set('vehicleType', e.target.value)}>
-                <option value="CAR">Car</option><option value="BIKE">Bike</option><option value="OTHER">Other</option>
+                <option value="BIKE">Motorcycle</option><option value="OTHER">Scooter / Other</option>
               </select>
             </div>
             <div><label className={labelCls}>Registration Number *</label><input className={inputCls('registrationNumber')} value={form.registrationNumber} onChange={(e) => set('registrationNumber', e.target.value)} onBlur={() => blur('registrationNumber')} />{err('registrationNumber')}</div>
