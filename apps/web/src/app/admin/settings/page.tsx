@@ -46,6 +46,20 @@ export default function SettingsPage() {
         </div>
       </div>
 
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {[
+          { label: 'Shop Holidays', href: '/admin/settings/holidays', desc: 'Manage holidays & closures' },
+          { label: 'Business Hours', href: '/admin/settings/business-hours', desc: 'Slot rules & capacity' },
+          { label: 'Admin Users', href: '/admin/settings/admins', desc: 'Manage admin accounts' },
+          { label: 'Notifications', href: '/admin/settings/notifications', desc: 'Templates & channels' },
+        ].map((item) => (
+          <a key={item.href} href={item.href} className="rounded-lg border border-gray-200 bg-white p-4 hover:border-blue-300 hover:shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:hover:border-blue-700">
+            <p className="font-semibold text-gray-900 dark:text-white text-sm">{item.label}</p>
+            <p className="text-xs text-gray-500 mt-1">{item.desc}</p>
+          </a>
+        ))}
+      </div>
+
       {Object.keys(groups).length === 0 && <p className="text-sm text-gray-500">No settings configured yet.</p>}
 
       {Object.entries(groups).map(([prefix, keys]) => (
