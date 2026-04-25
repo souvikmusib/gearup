@@ -1,11 +1,11 @@
 # Graph Report - .  (2026-04-25)
 
 ## Corpus Check
-- 137 files · ~59,347 words
+- 137 files · ~59,274 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 302 nodes · 305 edges · 85 communities detected
+- 303 nodes · 306 edges · 85 communities detected
 - Extraction: 97% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 7 edges (avg confidence: 0.84)
 - Token cost: 0 input · 0 output
 
@@ -115,10 +115,10 @@
   test plan.md → docs/TEST_PLAN.md
 - `Current Single-App Architecture (apps/web)` --conceptually_related_to--> `Graphify Graph Report Summary`  [INFERRED]
   docs/CODEBASE_CONTEXT.md → graphify-out/GRAPH_REPORT.md
-- `GearUp Servicing System` --references--> `Reported Core Stack Composition Hyperedge`  [EXTRACTED]
-  README.md → graphify-out/GRAPH_REPORT.md
-- `Custom JWT and RBAC Auth Model` --conceptually_related_to--> `Role Permission Matrix`  [EXTRACTED]
-  README.md → docs/rbac.md
+- `deleteExpense()` --calls--> `load()`  [EXTRACTED]
+  apps/web/src/app/admin/expenses/page.tsx → apps/web/src/app/admin/job-cards/[id]/page.tsx
+- `remove()` --calls--> `load()`  [EXTRACTED]
+  apps/web/src/app/admin/inventory/suppliers/page.tsx → apps/web/src/app/admin/job-cards/[id]/page.tsx
 
 ## Hyperedges (group relationships)
 - **Auth and RBAC Enforcement Group** — readme_custom_jwt_rbac, rbac_permission_matrix, rbac_require_permission_middleware, test_plan_release_gates, testing_checklist_verification [INFERRED 0.84]
@@ -132,36 +132,36 @@ Cohesion: 0.05
 Nodes (8): DELETE(), ensureDraft(), generateInvoiceHTML(), GET(), isUniqueJobCardInvoiceError(), PATCH(), POST(), recalcTotals()
 
 ### Community 1 - "Community 1"
-Cohesion: 0.09
-Nodes (23): addPart(), addTask(), assignWorker(), deleteExpense(), goToInvoice(), load(), loadCategories(), loadLookups() (+15 more)
+Cohesion: 0.1
+Nodes (10): deleteExpense(), loadCategories(), loadLookups(), onCustomerChange(), onSubmit(), openCreate(), openEdit(), remove() (+2 more)
 
 ### Community 2 - "Community 2"
 Cohesion: 0.09
 Nodes (23): Legacy Express Backend on Render Model, API Route Handlers in apps/web, Current Single-App Architecture (apps/web), Production E2E Report (2026-04-19), Reported Core Stack Composition Hyperedge, Graphify Graph Report Summary, Notification Deduplication Key Pattern, Notification Queue and Retry Pipeline (+15 more)
 
 ### Community 3 - "Community 3"
+Cohesion: 0.2
+Nodes (13): addPart(), addTask(), assignWorker(), goToInvoice(), load(), Number(), onItemSelect(), removePart() (+5 more)
+
+### Community 4 - "Community 4"
 Cohesion: 0.17
 Nodes (5): AppError, ForbiddenError, NotFoundError, UnauthorizedError, ValidationError
 
-### Community 4 - "Community 4"
+### Community 5 - "Community 5"
 Cohesion: 0.36
 Nodes (4): blur(), onPhoneChange(), set(), validate()
 
-### Community 5 - "Community 5"
+### Community 6 - "Community 6"
 Cohesion: 0.52
 Nodes (5): cacheKey(), fetchAndStore(), now(), peek(), request()
 
-### Community 6 - "Community 6"
-Cohesion: 0.33
-Nodes (0):
-
 ### Community 7 - "Community 7"
-Cohesion: 0.4
-Nodes (0):
+Cohesion: 0.33
+Nodes (0): 
 
 ### Community 8 - "Community 8"
 Cohesion: 0.4
-Nodes (0):
+Nodes (0): 
 
 ### Community 9 - "Community 9"
 Cohesion: 0.7
@@ -181,283 +181,283 @@ Nodes (2): isRateLimited(), middleware()
 
 ### Community 13 - "Community 13"
 Cohesion: 0.67
-Nodes (0):
+Nodes (0): 
 
 ### Community 14 - "Community 14"
 Cohesion: 0.67
-Nodes (0):
+Nodes (0): 
 
 ### Community 15 - "Community 15"
 Cohesion: 0.67
-Nodes (0):
+Nodes (0): 
 
 ### Community 16 - "Community 16"
 Cohesion: 0.67
-Nodes (0):
+Nodes (0): 
 
 ### Community 17 - "Community 17"
 Cohesion: 0.67
-Nodes (0):
+Nodes (0): 
 
 ### Community 18 - "Community 18"
 Cohesion: 0.67
-Nodes (0):
+Nodes (0): 
 
 ### Community 19 - "Community 19"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 20 - "Community 20"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 21 - "Community 21"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 22 - "Community 22"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 23 - "Community 23"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 24 - "Community 24"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 25 - "Community 25"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 26 - "Community 26"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 27 - "Community 27"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 28 - "Community 28"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 29 - "Community 29"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 30 - "Community 30"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 31 - "Community 31"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 32 - "Community 32"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 33 - "Community 33"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 34 - "Community 34"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 35 - "Community 35"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 36 - "Community 36"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 37 - "Community 37"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 38 - "Community 38"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 39 - "Community 39"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 40 - "Community 40"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 41 - "Community 41"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 42 - "Community 42"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 43 - "Community 43"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 44 - "Community 44"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 45 - "Community 45"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 46 - "Community 46"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 47 - "Community 47"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 48 - "Community 48"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 49 - "Community 49"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 50 - "Community 50"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 51 - "Community 51"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 52 - "Community 52"
 Cohesion: 1.0
-Nodes (2): Region Alignment Optimization Recommendation, Cross-Region Latency Finding
+Nodes (0): 
 
 ### Community 53 - "Community 53"
 Cohesion: 1.0
-Nodes (2): Production Ready Verdict, Settings Test Method Mismatch (POST vs PATCH)
+Nodes (2): Region Alignment Optimization Recommendation, Cross-Region Latency Finding
 
 ### Community 54 - "Community 54"
 Cohesion: 1.0
-Nodes (0):
+Nodes (2): Production Ready Verdict, Settings Test Method Mismatch (POST vs PATCH)
 
 ### Community 55 - "Community 55"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 56 - "Community 56"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 57 - "Community 57"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 58 - "Community 58"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 59 - "Community 59"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 60 - "Community 60"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 61 - "Community 61"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 62 - "Community 62"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 63 - "Community 63"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 64 - "Community 64"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 65 - "Community 65"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 66 - "Community 66"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 67 - "Community 67"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 68 - "Community 68"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 69 - "Community 69"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 70 - "Community 70"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 71 - "Community 71"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 72 - "Community 72"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 73 - "Community 73"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 74 - "Community 74"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 75 - "Community 75"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 76 - "Community 76"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 77 - "Community 77"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 78 - "Community 78"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 79 - "Community 79"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 80 - "Community 80"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 81 - "Community 81"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 82 - "Community 82"
 Cohesion: 1.0
-Nodes (0):
+Nodes (0): 
 
 ### Community 83 - "Community 83"
 Cohesion: 1.0
@@ -538,39 +538,39 @@ Nodes (1): Session Memory Context Stub
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Community 50`** (2 nodes): `theme-toggle.tsx`, `ThemeToggle()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 51`** (2 nodes): `logActivity()`, `activity-logger.ts`
+- **Thin community `Community 51`** (2 nodes): `prisma.ts`, `withServerlessPoolLimits()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 52`** (2 nodes): `Region Alignment Optimization Recommendation`, `Cross-Region Latency Finding`
+- **Thin community `Community 52`** (2 nodes): `logActivity()`, `activity-logger.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 53`** (2 nodes): `Production Ready Verdict`, `Settings Test Method Mismatch (POST vs PATCH)`
+- **Thin community `Community 53`** (2 nodes): `Region Alignment Optimization Recommendation`, `Cross-Region Latency Finding`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 54`** (1 nodes): `index.ts`
+- **Thin community `Community 54`** (2 nodes): `Production Ready Verdict`, `Settings Test Method Mismatch (POST vs PATCH)`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 55`** (1 nodes): `data-table.tsx`
+- **Thin community `Community 55`** (1 nodes): `index.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 56`** (1 nodes): `api.ts`
+- **Thin community `Community 56`** (1 nodes): `data-table.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 57`** (1 nodes): `index.ts`
+- **Thin community `Community 57`** (1 nodes): `api.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 58`** (1 nodes): `domain.ts`
+- **Thin community `Community 58`** (1 nodes): `index.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 59`** (1 nodes): `auth.ts`
+- **Thin community `Community 59`** (1 nodes): `domain.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 60`** (1 nodes): `tailwind.config.js`
+- **Thin community `Community 60`** (1 nodes): `auth.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 61`** (1 nodes): `sentry.server.config.ts`
+- **Thin community `Community 61`** (1 nodes): `tailwind.config.js`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 62`** (1 nodes): `next-env.d.ts`
+- **Thin community `Community 62`** (1 nodes): `sentry.server.config.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 63`** (1 nodes): `sentry.client.config.ts`
+- **Thin community `Community 63`** (1 nodes): `next-env.d.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 64`** (1 nodes): `sentry.edge.config.ts`
+- **Thin community `Community 64`** (1 nodes): `sentry.client.config.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 65`** (1 nodes): `playwright.config.ts`
+- **Thin community `Community 65`** (1 nodes): `sentry.edge.config.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 66`** (1 nodes): `postcss.config.js`
+- **Thin community `Community 66`** (1 nodes): `playwright.config.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 67`** (1 nodes): `page.tsx`
+- **Thin community `Community 67`** (1 nodes): `postcss.config.js`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Community 68`** (1 nodes): `page.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
@@ -592,13 +592,13 @@ Nodes (1): Session Memory Context Stub
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Community 77`** (1 nodes): `page.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 78`** (1 nodes): `breadcrumbs.tsx`
+- **Thin community `Community 78`** (1 nodes): `page.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 79`** (1 nodes): `skeletons.tsx`
+- **Thin community `Community 79`** (1 nodes): `breadcrumbs.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 80`** (1 nodes): `list-toolbar.tsx`
+- **Thin community `Community 80`** (1 nodes): `skeletons.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 81`** (1 nodes): `prisma.ts`
+- **Thin community `Community 81`** (1 nodes): `list-toolbar.tsx`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Community 82`** (1 nodes): `constants.ts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
@@ -612,11 +612,13 @@ _Questions this graph is uniquely positioned to answer:_
 
 - **What is the exact relationship between `Current Single-App Architecture (apps/web)` and `Legacy Express Backend on Render Model`?**
   _Edge tagged AMBIGUOUS (relation: conceptually_related_to) - confidence is low._
+- **Why does `load()` connect `Community 3` to `Community 1`?**
+  _High betweenness centrality (0.016) - this node is a cross-community bridge._
 - **What connects `Canonical Test Plan Pointer`, `GearUp Servicing System`, `Next.js 14 App Router Stack` to the rest of the system?**
   _17 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community 0` be split into smaller, more focused modules?**
   _Cohesion score 0.05 - nodes in this community are weakly interconnected._
 - **Should `Community 1` be split into smaller, more focused modules?**
-  _Cohesion score 0.09 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.1 - nodes in this community are weakly interconnected._
 - **Should `Community 2` be split into smaller, more focused modules?**
   _Cohesion score 0.09 - nodes in this community are weakly interconnected._
