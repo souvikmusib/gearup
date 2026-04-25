@@ -1,61 +1,64 @@
 'use client';
-import { useEffect, useState, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import { api } from '@/lib/api/client';
 import { PageHeader } from '@gearup/ui';
-import FullCalendar from '@fullcalendar/react';
-import dayGridPlugin from '@fullcalendar/daygrid';
-import timeGridPlugin from '@fullcalendar/timegrid';
-import interactionPlugin from '@fullcalendar/interaction';
 
-const STATUS_COLORS: Record<string, string> = {
-  REQUESTED: '#f59e0b', PENDING_REVIEW: '#f59e0b', CONFIRMED: '#3b82f6',
-  RESCHEDULED: '#8b5cf6', CHECKED_IN: '#10b981', COMPLETED: '#6b7280',
-  CANCELLED: '#ef4444', NO_SHOW: '#ef4444',
-};
+function fmtDate(value: string) {
+  return new Date(value).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+}
+
+function fmtTime(value: string) {
+  return new Date(value).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+}
 
 export default function AppointmentCalendarPage() {
-  const [events, setEvents] = useState<any[]>([]);
-  const router = useRouter();
-  const calRef = useRef<any>(null);
+  const [items, setItems] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get<any>('/admin/appointments?pageSize=500').then((res) => {
-      if (!res.success) return;
-      const items = res.data?.items ?? res.data ?? [];
-      setEvents(items.map((a: any) => ({
-        id: a.id,
-        title: `${a.customer?.fullName || 'Customer'} — ${a.vehicle?.registrationNumber || ''}`,
-        start: a.slotStart, end: a.slotEnd,
-        backgroundColor: STATUS_COLORS[a.status] || '#6b7280',
-        borderColor: STATUS_COLORS[a.status] || '#6b7280',
-      })));
+    api.get<any>('/admin/appointments?pageSize=200').then((res) => {
+      if (res.success) setItems(res.data?.items ?? res.data ?? []);
+      setLoading(false);
     });
   }, []);
 
+  const grouped = useMemo(() => {
+    return items.reduce<Record<string, any[]>>((acc, item) => {
+      const key = new Date(item.appointmentDate).toISOString().slice(0, 10);
+      acc[key] = [...(acc[key] ?? []), item];
+      return acc;
+    }, {});
+  }, [items]);
+
   return (
-    <div>
-      <PageHeader title="Shop Calendar" description="Appointments overview" />
-      <div className="mt-4 rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800 [&_.fc]:text-sm [&_.fc-toolbar-title]:text-lg [&_.fc-toolbar-title]:font-semibold [&_.fc-button]:!rounded-lg [&_.fc-button]:!text-xs [&_.fc-button]:!px-3 [&_.fc-button]:!py-1.5 [&_.fc-button-primary]:!bg-blue-600 [&_.fc-button-primary]:!border-blue-600 [&_.fc-button-primary.fc-button-active]:!bg-blue-700 [&_.fc-event]:!rounded [&_.fc-event]:!px-1 [&_.fc-event]:!text-xs [&_.fc-event]:cursor-pointer">
-        <FullCalendar
-          ref={calRef}
-          plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-          initialView="timeGridWeek"
-          headerToolbar={{ left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' }}
-          events={events}
-          eventClick={(info) => router.push(`/admin/appointments/${info.event.id}`)}
-          slotMinTime="07:00:00" slotMaxTime="21:00:00" allDaySlot={false}
-          height="auto" nowIndicator slotDuration="00:30:00"
-        />
-      </div>
-      <div className="mt-3 flex flex-wrap gap-3 text-xs">
-        {Object.entries(STATUS_COLORS).map(([status, color]) => (
-          <span key={status} className="flex items-center gap-1">
-            <span className="inline-block h-3 w-3 rounded" style={{ backgroundColor: color }} />
-            {status.replace(/_/g, ' ')}
-          </span>
-        ))}
-      </div>
+    <div className="space-y-6">
+      <PageHeader title="Appointment Calendar" description="Visual calendar view of booked service slots" />
+      {loading ? <p className="py-8 text-center text-gray-500">Loading...</p> : (
+        <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
+          {Object.keys(grouped).length === 0 && <p className="text-sm text-gray-500">No appointments scheduled.</p>}
+          {Object.entries(grouped).map(([date, dayItems]) => (
+            <section key={date} className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+              <div className="mb-3 flex items-center justify-between">
+                <h3 className="font-semibold text-gray-900 dark:text-white">{fmtDate(date)}</h3>
+                <span className="rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">{dayItems.length} slots</span>
+              </div>
+              <div className="space-y-3">
+                {dayItems.map((appt) => (
+                  <Link key={appt.id} href={`/admin/appointments/${appt.id}`} className="block rounded-lg border border-gray-100 p-3 hover:border-blue-300 hover:bg-blue-50/40 dark:border-gray-700 dark:hover:border-blue-700 dark:hover:bg-blue-950/20">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="font-medium text-gray-900 dark:text-white">{fmtTime(appt.slotStart)} - {fmtTime(appt.slotEnd)}</span>
+                      <span className="text-xs text-gray-500">{appt.status}</span>
+                    </div>
+                    <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">{appt.customer?.fullName ?? 'Customer'}</p>
+                    <p className="text-xs text-gray-500">{appt.vehicle?.registrationNumber ?? 'Vehicle'} {appt.worker?.fullName ? `- ${appt.worker.fullName}` : ''}</p>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
