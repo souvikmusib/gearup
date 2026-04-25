@@ -1,7 +1,7 @@
 import type { ApiResponse } from '@gearup/types';
 
 const BASE = '/api';
-const GET_CACHE_TTL_MS = 45_000;
+const GET_CACHE_TTL_MS = 120_000;
 
 type CacheEntry = {
   data: ApiResponse<unknown>;

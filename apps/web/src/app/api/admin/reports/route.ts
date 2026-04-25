@@ -14,14 +14,38 @@ export async function GET(req: NextRequest) {
     if (type === 'dashboard') {
       const today = new Date(); today.setHours(0, 0, 0, 0);
       const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
-      const [todayAppointments, pendingRequests, activeJobs, unpaidInvoices, todayRevenue] = await Promise.all([
+      const [
+        todayAppointments,
+        pendingRequests,
+        activeJobs,
+        unpaidInvoices,
+        todayRevenue,
+        totalCustomers,
+        totalVehicles,
+        activeWorkers,
+      ] = await Promise.all([
         prisma.appointment.count({ where: { appointmentDate: { gte: today, lt: tomorrow }, status: { notIn: ['CANCELLED', 'NO_SHOW'] } } }),
         prisma.serviceRequest.count({ where: { status: { in: ['SUBMITTED', 'UNDER_REVIEW'] } } }),
         prisma.jobCard.count({ where: { status: { notIn: ['DELIVERED', 'CANCELLED', 'CLOSED'] } } }),
         prisma.invoice.count({ where: { invoiceStatus: 'FINALIZED', paymentStatus: { in: ['UNPAID', 'PARTIALLY_PAID'] } } }),
         prisma.payment.aggregate({ where: { paymentDate: { gte: today, lt: tomorrow } }, _sum: { amount: true } }),
+        prisma.customer.count(),
+        prisma.vehicle.count(),
+        prisma.worker.count({ where: { status: 'ACTIVE' } }),
       ]);
-      return NextResponse.json({ success: true, data: { todayAppointments, pendingRequests, activeJobs, unpaidInvoices, todayRevenue: Number(todayRevenue._sum.amount ?? 0) } });
+      return NextResponse.json({
+        success: true,
+        data: {
+          todayAppointments,
+          pendingRequests,
+          activeJobs,
+          unpaidInvoices,
+          todayRevenue: Number(todayRevenue._sum.amount ?? 0),
+          totalCustomers,
+          totalVehicles,
+          activeWorkers,
+        },
+      });
     }
 
     if (type === 'revenue') {

@@ -12,6 +12,9 @@ interface DashboardData {
   activeJobs: number;
   unpaidInvoices: number;
   todayRevenue: number;
+  totalCustomers: number;
+  totalVehicles: number;
+  activeWorkers: number;
 }
 
 interface RecentLog {
@@ -26,7 +29,6 @@ interface RecentLog {
 export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [logs, setLogs] = useState<RecentLog[]>([]);
-  const [counts, setCounts] = useState({ customers: 0, vehicles: 0, workers: 0 });
   const router = useRouter();
 
   useEffect(() => {
@@ -39,27 +41,6 @@ export default function DashboardPage() {
     if (logsReq.cached?.success) setLogs(logsReq.cached.data ?? []);
     logsReq.promise.then((res) => {
       if (res.success && res.data) setLogs(res.data);
-    });
-    const customersReq = api.getSWR<any>('/admin/customers?pageSize=1');
-    if (customersReq.cached?.success) {
-      setCounts(c => ({ ...c, customers: customersReq.cached?.meta?.total || 0 }));
-    }
-    customersReq.promise.then((res) => {
-      if (res.success) setCounts(c => ({ ...c, customers: res.meta?.total || 0 }));
-    });
-    const vehiclesReq = api.getSWR<any>('/admin/vehicles?pageSize=1');
-    if (vehiclesReq.cached?.success) {
-      setCounts(c => ({ ...c, vehicles: vehiclesReq.cached?.meta?.total || 0 }));
-    }
-    vehiclesReq.promise.then((res) => {
-      if (res.success) setCounts(c => ({ ...c, vehicles: res.meta?.total || 0 }));
-    });
-    const workersReq = api.getSWR<any>('/admin/workers?pageSize=1');
-    if (workersReq.cached?.success) {
-      setCounts(c => ({ ...c, workers: workersReq.cached?.meta?.total || 0 }));
-    }
-    workersReq.promise.then((res) => {
-      if (res.success) setCounts(c => ({ ...c, workers: res.meta?.total || 0 }));
     });
   }, []);
 
@@ -144,21 +125,21 @@ export default function DashboardPage() {
                 <Users className="h-4 w-4 text-gray-400" />
                 <span className="text-sm text-gray-600 dark:text-gray-400">Total Customers</span>
               </div>
-              <span className="text-sm font-semibold">{counts.customers}</span>
+              <span className="text-sm font-semibold">{data.totalCustomers}</span>
             </div>
             <div className="flex items-center justify-between cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 -mx-2 px-2 py-1 rounded" onClick={() => router.push('/admin/vehicles')}>
               <div className="flex items-center gap-2">
                 <Bike className="h-4 w-4 text-gray-400" />
                 <span className="text-sm text-gray-600 dark:text-gray-400">Total Vehicles</span>
               </div>
-              <span className="text-sm font-semibold">{counts.vehicles}</span>
+              <span className="text-sm font-semibold">{data.totalVehicles}</span>
             </div>
             <div className="flex items-center justify-between cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 -mx-2 px-2 py-1 rounded" onClick={() => router.push('/admin/workers')}>
               <div className="flex items-center gap-2">
                 <Wrench className="h-4 w-4 text-gray-400" />
                 <span className="text-sm text-gray-600 dark:text-gray-400">Active Workers</span>
               </div>
-              <span className="text-sm font-semibold">{counts.workers}</span>
+              <span className="text-sm font-semibold">{data.activeWorkers}</span>
             </div>
           </div>
         </div>

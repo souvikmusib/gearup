@@ -4,9 +4,8 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 import { AdminSidebar } from '@/components/layout/admin-sidebar';
 import { Breadcrumbs } from '@/components/shared/breadcrumbs';
-import { api } from '@/lib/api/client';
 
-const WARM_PATHS = [
+const PREFETCH_PATHS = [
   '/admin/dashboard',
   '/admin/service-requests',
   '/admin/job-cards',
@@ -23,25 +22,6 @@ const WARM_PATHS = [
   '/admin/inventory/low-stock',
   '/admin/reports/revenue',
   '/admin/reports/expenses',
-];
-
-const WARM_ENDPOINTS = [
-  '/admin/reports?type=dashboard',
-  '/admin/service-requests',
-  '/admin/job-cards',
-  '/admin/appointments',
-  '/admin/customers',
-  '/admin/vehicles',
-  '/admin/workers',
-  '/admin/invoices',
-  '/admin/payments',
-  '/admin/notifications',
-  '/admin/logs',
-  '/admin/expenses',
-  '/admin/inventory/items?page=1',
-  '/admin/inventory/low-stock',
-  '/admin/reports?type=revenue',
-  '/admin/reports?type=expenses',
 ];
 
 function LoadingSkeleton() {
@@ -86,21 +66,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       cancelIdleCallback?: (id: number) => void;
     };
 
-    const runWarmup = () => {
-      WARM_PATHS.forEach((href) => router.prefetch(href));
-      WARM_ENDPOINTS.forEach((path, i) => {
-        setTimeout(() => {
-          void api.prefetch(path);
-        }, i * 120);
+    const runRoutePrefetch = () => {
+      PREFETCH_PATHS.forEach((href, i) => {
+        setTimeout(() => router.prefetch(href), i * 50);
       });
     };
 
     if (typeof w.requestIdleCallback === 'function') {
-      const id = w.requestIdleCallback(() => runWarmup(), { timeout: 1500 });
+      const id = w.requestIdleCallback(() => runRoutePrefetch(), { timeout: 1500 });
       return () => w.cancelIdleCallback?.(id);
     }
 
-    const t = setTimeout(runWarmup, 300);
+    const t = setTimeout(runRoutePrefetch, 300);
     return () => clearTimeout(t);
   }, [loading, user, isLoginPage, router]);
 
