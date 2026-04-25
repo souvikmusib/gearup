@@ -14,16 +14,19 @@ export default function InvoiceDetailPage() {
   const [payMode, setPayMode] = useState('CASH');
   const [payRef, setPayRef] = useState('');
   const [loading, setLoading] = useState('');
+  const [newLine, setNewLine] = useState({ lineType: 'CUSTOM_CHARGE', description: '', quantity: '1', unitPrice: '', taxRate: '0' });
+  const [addingLine, setAddingLine] = useState(false);
 
-  const fetch = () => {
+  const fetch = (useCache = false) => {
     const endpoint = `/admin/invoices/${id}`;
-    const { cached, promise } = api.getSWR<any>(endpoint);
-    if (cached?.success) setData(cached.data);
-    return promise.then((r) => {
-      if (r.success) setData(r.data);
-    });
+    if (useCache) {
+      const { cached, promise } = api.getSWR<any>(endpoint);
+      if (cached?.success) setData(cached.data);
+      return promise.then((r) => { if (r.success) setData(r.data); });
+    }
+    return api.get<any>(endpoint).then((r) => { if (r.success) setData(r.data); });
   };
-  useEffect(() => { fetch(); }, [id]);
+  useEffect(() => { fetch(true); }, [id]);
 
   const finalize = async () => {
     setLoading('finalize');
@@ -40,6 +43,29 @@ export default function InvoiceDetailPage() {
     });
     if (res.success) { setShowPayForm(false); setPayAmount(''); setPayRef(''); fetch(); }
     setLoading('');
+  };
+
+  const addLine = async () => {
+    if (!newLine.description) return;
+    setAddingLine(true);
+    const res = await api.post<any>(`/admin/invoices/${id}/line-items`, {
+      lineType: newLine.lineType, description: newLine.description,
+      quantity: Number(newLine.quantity), unitPrice: Number(newLine.unitPrice), taxRate: Number(newLine.taxRate),
+    });
+    setAddingLine(false);
+    if (res.success) { setNewLine({ lineType: 'CUSTOM_CHARGE', description: '', quantity: '1', unitPrice: '', taxRate: '0' }); fetch(); }
+  };
+
+  const updateLine = async (lineItemId: string, field: string, value: string) => {
+    const num = Number(value);
+    if (isNaN(num)) return;
+    await api.patch<any>(`/admin/invoices/${id}/line-items`, { lineItemId, [field]: num });
+    fetch();
+  };
+
+  const removeLine = async (lineItemId: string) => {
+    await api.delete<any>(`/admin/invoices/${id}/line-items?lineItemId=${lineItemId}`);
+    fetch();
   };
 
   const openPdf = async () => {
@@ -166,8 +192,9 @@ export default function InvoiceDetailPage() {
               <th className="px-5 py-2.5 text-center">Type</th>
               <th className="px-5 py-2.5 text-right">Qty</th>
               <th className="px-5 py-2.5 text-right">Unit Price</th>
-              <th className="px-5 py-2.5 text-right">Tax</th>
+              <th className="px-5 py-2.5 text-right">Tax %</th>
               <th className="px-5 py-2.5 text-right">Total</th>
+              {isDraft && <th className="px-3 py-2.5"></th>}
             </tr>
           </thead>
           <tbody>
@@ -176,14 +203,39 @@ export default function InvoiceDetailPage() {
                 <td className="px-5 py-2.5 text-gray-500">{i + 1}</td>
                 <td className="px-5 py-2.5 font-medium">{li.description}</td>
                 <td className="px-5 py-2.5 text-center"><span className="rounded-full bg-gray-100 dark:bg-gray-800 px-2 py-0.5 text-xs">{li.lineType}</span></td>
-                <td className="px-5 py-2.5 text-right">{Number(li.quantity)}</td>
-                <td className="px-5 py-2.5 text-right">₹{Number(li.unitPrice).toLocaleString()}</td>
-                <td className="px-5 py-2.5 text-right text-gray-500">{Number(li.taxRate)}%</td>
+                {isDraft ? (
+                  <>
+                    <td className="px-2 py-1.5 text-right"><input type="number" className="w-16 rounded border border-gray-300 px-1.5 py-0.5 text-xs text-right dark:border-gray-600 dark:bg-gray-700 dark:text-white" defaultValue={Number(li.quantity)} onBlur={(e) => updateLine(li.id, 'quantity', e.target.value)} /></td>
+                    <td className="px-2 py-1.5 text-right"><input type="number" step="0.01" className="w-24 rounded border border-gray-300 px-1.5 py-0.5 text-xs text-right dark:border-gray-600 dark:bg-gray-700 dark:text-white" defaultValue={Number(li.unitPrice)} onBlur={(e) => updateLine(li.id, 'unitPrice', e.target.value)} /></td>
+                    <td className="px-2 py-1.5 text-right"><input type="number" step="0.01" className="w-16 rounded border border-gray-300 px-1.5 py-0.5 text-xs text-right dark:border-gray-600 dark:bg-gray-700 dark:text-white" defaultValue={Number(li.taxRate)} onBlur={(e) => updateLine(li.id, 'taxRate', e.target.value)} /></td>
+                  </>
+                ) : (
+                  <>
+                    <td className="px-5 py-2.5 text-right">{Number(li.quantity)}</td>
+                    <td className="px-5 py-2.5 text-right">₹{Number(li.unitPrice).toLocaleString()}</td>
+                    <td className="px-5 py-2.5 text-right text-gray-500">{Number(li.taxRate)}%</td>
+                  </>
+                )}
                 <td className="px-5 py-2.5 text-right font-semibold">₹{Number(li.lineTotal).toLocaleString()}</td>
+                {isDraft && <td className="px-3 py-2.5"><button onClick={() => removeLine(li.id)} className="text-red-500 hover:text-red-700 text-xs">✕</button></td>}
               </tr>
             ))}
           </tbody>
         </table>
+        {isDraft && (
+          <div className="px-5 py-3 border-t border-gray-100 dark:border-gray-800 flex gap-2 items-end">
+            <select className={inputCls + ' w-32'} value={newLine.lineType} onChange={(e) => setNewLine({ ...newLine, lineType: e.target.value })}>
+              <option value="PART">Part</option><option value="LABOR">Labor</option><option value="CUSTOM_CHARGE">Custom</option><option value="DISCOUNT_ADJUSTMENT">Discount</option>
+            </select>
+            <input className={inputCls + ' flex-1'} placeholder="Description" value={newLine.description} onChange={(e) => setNewLine({ ...newLine, description: e.target.value })} />
+            <input type="number" className={inputCls + ' w-16'} placeholder="Qty" value={newLine.quantity} onChange={(e) => setNewLine({ ...newLine, quantity: e.target.value })} />
+            <input type="number" step="0.01" className={inputCls + ' w-24'} placeholder="Price" value={newLine.unitPrice} onChange={(e) => setNewLine({ ...newLine, unitPrice: e.target.value })} />
+            <input type="number" step="0.01" className={inputCls + ' w-16'} placeholder="Tax%" value={newLine.taxRate} onChange={(e) => setNewLine({ ...newLine, taxRate: e.target.value })} />
+            <button onClick={addLine} disabled={addingLine} className="rounded-lg bg-green-600 px-3 py-2 text-xs font-semibold text-white hover:bg-green-700 disabled:opacity-50 whitespace-nowrap">
+              {addingLine ? '...' : '+ Add'}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Payment History */}

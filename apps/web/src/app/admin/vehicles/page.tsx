@@ -8,14 +8,19 @@ import { Modal } from '@/components/shared/modal';
 export default function VehiclesPage() {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
   const [showCreate, setShowCreate] = useState(false);
   const [customers, setCustomers] = useState<any[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [form, setForm] = useState({ customerId: '', vehicleType: 'CAR', registrationNumber: '', brand: '', model: '', variant: '', fuelType: '' });
+  const [form, setForm] = useState({ customerId: '', vehicleType: 'BIKE', registrationNumber: '', brand: '', model: '', variant: '', fuelType: '' });
   const router = useRouter();
 
-  const load = () => api.get<any>('/admin/vehicles').then((r) => { if (r.success) setData(r.data?.items ?? r.data ?? []); setLoading(false); });
+  const load = (s = search) => {
+    const p = new URLSearchParams();
+    if (s) p.set('search', s);
+    api.get<any>(`/admin/vehicles?${p}`).then((r) => { if (r.success) setData(r.data?.items ?? r.data ?? []); setLoading(false); });
+  };
   useEffect(() => { load(); }, []);
 
   const openCreate = async () => {
@@ -29,7 +34,7 @@ export default function VehiclesPage() {
     setSaving(true); setError('');
     const res = await api.post<any>('/admin/vehicles', form);
     setSaving(false);
-    if (res.success) { setShowCreate(false); setForm({ customerId: '', vehicleType: 'CAR', registrationNumber: '', brand: '', model: '', variant: '', fuelType: '' }); load(); }
+    if (res.success) { setShowCreate(false); setForm({ customerId: '', vehicleType: 'BIKE', registrationNumber: '', brand: '', model: '', variant: '', fuelType: '' }); load(); }
     else setError(res.error?.message || 'Failed');
   };
 
@@ -46,6 +51,9 @@ export default function VehiclesPage() {
         <PageHeader title="Vehicles" />
         <button onClick={openCreate} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">+ Add Vehicle</button>
       </div>
+      <div className="mb-4">
+        <input className="w-full max-w-xs rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white" placeholder="Search by reg number, brand..." value={search} onChange={(e) => { setSearch(e.target.value); load(e.target.value); }} />
+      </div>
       <DataTable columns={columns} data={data} keyField="id" onRowClick={(r: any) => router.push(`/admin/vehicles/${r.id}`)} />
 
       <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Add Vehicle">
@@ -60,7 +68,7 @@ export default function VehiclesPage() {
           <div className="grid grid-cols-2 gap-3">
             <div><label className="block text-xs font-medium mb-1">Type *</label>
               <select className={inputCls} value={form.vehicleType} onChange={(e) => setForm({ ...form, vehicleType: e.target.value })}>
-                <option value="CAR">Car</option><option value="BIKE">Bike</option><option value="OTHER">Other</option>
+                <option value="BIKE">Motorcycle</option><option value="OTHER">Scooter / Other</option>
               </select>
             </div>
             <div><label className="block text-xs font-medium mb-1">Reg Number *</label><input className={inputCls} value={form.registrationNumber} onChange={(e) => setForm({ ...form, registrationNumber: e.target.value })} /></div>

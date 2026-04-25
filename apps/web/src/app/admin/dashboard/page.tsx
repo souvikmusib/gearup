@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';
 import { PageHeader } from '@gearup/ui';
 import { DashboardSkeleton } from '@/components/shared/skeletons';
-import { Calendar, FileText, Wrench, AlertTriangle, Receipt, DollarSign, Users, Car, ClipboardList, Plus, ArrowRight, Clock } from 'lucide-react';
+import { Calendar, FileText, Wrench, AlertTriangle, Receipt, DollarSign, Users, Bike, ClipboardList, Plus, ArrowRight, Clock } from 'lucide-react';
 
 interface DashboardData {
   todayAppointments: number;
@@ -148,7 +148,7 @@ export default function DashboardPage() {
             </div>
             <div className="flex items-center justify-between cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 -mx-2 px-2 py-1 rounded" onClick={() => router.push('/admin/vehicles')}>
               <div className="flex items-center gap-2">
-                <Car className="h-4 w-4 text-gray-400" />
+                <Bike className="h-4 w-4 text-gray-400" />
                 <span className="text-sm text-gray-600 dark:text-gray-400">Total Vehicles</span>
               </div>
               <span className="text-sm font-semibold">{counts.vehicles}</span>

@@ -14,9 +14,11 @@ export async function GET(req: NextRequest) {
     const page = Number(sp.get('page')) || 1;
     const pageSize = Number(sp.get('pageSize')) || 20;
     const categoryId = sp.get('categoryId') || '';
+    const search = sp.get('search') || '';
     const p = paginate({ page, pageSize });
     const where: Record<string, unknown> = {};
     if (categoryId) where.categoryId = categoryId;
+    if (search) where.OR = [{ title: { contains: search, mode: 'insensitive' } }, { vendorName: { contains: search, mode: 'insensitive' } }];
     const [data, total] = await Promise.all([
       prisma.expense.findMany({ where, ...p, orderBy: { expenseDate: 'desc' }, include: { category: { select: { categoryName: true } }, createdBy: { select: { fullName: true } } } }),
       prisma.expense.count({ where }),
