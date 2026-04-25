@@ -1,10 +1,23 @@
 'use client';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { api } from '@/lib/api/client';
 import { CheckCircle } from 'lucide-react';
 
 type Step = 'form' | 'success';
 type FieldErrors = Partial<Record<string, string>>;
+
+function titleCase(s: string) {
+  return s.replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function formatRegNumber(raw: string) {
+  const clean = raw.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  // Auto-format as AB-00-AB-1234
+  if (clean.length <= 2) return clean;
+  if (clean.length <= 4) return clean.slice(0, 2) + '-' + clean.slice(2);
+  if (clean.length <= 6) return clean.slice(0, 2) + '-' + clean.slice(2, 4) + '-' + clean.slice(4);
+  return clean.slice(0, 2) + '-' + clean.slice(2, 4) + '-' + clean.slice(4, 6) + '-' + clean.slice(6, 10);
+}
 
 function validate(form: Record<string, unknown>): FieldErrors {
   const e: FieldErrors = {};
@@ -14,11 +27,13 @@ function validate(form: Record<string, unknown>): FieldErrors {
   else if (s('fullName').length < 2) e.fullName = 'Name must be at least 2 characters';
 
   if (!s('phoneNumber')) e.phoneNumber = 'Phone number is required';
-  else if (!/^\+?[\d\s-]{7,15}$/.test(s('phoneNumber'))) e.phoneNumber = 'Enter a valid phone number (7–15 digits)';
+  else if (!/^\d{10}$/.test(s('phoneNumber').replace(/[\s-]/g, ''))) e.phoneNumber = 'Enter a valid 10-digit phone number';
 
   if (s('email') && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s('email'))) e.email = 'Enter a valid email address';
 
   if (!s('registrationNumber')) e.registrationNumber = 'Registration number is required';
+  else if (!/^[A-Z]{2}-\d{2}-[A-Z]{1,2}-\d{1,4}$/.test(s('registrationNumber'))) e.registrationNumber = 'Format: AB-00-AB-1234';
+
   if (!s('brand')) e.brand = 'Brand is required';
   if (!s('model')) e.model = 'Model is required';
   if (!s('serviceCategory')) e.serviceCategory = 'Select a service category';
@@ -48,6 +63,9 @@ export default function BookServicePage() {
     brand: '', model: '', registrationNumber: '', serviceCategory: '',
     issueDescription: '', preferredDate: '', pickupDropRequired: false, notes: '',
   });
+  const [savedVehicles, setSavedVehicles] = useState<any[]>([]);
+  const [selectedVehicle, setSelectedVehicle] = useState<any>(null);
+  const lookupTimer = useRef<NodeJS.Timeout>();
 
   const set = (k: string, v: unknown) => {
     setForm((p) => ({ ...p, [k]: v }));
@@ -56,6 +74,31 @@ export default function BookServicePage() {
       const errs = validate(updated);
       setFieldErrors((prev) => ({ ...prev, [k]: errs[k] }));
     }
+  };
+
+  const onPhoneChange = (phone: string) => {
+    set('phoneNumber', phone);
+    clearTimeout(lookupTimer.current);
+    if (phone.replace(/\D/g, '').length >= 7) {
+      lookupTimer.current = setTimeout(async () => {
+        const res = await api.get<any>(`/public/customer-lookup?phone=${encodeURIComponent(phone)}`);
+        if (res.success && res.data?.customer) {
+          if (!form.fullName) set('fullName', res.data.customer.fullName);
+          if (!form.email && res.data.customer.email) set('email', res.data.customer.email);
+          setSavedVehicles(res.data.vehicles ?? []);
+        } else { setSavedVehicles([]); }
+      }, 500);
+    } else { setSavedVehicles([]); }
+  };
+
+  const pickVehicle = (v: any) => {
+    setSelectedVehicle(v);
+    setForm((p) => ({ ...p, registrationNumber: v.registrationNumber, brand: v.brand, model: v.model, vehicleType: v.vehicleType }));
+  };
+
+  const clearVehicle = () => {
+    setSelectedVehicle(null);
+    setForm((p) => ({ ...p, registrationNumber: '', brand: '', model: '', vehicleType: 'BIKE' }));
   };
 
   const blur = (k: string) => {
@@ -108,8 +151,8 @@ export default function BookServicePage() {
         <fieldset className="space-y-4">
           <legend className="text-lg font-semibold text-gray-900 dark:text-white">Your Details</legend>
           <div className="grid gap-4 sm:grid-cols-2">
-            <div><label className={labelCls}>Full Name *</label><input className={inputCls('fullName')} value={form.fullName} onChange={(e) => set('fullName', e.target.value)} onBlur={() => blur('fullName')} />{err('fullName')}</div>
-            <div><label className={labelCls}>Phone Number *</label><input className={inputCls('phoneNumber')} value={form.phoneNumber} onChange={(e) => set('phoneNumber', e.target.value)} onBlur={() => blur('phoneNumber')} />{err('phoneNumber')}</div>
+            <div><label className={labelCls}>Full Name *</label><input className={inputCls('fullName')} value={form.fullName} onChange={(e) => set('fullName', titleCase(e.target.value))} onBlur={() => blur('fullName')} />{err('fullName')}</div>
+            <div><label className={labelCls}>Phone Number *</label><input className={inputCls('phoneNumber')} value={form.phoneNumber} onChange={(e) => onPhoneChange(e.target.value)} onBlur={() => blur('phoneNumber')} />{err('phoneNumber')}</div>
             <div className="sm:col-span-2"><label className={labelCls}>Email</label><input type="email" className={inputCls('email')} value={form.email} onChange={(e) => set('email', e.target.value)} onBlur={() => blur('email')} />{err('email')}</div>
           </div>
         </fieldset>
@@ -117,17 +160,42 @@ export default function BookServicePage() {
         {/* Vehicle */}
         <fieldset className="space-y-4">
           <legend className="text-lg font-semibold text-gray-900 dark:text-white">Vehicle Details</legend>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className={labelCls}>Vehicle Type *</label>
-              <select className={inputCls('vehicleType')} value={form.vehicleType} onChange={(e) => set('vehicleType', e.target.value)}>
-                <option value="BIKE">Motorcycle</option><option value="OTHER">Scooter / Other</option>
-              </select>
+          {selectedVehicle ? (
+            <div className="rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-900/20 flex items-center justify-between">
+              <div>
+                <p className="font-semibold text-gray-900 dark:text-white">{selectedVehicle.brand} {selectedVehicle.model}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">**{selectedVehicle.registrationNumber.slice(-4)}</p>
+              </div>
+              <button type="button" onClick={clearVehicle} className="text-xs text-red-600 hover:underline">Change</button>
             </div>
-            <div><label className={labelCls}>Registration Number *</label><input className={inputCls('registrationNumber')} value={form.registrationNumber} onChange={(e) => set('registrationNumber', e.target.value)} onBlur={() => blur('registrationNumber')} />{err('registrationNumber')}</div>
-            <div><label className={labelCls}>Brand *</label><input className={inputCls('brand')} value={form.brand} onChange={(e) => set('brand', e.target.value)} onBlur={() => blur('brand')} />{err('brand')}</div>
-            <div><label className={labelCls}>Model *</label><input className={inputCls('model')} value={form.model} onChange={(e) => set('model', e.target.value)} onBlur={() => blur('model')} />{err('model')}</div>
-          </div>
+          ) : (
+            <>
+              {savedVehicles.length > 0 && (
+                <div className="rounded-lg border border-green-200 bg-green-50 p-3 dark:border-green-800 dark:bg-green-900/20">
+                  <p className="text-xs font-medium text-green-700 dark:text-green-300 mb-2">We found your bikes — tap to select:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {savedVehicles.map((v: any) => (
+                      <button key={v.registrationNumber} type="button" onClick={() => pickVehicle(v)}
+                        className="rounded-lg border border-green-300 bg-white px-3 py-1.5 text-xs font-medium text-green-800 hover:bg-green-100 dark:border-green-700 dark:bg-green-900/40 dark:text-green-200">
+                        **{v.registrationNumber.slice(-4)} — {v.brand} {v.model}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className={labelCls}>Vehicle Type *</label>
+                  <select className={inputCls('vehicleType')} value={form.vehicleType} onChange={(e) => set('vehicleType', e.target.value)}>
+                    <option value="BIKE">Motorcycle</option><option value="OTHER">Scooter / Other</option>
+                  </select>
+                </div>
+                <div><label className={labelCls}>Registration Number *</label><input className={inputCls('registrationNumber')} placeholder="AB-00-AB-1234" value={form.registrationNumber} onChange={(e) => set('registrationNumber', formatRegNumber(e.target.value))} onBlur={() => blur('registrationNumber')} />{err('registrationNumber')}</div>
+                <div><label className={labelCls}>Brand *</label><input className={inputCls('brand')} value={form.brand} onChange={(e) => set('brand', titleCase(e.target.value))} onBlur={() => blur('brand')} />{err('brand')}</div>
+                <div><label className={labelCls}>Model *</label><input className={inputCls('model')} value={form.model} onChange={(e) => set('model', titleCase(e.target.value))} onBlur={() => blur('model')} />{err('model')}</div>
+              </div>
+            </>
+          )}
         </fieldset>
 
         {/* Service */}
