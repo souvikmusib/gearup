@@ -25,15 +25,27 @@ export default function CalendarPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Load appointments
-    api.get<any>('/admin/appointments?pageSize=500').then((res) => {
-      if (!res.success) return;
-      const items = res.data?.items ?? res.data ?? [];
-      setApptEvents(items.map((a: any) => ({
-        id: a.id, title: `${a.customer?.fullName || 'Customer'} — ${a.vehicle?.registrationNumber || ''}`,
-        start: a.slotStart, end: a.slotEnd,
-        backgroundColor: APPT_COLORS[a.status] || '#6b7280', borderColor: APPT_COLORS[a.status] || '#6b7280',
-      })));
+    // Load appointments + holidays in parallel
+    Promise.all([
+      api.get<any>('/admin/appointments?pageSize=500'),
+      api.get<any>('/admin/settings/holidays'),
+    ]).then(([apptRes, holRes]) => {
+      const events: any[] = [];
+      if (apptRes.success) {
+        (apptRes.data?.items ?? apptRes.data ?? []).forEach((a: any) => {
+          events.push({
+            id: a.id, title: `${a.customer?.fullName || 'Customer'} — ${a.vehicle?.registrationNumber || ''}`,
+            start: a.slotStart, end: a.slotEnd,
+            backgroundColor: APPT_COLORS[a.status] || '#6b7280', borderColor: APPT_COLORS[a.status] || '#6b7280',
+          });
+        });
+      }
+      if (holRes.success) {
+        (holRes.data ?? []).forEach((h: any) => {
+          events.push({ id: `hol-${h.id}`, title: `🚫 ${h.holidayName}`, start: h.holidayDate, allDay: true, backgroundColor: '#ef4444', borderColor: '#ef4444' });
+        });
+      }
+      setApptEvents(events);
     });
     // Load worker data
     api.get<any>('/admin/workers/calendar').then((res) => {
@@ -93,7 +105,7 @@ export default function CalendarPage() {
             headerToolbar={{ left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' }}
             events={apptEvents}
             eventClick={(info) => router.push(`/admin/appointments/${info.event.id}`)}
-            slotMinTime="07:00:00" slotMaxTime="21:00:00" allDaySlot={false}
+            slotMinTime="07:00:00" slotMaxTime="21:00:00" allDaySlot
             height="auto" nowIndicator slotDuration="00:30:00"
           />
         </div>
