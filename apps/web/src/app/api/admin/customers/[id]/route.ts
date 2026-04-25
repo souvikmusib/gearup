@@ -16,7 +16,7 @@ const updateSchema = z.object({
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
   try {
     requirePermission(PERMISSIONS.CUSTOMERS_VIEW);
-    const customer = await prisma.customer.findUniqueOrThrow({ where: { id: params.id }, include: { vehicles: true, serviceRequests: { orderBy: { createdAt: 'desc' }, take: 10 }, invoices: { orderBy: { createdAt: 'desc' }, take: 10 } } });
+    const customer = await prisma.customer.findUniqueOrThrow({ where: { id: params.id }, include: { vehicles: true, serviceRequests: { orderBy: { createdAt: 'desc' }, take: 10 }, jobCards: { orderBy: { createdAt: 'desc' }, take: 10, select: { id: true, jobCardNumber: true, status: true, issueSummary: true, createdAt: true } }, invoices: { orderBy: { createdAt: 'desc' }, take: 10, select: { id: true, invoiceNumber: true, invoiceStatus: true, paymentStatus: true, grandTotal: true, createdAt: true } } } });
     return NextResponse.json({ success: true, data: customer });
   } catch (e) { return handleApiError(e); }
 }

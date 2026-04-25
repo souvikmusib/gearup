@@ -51,7 +51,7 @@ export default function CustomerDetailPage() {
       </div>
       {data.serviceRequests?.length > 0 && (
         <div className="rounded-lg border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-800">
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Recent Service Requests</h3>
+          <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Service Requests</h3>
           {data.serviceRequests.map((sr: any) => (
             <div key={sr.id} className="flex justify-between text-sm py-1">
               <button onClick={() => router.push(`/admin/service-requests/${sr.id}`)} className="text-blue-600 hover:underline">{sr.referenceId}</button>
@@ -60,6 +60,44 @@ export default function CustomerDetailPage() {
           ))}
         </div>
       )}
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        {data.jobCards?.length > 0 && (
+          <div className="rounded-lg border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-800">
+            <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Job Cards ({data.jobCards.length})</h3>
+            {data.jobCards.map((jc: any) => (
+              <div key={jc.id} className="flex items-center justify-between text-sm py-1.5 border-b border-gray-50 dark:border-gray-700 last:border-0">
+                <div>
+                  <button onClick={() => router.push(`/admin/job-cards/${jc.id}`)} className="text-blue-600 hover:underline font-medium">{jc.jobCardNumber}</button>
+                  <p className="text-xs text-gray-500 truncate max-w-[200px]">{jc.issueSummary}</p>
+                </div>
+                <div className="text-right">
+                  <StatusBadge status={jc.status} />
+                  <p className="text-xs text-gray-400 mt-0.5">{new Date(jc.createdAt).toLocaleDateString()}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {data.invoices?.length > 0 && (
+          <div className="rounded-lg border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-800">
+            <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Invoices ({data.invoices.length})</h3>
+            {data.invoices.map((inv: any) => (
+              <div key={inv.id} className="flex items-center justify-between text-sm py-1.5 border-b border-gray-50 dark:border-gray-700 last:border-0">
+                <div>
+                  <button onClick={() => router.push(`/admin/invoices/${inv.id}`)} className="text-blue-600 hover:underline font-medium">{inv.invoiceNumber}</button>
+                  <p className="text-xs text-gray-500">₹{Number(inv.grandTotal).toLocaleString()}</p>
+                </div>
+                <div className="text-right">
+                  <StatusBadge status={inv.paymentStatus} />
+                  <p className="text-xs text-gray-400 mt-0.5">{new Date(inv.createdAt).toLocaleDateString()}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       <Modal open={showEdit} onClose={() => setShowEdit(false)} title="Edit Customer">
         <div className="space-y-3">

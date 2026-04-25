@@ -33,7 +33,7 @@ export default function ExpensesReportPage() {
         <DataTable
           keyField="categoryId"
           columns={[
-            { key: 'categoryId', header: 'Category' },
+            { key: 'category', header: 'Category' },
             { key: '_count', header: 'Count' },
             { key: '_sum', header: 'Total', render: (r: any) => `₹${Number(r._sum ?? 0).toLocaleString()}` },
           ]}
