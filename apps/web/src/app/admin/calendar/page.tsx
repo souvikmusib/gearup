@@ -73,6 +73,10 @@ export default function CalendarPage() {
       <div className="mt-4 flex items-center gap-2 mb-4">
         <button onClick={() => setTab('shop')} className={tabCls('shop')}>Shop Calendar</button>
         <button onClick={() => setTab('worker')} className={tabCls('worker')}>Worker Calendar</button>
+        <div className="ml-auto flex gap-2">
+          <button onClick={() => router.push('/admin/appointments/calendar')} className="rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-600 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-800">Appointments Card View</button>
+          <button onClick={() => router.push('/admin/workers/calendar')} className="rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-600 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-800">Workers Card View</button>
+        </div>
         {tab === 'worker' && (
           <select className="ml-auto rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white" value={selectedWorker} onChange={(e) => setSelectedWorker(e.target.value)}>
             <option value="">All Workers</option>
