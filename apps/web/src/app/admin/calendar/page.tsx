@@ -96,8 +96,8 @@ export default function CalendarPage() {
         <button onClick={() => setTab('shop')} className={tabCls('shop')}>Shop Calendar</button>
         <button onClick={() => setTab('worker')} className={tabCls('worker')}>Worker Calendar</button>
         <div className="ml-auto flex gap-2">
-          <Link href="/admin/appointments/calendar" className="rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-600 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-800">Appointments Card View</Link>
-          <Link href="/admin/workers/calendar" className="rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-600 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-800">Workers Card View</Link>
+          <Link prefetch={false} href="/admin/appointments/calendar" className="rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-600 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-800">Appointments Card View</Link>
+          <Link prefetch={false} href="/admin/workers/calendar" className="rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-600 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-800">Workers Card View</Link>
         </div>
         {tab === 'worker' && (
           <select className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white" value={selectedWorker} onChange={(e) => setSelectedWorker(e.target.value)}>
@@ -121,7 +121,7 @@ export default function CalendarPage() {
                     </div>
                   ))}
                   {day.appointments.map((appointment) => (
-                    <Link key={appointment.id} href={`/admin/appointments/${appointment.id}`} className="block rounded-lg border border-gray-100 p-3 hover:border-blue-300 hover:bg-blue-50/40 dark:border-gray-700 dark:hover:border-blue-700 dark:hover:bg-blue-950/20">
+                    <Link prefetch={false} key={appointment.id} href={`/admin/appointments/${appointment.id}`} className="block rounded-lg border border-gray-100 p-3 hover:border-blue-300 hover:bg-blue-50/40 dark:border-gray-700 dark:hover:border-blue-700 dark:hover:bg-blue-950/20">
                       <div className="flex items-center justify-between gap-2">
                         <span className="text-sm font-medium text-gray-900 dark:text-white">{fmtTime(appointment.slotStart)} - {fmtTime(appointment.slotEnd)}</span>
                         <span className={`rounded-full px-2 py-1 text-xs font-medium ${statusTone[appointment.status] ?? statusTone.COMPLETED}`}>{appointment.status.replace(/_/g, ' ')}</span>
@@ -142,7 +142,7 @@ export default function CalendarPage() {
           <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
             {workerCards.map(({ worker, workerLeaves, workerAssignments }) => (
               <section key={worker.id} className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-                <Link href={`/admin/workers/${worker.id}`} className="font-semibold text-gray-900 hover:text-blue-600 dark:text-white">{worker.fullName}</Link>
+                <Link prefetch={false} href={`/admin/workers/${worker.id}`} className="font-semibold text-gray-900 hover:text-blue-600 dark:text-white">{worker.fullName}</Link>
                 <p className="text-sm text-gray-500">{worker.workerCode} - {worker.designation ?? 'Worker'}</p>
                 <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
                   <div className="rounded-lg bg-gray-50 p-3 dark:bg-gray-900">
@@ -156,7 +156,7 @@ export default function CalendarPage() {
                 </div>
                 <div className="mt-4 space-y-2">
                   {workerAssignments.slice(0, 4).map((assignment) => (
-                    <Link key={assignment.id} href={`/admin/job-cards/${assignment.jobCardId}`} className="block rounded-lg border border-gray-100 p-2 text-sm hover:border-blue-300 dark:border-gray-700">
+                    <Link prefetch={false} key={assignment.id} href={`/admin/job-cards/${assignment.jobCardId}`} className="block rounded-lg border border-gray-100 p-2 text-sm hover:border-blue-300 dark:border-gray-700">
                       <span className="font-medium text-gray-900 dark:text-white">{assignment.jobCard?.jobCardNumber ?? 'Job Card'}</span>
                       <span className="ml-2 text-gray-500">{assignment.jobCard?.status?.replace(/_/g, ' ')}</span>
                     </Link>

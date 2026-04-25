@@ -13,7 +13,7 @@ const reports = [
 export default function ReportsPage() {
   return (<div><PageHeader title="Reports" description="Business analytics and insights" />
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {reports.map((r) => (<Link key={r.href} href={r.href} className="rounded-lg border border-gray-200 bg-white p-5 hover:shadow-md dark:border-gray-700 dark:bg-gray-800">
+      {reports.map((r) => (<Link prefetch={false} key={r.href} href={r.href} className="rounded-lg border border-gray-200 bg-white p-5 hover:shadow-md dark:border-gray-700 dark:bg-gray-800">
         <r.icon className="mb-2 text-blue-600" size={24} /><h3 className="font-semibold text-gray-900 dark:text-white">{r.label}</h3><p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{r.desc}</p>
       </Link>))}
     </div>

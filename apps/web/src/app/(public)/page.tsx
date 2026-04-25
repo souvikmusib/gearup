@@ -14,10 +14,10 @@ export default function HomePage() {
             Book your bike service online, track progress in real-time, and get your ride back on the road — hassle-free.
           </p>
           <div className="mt-8 flex justify-center gap-4">
-            <Link href="/book-service" className="rounded-lg bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow hover:bg-blue-700">
+            <Link prefetch={false} href="/book-service" className="rounded-lg bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow hover:bg-blue-700">
               Book a Service
             </Link>
-            <Link href="/track" className="rounded-lg border border-gray-300 bg-white px-6 py-3 text-sm font-semibold text-gray-700 shadow hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">
+            <Link prefetch={false} href="/track" className="rounded-lg border border-gray-300 bg-white px-6 py-3 text-sm font-semibold text-gray-700 shadow hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">
               Track Your Request
             </Link>
           </div>

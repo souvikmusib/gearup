@@ -50,7 +50,7 @@ export default function AppointmentCalendarPage() {
               </div>
               <div className="space-y-3">
                 {dayItems.map((appt) => (
-                  <Link key={appt.id} href={`/admin/appointments/${appt.id}`} className="block rounded-lg border border-gray-100 p-3 hover:border-blue-300 hover:bg-blue-50/40 dark:border-gray-700 dark:hover:border-blue-700 dark:hover:bg-blue-950/20">
+                  <Link prefetch={false} key={appt.id} href={`/admin/appointments/${appt.id}`} className="block rounded-lg border border-gray-100 p-3 hover:border-blue-300 hover:bg-blue-50/40 dark:border-gray-700 dark:hover:border-blue-700 dark:hover:bg-blue-950/20">
                     <div className="flex items-center justify-between text-sm">
                       <span className="font-medium text-gray-900 dark:text-white">{fmtTime(appt.slotStart)} - {fmtTime(appt.slotEnd)}</span>
                       <span className="text-xs text-gray-500">{appt.status}</span>

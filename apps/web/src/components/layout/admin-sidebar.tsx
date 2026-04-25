@@ -70,7 +70,7 @@ export function AdminSidebar() {
   const sidebar = (
     <div className="flex h-full flex-col">
       <div className="flex items-center justify-between px-4 py-4 border-b border-gray-200 dark:border-gray-800">
-        <Link href="/admin/dashboard" className="text-lg font-bold text-gray-900 dark:text-white">⚙️ GearUp</Link>
+        <Link prefetch={false} href="/admin/dashboard" className="text-lg font-bold text-gray-900 dark:text-white">⚙️ GearUp</Link>
         <button onClick={() => setCollapsed(!collapsed)} className="hidden lg:block text-gray-400 hover:text-gray-600"><Menu size={18} /></button>
         <button onClick={() => setMobileOpen(false)} className="lg:hidden text-gray-400"><X size={18} /></button>
       </div>
@@ -90,7 +90,7 @@ export function AdminSidebar() {
                 {isOpen && (
                   <div className="ml-8 mt-1 space-y-1">
                     {item.children.map((child) => (
-                      <Link key={child.href} href={child.href} className={linkCls(child.href)} onClick={() => setMobileOpen(false)}>
+                      <Link prefetch={false} key={child.href} href={child.href} className={linkCls(child.href)} onClick={() => setMobileOpen(false)}>
                         {child.label}
                       </Link>
                     ))}
@@ -101,7 +101,7 @@ export function AdminSidebar() {
           }
           const Icon = item.icon;
           return (
-            <Link key={item.href} href={item.href!} className={linkCls(item.href!)} onClick={() => setMobileOpen(false)}>
+            <Link prefetch={false} key={item.href} href={item.href!} className={linkCls(item.href!)} onClick={() => setMobileOpen(false)}>
               <Icon size={18} />{item.label}
             </Link>
           );
