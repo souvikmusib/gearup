@@ -22,6 +22,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       estimateNotes: z.string().optional(), customerVisibleNotes: z.string().optional(), internalNotes: z.string().optional(),
       estimatedPartsCost: z.number().optional(), estimatedLaborCost: z.number().optional(), estimatedTotal: z.number().optional(),
       finalPartsCost: z.number().optional(), finalLaborCost: z.number().optional(), finalTotal: z.number().optional(),
+      odometerAtIntake: z.number().optional(),
     }).parse(await req.json());
     const data: Record<string, unknown> = { ...body };
     if (body.status === 'DELIVERED') data.actualDeliveryAt = new Date();

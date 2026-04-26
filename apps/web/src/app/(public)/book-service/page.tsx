@@ -92,7 +92,7 @@ export default function BookServicePage() {
   const onPhoneChange = (phone: string) => {
     set('phoneNumber', phone);
     clearTimeout(lookupTimer.current);
-    if (phone.replace(/\D/g, '').length >= 7) {
+    if (phone.replace(/\D/g, '').length >= 10) {
       lookupTimer.current = setTimeout(async () => {
         const res = await api.get<any>(`/public/customer-lookup?phone=${encodeURIComponent(phone)}`);
         if (res.success && res.data?.customer) {

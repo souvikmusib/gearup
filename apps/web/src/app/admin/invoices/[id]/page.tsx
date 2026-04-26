@@ -50,10 +50,11 @@ export default function InvoiceDetailPage() {
     setAddingLine(true);
     const res = await api.post<any>(`/admin/invoices/${id}/line-items`, {
       lineType: newLine.lineType, description: newLine.description,
-      quantity: Number(newLine.quantity), unitPrice: Number(newLine.unitPrice), taxRate: Number(newLine.taxRate),
+      quantity: Number(newLine.quantity) || 1, unitPrice: Number(newLine.unitPrice) || 0, taxRate: Number(newLine.taxRate) || 0,
     });
     setAddingLine(false);
     if (res.success) { setNewLine({ lineType: 'CUSTOM_CHARGE', description: '', quantity: '1', unitPrice: '', taxRate: '0' }); fetch(); }
+    else { console.error('Add line failed:', res.error); alert(res.error?.message || 'Failed to add line item'); }
   };
 
   const updateLine = async (lineItemId: string, field: string, value: string) => {
@@ -223,17 +224,37 @@ export default function InvoiceDetailPage() {
           </tbody>
         </table>
         {isDraft && (
-          <div className="px-5 py-3 border-t border-gray-100 dark:border-gray-800 flex gap-2 items-end">
-            <select className={inputCls + ' w-32'} value={newLine.lineType} onChange={(e) => setNewLine({ ...newLine, lineType: e.target.value })}>
-              <option value="PART">Part</option><option value="LABOR">Labor</option><option value="CUSTOM_CHARGE">Custom</option><option value="DISCOUNT_ADJUSTMENT">Discount</option>
-            </select>
-            <input className={inputCls + ' flex-1'} placeholder="Description" value={newLine.description} onChange={(e) => setNewLine({ ...newLine, description: e.target.value })} />
-            <input type="number" className={inputCls + ' w-16'} placeholder="Qty" value={newLine.quantity} onChange={(e) => setNewLine({ ...newLine, quantity: e.target.value })} />
-            <input type="number" step="0.01" className={inputCls + ' w-24'} placeholder="Price" value={newLine.unitPrice} onChange={(e) => setNewLine({ ...newLine, unitPrice: e.target.value })} />
-            <input type="number" step="0.01" className={inputCls + ' w-16'} placeholder="Tax%" value={newLine.taxRate} onChange={(e) => setNewLine({ ...newLine, taxRate: e.target.value })} />
-            <button onClick={addLine} disabled={addingLine} className="rounded-lg bg-green-600 px-3 py-2 text-xs font-semibold text-white hover:bg-green-700 disabled:opacity-50 whitespace-nowrap">
-              {addingLine ? '...' : '+ Add'}
-            </button>
+          <div className="px-5 py-4 border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 rounded-b-xl">
+            <p className="text-xs font-medium text-gray-500 mb-2">Add Line Item</p>
+            <div className="grid grid-cols-12 gap-2 items-end">
+              <div className="col-span-2">
+                <label className="block text-[10px] text-gray-400 mb-0.5">Type</label>
+                <select className={inputCls} value={newLine.lineType} onChange={(e) => setNewLine({ ...newLine, lineType: e.target.value })}>
+                  <option value="PART">Part</option><option value="LABOR">Labor</option><option value="CUSTOM_CHARGE">Custom</option><option value="DISCOUNT_ADJUSTMENT">Discount</option>
+                </select>
+              </div>
+              <div className="col-span-4">
+                <label className="block text-[10px] text-gray-400 mb-0.5">Description *</label>
+                <input className={inputCls} placeholder="e.g. Brake pad replacement" value={newLine.description} onChange={(e) => setNewLine({ ...newLine, description: e.target.value })} />
+              </div>
+              <div className="col-span-1">
+                <label className="block text-[10px] text-gray-400 mb-0.5">Qty</label>
+                <input type="number" className={inputCls} value={newLine.quantity} onChange={(e) => setNewLine({ ...newLine, quantity: e.target.value })} />
+              </div>
+              <div className="col-span-2">
+                <label className="block text-[10px] text-gray-400 mb-0.5">Unit Price (₹)</label>
+                <input type="number" step="0.01" className={inputCls} placeholder="0" value={newLine.unitPrice} onChange={(e) => setNewLine({ ...newLine, unitPrice: e.target.value })} />
+              </div>
+              <div className="col-span-1">
+                <label className="block text-[10px] text-gray-400 mb-0.5">Tax %</label>
+                <input type="number" step="0.01" className={inputCls} value={newLine.taxRate} onChange={(e) => setNewLine({ ...newLine, taxRate: e.target.value })} />
+              </div>
+              <div className="col-span-2">
+                <button onClick={addLine} disabled={addingLine} className="w-full rounded-lg bg-green-600 px-3 py-2 text-sm font-semibold text-white hover:bg-green-700 disabled:opacity-50">
+                  {addingLine ? 'Adding...' : '+ Add Item'}
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>

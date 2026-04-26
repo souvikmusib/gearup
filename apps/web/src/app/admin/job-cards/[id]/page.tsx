@@ -178,6 +178,7 @@ export default function JobCardDetailPage() {
             <p className="text-sm text-gray-600 dark:text-gray-400">Customer: {data.customer?.fullName} · {data.customer?.phoneNumber}</p>
             <p className="text-sm text-gray-600 dark:text-gray-400">Vehicle: {data.vehicle?.registrationNumber} — {data.vehicle?.brand} {data.vehicle?.model}</p>
             <p className="text-sm text-gray-500">Intake: {new Date(data.intakeDate).toLocaleDateString()}</p>
+            {data.odometerAtIntake && <p className="text-sm text-gray-500">Odometer: {data.odometerAtIntake.toLocaleString()} km</p>}
             {data.estimatedDeliveryAt && <p className="text-sm text-gray-500">Est. Delivery: {new Date(data.estimatedDeliveryAt).toLocaleDateString()}</p>}
             {data.actualDeliveryAt && <p className="text-sm text-green-600">Delivered: {new Date(data.actualDeliveryAt).toLocaleDateString()}</p>}
           </div>

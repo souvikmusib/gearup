@@ -431,6 +431,7 @@ model JobCard {
   customerId               String
   vehicleId                String
   intakeDate               DateTime
+  odometerAtIntake         Int?
   estimatedDeliveryAt      DateTime?
   actualDeliveryAt         DateTime?
   issueSummary             String
