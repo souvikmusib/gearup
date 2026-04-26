@@ -12,6 +12,7 @@ const createSchema = z.object({
   appointmentId: z.string().optional(), serviceRequestId: z.string().optional(),
   customerId: z.string(), vehicleId: z.string(), issueSummary: z.string().min(1),
   customerComplaints: z.string().optional(), priority: z.string().optional(), estimatedDeliveryAt: z.string().optional(),
+  odometerAtIntake: z.number().optional(),
 });
 
 export async function GET(req: NextRequest) {
@@ -40,6 +41,7 @@ export async function POST(req: NextRequest) {
     const body = createSchema.parse(await req.json());
     const jc = await prisma.jobCard.create({ data: { jobCardNumber: generateJobCardNumber(), ...body, intakeDate: new Date(), estimatedDeliveryAt: body.estimatedDeliveryAt ? new Date(body.estimatedDeliveryAt) : undefined } as any });
     if (body.serviceRequestId) await prisma.serviceRequest.update({ where: { id: body.serviceRequestId }, data: { status: 'CONVERTED_TO_JOB' } });
+    if (body.odometerAtIntake) await prisma.vehicle.update({ where: { id: body.vehicleId }, data: { odometerReading: body.odometerAtIntake } });
     logActivity({ entityType: 'JobCard', entityId: jc.id, action: 'job-card.created', newValue: jc, actorType: 'ADMIN', actorId: user.sub });
     return NextResponse.json({ success: true, data: jc }, { status: 201 });
   } catch (e) { return handleApiError(e); }

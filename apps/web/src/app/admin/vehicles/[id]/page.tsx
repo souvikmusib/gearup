@@ -78,6 +78,7 @@ export default function VehicleDetailPage() {
                   <p className="text-sm text-gray-600 dark:text-gray-400">{jc.issueSummary}</p>
                   <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
                     <span>Intake: {new Date(jc.intakeDate).toLocaleDateString()}</span>
+                    {jc.odometerAtIntake && <span>Odometer: {jc.odometerAtIntake.toLocaleString()} km</span>}
                     {jc.actualDeliveryAt && <span>Delivered: {new Date(jc.actualDeliveryAt).toLocaleDateString()}</span>}
                     {Number(jc.finalTotal) > 0 && <span>Cost: ₹{Number(jc.finalTotal).toLocaleString()}</span>}
                   </div>

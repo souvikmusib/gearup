@@ -99,6 +99,7 @@ export default function CalendarPage() {
         <div className="ml-auto flex gap-2">
           <Link prefetch={false} href="/admin/appointments/calendar" className="rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-600 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-800">Appointments Card View</Link>
           <Link prefetch={false} href="/admin/workers/calendar" className="rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-600 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-800">Workers Card View</Link>
+          <Link prefetch={false} href="/admin/calendar/full" className="rounded-lg border border-blue-300 bg-blue-50 px-3 py-2 text-xs text-blue-700 hover:bg-blue-100 dark:border-blue-700 dark:bg-blue-900/30 dark:text-blue-300">Full Calendar →</Link>
         </div>
         {tab === 'worker' && (
           <select className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white" value={selectedWorker} onChange={(e) => setSelectedWorker(e.target.value)}>

@@ -15,7 +15,7 @@ export default function JobCardsPage() {
   const [vehicles, setVehicles] = useState<any[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [form, setForm] = useState({ customerId: '', vehicleId: '', issueSummary: '', priority: '', customerComplaints: '' });
+  const [form, setForm] = useState({ customerId: '', vehicleId: '', issueSummary: '', priority: '', customerComplaints: '', odometerAtIntake: '' });
   const [newCust, setNewCust] = useState(false);
   const [custForm, setCustForm] = useState({ fullName: '', phoneNumber: '', email: '' });
   const [newVeh, setNewVeh] = useState(false);
@@ -83,9 +83,9 @@ export default function JobCardsPage() {
   const submit = async () => {
     if (!form.customerId || !form.vehicleId || !form.issueSummary) { setError('Fill all required fields'); return; }
     setSaving(true); setError('');
-    const res = await api.post<any>('/admin/job-cards', form);
+    const res = await api.post<any>('/admin/job-cards', { ...form, odometerAtIntake: form.odometerAtIntake ? Number(form.odometerAtIntake) : undefined });
     setSaving(false);
-    if (res.success) { setShowCreate(false); setForm({ customerId: '', vehicleId: '', issueSummary: '', priority: '', customerComplaints: '' }); load(); }
+    if (res.success) { setShowCreate(false); setForm({ customerId: '', vehicleId: '', issueSummary: '', priority: '', customerComplaints: '', odometerAtIntake: '' }); load(); }
     else setError(res.error?.message || 'Failed to create');
   };
 
@@ -192,6 +192,7 @@ export default function JobCardsPage() {
               <option value="">Normal</option><option value="HIGH">High</option><option value="URGENT">Urgent</option>
             </select>
           </div>
+          <div><label className="block text-sm font-medium mb-1">Odometer Reading (km)</label><input type="number" className={inputCls} placeholder="e.g. 23450" value={form.odometerAtIntake} onChange={(e) => setForm((f) => ({ ...f, odometerAtIntake: e.target.value }))} /></div>
           <button onClick={submit} disabled={saving} className="w-full rounded-lg bg-blue-600 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50">
             {saving ? 'Creating...' : 'Create Job Card'}
           </button>
