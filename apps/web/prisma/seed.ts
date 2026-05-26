@@ -11,6 +11,7 @@ async function main() {
     prisma.role.upsert({ where: { key: 'SUPER_ADMIN' }, update: {}, create: { key: 'SUPER_ADMIN', name: 'Super Admin', description: 'Full access' } }),
     prisma.role.upsert({ where: { key: 'MANAGER' }, update: {}, create: { key: 'MANAGER', name: 'Manager', description: 'Shop manager' } }),
     prisma.role.upsert({ where: { key: 'RECEPTIONIST' }, update: {}, create: { key: 'RECEPTIONIST', name: 'Receptionist', description: 'Front desk' } }),
+    prisma.role.upsert({ where: { key: 'MECHANIC' }, update: {}, create: { key: 'MECHANIC', name: 'Mechanic', description: 'Workshop mechanic' } }),
   ]);
 
   // Admin Users
@@ -18,12 +19,16 @@ async function main() {
     prisma.adminUser.upsert({ where: { adminUserId: 'admin' }, update: {}, create: { adminUserId: 'admin', fullName: 'Souvik Musib', email: 'souvik@gearup.local', phone: '9830012345', passwordHash: hash } }),
     prisma.adminUser.upsert({ where: { adminUserId: 'arnab' }, update: {}, create: { adminUserId: 'arnab', fullName: 'Arnab Sen', email: 'arnab@gearup.local', phone: '9830054321', passwordHash: hash } }),
     prisma.adminUser.upsert({ where: { adminUserId: 'priya' }, update: {}, create: { adminUserId: 'priya', fullName: 'Priya Chatterjee', email: 'priya@gearup.local', phone: '9830067890', passwordHash: hash } }),
+    prisma.adminUser.upsert({ where: { adminUserId: 'receptionist' }, update: {}, create: { adminUserId: 'receptionist', fullName: 'Rekha Devi', email: 'rekha@gearup.local', phone: '9830078901', passwordHash: hash } }),
+    prisma.adminUser.upsert({ where: { adminUserId: 'mechanic' }, update: {}, create: { adminUserId: 'mechanic', fullName: 'Raju Mistri', email: 'raju@gearup.local', phone: '9830089012', passwordHash: hash } }),
   ]);
 
-  // Assign roles
-  for (const admin of admins) {
+  // Assign roles — first 3 admins get SUPER_ADMIN, receptionist gets RECEPTIONIST, mechanic gets MECHANIC
+  for (const admin of admins.slice(0, 3)) {
     await prisma.adminUserRole.upsert({ where: { adminUserId_roleId: { adminUserId: admin.id, roleId: roles[0].id } }, update: {}, create: { adminUserId: admin.id, roleId: roles[0].id } });
   }
+  await prisma.adminUserRole.upsert({ where: { adminUserId_roleId: { adminUserId: admins[3].id, roleId: roles[2].id } }, update: {}, create: { adminUserId: admins[3].id, roleId: roles[2].id } });
+  await prisma.adminUserRole.upsert({ where: { adminUserId_roleId: { adminUserId: admins[4].id, roleId: roles[3].id } }, update: {}, create: { adminUserId: admins[4].id, roleId: roles[3].id } });
 
   // Permissions
   const perms = ['CUSTOMERS_VIEW','CUSTOMERS_EDIT','VEHICLES_VIEW','VEHICLES_EDIT','WORKERS_MANAGE','APPOINTMENTS_VIEW','APPOINTMENTS_MANAGE','JOB_CARDS_VIEW_OWN','JOB_CARDS_CREATE','JOB_CARDS_UPDATE_STATUS','INVENTORY_VIEW','INVENTORY_EDIT','INVOICES_VIEW','INVOICES_CREATE','PAYMENTS_RECORD','EXPENSES_VIEW','EXPENSES_MANAGE','REPORTS_VIEW','SETTINGS_MANAGE','NOTIFICATIONS_MANAGE'];
