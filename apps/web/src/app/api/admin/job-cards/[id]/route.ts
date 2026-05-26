@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requirePermission } from '@/lib/auth';
+import { requirePermission, requireAnyPermission } from '@/lib/auth';
 import { handleApiError } from '@/lib/errors';
 import { logActivity } from '@/lib/activity-logger';
 import { PERMISSIONS } from '@gearup/types';
@@ -8,7 +8,7 @@ import { z } from 'zod';
 
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    requirePermission(PERMISSIONS.JOB_CARDS_CREATE);
+    requireAnyPermission(PERMISSIONS.JOB_CARDS_CREATE, PERMISSIONS.JOB_CARDS_VIEW_OWN);
     const jc = await prisma.jobCard.findUniqueOrThrow({ where: { id: params.id }, include: { customer: true, vehicle: true, appointment: true, serviceRequest: true, assignments: { include: { worker: true } }, tasks: { orderBy: { sortOrder: 'asc' } }, parts: { include: { inventoryItem: true } }, invoices: true } });
     return NextResponse.json({ success: true, data: jc });
   } catch (e) { return handleApiError(e); }
