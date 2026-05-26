@@ -11,22 +11,22 @@ import {
 } from 'lucide-react';
 
 const NAV = [
-  { label: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
-  { label: 'Service Requests', href: '/admin/service-requests', icon: FileText },
-  { label: 'Appointments', href: '/admin/appointments', icon: Calendar },
-  { label: 'Job Cards', href: '/admin/job-cards', icon: Wrench },
-  { label: 'Customers', href: '/admin/customers', icon: Users },
-  { label: 'Vehicles', href: '/admin/vehicles', icon: Bike },
-  { label: 'Workers', href: '/admin/workers', icon: UserCog },
+  { label: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard, permission: 'dashboard.view' },
+  { label: 'Service Requests', href: '/admin/service-requests', icon: FileText, permission: 'service-requests.view' },
+  { label: 'Appointments', href: '/admin/appointments', icon: Calendar, permission: 'appointments.view' },
+  { label: 'Job Cards', href: '/admin/job-cards', icon: Wrench, permission: 'job-cards.view-own' },
+  { label: 'Customers', href: '/admin/customers', icon: Users, permission: 'customers.view' },
+  { label: 'Vehicles', href: '/admin/vehicles', icon: Bike, permission: 'vehicles.view' },
+  { label: 'Workers', href: '/admin/workers', icon: UserCog, permission: 'workers.manage' },
   {
-    label: 'Calendar', icon: Calendar, children: [
+    label: 'Calendar', icon: Calendar, permission: 'appointments.view', children: [
       { label: 'Overview', href: '/admin/calendar' },
       { label: 'Appointments', href: '/admin/appointments/calendar' },
       { label: 'Workers', href: '/admin/workers/calendar' },
     ],
   },
   {
-    label: 'Inventory', icon: Package, children: [
+    label: 'Inventory', icon: Package, permission: 'inventory.view', children: [
       { label: 'Items', href: '/admin/inventory/items' },
       { label: 'Categories', href: '/admin/inventory/categories' },
       { label: 'Suppliers', href: '/admin/inventory/suppliers' },
@@ -34,12 +34,12 @@ const NAV = [
       { label: 'Low Stock', href: '/admin/inventory/low-stock' },
     ],
   },
-  { label: 'Invoices', href: '/admin/invoices', icon: Receipt },
-  { label: 'Payments', href: '/admin/payments', icon: CreditCard },
-  { label: 'Expenses', href: '/admin/expenses', icon: DollarSign },
-  { label: 'Notifications', href: '/admin/notifications', icon: Bell },
+  { label: 'Invoices', href: '/admin/invoices', icon: Receipt, permission: 'invoices.view' },
+  { label: 'Payments', href: '/admin/payments', icon: CreditCard, permission: 'payments.record' },
+  { label: 'Expenses', href: '/admin/expenses', icon: DollarSign, permission: 'expenses.view' },
+  { label: 'Notifications', href: '/admin/notifications', icon: Bell, permission: 'notifications.view' },
   {
-    label: 'Reports', icon: BarChart3, children: [
+    label: 'Reports', icon: BarChart3, permission: 'reports.view', children: [
       { label: 'Overview', href: '/admin/reports' },
       { label: 'Revenue', href: '/admin/reports/revenue' },
       { label: 'Appointments', href: '/admin/reports/appointments' },
@@ -49,13 +49,13 @@ const NAV = [
       { label: 'Expenses', href: '/admin/reports/expenses' },
     ],
   },
-  { label: 'Activity Logs', href: '/admin/logs', icon: ScrollText },
-  { label: 'Settings', href: '/admin/settings', icon: Settings },
+  { label: 'Activity Logs', href: '/admin/logs', icon: ScrollText, permission: 'logs.view' },
+  { label: 'Settings', href: '/admin/settings', icon: Settings, permission: 'settings.manage' },
 ];
 
 export function AdminSidebar() {
   const pathname = usePathname();
-  const { user, logout } = useAuth();
+  const { user, logout, hasPermission } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openSubs, setOpenSubs] = useState<Set<string>>(new Set());
@@ -82,7 +82,7 @@ export function AdminSidebar() {
       </div>
 
       <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
-        {NAV.map((item) => {
+        {NAV.filter((item) => hasPermission(item.permission)).map((item) => {
           if ('children' in item && item.children) {
             const Icon = item.icon;
             const isOpen = openSubs.has(item.label);
