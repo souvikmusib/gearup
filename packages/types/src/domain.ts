@@ -24,19 +24,12 @@ export type AppointmentStatus =
   | 'COMPLETED';
 
 export type JobCardStatus =
-  | 'CREATED'
-  | 'UNDER_INSPECTION'
-  | 'ESTIMATE_PREPARED'
-  | 'AWAITING_CUSTOMER_APPROVAL'
-  | 'APPROVED'
-  | 'REJECTED'
-  | 'PARTS_PENDING'
-  | 'WORK_IN_PROGRESS'
-  | 'QUALITY_CHECK'
-  | 'READY_FOR_DELIVERY'
+  | 'OPEN'
+  | 'ESTIMATE_READY'
+  | 'IN_PROGRESS'
+  | 'READY'
   | 'DELIVERED'
-  | 'CANCELLED'
-  | 'CLOSED';
+  | 'CANCELLED';
 
 export type ApprovalStatus = 'NOT_REQUIRED' | 'PENDING' | 'APPROVED' | 'REJECTED';
 export type WorkerStatus = 'ACTIVE' | 'INACTIVE' | 'ON_LEAVE';

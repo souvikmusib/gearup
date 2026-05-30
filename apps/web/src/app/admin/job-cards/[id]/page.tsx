@@ -4,34 +4,51 @@ import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';
 import { PageHeader, StatusBadge } from '@gearup/ui';
 
-const ALL_STATUSES = [
-  'CREATED', 'UNDER_INSPECTION', 'ESTIMATE_PREPARED', 'AWAITING_CUSTOMER_APPROVAL',
-  'APPROVED', 'REJECTED', 'PARTS_PENDING', 'WORK_IN_PROGRESS', 'QUALITY_CHECK',
-  'READY_FOR_DELIVERY', 'DELIVERED', 'CANCELLED', 'CLOSED',
-];
+// Simplified statuses (what the UI shows and allows)
+const SIMPLE_STATUSES = ['OPEN', 'ESTIMATE_READY', 'IN_PROGRESS', 'READY', 'DELIVERED', 'CANCELLED'] as const;
 
-// Next logical status for the "Advance" button
-const NEXT_STATUS: Record<string, { label: string; status: string; color: string }> = {
-  CREATED: { label: 'Start Inspection', status: 'UNDER_INSPECTION', color: 'bg-blue-600 hover:bg-blue-700' },
-  UNDER_INSPECTION: { label: 'Prepare Estimate', status: 'ESTIMATE_PREPARED', color: 'bg-blue-600 hover:bg-blue-700' },
-  ESTIMATE_PREPARED: { label: 'Send for Approval', status: 'AWAITING_CUSTOMER_APPROVAL', color: 'bg-yellow-600 hover:bg-yellow-700' },
-  AWAITING_CUSTOMER_APPROVAL: { label: 'Customer Approved', status: 'APPROVED', color: 'bg-green-600 hover:bg-green-700' },
-  APPROVED: { label: 'Start Work', status: 'WORK_IN_PROGRESS', color: 'bg-blue-600 hover:bg-blue-700' },
-  PARTS_PENDING: { label: 'Parts Received — Start Work', status: 'WORK_IN_PROGRESS', color: 'bg-blue-600 hover:bg-blue-700' },
-  WORK_IN_PROGRESS: { label: 'Send for QC', status: 'QUALITY_CHECK', color: 'bg-purple-600 hover:bg-purple-700' },
-  QUALITY_CHECK: { label: 'Mark Ready for Delivery', status: 'READY_FOR_DELIVERY', color: 'bg-green-600 hover:bg-green-700' },
-  READY_FOR_DELIVERY: { label: 'Mark Delivered', status: 'DELIVERED', color: 'bg-green-600 hover:bg-green-700' },
-  DELIVERED: { label: 'Close Job Card', status: 'CLOSED', color: 'bg-gray-600 hover:bg-gray-700' },
+// Map old DB statuses to simplified ones for display
+function toSimpleStatus(dbStatus: string): string {
+  switch (dbStatus) {
+    case 'CREATED': case 'UNDER_INSPECTION': return 'OPEN';
+    case 'ESTIMATE_PREPARED': case 'AWAITING_CUSTOMER_APPROVAL': return 'ESTIMATE_READY';
+    case 'APPROVED': case 'PARTS_PENDING': case 'WORK_IN_PROGRESS': case 'QUALITY_CHECK': return 'IN_PROGRESS';
+    case 'READY_FOR_DELIVERY': return 'READY';
+    case 'DELIVERED': case 'CLOSED': return 'DELIVERED';
+    case 'CANCELLED': case 'REJECTED': return 'CANCELLED';
+    default: return dbStatus;
+  }
+}
+
+// Map simplified status back to DB value for PATCH
+function toDbStatus(simple: string): string {
+  switch (simple) {
+    case 'OPEN': return 'CREATED';
+    case 'ESTIMATE_READY': return 'ESTIMATE_PREPARED';
+    case 'IN_PROGRESS': return 'WORK_IN_PROGRESS';
+    case 'READY': return 'READY_FOR_DELIVERY';
+    case 'DELIVERED': return 'DELIVERED';
+    case 'CANCELLED': return 'CANCELLED';
+    default: return simple;
+  }
+}
+
+// Next status button config
+const NEXT_STATUS: Record<string, { label: string; next: string; color: string }> = {
+  OPEN: { label: 'Estimate Ready', next: 'ESTIMATE_READY', color: 'bg-blue-600 hover:bg-blue-700' },
+  ESTIMATE_READY: { label: 'Start Work', next: 'IN_PROGRESS', color: 'bg-blue-600 hover:bg-blue-700' },
+  IN_PROGRESS: { label: 'Mark Ready', next: 'READY', color: 'bg-green-600 hover:bg-green-700' },
+  READY: { label: 'Mark Delivered', next: 'DELIVERED', color: 'bg-green-600 hover:bg-green-700' },
 };
 
 // Status-based section visibility
-function canEditWorkers(status: string) { return ['CREATED', 'UNDER_INSPECTION', 'ESTIMATE_PREPARED', 'APPROVED', 'PARTS_PENDING', 'WORK_IN_PROGRESS'].includes(status); }
-function canEditParts(status: string) { return ['UNDER_INSPECTION', 'ESTIMATE_PREPARED', 'APPROVED', 'PARTS_PENDING'].includes(status); }
-function canEditTasks(status: string) { return ['APPROVED', 'PARTS_PENDING', 'WORK_IN_PROGRESS'].includes(status); }
-function canUpdateTaskStatus(status: string) { return ['WORK_IN_PROGRESS', 'QUALITY_CHECK'].includes(status); }
-function canEditCosts(status: string) { return ['UNDER_INSPECTION', 'ESTIMATE_PREPARED'].includes(status); }
-function canCreateInvoice(status: string) { return ['READY_FOR_DELIVERY', 'DELIVERED', 'CLOSED'].includes(status); }
-function isLocked(status: string) { return ['CLOSED', 'CANCELLED'].includes(status); }
+function canEditWorkers(s: string) { return ['OPEN', 'ESTIMATE_READY', 'IN_PROGRESS'].includes(s); }
+function canEditParts(s: string) { return ['OPEN', 'ESTIMATE_READY'].includes(s); }
+function canEditTasks(s: string) { return ['ESTIMATE_READY', 'IN_PROGRESS'].includes(s); }
+function canUpdateTaskStatus(s: string) { return s === 'IN_PROGRESS'; }
+function canEditCosts(s: string) { return ['OPEN', 'ESTIMATE_READY'].includes(s); }
+function canCreateInvoice(s: string) { return ['READY', 'DELIVERED'].includes(s); }
+function isLocked(s: string) { return ['DELIVERED', 'CANCELLED'].includes(s); }
 
 export default function JobCardDetailPage() {
   const { id } = useParams();
@@ -58,9 +75,10 @@ export default function JobCardDetailPage() {
   };
   useEffect(() => { load(); }, [id]);
 
-  const updateStatus = async (status: string) => {
-    setLoading(status);
-    const res = await api.patch<any>(`/admin/job-cards/${id}`, { status });
+  const updateStatus = async (simpleStatus: string) => {
+    const dbStatus = toDbStatus(simpleStatus);
+    setLoading(simpleStatus);
+    const res = await api.patch<any>(`/admin/job-cards/${id}`, { status: dbStatus });
     setLoading('');
     if (res.success) setData(res.data);
   };
@@ -169,41 +187,36 @@ export default function JobCardDetailPage() {
   if (!data) return <p className="py-8 text-center text-gray-500">Loading...</p>;
 
   const inputCls = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white';
-  const locked = isLocked(data.status);
-  const next = NEXT_STATUS[data.status];
+  const status = toSimpleStatus(data.status);
+  const locked = isLocked(status);
+  const next = NEXT_STATUS[status];
 
   return (
     <div className="space-y-6">
       <PageHeader title={`Job Card ${data.jobCardNumber}`} />
 
+      {/* Status badge */}
       <div className="flex flex-wrap gap-2 items-center">
-        <StatusBadge status={data.status} />
-        {data.approvalStatus !== 'NOT_REQUIRED' && <StatusBadge status={`Approval: ${data.approvalStatus}`} />}
+        <StatusBadge status={status} />
       </div>
 
-      {/* Status controls: Next button + dropdown */}
+      {/* Status controls */}
       <div className="flex flex-wrap items-center gap-3">
         {next && !locked && (
-          <button onClick={() => updateStatus(next.status)} disabled={!!loading}
+          <button onClick={() => updateStatus(next.next)} disabled={!!loading}
             className={`rounded-lg px-5 py-2.5 text-sm font-semibold text-white shadow ${next.color} disabled:opacity-50`}>
-            {loading === next.status ? 'Updating...' : `→ ${next.label}`}
+            {loading === next.next ? 'Updating...' : `→ ${next.label}`}
           </button>
         )}
-        {data.status === 'AWAITING_CUSTOMER_APPROVAL' && (
-          <button onClick={() => updateStatus('REJECTED')} disabled={!!loading}
-            className="rounded-lg px-4 py-2.5 text-sm font-semibold text-white shadow bg-red-600 hover:bg-red-700 disabled:opacity-50">
-            {loading === 'REJECTED' ? 'Updating...' : '✕ Customer Rejected'}
-          </button>
-        )}
-        {!locked && data.status !== 'CANCELLED' && (
+        {!locked && status !== 'CANCELLED' && (
           <button onClick={() => updateStatus('CANCELLED')} disabled={!!loading}
             className="rounded-lg px-4 py-2 text-sm font-medium text-red-600 border border-red-300 hover:bg-red-50 dark:border-red-700 dark:hover:bg-red-900/20 disabled:opacity-50">
             Cancel Job
           </button>
         )}
         {!locked && (
-          <select className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white" value={data.status} onChange={(e) => updateStatus(e.target.value)}>
-            {ALL_STATUSES.map((s) => <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>)}
+          <select className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white" value={status} onChange={(e) => updateStatus(e.target.value)}>
+            {SIMPLE_STATUSES.map((s) => <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>)}
           </select>
         )}
         {loading && <span className="text-sm text-gray-500">Updating...</span>}
@@ -220,7 +233,6 @@ export default function JobCardDetailPage() {
             <p className="text-sm text-gray-600 dark:text-gray-400">Vehicle: {data.vehicle?.registrationNumber} — {data.vehicle?.brand} {data.vehicle?.model}</p>
             <p className="text-sm text-gray-500">Intake: {new Date(data.intakeDate).toLocaleDateString()}</p>
             {data.odometerAtIntake && <p className="text-sm text-gray-500">Odometer: {data.odometerAtIntake.toLocaleString()} km</p>}
-            {data.estimatedDeliveryAt && <p className="text-sm text-gray-500">Est. Delivery: {new Date(data.estimatedDeliveryAt).toLocaleDateString()}</p>}
             {data.actualDeliveryAt && <p className="text-sm text-green-600">Delivered: {new Date(data.actualDeliveryAt).toLocaleDateString()}</p>}
           </div>
 
@@ -228,14 +240,14 @@ export default function JobCardDetailPage() {
           <div className="rounded-lg border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-800 space-y-2">
             <h3 className="font-semibold text-gray-900 dark:text-white">Cost Summary</h3>
             <div className="grid grid-cols-2 gap-2 text-sm items-center">
-              <span className="text-gray-500">Est. Parts:</span><span>₹{Number(data.estimatedPartsCost).toFixed(2)}</span>
-              <span className="text-gray-500">Est. Labor:</span>
-              {canEditCosts(data.status) ? (
+              <span className="text-gray-500">Parts:</span><span>₹{Number(data.estimatedPartsCost).toFixed(2)}</span>
+              <span className="text-gray-500">Labor:</span>
+              {canEditCosts(status) ? (
                 <input type="number" step="0.01" className="w-28 rounded border border-gray-300 px-1.5 py-0.5 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white" defaultValue={Number(data.estimatedLaborCost)} onBlur={(e) => saveCost('estimatedLaborCost', e.target.value)} />
               ) : (
                 <span>₹{Number(data.estimatedLaborCost).toFixed(2)}</span>
               )}
-              <span className="text-gray-500">Est. Total:</span><span className="font-semibold">₹{Number(data.estimatedTotal).toFixed(2)}</span>
+              <span className="text-gray-500 font-semibold">Total:</span><span className="font-bold">₹{Number(data.estimatedTotal).toFixed(2)}</span>
             </div>
           </div>
 
@@ -255,10 +267,10 @@ export default function JobCardDetailPage() {
             {data.assignments?.length ? data.assignments.map((a: any) => (
               <div key={a.id} className="flex items-center justify-between text-sm mt-1">
                 <span className="text-gray-600 dark:text-gray-400">{a.worker?.fullName} <span className="text-xs text-gray-400">({a.assignmentRole ?? 'General'})</span></span>
-                {canEditWorkers(data.status) && <button onClick={() => unassignWorker(a.id)} className="text-red-500 hover:text-red-700 text-xs">✕</button>}
+                {canEditWorkers(status) && <button onClick={() => unassignWorker(a.id)} className="text-red-500 hover:text-red-700 text-xs">✕</button>}
               </div>
             )) : <p className="text-sm text-gray-400">No workers assigned</p>}
-            {canEditWorkers(data.status) && (
+            {canEditWorkers(status) && (
               <div className="mt-3 border-t pt-3 dark:border-gray-600 flex gap-2">
                 <select className={inputCls} value={workerForm.workerId} onFocus={loadWorkers} onChange={(e) => setWorkerForm({ ...workerForm, workerId: e.target.value })}>
                   <option value="">Assign worker...</option>
@@ -276,18 +288,18 @@ export default function JobCardDetailPage() {
               <div key={t.id} className="flex items-center justify-between text-sm mt-1">
                 <span className="text-gray-600 dark:text-gray-400">{t.taskName}</span>
                 <span className="flex items-center gap-2">
-                  {canUpdateTaskStatus(data.status) ? (
+                  {canUpdateTaskStatus(status) ? (
                     <select className="rounded border border-gray-300 px-1.5 py-0.5 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-white" value={t.status} onChange={(e) => updateTaskStatus(t.id, e.target.value)}>
                       <option value="PENDING">Pending</option><option value="IN_PROGRESS">In Progress</option><option value="DONE">Done</option>
                     </select>
                   ) : (
                     <StatusBadge status={t.status} />
                   )}
-                  {canEditTasks(data.status) && <button onClick={() => removeTask(t.id)} className="text-red-500 hover:text-red-700 text-xs">✕</button>}
+                  {canEditTasks(status) && <button onClick={() => removeTask(t.id)} className="text-red-500 hover:text-red-700 text-xs">✕</button>}
                 </span>
               </div>
             )) : <p className="text-sm text-gray-400">No tasks</p>}
-            {canEditTasks(data.status) && (
+            {canEditTasks(status) && (
               <div className="mt-3 border-t pt-3 dark:border-gray-600 flex gap-2">
                 <input className={inputCls} placeholder="Task name..." value={taskForm.taskName} onChange={(e) => setTaskForm({ ...taskForm, taskName: e.target.value })} onKeyDown={(e) => e.key === 'Enter' && addTask()} />
                 {taskForm.taskName && <button onClick={addTask} className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-700 whitespace-nowrap">Add</button>}
@@ -301,22 +313,20 @@ export default function JobCardDetailPage() {
             {data.parts?.length ? data.parts.map((p: any) => (
               <div key={p.id} className="flex items-center gap-2 text-sm mt-1">
                 <span className="flex-1 text-gray-600 dark:text-gray-400 truncate">{p.inventoryItem?.itemName}</span>
-                {canEditParts(data.status) ? (
+                {canEditParts(status) ? (
                   <>
                     <input type="number" className="w-16 rounded border border-gray-300 px-1.5 py-0.5 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-white" defaultValue={Number(p.requiredQty)} onBlur={(e) => updatePart(p.id, 'requiredQty', e.target.value)} title="Qty" />
                     <span className="text-xs text-gray-400">×</span>
                     <input type="number" className="w-20 rounded border border-gray-300 px-1.5 py-0.5 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-white" defaultValue={Number(p.unitPrice)} step="0.01" onBlur={(e) => updatePart(p.id, 'unitPrice', e.target.value)} title="Price" />
                   </>
                 ) : (
-                  <>
-                    <span className="text-xs text-gray-500">{Number(p.requiredQty)} × ₹{Number(p.unitPrice)}</span>
-                  </>
+                  <span className="text-xs text-gray-500">{Number(p.requiredQty)} × ₹{Number(p.unitPrice)}</span>
                 )}
                 <span className="text-xs text-gray-500 w-16 text-right">₹{(Number(p.requiredQty) * Number(p.unitPrice)).toFixed(0)}</span>
-                {canEditParts(data.status) && <button onClick={() => removePart(p.id)} className="text-red-500 hover:text-red-700 text-xs">✕</button>}
+                {canEditParts(status) && <button onClick={() => removePart(p.id)} className="text-red-500 hover:text-red-700 text-xs">✕</button>}
               </div>
             )) : <p className="text-sm text-gray-400">No parts</p>}
-            {canEditParts(data.status) && (
+            {canEditParts(status) && (
               <div className="mt-3 border-t pt-3 dark:border-gray-600 space-y-2">
                 <select className={inputCls} value={partForm.inventoryItemId} onFocus={loadInventory} onChange={(e) => onItemSelect(e.target.value)}>
                   <option value="">Add a part...</option>
@@ -336,7 +346,7 @@ export default function JobCardDetailPage() {
           </div>
 
           {/* Invoice */}
-          {canCreateInvoice(data.status) && (
+          {canCreateInvoice(status) && (
             <button onClick={goToInvoice} disabled={creatingInvoice} className="w-full rounded-lg bg-blue-600 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50">
               {creatingInvoice ? 'Creating...' : data.invoices?.length > 0 ? `View Invoice ${data.invoices[0].invoiceNumber}` : '+ Create Invoice'}
             </button>

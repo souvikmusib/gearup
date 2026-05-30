@@ -133,7 +133,7 @@ export default function JobCardsPage() {
         <input className={inputCls + ' max-w-xs'} placeholder="Search job cards..." value={search} onChange={(e) => { setSearch(e.target.value); load(e.target.value, statusFilter); }} />
         <select className={inputCls + ' w-48'} value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); load(search, e.target.value); }}>
           <option value="">All Statuses</option>
-          {['CREATED','UNDER_INSPECTION','ESTIMATE_PREPARED','AWAITING_CUSTOMER_APPROVAL','APPROVED','WORK_IN_PROGRESS','PARTS_PENDING','QUALITY_CHECK','READY_FOR_DELIVERY','DELIVERED','CANCELLED','CLOSED'].map((s) => <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>)}
+          {['CREATED','ESTIMATE_PREPARED','WORK_IN_PROGRESS','READY_FOR_DELIVERY','DELIVERED','CANCELLED'].map((s) => <option key={s} value={s}>{s === 'CREATED' ? 'OPEN' : s === 'ESTIMATE_PREPARED' ? 'ESTIMATE READY' : s === 'WORK_IN_PROGRESS' ? 'IN PROGRESS' : s === 'READY_FOR_DELIVERY' ? 'READY' : s.replace(/_/g, ' ')}</option>)}
         </select>
       </div>
       <DataTable columns={columns} data={data} keyField="id" onRowClick={(r: any) => router.push(`/admin/job-cards/${r.id}`)} />
