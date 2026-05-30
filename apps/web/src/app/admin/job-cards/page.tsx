@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { api } from '@/lib/api/client';
 import { PageHeader, DataTable, StatusBadge } from '@gearup/ui';
 import { Modal } from '@/components/shared/modal';
@@ -15,12 +15,13 @@ export default function JobCardsPage() {
   const [vehicles, setVehicles] = useState<any[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [form, setForm] = useState({ customerId: '', vehicleId: '', issueSummary: '', priority: '', customerComplaints: '', odometerAtIntake: '' });
+  const [form, setForm] = useState({ customerId: '', vehicleId: '', issueSummary: '', priority: '', customerComplaints: '', odometerAtIntake: '', serviceRequestId: '', appointmentId: '' });
   const [newCust, setNewCust] = useState(false);
   const [custForm, setCustForm] = useState({ fullName: '', phoneNumber: '', email: '' });
   const [newVeh, setNewVeh] = useState(false);
   const [vehForm, setVehForm] = useState({ vehicleType: 'BIKE' as string, registrationNumber: '', brand: '', model: '' });
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const load = (s = search, st = statusFilter) => {
     const p = new URLSearchParams();
@@ -38,6 +39,23 @@ export default function JobCardsPage() {
     promise.then((r) => { if (r.success) setData(r.data?.items ?? r.data ?? []); setLoading(false); });
   };
   useEffect(() => { load(); }, []);
+
+  // Auto-open create modal when redirected from service request
+  useEffect(() => {
+    if (searchParams.get('create') === '1') {
+      const customerId = searchParams.get('customerId') || '';
+      const vehicleId = searchParams.get('vehicleId') || '';
+      const issueSummary = searchParams.get('issueSummary') || '';
+      const customerComplaints = searchParams.get('customerComplaints') || '';
+      setForm((f) => ({ ...f, customerId, vehicleId, issueSummary, customerComplaints, serviceRequestId: searchParams.get('serviceRequestId') || '', appointmentId: searchParams.get('appointmentId') || '' }));
+      setShowCreate(true);
+      // Load vehicles for the pre-selected customer
+      if (customerId) {
+        api.get<any>(`/admin/vehicles?customerId=${customerId}&pageSize=100`).then((res) => { if (res.success) setVehicles(res.data?.items ?? res.data ?? []); });
+      }
+      api.get<any>('/admin/customers?pageSize=200').then((res) => { if (res.success) setCustomers(res.data?.items ?? res.data ?? []); });
+    }
+  }, [searchParams]);
 
   const openCreate = async () => {
     setShowCreate(true); setError(''); setNewCust(false); setNewVeh(false);
@@ -83,9 +101,12 @@ export default function JobCardsPage() {
   const submit = async () => {
     if (!form.customerId || !form.vehicleId || !form.issueSummary) { setError('Fill all required fields'); return; }
     setSaving(true); setError('');
-    const res = await api.post<any>('/admin/job-cards', { ...form, odometerAtIntake: form.odometerAtIntake ? Number(form.odometerAtIntake) : undefined });
+    const payload: Record<string, unknown> = { ...form, odometerAtIntake: form.odometerAtIntake ? Number(form.odometerAtIntake) : undefined };
+    if (!payload.serviceRequestId) delete payload.serviceRequestId;
+    if (!payload.appointmentId) delete payload.appointmentId;
+    const res = await api.post<any>('/admin/job-cards', payload);
     setSaving(false);
-    if (res.success) { setShowCreate(false); setForm({ customerId: '', vehicleId: '', issueSummary: '', priority: '', customerComplaints: '', odometerAtIntake: '' }); load(); }
+    if (res.success) { setShowCreate(false); setForm({ customerId: '', vehicleId: '', issueSummary: '', priority: '', customerComplaints: '', odometerAtIntake: '', serviceRequestId: '', appointmentId: '' }); load(); }
     else setError(res.error?.message || 'Failed to create');
   };
 

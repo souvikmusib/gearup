@@ -40,6 +40,19 @@ export default function ServiceRequestDetailPage() {
   useEffect(() => { load(); }, [id]);
 
   const updateStatus = async (status: string) => {
+    if (status === 'CONVERTED_TO_JOB') {
+      // Navigate to job cards page with pre-filled data from service request
+      const params = new URLSearchParams({
+        serviceRequestId: data.id,
+        customerId: data.customerId,
+        vehicleId: data.vehicleId,
+        issueSummary: data.issueDescription || '',
+        customerComplaints: data.serviceCategory || '',
+        ...(data.appointment ? { appointmentId: data.appointment.id } : {}),
+      });
+      router.push(`/admin/job-cards?create=1&${params.toString()}`);
+      return;
+    }
     setLoading(status);
     const res = await api.patch<any>(`/admin/service-requests/${id}`, { status });
     setLoading('');
