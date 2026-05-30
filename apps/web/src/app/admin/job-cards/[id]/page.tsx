@@ -135,7 +135,7 @@ export default function JobCardDetailPage() {
     setCreatingInvoice(true);
     const lineItems: any[] = [];
     data.parts?.forEach((p: any) => lineItems.push({ lineType: 'PART', description: p.inventoryItem?.itemName || 'Part', quantity: Number(p.requiredQty), unitPrice: Number(p.unitPrice), taxRate: 0 }));
-    const laborCost = Number(data.finalLaborCost) || Number(data.estimatedLaborCost);
+    const laborCost = Number(data.estimatedLaborCost);
     if (laborCost > 0) {
       const workerNames = data.assignments?.map((a: any) => a.worker?.fullName).filter(Boolean).join(', ');
       lineItems.push({ lineType: 'LABOR', description: workerNames ? `Labor — ${workerNames}` : 'Labor charges', quantity: 1, unitPrice: laborCost, taxRate: 0 });

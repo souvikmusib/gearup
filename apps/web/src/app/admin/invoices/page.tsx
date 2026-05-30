@@ -74,7 +74,7 @@ export default function InvoicesPage() {
       setSelectedJC(res.data);
       const items: any[] = [];
       res.data.parts?.forEach((p: any) => items.push({ lineType: 'PART', description: p.inventoryItem?.itemName || 'Part', quantity: Number(p.requiredQty), unitPrice: Number(p.unitPrice), taxRate: 0 }));
-      const laborCost = Number(res.data.finalLaborCost) || Number(res.data.estimatedLaborCost);
+      const laborCost = Number(res.data.estimatedLaborCost);
       if (laborCost > 0) items.push({ lineType: 'LABOR', description: 'Labor charges', quantity: 1, unitPrice: laborCost, taxRate: 0 });
       if (items.length === 0) items.push({ lineType: 'CUSTOM_CHARGE', description: '', quantity: 1, unitPrice: 0, taxRate: 0 });
       setLineItems(items);
