@@ -227,13 +227,28 @@ export default function JobCardDetailPage() {
           {/* Details */}
           <div className="rounded-lg border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-800 space-y-2">
             <h3 className="font-semibold text-gray-900 dark:text-white">Details</h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Issue: {data.issueSummary}</p>
-            {data.customerComplaints && <p className="text-sm text-gray-500">Complaints: {data.customerComplaints}</p>}
-            <p className="text-sm text-gray-600 dark:text-gray-400">Customer: {data.customer?.fullName} · {data.customer?.phoneNumber}</p>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Vehicle: {data.vehicle?.registrationNumber} — {data.vehicle?.brand} {data.vehicle?.model}</p>
-            <p className="text-sm text-gray-500">Intake: {new Date(data.intakeDate).toLocaleDateString()}</p>
-            {data.odometerAtIntake && <p className="text-sm text-gray-500">Odometer: {data.odometerAtIntake.toLocaleString()} km</p>}
-            {data.actualDeliveryAt && <p className="text-sm text-green-600">Delivered: {new Date(data.actualDeliveryAt).toLocaleDateString()}</p>}
+            <div className="space-y-2 text-sm">
+              <div><label className="text-xs font-medium text-gray-500">Issue Summary</label>
+                {locked ? <p className="text-gray-600 dark:text-gray-400">{data.issueSummary}</p> : <input className={inputCls} defaultValue={data.issueSummary} onBlur={(e) => e.target.value !== data.issueSummary && api.patch(`/admin/job-cards/${id}`, { issueSummary: e.target.value }).then(load)} />}
+              </div>
+              <div><label className="text-xs font-medium text-gray-500">Customer Complaints</label>
+                {locked ? <p className="text-gray-600 dark:text-gray-400">{data.customerComplaints || '—'}</p> : <input className={inputCls} defaultValue={data.customerComplaints || ''} onBlur={(e) => api.patch(`/admin/job-cards/${id}`, { customerVisibleNotes: e.target.value }).then(load)} />}
+              </div>
+              <div className="flex gap-4">
+                <div className="flex-1"><label className="text-xs font-medium text-gray-500">Odometer (km)</label>
+                  {locked ? <p className="text-gray-600 dark:text-gray-400">{data.odometerAtIntake?.toLocaleString() || '—'}</p> : <input type="number" className={inputCls} defaultValue={data.odometerAtIntake || ''} onBlur={(e) => { const v = Number(e.target.value); if (v > 0) api.patch(`/admin/job-cards/${id}`, { odometerAtIntake: v }).then(load); }} />}
+                </div>
+                <div className="flex-1"><label className="text-xs font-medium text-gray-500">Priority</label>
+                  {locked ? <p className="text-gray-600 dark:text-gray-400">{data.priority || 'Normal'}</p> : <select className={inputCls} defaultValue={data.priority || ''} onChange={(e) => api.patch(`/admin/job-cards/${id}`, { priority: e.target.value || null }).then(load)}><option value="">Normal</option><option value="HIGH">High</option><option value="URGENT">Urgent</option></select>}
+                </div>
+              </div>
+            </div>
+            <div className="pt-2 border-t dark:border-gray-600 mt-3 space-y-1">
+              <p className="text-sm text-gray-600 dark:text-gray-400">Customer: {data.customer?.fullName} · {data.customer?.phoneNumber}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Vehicle: {data.vehicle?.registrationNumber} — {data.vehicle?.brand} {data.vehicle?.model}</p>
+              <p className="text-sm text-gray-500">Intake: {new Date(data.intakeDate).toLocaleDateString()}</p>
+              {data.actualDeliveryAt && <p className="text-sm text-green-600">Delivered: {new Date(data.actualDeliveryAt).toLocaleDateString()}</p>}
+            </div>
           </div>
 
           {/* Cost Summary */}
