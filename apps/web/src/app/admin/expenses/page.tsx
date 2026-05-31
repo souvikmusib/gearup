@@ -97,7 +97,7 @@ export default function ExpensesPage() {
       <div className="flex items-center justify-between mb-4">
         <PageHeader title="Expenses" />
         <div className="flex gap-2">
-          <button onClick={() => router.push('/admin/expenses/categories')} className="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 hover:bg-gray-50 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-800">Manage Categories</button>
+          <a href="/admin/expenses/categories" className="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 hover:bg-gray-50 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-800">Manage Categories</a>
           <button onClick={openCreate} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">+ Add Expense</button>
         </div>
       </div>
