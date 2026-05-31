@@ -116,7 +116,7 @@ export default function AppointmentDetailPage() {
             <h3 className="font-semibold text-gray-900 dark:text-white">Customer</h3>
             <p className="text-sm text-gray-600 dark:text-gray-400">{data.customer?.fullName} · {data.customer?.phoneNumber}</p>
             {data.customer?.phoneNumber && data.status === 'CONFIRMED' && (
-              <div className="mt-2"><WhatsAppButton phone={data.customer.phoneNumber} message={`Hi ${data.customer.fullName}, your appointment on ${new Date(data.appointmentDate).toLocaleDateString()} at ${new Date(data.slotStart).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} is confirmed. Ref: ${data.referenceId}.\n\n— GearUp Servicing\n📞 9242519099`} /></div>
+              <div className="mt-2"><WhatsAppButton phone={data.customer.phoneNumber} message={`Hi ${data.customer.fullName}, your appointment on ${new Date(data.appointmentDate).toLocaleDateString()} at ${new Date(data.slotStart).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} is confirmed. Ref: ${data.referenceId}. - GearUp Servicing, 9242519099`} /></div>
             )}
           </div>
           <div className="rounded-lg border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-800">

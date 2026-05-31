@@ -334,7 +334,7 @@ export default function InvoiceDetailPage() {
           <p className="text-gray-500">{data.customer?.phoneNumber}</p>
           {data.customer?.email && <p className="text-gray-500">{data.customer.email}</p>}
           {data.customer?.phoneNumber && data.invoiceStatus === 'FINALIZED' && (
-            <div className="mt-2"><WhatsAppButton phone={data.customer.phoneNumber} message={`Hi ${data.customer.fullName}, your invoice ${data.invoiceNumber} for ₹${Number(data.grandTotal).toFixed(0)} is ready.\n\nThank you for choosing GearUp Servicing!\n📞 9242519099`} /></div>
+            <div className="mt-2"><WhatsAppButton phone={data.customer.phoneNumber} message={`Hi ${data.customer.fullName}, your invoice ${data.invoiceNumber} for Rs.${Number(data.grandTotal).toFixed(0)} is ready. Thank you for choosing GearUp Servicing! - 9242519099`} /></div>
           )}
         </div>
         <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
