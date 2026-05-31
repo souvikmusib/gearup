@@ -214,8 +214,16 @@ export default function JobCardDetailPage() {
             Cancel Job
           </button>
         )}
-        {status === 'OPEN' && (
-          <button onClick={async () => { if (!confirm('Delete this job card permanently?')) return; const res = await api.delete(`/admin/job-cards/${id}`); if (res.success) router.push('/admin/job-cards'); }} className="rounded-lg px-4 py-2 text-sm font-medium text-red-600 border border-red-300 hover:bg-red-50 dark:border-red-700 dark:hover:bg-red-900/20">
+        {!locked && (
+          <button onClick={async () => {
+            const hasInvoice = data.invoices?.length > 0;
+            const msg = hasInvoice
+              ? `This job card has invoice ${data.invoices[0].invoiceNumber}. Deleting will remove the invoice and all payments too. Proceed?`
+              : 'Delete this job card permanently?';
+            if (!confirm(msg)) return;
+            const res = await api.delete(`/admin/job-cards/${id}`);
+            if (res.success) router.push('/admin/job-cards');
+          }} className="rounded-lg px-4 py-2 text-sm font-medium text-red-600 border border-red-300 hover:bg-red-50 dark:border-red-700 dark:hover:bg-red-900/20">
             Delete
           </button>
         )}
