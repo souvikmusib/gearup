@@ -82,7 +82,7 @@ export default function InvoicesPage() {
   };
 
   const addLine = () => setLineItems((l) => [...l, { lineType: 'CUSTOM_CHARGE', description: '', quantity: 1, unitPrice: 0, taxRate: 0 }]);
-  const addDiscount = () => setLineItems((l) => [...l, { lineType: 'DISCOUNT_ADJUSTMENT', description: 'Discount', quantity: 1, unitPrice: 0, taxRate: 0 }]);
+  const addDiscount = () => setLineItems((l) => [...l, { lineType: 'DISCOUNT_ADJUSTMENT', description: 'Discount', quantity: 1, unitPrice: 0, taxRate: 0, discountMode: 'flat' }]);
   const removeLine = (i: number) => setLineItems((l) => l.filter((_, idx) => idx !== i));
   const updateLine = (i: number, field: string, value: any) => setLineItems((l) => l.map((li, idx) => idx === i ? { ...li, [field]: value } : li));
 
@@ -145,13 +145,26 @@ export default function InvoicesPage() {
                 </div>
                 {lineItems.map((li, i) => (
                   <div key={i} className={`grid grid-cols-12 gap-2 mb-2 items-end ${li.lineType === 'DISCOUNT_ADJUSTMENT' ? 'bg-green-50 dark:bg-green-900/20 rounded-lg p-2 border border-green-200 dark:border-green-800' : ''}`}>
-                    <select className={`${inputCls} col-span-3`} value={li.lineType} onChange={(e) => updateLine(i, 'lineType', e.target.value)}>
-                      <option value="PART">Part</option><option value="LABOR">Labor</option><option value="CUSTOM_CHARGE">Custom</option><option value="DISCOUNT_ADJUSTMENT">Discount</option>
-                    </select>
-                    <input className={`${inputCls} col-span-4`} placeholder="Description" value={li.description} onChange={(e) => updateLine(i, 'description', e.target.value)} />
-                    <input type="number" className={`${inputCls} col-span-1`} placeholder="Qty" value={li.quantity} onChange={(e) => updateLine(i, 'quantity', Number(e.target.value))} />
-                    <input type="number" className={`${inputCls} col-span-2`} placeholder={li.lineType === 'DISCOUNT_ADJUSTMENT' ? 'Amount' : 'Price'} value={li.unitPrice} onChange={(e) => updateLine(i, 'unitPrice', Number(e.target.value))} />
-                    <button onClick={() => removeLine(i)} className="col-span-2 text-xs text-red-500 hover:underline">Remove</button>
+                    {li.lineType === 'DISCOUNT_ADJUSTMENT' ? (
+                      <>
+                        <input className={`${inputCls} col-span-5`} placeholder="Discount reason" value={li.description} onChange={(e) => updateLine(i, 'description', e.target.value)} />
+                        <select className={`${inputCls} col-span-2`} value={li.discountMode || 'flat'} onChange={(e) => updateLine(i, 'discountMode', e.target.value)}>
+                          <option value="flat">₹ Flat</option><option value="percent">% Percent</option>
+                        </select>
+                        <input type="number" className={`${inputCls} col-span-3`} placeholder={li.discountMode === 'percent' ? '% off' : '₹ amount'} value={li.unitPrice} onChange={(e) => updateLine(i, 'unitPrice', Number(e.target.value))} />
+                        <button onClick={() => removeLine(i)} className="col-span-2 text-xs text-red-500 hover:underline">Remove</button>
+                      </>
+                    ) : (
+                      <>
+                        <select className={`${inputCls} col-span-3`} value={li.lineType} onChange={(e) => updateLine(i, 'lineType', e.target.value)}>
+                          <option value="PART">Part</option><option value="LABOR">Labor</option><option value="CUSTOM_CHARGE">Custom</option><option value="DISCOUNT_ADJUSTMENT">Discount</option>
+                        </select>
+                        <input className={`${inputCls} col-span-4`} placeholder="Description" value={li.description} onChange={(e) => updateLine(i, 'description', e.target.value)} />
+                        <input type="number" className={`${inputCls} col-span-1`} placeholder="Qty" value={li.quantity} onChange={(e) => updateLine(i, 'quantity', Number(e.target.value))} />
+                        <input type="number" className={`${inputCls} col-span-2`} placeholder="Price" value={li.unitPrice} onChange={(e) => updateLine(i, 'unitPrice', Number(e.target.value))} />
+                        <button onClick={() => removeLine(i)} className="col-span-2 text-xs text-red-500 hover:underline">Remove</button>
+                      </>
+                    )}
                   </div>
                 ))}
               </div>

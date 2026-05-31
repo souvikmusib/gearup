@@ -13,6 +13,7 @@ const lineItemSchema = z.object({
   referenceItemId: z.string().optional(), description: z.string(),
   quantity: z.number().default(1), unitPrice: z.number().default(0),
   taxRate: z.number().default(0), sortOrder: z.number().default(0),
+  discountMode: z.enum(['flat', 'percent']).optional(),
 });
 const createSchema = z.object({
   customerId: z.string(), vehicleId: z.string(), jobCardId: z.string(), appointmentId: z.string().optional(),
@@ -57,12 +58,22 @@ export async function POST(req: NextRequest) {
     try {
       invoice = await prisma.$transaction(async (tx: any) => {
         let subtotal = 0, taxTotal = 0;
+        // First pass: calculate subtotal from non-discount items
+        const nonDiscountItems = body.lineItems.filter((li) => li.lineType !== 'DISCOUNT_ADJUSTMENT');
+        const preSubtotal = nonDiscountItems.reduce((sum, li) => sum + li.quantity * li.unitPrice, 0);
+
         const lines = body.lineItems.map((li) => {
           const isDiscount = li.lineType === 'DISCOUNT_ADJUSTMENT';
-          const lineTotal = isDiscount ? -(Math.abs(li.quantity * li.unitPrice)) : li.quantity * li.unitPrice;
+          let lineTotal: number;
+          if (isDiscount) {
+            const mode = (li as any).discountMode || 'flat';
+            lineTotal = mode === 'percent' ? -(preSubtotal * (li.unitPrice / 100)) : -(Math.abs(li.quantity * li.unitPrice));
+          } else {
+            lineTotal = li.quantity * li.unitPrice;
+          }
           const taxAmount = isDiscount ? 0 : lineTotal * (li.taxRate / 100);
           subtotal += lineTotal; taxTotal += taxAmount;
-          return { ...li, taxAmount, lineTotal: lineTotal + taxAmount };
+          return { lineType: li.lineType, description: li.description, quantity: li.quantity, unitPrice: li.unitPrice, taxRate: li.taxRate, sortOrder: li.sortOrder, taxAmount, lineTotal: lineTotal + taxAmount };
         });
         const discountAmount = body.discountType === 'PERCENTAGE' ? subtotal * ((body.discountValue ?? 0) / 100) : (body.discountValue ?? 0);
         const grandTotal = subtotal + taxTotal - discountAmount;
