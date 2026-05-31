@@ -95,7 +95,6 @@ export default function WorkersPage() {
           <div className="grid grid-cols-2 gap-3">
             <input className={inputCls} placeholder="Shift Start" type="time" value={form.shiftStart} onChange={(e) => setForm({ ...form, shiftStart: e.target.value })} />
             <input className={inputCls} placeholder="Shift End" type="time" value={form.shiftEnd} onChange={(e) => setForm({ ...form, shiftEnd: e.target.value })} />
-            <input className={inputCls} placeholder="Monthly Salary (₹)" type="number" value={form.monthlySalary} onChange={(e) => setForm({ ...form, monthlySalary: e.target.value })} />
           </div>
           <button type="submit" className="w-full rounded-lg bg-blue-600 py-2 text-sm font-medium text-white hover:bg-blue-700">Create</button>
         </form>
