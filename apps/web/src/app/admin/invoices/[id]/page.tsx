@@ -17,6 +17,13 @@ export default function InvoiceDetailPage() {
   const [loading, setLoading] = useState('');
   const [newLine, setNewLine] = useState({ lineType: 'CUSTOM_CHARGE', description: '', quantity: '1', unitPrice: '', taxRate: '0', discountMode: 'flat' });
   const [addingLine, setAddingLine] = useState(false);
+  const [inventoryItems, setInventoryItems] = useState<any[]>([]);
+
+  const loadInventory = async () => {
+    if (inventoryItems.length) return;
+    const res = await api.get<any>('/admin/inventory/items?pageSize=500');
+    if (res.success) setInventoryItems(res.data?.items ?? res.data ?? []);
+  };
 
   const fetch = (useCache = false) => {
     const endpoint = `/admin/invoices/${id}`;
@@ -238,7 +245,17 @@ export default function InvoiceDetailPage() {
               </div>
               <div className="col-span-4">
                 <label className="block text-[10px] text-gray-400 mb-0.5">Description <span className="text-red-500">*</span></label>
-                <input className={inputCls} placeholder={newLine.lineType === 'DISCOUNT_ADJUSTMENT' ? 'Discount reason' : 'e.g. Brake pad replacement'} value={newLine.description} onChange={(e) => setNewLine({ ...newLine, description: e.target.value })} />
+                {newLine.lineType === 'PART' ? (
+                  <select className={inputCls} value={newLine.description} onFocus={loadInventory} onChange={(e) => {
+                    const item = inventoryItems.find((i: any) => i.itemName === e.target.value);
+                    setNewLine({ ...newLine, description: e.target.value, unitPrice: item ? String(Number(item.sellingPrice)) : newLine.unitPrice });
+                  }}>
+                    <option value="">Select part...</option>
+                    {inventoryItems.map((i: any) => <option key={i.id} value={i.itemName}>{i.itemName} ({i.sku}) — ₹{Number(i.sellingPrice)}</option>)}
+                  </select>
+                ) : (
+                  <input className={inputCls} placeholder={newLine.lineType === 'DISCOUNT_ADJUSTMENT' ? 'Discount reason' : 'e.g. Brake pad replacement'} value={newLine.description} onChange={(e) => setNewLine({ ...newLine, description: e.target.value })} />
+                )}
               </div>
               <div className="col-span-1">
                 <label className="block text-[10px] text-gray-400 mb-0.5">Qty</label>
