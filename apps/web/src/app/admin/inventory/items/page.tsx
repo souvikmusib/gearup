@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { api } from '@/lib/api/client';
+import { ProcessLoader } from '@/components/shared/process-loader';
 import { PageHeader, DataTable } from '@gearup/ui';
 import { ListToolbar } from '@/components/shared/list-toolbar';
 import { Pagination } from '@/components/shared/pagination';
@@ -120,7 +121,7 @@ export default function InventoryItemsPage() {
     <div>
       <PageHeader title="Inventory Items" />
       <ListToolbar searchPlaceholder="Search items..." onSearch={onSearch} onCreateClick={() => setShowCreate(true)} createLabel="Create Item" />
-      {loading ? <p className="py-8 text-center text-gray-500">Loading...</p> :
+      {loading ? <ProcessLoader title="Loading inventory" steps={['Fetching items', 'Preparing list']} /> :
         <DataTable columns={columns} data={data} keyField="id" onRowClick={openEdit} />}
       <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Create Item">

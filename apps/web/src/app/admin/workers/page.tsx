@@ -2,6 +2,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';
+import { ProcessLoader } from '@/components/shared/process-loader';
 import { PageHeader, DataTable, StatusBadge } from '@gearup/ui';
 import { ListToolbar } from '@/components/shared/list-toolbar';
 import { Pagination } from '@/components/shared/pagination';
@@ -74,7 +75,7 @@ export default function WorkersPage() {
         filters={[{ label: 'All Statuses', value: 'status', options: STATUSES }]}
         onFilterChange={(_, v) => { setStatus(v); setPage(1); }}
       />
-      {loading ? <p className="py-8 text-center text-gray-500">Loading...</p> :
+      {loading ? <ProcessLoader title="Loading workers" steps={['Fetching worker records', 'Preparing list']} /> :
         <DataTable columns={columns} data={data} keyField="id" onRowClick={(r: any) => router.push(`/admin/workers/${r.id}`)} />}
       <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Create Worker">

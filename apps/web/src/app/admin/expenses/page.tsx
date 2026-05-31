@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api/client';
+import { ProcessLoader } from '@/components/shared/process-loader';
 import { PageHeader, DataTable } from '@gearup/ui';
 import { Modal } from '@/components/shared/modal';
 
@@ -90,7 +91,7 @@ export default function ExpensesPage() {
 
   const inputCls = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white';
 
-  if (loading) return <p className="py-8 text-center text-gray-500">Loading...</p>;
+  if (loading) return <ProcessLoader title="Loading expenses" steps={['Fetching expense records', 'Preparing list']} />;
   return (
     <div>
       <div className="flex items-center justify-between mb-4">

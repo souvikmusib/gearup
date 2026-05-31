@@ -2,6 +2,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';
+import { ProcessLoader } from '@/components/shared/process-loader';
 import { PageHeader, DataTable } from '@gearup/ui';
 import { ListToolbar } from '@/components/shared/list-toolbar';
 import { Pagination } from '@/components/shared/pagination';
@@ -63,7 +64,7 @@ export default function CustomersPage() {
     <div>
       <PageHeader title="Customers" />
       <ListToolbar searchPlaceholder="Search customers..." onSearch={onSearch} onCreateClick={() => setShowCreate(true)} createLabel="Create Customer" />
-      {loading ? <p className="py-8 text-center text-gray-500">Loading...</p> :
+      {loading ? <ProcessLoader title="Loading customers" steps={['Fetching customer records', 'Preparing list']} /> :
         <DataTable columns={columns} data={data} keyField="id" onRowClick={(r: any) => router.push(`/admin/customers/${r.id}`)} />}
       <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Create Customer">
