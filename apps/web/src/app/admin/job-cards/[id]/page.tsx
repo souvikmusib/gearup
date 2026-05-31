@@ -292,7 +292,7 @@ export default function JobCardDetailPage() {
             )) : <p className="text-sm text-gray-400">No workers assigned</p>}
             {canEditWorkers(status) && (
               <div className="mt-3 border-t pt-3 dark:border-gray-600 flex gap-2">
-                <select className={inputCls} value={workerForm.workerId} onFocus={loadWorkers} onChange={(e) => setWorkerForm({ ...workerForm, workerId: e.target.value })}>
+                <select className={inputCls} value={workerForm.workerId} onFocus={loadWorkers} onChange={(e) => { const w = workers.find((w: any) => w.id === e.target.value); setWorkerForm({ workerId: e.target.value, assignmentRole: w?.designation || '' }); }}>
                   <option value="">Assign worker...</option>
                   {workers.map((w: any) => <option key={w.id} value={w.id}>{w.fullName} ({w.designation || w.specialization || 'General'})</option>)}
                 </select>
