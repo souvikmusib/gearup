@@ -10,19 +10,19 @@ export default function ContactPage() {
         <div className="space-y-6">
           <div className="flex items-start gap-3">
             <Phone className="mt-1 text-blue-600" size={20} />
-            <div><p className="font-medium text-gray-900 dark:text-white">Phone</p><p className="text-sm text-gray-600 dark:text-gray-400">+91-XXXXXXXXXX</p></div>
+            <div><p className="font-medium text-gray-900 dark:text-white">Phone</p><p className="text-sm text-gray-600 dark:text-gray-400">+91-9242519099</p></div>
           </div>
           <div className="flex items-start gap-3">
             <Mail className="mt-1 text-blue-600" size={20} />
-            <div><p className="font-medium text-gray-900 dark:text-white">Email</p><p className="text-sm text-gray-600 dark:text-gray-400">info@gearupservicing.com</p></div>
+            <div><p className="font-medium text-gray-900 dark:text-white">Email</p><p className="text-sm text-gray-600 dark:text-gray-400">gearup.sgnk.ai@gmail.com</p></div>
           </div>
           <div className="flex items-start gap-3">
             <MapPin className="mt-1 text-blue-600" size={20} />
-            <div><p className="font-medium text-gray-900 dark:text-white">Address</p><p className="text-sm text-gray-600 dark:text-gray-400">GearUp Servicing Center</p></div>
+            <div><p className="font-medium text-gray-900 dark:text-white">Address</p><p className="text-sm text-gray-600 dark:text-gray-400">Milanpally, Katjuridanga, Bankura</p></div>
           </div>
           <div className="flex items-start gap-3">
             <Clock className="mt-1 text-blue-600" size={20} />
-            <div><p className="font-medium text-gray-900 dark:text-white">Working Hours</p><p className="text-sm text-gray-600 dark:text-gray-400">Mon–Sat: 9:00 AM – 6:00 PM</p><p className="text-sm text-gray-600 dark:text-gray-400">Sunday: Closed</p></div>
+            <div><p className="font-medium text-gray-900 dark:text-white">Working Hours</p><p className="text-sm text-gray-600 dark:text-gray-400">Mon–Sat: 9:00 AM – 6:30 PM</p><p className="text-sm text-gray-600 dark:text-gray-400">Sunday: Closed</p></div>
           </div>
         </div>
 

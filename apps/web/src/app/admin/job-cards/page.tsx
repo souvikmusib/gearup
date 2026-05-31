@@ -2,8 +2,10 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { api } from '@/lib/api/client';
+import { ProcessLoader } from '@/components/shared/process-loader';
 import { PageHeader, DataTable, StatusBadge } from '@gearup/ui';
 import { Modal } from '@/components/shared/modal';
+import { formatRegNumber } from '@/lib/format-reg';
 
 export default function JobCardsPage() {
   const [data, setData] = useState<any[]>([]);
@@ -122,7 +124,7 @@ export default function JobCardsPage() {
 
   const inputCls = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white';
 
-  if (loading) return <p className="py-8 text-center text-gray-500">Loading...</p>;
+  if (loading) return <ProcessLoader title="Loading job cards" steps={['Fetching active jobs', 'Preparing list']} />;
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
@@ -146,7 +148,7 @@ export default function JobCardsPage() {
           {!newCust ? (
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="text-sm font-medium">Customer *</label>
+                <label className="text-sm font-medium">Customer <span className="text-red-500">*</span></label>
                 <button type="button" onClick={() => setNewCust(true)} className="text-xs text-blue-600 hover:underline">+ New Customer</button>
               </div>
               <select className={inputCls} value={form.customerId} onChange={(e) => onCustomerChange(e.target.value)}>
@@ -175,7 +177,7 @@ export default function JobCardsPage() {
           {!newVeh ? (
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="text-sm font-medium">Vehicle *</label>
+                <label className="text-sm font-medium">Vehicle <span className="text-red-500">*</span></label>
                 {form.customerId && <button type="button" onClick={() => setNewVeh(true)} className="text-xs text-blue-600 hover:underline">+ New Vehicle</button>}
               </div>
               <select className={inputCls} value={form.vehicleId} onChange={(e) => setForm((f) => ({ ...f, vehicleId: e.target.value }))}>
@@ -193,7 +195,7 @@ export default function JobCardsPage() {
                 <select className={inputCls} value={vehForm.vehicleType} onChange={(e) => setVehForm({ ...vehForm, vehicleType: e.target.value })}>
                   <option value="BIKE">Motorcycle</option><option value="OTHER">Scooter / Other</option>
                 </select>
-                <input className={inputCls} placeholder="Reg. Number *" value={vehForm.registrationNumber} onChange={(e) => setVehForm({ ...vehForm, registrationNumber: e.target.value })} />
+                <input className={inputCls} placeholder="WB-26-AB-1234" value={vehForm.registrationNumber} onChange={(e) => setVehForm({ ...vehForm, registrationNumber: formatRegNumber(e.target.value) })} />
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <input className={inputCls} placeholder="Brand *" value={vehForm.brand} onChange={(e) => setVehForm({ ...vehForm, brand: e.target.value })} />
@@ -205,7 +207,7 @@ export default function JobCardsPage() {
             </div>
           )}
 
-          <div><label className="block text-sm font-medium mb-1">Issue Summary *</label><textarea className={inputCls} rows={2} value={form.issueSummary} onChange={(e) => setForm((f) => ({ ...f, issueSummary: e.target.value }))} /></div>
+          <div><label className="block text-sm font-medium mb-1">Issue Summary <span className="text-red-500">*</span></label><textarea className={inputCls} rows={2} value={form.issueSummary} onChange={(e) => setForm((f) => ({ ...f, issueSummary: e.target.value }))} /></div>
           <div><label className="block text-sm font-medium mb-1">Customer Complaints</label><textarea className={inputCls} rows={2} value={form.customerComplaints} onChange={(e) => setForm((f) => ({ ...f, customerComplaints: e.target.value }))} /></div>
           <div>
             <label className="block text-sm font-medium mb-1">Priority</label>

@@ -2,6 +2,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';
+import { ProcessLoader } from '@/components/shared/process-loader';
 import { PageHeader, DataTable, StatusBadge } from '@gearup/ui';
 import { ListToolbar } from '@/components/shared/list-toolbar';
 import { Pagination } from '@/components/shared/pagination';
@@ -27,13 +28,13 @@ export default function ServiceRequestsPage() {
     const { cached, promise } = api.getSWR<any>(endpoint);
     if (cached?.success) {
       setData(cached.data?.items ?? cached.data ?? []);
-      setTotalPages(cached.data?.totalPages ?? 1);
+      setTotalPages(cached.meta?.totalPages ?? 1);
       setLoading(false);
     } else {
       setLoading(true);
     }
     promise.then((res) => {
-      if (res.success) { setData(res.data?.items ?? res.data ?? []); setTotalPages(res.data?.totalPages ?? 1); }
+      if (res.success) { setData(res.data?.items ?? res.data ?? []); setTotalPages(res.meta?.totalPages ?? 1); }
       setLoading(false);
     });
   }, [search, status, page]);
@@ -65,7 +66,7 @@ export default function ServiceRequestsPage() {
         filters={[{ label: 'All Statuses', value: 'status', options: STATUSES }]}
         onFilterChange={(_, v) => { setStatus(v); setPage(1); }}
       />
-      {loading ? <p className="py-8 text-center text-gray-500">Loading...</p> :
+      {loading ? <ProcessLoader title="Loading requests" steps={['Fetching service requests', 'Preparing list']} /> :
         <DataTable columns={columns} data={data} keyField="id" onRowClick={(r: any) => router.push(`/admin/service-requests/${r.id}`)} />}
       <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
     </div>

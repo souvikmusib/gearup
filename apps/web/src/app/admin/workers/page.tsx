@@ -2,6 +2,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';
+import { ProcessLoader } from '@/components/shared/process-loader';
 import { PageHeader, DataTable, StatusBadge } from '@gearup/ui';
 import { ListToolbar } from '@/components/shared/list-toolbar';
 import { Pagination } from '@/components/shared/pagination';
@@ -17,7 +18,7 @@ export default function WorkersPage() {
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('');
   const [showCreate, setShowCreate] = useState(false);
-  const [form, setForm] = useState({ fullName: '', phoneNumber: '', email: '', designation: '', specialization: '', shiftStart: '', shiftEnd: '' });
+  const [form, setForm] = useState({ fullName: '', phoneNumber: '', email: '', designation: '', specialization: '', shiftStart: '', shiftEnd: '', monthlySalary: '' });
   const router = useRouter();
   const timer = useRef<NodeJS.Timeout>();
 
@@ -30,13 +31,13 @@ export default function WorkersPage() {
     const { cached, promise } = api.getSWR<any>(endpoint);
     if (cached?.success) {
       setData(cached.data?.items ?? cached.data ?? []);
-      setTotalPages(cached.data?.totalPages ?? 1);
+      setTotalPages(cached.meta?.totalPages ?? 1);
       setLoading(false);
     } else {
       setLoading(true);
     }
     promise.then((res) => {
-      if (res.success) { setData(res.data?.items ?? res.data ?? []); setTotalPages(res.data?.totalPages ?? 1); }
+      if (res.success) { setData(res.data?.items ?? res.data ?? []); setTotalPages(res.meta?.totalPages ?? 1); }
       setLoading(false);
     });
   }, [search, status, page]);
@@ -51,8 +52,8 @@ export default function WorkersPage() {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const res = await api.post('/admin/workers', form);
-    if (res.success) { setShowCreate(false); setForm({ fullName: '', phoneNumber: '', email: '', designation: '', specialization: '', shiftStart: '', shiftEnd: '' }); load(); }
+    const res = await api.post('/admin/workers', { ...form, monthlySalary: form.monthlySalary ? Number(form.monthlySalary) : undefined });
+    if (res.success) { setShowCreate(false); setForm({ fullName: '', phoneNumber: '', email: '', designation: '', specialization: '', shiftStart: '', shiftEnd: '', monthlySalary: '' }); load(); }
   };
 
   const columns = [
@@ -74,12 +75,12 @@ export default function WorkersPage() {
         filters={[{ label: 'All Statuses', value: 'status', options: STATUSES }]}
         onFilterChange={(_, v) => { setStatus(v); setPage(1); }}
       />
-      {loading ? <p className="py-8 text-center text-gray-500">Loading...</p> :
+      {loading ? <ProcessLoader title="Loading workers" steps={['Fetching worker records', 'Preparing list']} /> :
         <DataTable columns={columns} data={data} keyField="id" onRowClick={(r: any) => router.push(`/admin/workers/${r.id}`)} />}
       <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Create Worker">
         <form onSubmit={onSubmit} className="space-y-3">
-          <input className={inputCls} placeholder="Full Name *" required value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} />
+          <div><label className="block text-xs font-medium mb-1">Full Name <span className="text-red-500">*</span></label><input className={inputCls} placeholder="Full Name" required value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} /></div>
           <div className="grid grid-cols-2 gap-3">
             <input className={inputCls} placeholder="Phone" value={form.phoneNumber} onChange={(e) => setForm({ ...form, phoneNumber: e.target.value })} />
             <input className={inputCls} placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />

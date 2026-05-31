@@ -54,7 +54,7 @@ export default function SuppliersPage() {
 
   const fields = (f: typeof form, set: (v: typeof form) => void) => (
     <div className="space-y-3">
-      <div><label className={labelCls}>Supplier Name *</label><input className={inputCls} required value={f.supplierName} onChange={(e) => set({ ...f, supplierName: e.target.value })} /></div>
+      <div><label className={labelCls}>Supplier Name <span className="text-red-500">*</span></label><input className={inputCls} required value={f.supplierName} onChange={(e) => set({ ...f, supplierName: e.target.value })} /></div>
       <div className="grid grid-cols-2 gap-3">
         <div><label className={labelCls}>Phone</label><input className={inputCls} value={f.phone} onChange={(e) => set({ ...f, phone: e.target.value })} /></div>
         <div><label className={labelCls}>Email</label><input className={inputCls} value={f.email} onChange={(e) => set({ ...f, email: e.target.value })} /></div>

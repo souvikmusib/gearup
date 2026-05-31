@@ -36,6 +36,7 @@ export default function CustomerDetailPage() {
       <div className="flex items-center justify-between">
         <PageHeader title={data.fullName} description={data.phoneNumber} />
         <button onClick={() => setShowEdit(true)} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">Edit Customer</button>
+        <button onClick={async () => { if (!confirm('Delete this customer?')) return; const res = await api.delete(`/admin/customers/${id}`); if (res.success) router.push('/admin/customers'); else alert(res.error?.message || 'Cannot delete'); }} className="rounded-lg px-4 py-2 text-sm font-medium text-red-600 border border-red-300 hover:bg-red-50 dark:border-red-700 dark:hover:bg-red-900/20">Delete</button>
       </div>
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="rounded-lg border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-800 space-y-2">

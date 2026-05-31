@@ -54,6 +54,15 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         where: { id: params.id },
         data: { amountDue: Math.max(0, newDue), paymentStatus: paymentStatus as any },
       });
+
+      // If fully paid and job card exists, mark job card as DELIVERED
+      if (paymentStatus === 'PAID' && invoice.jobCardId) {
+        await tx.jobCard.update({
+          where: { id: invoice.jobCardId },
+          data: { status: 'DELIVERED', actualDeliveryAt: new Date() },
+        });
+      }
+
       return payment;
     });
 

@@ -77,9 +77,9 @@ export default function HolidaysPage() {
 
       <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Add Holiday">
         <form onSubmit={submit} className="space-y-3">
-          <div><label className="block text-xs font-medium mb-1">Holiday Name *</label><input className={inputCls} required value={form.holidayName} onChange={(e) => setForm({ ...form, holidayName: e.target.value })} placeholder="e.g. Diwali, Sunday Off" /></div>
+          <div><label className="block text-xs font-medium mb-1">Holiday Name <span className="text-red-500">*</span></label><input className={inputCls} required value={form.holidayName} onChange={(e) => setForm({ ...form, holidayName: e.target.value })} placeholder="e.g. Diwali, Sunday Off" /></div>
           <div className="grid grid-cols-2 gap-3">
-            <div><label className="block text-xs font-medium mb-1">Date *</label><input type="date" className={inputCls} required value={form.holidayDate} onChange={(e) => setForm({ ...form, holidayDate: e.target.value })} /></div>
+            <div><label className="block text-xs font-medium mb-1">Date <span className="text-red-500">*</span></label><input type="date" className={inputCls} required value={form.holidayDate} onChange={(e) => setForm({ ...form, holidayDate: e.target.value })} /></div>
             <div><label className="block text-xs font-medium mb-1">Type</label>
               <select className={inputCls} value={form.holidayType} onChange={(e) => setForm({ ...form, holidayType: e.target.value })}>
                 {TYPES.map((t) => <option key={t} value={t}>{t.replace(/_/g, ' ')}</option>)}

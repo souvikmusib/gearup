@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';
+import { ProcessLoader } from '@/components/shared/process-loader';
 import { PageHeader, DataTable, StatusBadge } from '@gearup/ui';
 import { Modal } from '@/components/shared/modal';
 
@@ -75,7 +76,7 @@ export default function AppointmentsPage() {
 
   const inputCls = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white';
 
-  if (loading) return <p className="py-8 text-center text-gray-500">Loading...</p>;
+  if (loading) return <ProcessLoader title="Loading appointments" steps={['Fetching schedule', 'Preparing list']} />;
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
@@ -95,21 +96,21 @@ export default function AppointmentsPage() {
         <div className="space-y-4">
           {error && <p className="text-sm text-red-600">{error}</p>}
           <div>
-            <label className="block text-sm font-medium mb-1">Customer *</label>
+            <label className="block text-sm font-medium mb-1">Customer <span className="text-red-500">*</span></label>
             <select className={inputCls} value={form.customerId} onChange={(e) => onCustomerChange(e.target.value)}>
               <option value="">Select customer...</option>
               {customers.map((c: any) => <option key={c.id} value={c.id}>{c.fullName} ({c.phoneNumber})</option>)}
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Vehicle *</label>
+            <label className="block text-sm font-medium mb-1">Vehicle <span className="text-red-500">*</span></label>
             <select className={inputCls} value={form.vehicleId} onChange={(e) => setForm((f) => ({ ...f, vehicleId: e.target.value }))}>
               <option value="">Select vehicle...</option>
               {vehicles.map((v: any) => <option key={v.id} value={v.id}>{v.registrationNumber} — {v.brand} {v.model}</option>)}
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Date & Time *</label>
+            <label className="block text-sm font-medium mb-1">Date & Time <span className="text-red-500">*</span></label>
             <input type="datetime-local" className={inputCls} value={form.appointmentDate} onChange={(e) => setForm((f) => ({ ...f, appointmentDate: e.target.value }))} />
           </div>
           <button onClick={submit} disabled={saving} className="w-full rounded-lg bg-blue-600 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50">

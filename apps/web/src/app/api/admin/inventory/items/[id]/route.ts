@@ -29,3 +29,17 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     return NextResponse.json({ success: true, data: item });
   } catch (e) { return handleApiError(e); }
 }
+
+export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    const user = requirePermission(PERMISSIONS.INVENTORY_EDIT);
+    const usedInJobCards = await prisma.jobCardPart.count({ where: { inventoryItemId: params.id } });
+    if (usedInJobCards > 0) {
+      return NextResponse.json({ success: false, error: { message: `Cannot delete — item is used in ${usedInJobCards} job card(s)` } }, { status: 409 });
+    }
+    await prisma.stockMovement.deleteMany({ where: { inventoryItemId: params.id } });
+    await prisma.inventoryItem.delete({ where: { id: params.id } });
+    logActivity({ entityType: 'InventoryItem', entityId: params.id, action: 'inventory.item.deleted', actorType: 'ADMIN', actorId: user.sub });
+    return NextResponse.json({ success: true });
+  } catch (e) { return handleApiError(e); }
+}

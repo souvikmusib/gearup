@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';
 import { PageHeader, StatusBadge } from '@gearup/ui';
+import { WhatsAppButton } from '@/components/shared/whatsapp-button';
 import { Modal } from '@/components/shared/modal';
 
 const STATUS_ACTIONS: Record<string, { label: string; status: string; color: string }[]> = {
@@ -114,6 +115,9 @@ export default function AppointmentDetailPage() {
           <div className="rounded-lg border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-800">
             <h3 className="font-semibold text-gray-900 dark:text-white">Customer</h3>
             <p className="text-sm text-gray-600 dark:text-gray-400">{data.customer?.fullName} · {data.customer?.phoneNumber}</p>
+            {data.customer?.phoneNumber && data.status === 'CONFIRMED' && (
+              <div className="mt-2"><WhatsAppButton phone={data.customer.phoneNumber} message={`Hi ${data.customer.fullName}, your appointment on ${new Date(data.appointmentDate).toLocaleDateString()} at ${new Date(data.slotStart).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} is confirmed. Ref: ${data.referenceId}. - GearUp Servicing, 9242519099`} /></div>
+            )}
           </div>
           <div className="rounded-lg border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-800">
             <h3 className="font-semibold text-gray-900 dark:text-white">Vehicle</h3>
@@ -134,7 +138,7 @@ export default function AppointmentDetailPage() {
 
       <Modal open={showReschedule} onClose={() => setShowReschedule(false)} title="Reschedule Appointment">
         <div className="space-y-4">
-          <div><label className="block text-sm font-medium mb-1">New Date & Time *</label><input type="datetime-local" className={inputCls} value={rescheduleDate} onChange={(e) => setRescheduleDate(e.target.value)} /></div>
+          <div><label className="block text-sm font-medium mb-1">New Date & Time <span className="text-red-500">*</span></label><input type="datetime-local" className={inputCls} value={rescheduleDate} onChange={(e) => setRescheduleDate(e.target.value)} /></div>
           <div><label className="block text-sm font-medium mb-1">Reason</label><input className={inputCls} value={rescheduleReason} onChange={(e) => setRescheduleReason(e.target.value)} /></div>
           <button onClick={submitReschedule} disabled={!rescheduleDate || !!loading} className="w-full rounded-lg bg-yellow-600 py-2 text-sm font-semibold text-white hover:bg-yellow-700 disabled:opacity-50">
             {loading ? 'Saving...' : 'Reschedule'}

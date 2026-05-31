@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { api } from '@/lib/api/client';
+import { ProcessLoader } from '@/components/shared/process-loader';
 import { PageHeader, DataTable } from '@gearup/ui';
 import { ListToolbar } from '@/components/shared/list-toolbar';
 import { Pagination } from '@/components/shared/pagination';
@@ -12,6 +13,7 @@ export default function InventoryItemsPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
   const [showCreate, setShowCreate] = useState(false);
   const [categories, setCategories] = useState<any[]>([]);
   const [suppliers, setSuppliers] = useState<any[]>([]);
@@ -31,24 +33,25 @@ export default function InventoryItemsPage() {
     if (supRes.success) setSuppliers(supRes.data ?? []);
   };
 
-  const load = useCallback((s = search, p = page) => {
+  const load = useCallback((s = search, p = page, cat = categoryFilter) => {
     const params = new URLSearchParams();
     if (s) params.set('search', s);
+    if (cat) params.set('categoryId', cat);
     params.set('page', String(p));
     const endpoint = `/admin/inventory/items?${params.toString()}`;
     const { cached, promise } = api.getSWR<any>(endpoint);
     if (cached?.success) {
       setData(cached.data?.items ?? cached.data ?? []);
-      setTotalPages(cached.data?.totalPages ?? 1);
+      setTotalPages(cached.meta?.totalPages ?? 1);
       setLoading(false);
     } else {
       setLoading(true);
     }
     promise.then((res) => {
-      if (res.success) { setData(res.data?.items ?? res.data ?? []); setTotalPages(res.data?.totalPages ?? 1); }
+      if (res.success) { setData(res.data?.items ?? res.data ?? []); setTotalPages(res.meta?.totalPages ?? 1); }
       setLoading(false);
     });
-  }, [search, page]);
+  }, [search, page, categoryFilter]);
 
   useEffect(() => { load(); }, [page]);
 
@@ -120,15 +123,21 @@ export default function InventoryItemsPage() {
     <div>
       <PageHeader title="Inventory Items" />
       <ListToolbar searchPlaceholder="Search items..." onSearch={onSearch} onCreateClick={() => setShowCreate(true)} createLabel="Create Item" />
-      {loading ? <p className="py-8 text-center text-gray-500">Loading...</p> :
+      <div className="mb-4 flex gap-2">
+        <select className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white" value={categoryFilter} onChange={(e) => { setCategoryFilter(e.target.value); load(search, 1, e.target.value); }} onFocus={loadLookups}>
+          <option value="">All Categories</option>
+          {categories.map((c: any) => <option key={c.id} value={c.id}>{c.categoryName}</option>)}
+        </select>
+      </div>
+      {loading ? <ProcessLoader title="Loading inventory" steps={['Fetching items', 'Preparing list']} /> :
         <DataTable columns={columns} data={data} keyField="id" onRowClick={openEdit} />}
       <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Create Item">
         <form onSubmit={onSubmit} className="space-y-3">
-          <input className={inputCls} placeholder="SKU" required value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} />
-          <input className={inputCls} placeholder="Item Name" required value={form.itemName} onChange={(e) => setForm({ ...form, itemName: e.target.value })} />
+          <div><label className="block text-xs font-medium mb-1">SKU <span className="text-red-500">*</span></label><input className={inputCls} placeholder="SKU" required value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} /></div>
+          <div><label className="block text-xs font-medium mb-1">Item Name <span className="text-red-500">*</span></label><input className={inputCls} placeholder="Item Name" required value={form.itemName} onChange={(e) => setForm({ ...form, itemName: e.target.value })} /></div>
           <div className="grid grid-cols-2 gap-3">
-            <div><label className={labelCls}>Category *</label>
+            <div><label className={labelCls}>Category <span className="text-red-500">*</span></label>
               <select className={inputCls} required value={form.categoryId} onFocus={loadLookups} onChange={(e) => setForm({ ...form, categoryId: e.target.value })}>
                 <option value="">Select...</option>
                 {categories.map((c: any) => <option key={c.id} value={c.id}>{c.categoryName}</option>)}
@@ -141,7 +150,7 @@ export default function InventoryItemsPage() {
               </select>
             </div>
           </div>
-          <input className={inputCls} placeholder="Unit (e.g. pcs, litre)" required value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })} />
+          <div><label className="block text-xs font-medium mb-1">Unit <span className="text-red-500">*</span></label><input className={inputCls} placeholder="e.g. pcs, litre" required value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })} /></div>
           <div className="grid grid-cols-2 gap-3">
             <input className={inputCls} placeholder="Cost Price" type="number" step="0.01" required value={form.costPrice} onChange={(e) => setForm({ ...form, costPrice: e.target.value })} />
             <input className={inputCls} placeholder="Selling Price" type="number" step="0.01" required value={form.sellingPrice} onChange={(e) => setForm({ ...form, sellingPrice: e.target.value })} />
@@ -183,6 +192,7 @@ export default function InventoryItemsPage() {
           <button type="submit" disabled={editSaving} className="w-full rounded-lg bg-blue-600 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
             {editSaving ? 'Saving...' : 'Save Changes'}
           </button>
+          <button type="button" onClick={async () => { if (!confirm('Delete this item?')) return; const res = await api.delete(`/admin/inventory/items/${editItem?.id}`); if (res.success) { setEditItem(null); load(); } else alert(res.error?.message || 'Cannot delete'); }} className="w-full mt-2 rounded-lg py-2 text-sm font-medium text-red-600 border border-red-300 hover:bg-red-50 dark:border-red-700 dark:hover:bg-red-900/20">Delete Item</button>
         </form>
       </Modal>
       <Modal open={!!stockItem} onClose={() => setStockItem(null)} title={`Adjust Stock: ${stockItem?.itemName ?? ''}`}>

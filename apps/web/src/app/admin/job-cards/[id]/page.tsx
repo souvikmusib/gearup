@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';
 import { PageHeader, StatusBadge } from '@gearup/ui';
+import { WhatsAppButton } from '@/components/shared/whatsapp-button';
 
 // Simplified statuses (what the UI shows and allows)
 const SIMPLE_STATUSES = ['OPEN', 'ESTIMATE_READY', 'IN_PROGRESS', 'READY', 'DELIVERED', 'CANCELLED'] as const;
@@ -43,7 +44,7 @@ const NEXT_STATUS: Record<string, { label: string; next: string; color: string }
 
 // Status-based section visibility
 function canEditWorkers(s: string) { return ['OPEN', 'ESTIMATE_READY', 'IN_PROGRESS'].includes(s); }
-function canEditParts(s: string) { return ['OPEN', 'ESTIMATE_READY'].includes(s); }
+function canEditParts(s: string) { return ['OPEN', 'ESTIMATE_READY', 'IN_PROGRESS'].includes(s); }
 function canEditTasks(s: string) { return ['ESTIMATE_READY', 'IN_PROGRESS'].includes(s); }
 function canUpdateTaskStatus(s: string) { return s === 'IN_PROGRESS'; }
 function canEditCosts(s: string) { return ['OPEN', 'ESTIMATE_READY'].includes(s); }
@@ -80,14 +81,14 @@ export default function JobCardDetailPage() {
     setLoading(simpleStatus);
     const res = await api.patch<any>(`/admin/job-cards/${id}`, { status: dbStatus });
     setLoading('');
-    if (res.success) setData(res.data);
+    if (res.success) load();
   };
 
   const saveNotes = async () => {
     setSavingNotes(true);
     const res = await api.patch<any>(`/admin/job-cards/${id}`, notes);
     setSavingNotes(false);
-    if (res.success) setData(res.data);
+    if (res.success) load();
   };
 
   const saveCost = async (field: string, value: string) => {
@@ -96,7 +97,7 @@ export default function JobCardDetailPage() {
     const patch: Record<string, number> = { [field]: num };
     if (field === 'estimatedLaborCost') patch.estimatedTotal = Number(data.estimatedPartsCost) + num;
     const res = await api.patch<any>(`/admin/job-cards/${id}`, patch);
-    if (res.success) setData(res.data);
+    if (res.success) load();
   };
 
   const loadInventory = async () => {
@@ -215,6 +216,19 @@ export default function JobCardDetailPage() {
           </button>
         )}
         {!locked && (
+          <button onClick={async () => {
+            const hasInvoice = data.invoices?.length > 0;
+            const msg = hasInvoice
+              ? `This job card has invoice ${data.invoices[0].invoiceNumber}. Deleting will remove the invoice and all payments too. Proceed?`
+              : 'Delete this job card permanently?';
+            if (!confirm(msg)) return;
+            const res = await api.delete(`/admin/job-cards/${id}`);
+            if (res.success) router.push('/admin/job-cards');
+          }} className="rounded-lg px-4 py-2 text-sm font-medium text-red-600 border border-red-300 hover:bg-red-50 dark:border-red-700 dark:hover:bg-red-900/20">
+            Delete
+          </button>
+        )}
+        {!locked && (
           <select className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white" value={status} onChange={(e) => updateStatus(e.target.value)}>
             {SIMPLE_STATUSES.map((s) => <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>)}
           </select>
@@ -248,6 +262,9 @@ export default function JobCardDetailPage() {
               <p className="text-sm text-gray-600 dark:text-gray-400">Vehicle: {data.vehicle?.registrationNumber} — {data.vehicle?.brand} {data.vehicle?.model}</p>
               <p className="text-sm text-gray-500">Intake: {new Date(data.intakeDate).toLocaleDateString()}</p>
               {data.actualDeliveryAt && <p className="text-sm text-green-600">Delivered: {new Date(data.actualDeliveryAt).toLocaleDateString()}</p>}
+              {status === 'READY' && data.customer?.phoneNumber && (
+                <div className="mt-2"><WhatsAppButton phone={data.customer.phoneNumber} message={`Hi ${data.customer.fullName}, your ${data.vehicle?.brand} ${data.vehicle?.model} (${data.vehicle?.registrationNumber}) is ready for pickup! Job Card: ${data.jobCardNumber}. - GearUp Servicing, 9242519099`} /></div>
+              )}
             </div>
           </div>
 
@@ -281,13 +298,13 @@ export default function JobCardDetailPage() {
             <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Workers</h3>
             {data.assignments?.length ? data.assignments.map((a: any) => (
               <div key={a.id} className="flex items-center justify-between text-sm mt-1">
-                <span className="text-gray-600 dark:text-gray-400">{a.worker?.fullName} <span className="text-xs text-gray-400">({a.assignmentRole ?? 'General'})</span></span>
+                <span className="text-gray-600 dark:text-gray-400">{a.worker?.fullName}{a.assignmentRole ? <span className="text-xs text-gray-400"> ({a.assignmentRole})</span> : ''}</span>
                 {canEditWorkers(status) && <button onClick={() => unassignWorker(a.id)} className="text-red-500 hover:text-red-700 text-xs">✕</button>}
               </div>
             )) : <p className="text-sm text-gray-400">No workers assigned</p>}
             {canEditWorkers(status) && (
               <div className="mt-3 border-t pt-3 dark:border-gray-600 flex gap-2">
-                <select className={inputCls} value={workerForm.workerId} onFocus={loadWorkers} onChange={(e) => setWorkerForm({ ...workerForm, workerId: e.target.value })}>
+                <select className={inputCls} value={workerForm.workerId} onFocus={loadWorkers} onChange={(e) => { const w = workers.find((w: any) => w.id === e.target.value); setWorkerForm({ workerId: e.target.value, assignmentRole: w?.designation || '' }); }}>
                   <option value="">Assign worker...</option>
                   {workers.map((w: any) => <option key={w.id} value={w.id}>{w.fullName} ({w.designation || w.specialization || 'General'})</option>)}
                 </select>

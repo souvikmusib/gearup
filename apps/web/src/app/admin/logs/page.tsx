@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api/client';
+import { ProcessLoader } from '@/components/shared/process-loader';
 import { PageHeader, DataTable } from '@gearup/ui';
 export default function ActivityLogsPage() {
   const [data, setData] = useState<any[]>([]); const [loading, setLoading] = useState(true);
@@ -9,7 +10,7 @@ export default function ActivityLogsPage() {
     if (cached?.success) { setData(cached.data ?? []); setLoading(false); }
     promise.then((r) => { if (r.success) setData(r.data ?? []); setLoading(false); });
   }, []);
-  if (loading) return <p className="py-8 text-center text-gray-500">Loading...</p>;
+  if (loading) return <ProcessLoader title="Loading activity" steps={['Fetching activity logs', 'Preparing list']} />;
   return (<div><PageHeader title="Activity Logs" /><DataTable columns={[
     { key: 'createdAt', header: 'Time', render: (r: any) => new Date(r.createdAt).toLocaleString() },
     { key: 'actorType', header: 'Actor' }, { key: 'actor', header: 'User', render: (r: any) => r.adminUser?.fullName ?? r.actorId ?? '—' },

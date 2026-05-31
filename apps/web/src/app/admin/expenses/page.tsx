@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api/client';
+import { ProcessLoader } from '@/components/shared/process-loader';
 import { PageHeader, DataTable } from '@gearup/ui';
 import { Modal } from '@/components/shared/modal';
 
@@ -90,12 +91,15 @@ export default function ExpensesPage() {
 
   const inputCls = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white';
 
-  if (loading) return <p className="py-8 text-center text-gray-500">Loading...</p>;
+  if (loading) return <ProcessLoader title="Loading expenses" steps={['Fetching expense records', 'Preparing list']} />;
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
         <PageHeader title="Expenses" />
-        <button onClick={openCreate} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">+ Add Expense</button>
+        <div className="flex gap-2">
+          <a href="/admin/expenses/categories" className="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 hover:bg-gray-50 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-800">Manage Categories</a>
+          <button onClick={openCreate} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">+ Add Expense</button>
+        </div>
       </div>
       <div className="flex gap-2 mb-4">
         <input className={inputCls + ' max-w-xs'} placeholder="Search expenses..." value={search} onChange={(e) => { setSearch(e.target.value); load(e.target.value, catFilter); }} />
@@ -118,11 +122,11 @@ export default function ExpensesPage() {
         <div className="space-y-3">
           {error && <p className="text-sm text-red-600">{error}</p>}
           <div className="grid grid-cols-2 gap-3">
-            <div><label className="block text-xs font-medium mb-1">Date *</label><input type="date" className={inputCls} value={form.expenseDate} onChange={(e) => setForm({ ...form, expenseDate: e.target.value })} /></div>
-            <div><label className="block text-xs font-medium mb-1">Amount *</label><input type="number" className={inputCls} value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} /></div>
+            <div><label className="block text-xs font-medium mb-1">Date <span className="text-red-500">*</span></label><input type="date" className={inputCls} value={form.expenseDate} onChange={(e) => setForm({ ...form, expenseDate: e.target.value })} /></div>
+            <div><label className="block text-xs font-medium mb-1">Amount <span className="text-red-500">*</span></label><input type="number" className={inputCls} value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} /></div>
           </div>
-          <div><label className="block text-xs font-medium mb-1">Title *</label><input className={inputCls} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
-          <div><label className="block text-xs font-medium mb-1">Category *</label>
+          <div><label className="block text-xs font-medium mb-1">Title <span className="text-red-500">*</span></label><input className={inputCls} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
+          <div><label className="block text-xs font-medium mb-1">Category <span className="text-red-500">*</span></label>
             <select className={inputCls} value={form.categoryId} onChange={(e) => setForm({ ...form, categoryId: e.target.value })}>
               <option value="">Select...</option>
               {categories.map((c: any) => <option key={c.id} value={c.id}>{c.categoryName}</option>)}

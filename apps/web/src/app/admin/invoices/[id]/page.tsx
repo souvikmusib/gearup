@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';
 import { PageHeader, StatusBadge } from '@gearup/ui';
+import { WhatsAppButton } from '@/components/shared/whatsapp-button';
 import { FileText, CheckCircle, CreditCard, Download } from 'lucide-react';
 
 export default function InvoiceDetailPage() {
@@ -14,8 +15,21 @@ export default function InvoiceDetailPage() {
   const [payMode, setPayMode] = useState('CASH');
   const [payRef, setPayRef] = useState('');
   const [loading, setLoading] = useState('');
-  const [newLine, setNewLine] = useState({ lineType: 'CUSTOM_CHARGE', description: '', quantity: '1', unitPrice: '', taxRate: '0' });
+  const [newLine, setNewLine] = useState({ lineType: 'CUSTOM_CHARGE', description: '', quantity: '1', unitPrice: '', taxRate: '0', discountMode: 'flat' });
   const [addingLine, setAddingLine] = useState(false);
+  const [inventoryItems, setInventoryItems] = useState<any[]>([]);
+  const [workers, setWorkers] = useState<any[]>([]);
+
+  const loadInventory = async () => {
+    if (inventoryItems.length) return;
+    const res = await api.get<any>('/admin/inventory/items?pageSize=500');
+    if (res.success) setInventoryItems(res.data?.items ?? res.data ?? []);
+  };
+  const loadWorkers = async () => {
+    if (workers.length) return;
+    const res = await api.get<any>('/admin/workers?pageSize=200');
+    if (res.success) setWorkers(res.data?.items ?? res.data ?? []);
+  };
 
   const fetch = (useCache = false) => {
     const endpoint = `/admin/invoices/${id}`;
@@ -48,12 +62,14 @@ export default function InvoiceDetailPage() {
   const addLine = async () => {
     if (!newLine.description) return;
     setAddingLine(true);
-    const res = await api.post<any>(`/admin/invoices/${id}/line-items`, {
+    const payload: Record<string, any> = {
       lineType: newLine.lineType, description: newLine.description,
       quantity: Number(newLine.quantity) || 1, unitPrice: Number(newLine.unitPrice) || 0, taxRate: Number(newLine.taxRate) || 0,
-    });
+    };
+    if (newLine.lineType === 'DISCOUNT_ADJUSTMENT') payload.discountMode = newLine.discountMode;
+    const res = await api.post<any>(`/admin/invoices/${id}/line-items`, payload);
     setAddingLine(false);
-    if (res.success) { setNewLine({ lineType: 'CUSTOM_CHARGE', description: '', quantity: '1', unitPrice: '', taxRate: '0' }); fetch(); }
+    if (res.success) { setNewLine({ lineType: 'CUSTOM_CHARGE', description: '', quantity: '1', unitPrice: '', taxRate: '0', discountMode: 'flat' }); fetch(); }
     else { console.error('Add line failed:', res.error); alert(res.error?.message || 'Failed to add line item'); }
   };
 
@@ -229,29 +245,51 @@ export default function InvoiceDetailPage() {
             <div className="grid grid-cols-12 gap-2 items-end">
               <div className="col-span-2">
                 <label className="block text-[10px] text-gray-400 mb-0.5">Type</label>
-                <select className={inputCls} value={newLine.lineType} onChange={(e) => setNewLine({ ...newLine, lineType: e.target.value })}>
+                <select className={inputCls} value={newLine.lineType} onChange={(e) => setNewLine({ ...newLine, lineType: e.target.value, description: e.target.value === 'DISCOUNT_ADJUSTMENT' ? 'Discount' : newLine.description })}>
                   <option value="PART">Part</option><option value="LABOR">Labor</option><option value="CUSTOM_CHARGE">Custom</option><option value="DISCOUNT_ADJUSTMENT">Discount</option>
                 </select>
               </div>
               <div className="col-span-4">
-                <label className="block text-[10px] text-gray-400 mb-0.5">Description *</label>
-                <input className={inputCls} placeholder="e.g. Brake pad replacement" value={newLine.description} onChange={(e) => setNewLine({ ...newLine, description: e.target.value })} />
+                <label className="block text-[10px] text-gray-400 mb-0.5">Description <span className="text-red-500">*</span></label>
+                {newLine.lineType === 'PART' ? (
+                  <select className={inputCls} value={newLine.description} onFocus={loadInventory} onChange={(e) => {
+                    const item = inventoryItems.find((i: any) => i.itemName === e.target.value);
+                    setNewLine({ ...newLine, description: e.target.value, unitPrice: item ? String(Number(item.sellingPrice)) : newLine.unitPrice });
+                  }}>
+                    <option value="">Select part...</option>
+                    {inventoryItems.map((i: any) => <option key={i.id} value={i.itemName}>{i.itemName} ({i.sku}) — ₹{Number(i.sellingPrice)}</option>)}
+                  </select>
+                ) : newLine.lineType === 'LABOR' ? (
+                  <select className={inputCls} value={newLine.description} onFocus={loadWorkers} onChange={(e) => setNewLine({ ...newLine, description: e.target.value ? `Labor — ${e.target.value}` : '' })}>
+                    <option value="">Select worker...</option>
+                    {workers.map((w: any) => <option key={w.id} value={w.fullName}>{w.fullName} ({w.designation || 'General'})</option>)}
+                  </select>
+                ) : (
+                  <input className={inputCls} placeholder={newLine.lineType === 'DISCOUNT_ADJUSTMENT' ? 'Discount reason' : 'e.g. Custom charge'} value={newLine.description} onChange={(e) => setNewLine({ ...newLine, description: e.target.value })} />
+                )}
               </div>
               <div className="col-span-1">
                 <label className="block text-[10px] text-gray-400 mb-0.5">Qty</label>
                 <input type="number" className={inputCls} value={newLine.quantity} onChange={(e) => setNewLine({ ...newLine, quantity: e.target.value })} />
               </div>
               <div className="col-span-2">
-                <label className="block text-[10px] text-gray-400 mb-0.5">Unit Price (₹)</label>
+                <label className="block text-[10px] text-gray-400 mb-0.5">{newLine.lineType === 'DISCOUNT_ADJUSTMENT' ? (newLine.discountMode === 'percent' ? '% off' : 'Discount (₹)') : 'Unit Price (₹)'}</label>
                 <input type="number" step="0.01" className={inputCls} placeholder="0" value={newLine.unitPrice} onChange={(e) => setNewLine({ ...newLine, unitPrice: e.target.value })} />
               </div>
               <div className="col-span-1">
-                <label className="block text-[10px] text-gray-400 mb-0.5">Tax %</label>
-                <input type="number" step="0.01" className={inputCls} value={newLine.taxRate} onChange={(e) => setNewLine({ ...newLine, taxRate: e.target.value })} />
+                {newLine.lineType === 'DISCOUNT_ADJUSTMENT' ? (
+                  <><label className="block text-[10px] text-gray-400 mb-0.5">Mode</label>
+                  <select className={inputCls} value={newLine.discountMode} onChange={(e) => setNewLine({ ...newLine, discountMode: e.target.value })}>
+                    <option value="flat">₹</option><option value="percent">%</option>
+                  </select></>
+                ) : (
+                  <><label className="block text-[10px] text-gray-400 mb-0.5">Tax %</label>
+                  <input type="number" step="0.01" className={inputCls} value={newLine.taxRate} onChange={(e) => setNewLine({ ...newLine, taxRate: e.target.value })} /></>
+                )}
               </div>
               <div className="col-span-2">
                 <button onClick={addLine} disabled={addingLine} className="w-full rounded-lg bg-green-600 px-3 py-2 text-sm font-semibold text-white hover:bg-green-700 disabled:opacity-50">
-                  {addingLine ? 'Adding...' : '+ Add Item'}
+                  {addingLine ? 'Adding...' : newLine.lineType === 'DISCOUNT_ADJUSTMENT' ? '+ Discount' : '+ Add Item'}
                 </button>
               </div>
             </div>
@@ -295,6 +333,9 @@ export default function InvoiceDetailPage() {
           <p className="font-medium">{data.customer?.fullName}</p>
           <p className="text-gray-500">{data.customer?.phoneNumber}</p>
           {data.customer?.email && <p className="text-gray-500">{data.customer.email}</p>}
+          {data.customer?.phoneNumber && data.invoiceStatus === 'FINALIZED' && (
+            <div className="mt-2"><WhatsAppButton phone={data.customer.phoneNumber} message={`Hi ${data.customer.fullName}, your invoice ${data.invoiceNumber} for Rs.${Number(data.grandTotal).toFixed(0)} is ready. Thank you for choosing GearUp Servicing! - 9242519099`} /></div>
+          )}
         </div>
         <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
           <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">Vehicle</p>
@@ -304,7 +345,7 @@ export default function InvoiceDetailPage() {
         <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
           <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">Details</p>
           <p className="text-gray-500">Date: {new Date(data.invoiceDate).toLocaleDateString('en-IN')}</p>
-          {data.jobCard && <p className="text-gray-500">Job: {data.jobCard.jobCardNumber}</p>}
+          {data.jobCard && <button onClick={() => router.push(`/admin/job-cards/${data.jobCard.id}`)} className="text-sm text-blue-600 hover:underline">Job Card: {data.jobCard.jobCardNumber} →</button>}
           {data.finalizedAt && <p className="text-gray-500">Finalized: {new Date(data.finalizedAt).toLocaleDateString('en-IN')}</p>}
         </div>
       </div>

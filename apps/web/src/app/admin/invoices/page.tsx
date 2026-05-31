@@ -38,13 +38,13 @@ export default function InvoicesPage() {
     const { cached, promise } = api.getSWR<any>(endpoint);
     if (cached?.success) {
       setData(cached.data?.items ?? cached.data ?? []);
-      setTotalPages(cached.data?.totalPages ?? 1);
+      setTotalPages(cached.meta?.totalPages ?? 1);
       setLoading(false);
     } else {
       setLoading(true);
     }
     promise.then((res) => {
-      if (res.success) { setData(res.data?.items ?? res.data ?? []); setTotalPages(res.data?.totalPages ?? 1); }
+      if (res.success) { setData(res.data?.items ?? res.data ?? []); setTotalPages(res.meta?.totalPages ?? 1); }
       setLoading(false);
     });
   }, [search, filters, page]);
@@ -82,6 +82,7 @@ export default function InvoicesPage() {
   };
 
   const addLine = () => setLineItems((l) => [...l, { lineType: 'CUSTOM_CHARGE', description: '', quantity: 1, unitPrice: 0, taxRate: 0 }]);
+  const addDiscount = () => setLineItems((l) => [...l, { lineType: 'DISCOUNT_ADJUSTMENT', description: 'Discount', quantity: 1, unitPrice: 0, taxRate: 0, discountMode: 'flat' }]);
   const removeLine = (i: number) => setLineItems((l) => l.filter((_, idx) => idx !== i));
   const updateLine = (i: number, field: string, value: any) => setLineItems((l) => l.map((li, idx) => idx === i ? { ...li, [field]: value } : li));
 
@@ -126,7 +127,7 @@ export default function InvoicesPage() {
           {error && <p className="text-sm text-red-600">{error}</p>}
           {modalLoading && <ProcessLoader title="Preparing invoice form" steps={['Loading eligible job cards', 'Reading selected job-card parts', 'Calculating starter line items']} />}
           <div>
-            <label className="block text-sm font-medium mb-1">Job Card *</label>
+            <label className="block text-sm font-medium mb-1">Job Card <span className="text-red-500">*</span></label>
             <select className={inputCls} value={selectedJC?.id || ''} onChange={(e) => onJobCardSelect(e.target.value)}>
               <option value="">Select job card...</option>
               {jobCards.map((jc: any) => <option key={jc.id} value={jc.id}>{jc.jobCardNumber} — {jc.customer?.fullName} ({jc.vehicle?.registrationNumber})</option>)}
@@ -137,17 +138,33 @@ export default function InvoicesPage() {
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <label className="text-sm font-medium">Line Items</label>
-                  <button onClick={addLine} className="text-xs text-blue-600 hover:underline">+ Add Line</button>
+                  <div className="flex gap-3">
+                    <button onClick={addLine} className="text-xs text-blue-600 hover:underline">+ Add Line</button>
+                    <button onClick={addDiscount} className="text-xs text-green-600 hover:underline">+ Add Discount</button>
+                  </div>
                 </div>
                 {lineItems.map((li, i) => (
-                  <div key={i} className="grid grid-cols-12 gap-2 mb-2 items-end">
-                    <select className={`${inputCls} col-span-3`} value={li.lineType} onChange={(e) => updateLine(i, 'lineType', e.target.value)}>
-                      <option value="PART">Part</option><option value="LABOR">Labor</option><option value="CUSTOM_CHARGE">Custom</option><option value="DISCOUNT_ADJUSTMENT">Discount</option>
-                    </select>
-                    <input className={`${inputCls} col-span-4`} placeholder="Description" value={li.description} onChange={(e) => updateLine(i, 'description', e.target.value)} />
-                    <input type="number" className={`${inputCls} col-span-1`} placeholder="Qty" value={li.quantity} onChange={(e) => updateLine(i, 'quantity', Number(e.target.value))} />
-                    <input type="number" className={`${inputCls} col-span-2`} placeholder="Price" value={li.unitPrice} onChange={(e) => updateLine(i, 'unitPrice', Number(e.target.value))} />
-                    <button onClick={() => removeLine(i)} className="col-span-2 text-xs text-red-500 hover:underline">Remove</button>
+                  <div key={i} className={`grid grid-cols-12 gap-2 mb-2 items-end ${li.lineType === 'DISCOUNT_ADJUSTMENT' ? 'bg-green-50 dark:bg-green-900/20 rounded-lg p-2 border border-green-200 dark:border-green-800' : ''}`}>
+                    {li.lineType === 'DISCOUNT_ADJUSTMENT' ? (
+                      <>
+                        <input className={`${inputCls} col-span-5`} placeholder="Discount reason" value={li.description} onChange={(e) => updateLine(i, 'description', e.target.value)} />
+                        <select className={`${inputCls} col-span-2`} value={li.discountMode || 'flat'} onChange={(e) => updateLine(i, 'discountMode', e.target.value)}>
+                          <option value="flat">₹ Flat</option><option value="percent">% Percent</option>
+                        </select>
+                        <input type="number" className={`${inputCls} col-span-3`} placeholder={li.discountMode === 'percent' ? '% off' : '₹ amount'} value={li.unitPrice} onChange={(e) => updateLine(i, 'unitPrice', Number(e.target.value))} />
+                        <button onClick={() => removeLine(i)} className="col-span-2 text-xs text-red-500 hover:underline">Remove</button>
+                      </>
+                    ) : (
+                      <>
+                        <select className={`${inputCls} col-span-3`} value={li.lineType} onChange={(e) => updateLine(i, 'lineType', e.target.value)}>
+                          <option value="PART">Part</option><option value="LABOR">Labor</option><option value="CUSTOM_CHARGE">Custom</option><option value="DISCOUNT_ADJUSTMENT">Discount</option>
+                        </select>
+                        <input className={`${inputCls} col-span-4`} placeholder="Description" value={li.description} onChange={(e) => updateLine(i, 'description', e.target.value)} />
+                        <input type="number" className={`${inputCls} col-span-1`} placeholder="Qty" value={li.quantity} onChange={(e) => updateLine(i, 'quantity', Number(e.target.value))} />
+                        <input type="number" className={`${inputCls} col-span-2`} placeholder="Price" value={li.unitPrice} onChange={(e) => updateLine(i, 'unitPrice', Number(e.target.value))} />
+                        <button onClick={() => removeLine(i)} className="col-span-2 text-xs text-red-500 hover:underline">Remove</button>
+                      </>
+                    )}
                   </div>
                 ))}
               </div>
