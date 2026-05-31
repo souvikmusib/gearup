@@ -44,7 +44,7 @@ const NEXT_STATUS: Record<string, { label: string; next: string; color: string }
 
 // Status-based section visibility
 function canEditWorkers(s: string) { return ['OPEN', 'ESTIMATE_READY', 'IN_PROGRESS'].includes(s); }
-function canEditParts(s: string) { return ['OPEN', 'ESTIMATE_READY'].includes(s); }
+function canEditParts(s: string) { return ['OPEN', 'ESTIMATE_READY', 'IN_PROGRESS'].includes(s); }
 function canEditTasks(s: string) { return ['ESTIMATE_READY', 'IN_PROGRESS'].includes(s); }
 function canUpdateTaskStatus(s: string) { return s === 'IN_PROGRESS'; }
 function canEditCosts(s: string) { return ['OPEN', 'ESTIMATE_READY'].includes(s); }
