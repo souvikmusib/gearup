@@ -71,6 +71,12 @@ export default function SettingsPage() {
 
       {Object.keys(groups).length === 0 && <p className="text-sm text-gray-500">No settings configured yet.</p>}
 
+      <div className="rounded-lg border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-800">
+        <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Data Backup</h3>
+        <p className="text-sm text-gray-500 mb-3">Download all data as a JSON file.</p>
+        <a href="/api/admin/settings/export" className="inline-flex rounded-lg bg-gray-700 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-800">⬇ Export Backup</a>
+      </div>
+
       {Object.entries(groups).map(([prefix, keys]) => (
         <div key={prefix} className="rounded-lg border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-800">
           <h3 className="font-semibold text-gray-900 dark:text-white mb-3 capitalize">{prefix}</h3>
