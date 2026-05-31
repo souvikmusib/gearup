@@ -345,7 +345,7 @@ export default function InvoiceDetailPage() {
         <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
           <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">Details</p>
           <p className="text-gray-500">Date: {new Date(data.invoiceDate).toLocaleDateString('en-IN')}</p>
-          {data.jobCard && <p className="text-gray-500">Job: {data.jobCard.jobCardNumber}</p>}
+          {data.jobCard && <button onClick={() => router.push(`/admin/job-cards/${data.jobCard.id}`)} className="text-sm text-blue-600 hover:underline">Job Card: {data.jobCard.jobCardNumber} →</button>}
           {data.finalizedAt && <p className="text-gray-500">Finalized: {new Date(data.finalizedAt).toLocaleDateString('en-IN')}</p>}
         </div>
       </div>
