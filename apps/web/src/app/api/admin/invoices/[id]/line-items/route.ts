@@ -46,7 +46,20 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       lineTotal = body.quantity * body.unitPrice + taxAmount;
     }
     const count = await prisma.invoiceLineItem.count({ where: { invoiceId: params.id } });
-    const item = await prisma.invoiceLineItem.create({ data: { invoiceId: params.id, lineType: body.lineType, description: body.description, quantity: body.quantity, unitPrice: body.unitPrice, taxRate: body.taxRate, taxAmount, lineTotal, sortOrder: count } });
+    let referenceItemId: string | undefined;
+
+    // If PART, find inventory item and deduct stock
+    if (body.lineType === 'PART') {
+      const invItem = await prisma.inventoryItem.findFirst({ where: { itemName: body.description } });
+      if (invItem) {
+        referenceItemId = invItem.id;
+        await prisma.inventoryItem.update({ where: { id: invItem.id }, data: { quantityInStock: { decrement: body.quantity } } });
+        const updated = await prisma.inventoryItem.findUniqueOrThrow({ where: { id: invItem.id } });
+        await prisma.stockMovement.create({ data: { inventoryItemId: invItem.id, movementType: 'STOCK_OUT', quantity: body.quantity, previousQuantity: Number(updated.quantityInStock) + body.quantity, newQuantity: Number(updated.quantityInStock), reason: `Invoice line item`, relatedEntityType: 'Invoice', relatedEntityId: params.id } });
+      }
+    }
+
+    const item = await prisma.invoiceLineItem.create({ data: { invoiceId: params.id, lineType: body.lineType, description: body.description, quantity: body.quantity, unitPrice: body.unitPrice, taxRate: body.taxRate, taxAmount, lineTotal, sortOrder: count, referenceItemId } });
     await recalcTotals(params.id);
     logActivity({ entityType: 'InvoiceLineItem', entityId: item.id, action: 'invoice.line.added', newValue: body, actorType: 'ADMIN', actorId: user.sub });
     return NextResponse.json({ success: true, data: item }, { status: 201 });
@@ -80,7 +93,17 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     await ensureDraft(params.id);
     const lineItemId = req.nextUrl.searchParams.get('lineItemId');
     if (!lineItemId) return NextResponse.json({ success: false, error: { message: 'lineItemId required' } }, { status: 400 });
-    await prisma.invoiceLineItem.delete({ where: { id: lineItemId, invoiceId: params.id } });
+    const lineItem = await prisma.invoiceLineItem.findUniqueOrThrow({ where: { id: lineItemId, invoiceId: params.id } });
+
+    // If PART with referenceItemId, restore stock
+    if (lineItem.lineType === 'PART' && lineItem.referenceItemId) {
+      const qty = Number(lineItem.quantity);
+      await prisma.inventoryItem.update({ where: { id: lineItem.referenceItemId }, data: { quantityInStock: { increment: qty } } });
+      const updated = await prisma.inventoryItem.findUniqueOrThrow({ where: { id: lineItem.referenceItemId } });
+      await prisma.stockMovement.create({ data: { inventoryItemId: lineItem.referenceItemId, movementType: 'STOCK_IN', quantity: qty, previousQuantity: Number(updated.quantityInStock) - qty, newQuantity: Number(updated.quantityInStock), reason: 'Invoice line item removed', relatedEntityType: 'Invoice', relatedEntityId: params.id } });
+    }
+
+    await prisma.invoiceLineItem.delete({ where: { id: lineItemId } });
     await recalcTotals(params.id);
     logActivity({ entityType: 'InvoiceLineItem', entityId: lineItemId, action: 'invoice.line.removed', actorType: 'ADMIN', actorId: user.sub });
     return NextResponse.json({ success: true });
