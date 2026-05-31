@@ -32,3 +32,15 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     return NextResponse.json({ success: true, data: jc });
   } catch (e) { return handleApiError(e); }
 }
+
+export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    const user = requirePermission(PERMISSIONS.JOB_CARDS_CREATE);
+    await prisma.jobCardTask.deleteMany({ where: { jobCardId: params.id } });
+    await prisma.jobCardPart.deleteMany({ where: { jobCardId: params.id } });
+    await prisma.workerAssignment.deleteMany({ where: { jobCardId: params.id } });
+    await prisma.jobCard.delete({ where: { id: params.id } });
+    logActivity({ entityType: 'JobCard', entityId: params.id, action: 'job-card.deleted', actorType: 'ADMIN', actorId: user.sub });
+    return NextResponse.json({ success: true });
+  } catch (e) { return handleApiError(e); }
+}

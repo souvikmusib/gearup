@@ -214,6 +214,11 @@ export default function JobCardDetailPage() {
             Cancel Job
           </button>
         )}
+        {status === 'OPEN' && (
+          <button onClick={async () => { if (!confirm('Delete this job card permanently?')) return; const res = await api.delete(`/admin/job-cards/${id}`); if (res.success) router.push('/admin/job-cards'); }} className="rounded-lg px-4 py-2 text-sm font-medium text-red-600 border border-red-300 hover:bg-red-50 dark:border-red-700 dark:hover:bg-red-900/20">
+            Delete
+          </button>
+        )}
         {!locked && (
           <select className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white" value={status} onChange={(e) => updateStatus(e.target.value)}>
             {SIMPLE_STATUSES.map((s) => <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>)}
