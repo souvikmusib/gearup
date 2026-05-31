@@ -230,20 +230,20 @@ export default function InvoiceDetailPage() {
             <div className="grid grid-cols-12 gap-2 items-end">
               <div className="col-span-2">
                 <label className="block text-[10px] text-gray-400 mb-0.5">Type</label>
-                <select className={inputCls} value={newLine.lineType} onChange={(e) => setNewLine({ ...newLine, lineType: e.target.value })}>
+                <select className={inputCls} value={newLine.lineType} onChange={(e) => setNewLine({ ...newLine, lineType: e.target.value, description: e.target.value === 'DISCOUNT_ADJUSTMENT' ? 'Discount' : newLine.description })}>
                   <option value="PART">Part</option><option value="LABOR">Labor</option><option value="CUSTOM_CHARGE">Custom</option><option value="DISCOUNT_ADJUSTMENT">Discount</option>
                 </select>
               </div>
               <div className="col-span-4">
                 <label className="block text-[10px] text-gray-400 mb-0.5">Description <span className="text-red-500">*</span></label>
-                <input className={inputCls} placeholder="e.g. Brake pad replacement" value={newLine.description} onChange={(e) => setNewLine({ ...newLine, description: e.target.value })} />
+                <input className={inputCls} placeholder={newLine.lineType === 'DISCOUNT_ADJUSTMENT' ? 'Discount reason' : 'e.g. Brake pad replacement'} value={newLine.description} onChange={(e) => setNewLine({ ...newLine, description: e.target.value })} />
               </div>
               <div className="col-span-1">
                 <label className="block text-[10px] text-gray-400 mb-0.5">Qty</label>
                 <input type="number" className={inputCls} value={newLine.quantity} onChange={(e) => setNewLine({ ...newLine, quantity: e.target.value })} />
               </div>
               <div className="col-span-2">
-                <label className="block text-[10px] text-gray-400 mb-0.5">Unit Price (₹)</label>
+                <label className="block text-[10px] text-gray-400 mb-0.5">{newLine.lineType === 'DISCOUNT_ADJUSTMENT' ? 'Discount (₹)' : 'Unit Price (₹)'}</label>
                 <input type="number" step="0.01" className={inputCls} placeholder="0" value={newLine.unitPrice} onChange={(e) => setNewLine({ ...newLine, unitPrice: e.target.value })} />
               </div>
               <div className="col-span-1">
@@ -252,7 +252,7 @@ export default function InvoiceDetailPage() {
               </div>
               <div className="col-span-2">
                 <button onClick={addLine} disabled={addingLine} className="w-full rounded-lg bg-green-600 px-3 py-2 text-sm font-semibold text-white hover:bg-green-700 disabled:opacity-50">
-                  {addingLine ? 'Adding...' : '+ Add Item'}
+                  {addingLine ? 'Adding...' : newLine.lineType === 'DISCOUNT_ADJUSTMENT' ? '+ Discount' : '+ Add Item'}
                 </button>
               </div>
             </div>

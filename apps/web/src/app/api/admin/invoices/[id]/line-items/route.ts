@@ -29,8 +29,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       lineType: z.enum(['PART', 'LABOR', 'CUSTOM_CHARGE', 'DISCOUNT_ADJUSTMENT']),
       description: z.string().min(1), quantity: z.number().default(1), unitPrice: z.number().default(0), taxRate: z.number().default(0),
     }).parse(await req.json());
-    const taxAmount = body.quantity * body.unitPrice * (body.taxRate / 100);
-    const lineTotal = body.quantity * body.unitPrice + taxAmount;
+    const isDiscount = body.lineType === 'DISCOUNT_ADJUSTMENT';
+    const taxAmount = isDiscount ? 0 : body.quantity * body.unitPrice * (body.taxRate / 100);
+    const lineTotal = isDiscount ? -(Math.abs(body.quantity * body.unitPrice)) : body.quantity * body.unitPrice + taxAmount;
     const count = await prisma.invoiceLineItem.count({ where: { invoiceId: params.id } });
     const item = await prisma.invoiceLineItem.create({ data: { invoiceId: params.id, ...body, taxAmount, lineTotal, sortOrder: count } });
     await recalcTotals(params.id);
