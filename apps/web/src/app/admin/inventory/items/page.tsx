@@ -13,6 +13,7 @@ export default function InventoryItemsPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
   const [showCreate, setShowCreate] = useState(false);
   const [categories, setCategories] = useState<any[]>([]);
   const [suppliers, setSuppliers] = useState<any[]>([]);
@@ -32,9 +33,10 @@ export default function InventoryItemsPage() {
     if (supRes.success) setSuppliers(supRes.data ?? []);
   };
 
-  const load = useCallback((s = search, p = page) => {
+  const load = useCallback((s = search, p = page, cat = categoryFilter) => {
     const params = new URLSearchParams();
     if (s) params.set('search', s);
+    if (cat) params.set('categoryId', cat);
     params.set('page', String(p));
     const endpoint = `/admin/inventory/items?${params.toString()}`;
     const { cached, promise } = api.getSWR<any>(endpoint);
@@ -49,7 +51,7 @@ export default function InventoryItemsPage() {
       if (res.success) { setData(res.data?.items ?? res.data ?? []); setTotalPages(res.meta?.totalPages ?? 1); }
       setLoading(false);
     });
-  }, [search, page]);
+  }, [search, page, categoryFilter]);
 
   useEffect(() => { load(); }, [page]);
 
@@ -121,6 +123,12 @@ export default function InventoryItemsPage() {
     <div>
       <PageHeader title="Inventory Items" />
       <ListToolbar searchPlaceholder="Search items..." onSearch={onSearch} onCreateClick={() => setShowCreate(true)} createLabel="Create Item" />
+      <div className="mb-4 flex gap-2">
+        <select className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white" value={categoryFilter} onChange={(e) => { setCategoryFilter(e.target.value); load(search, 1, e.target.value); }} onFocus={loadLookups}>
+          <option value="">All Categories</option>
+          {categories.map((c: any) => <option key={c.id} value={c.id}>{c.categoryName}</option>)}
+        </select>
+      </div>
       {loading ? <ProcessLoader title="Loading inventory" steps={['Fetching items', 'Preparing list']} /> :
         <DataTable columns={columns} data={data} keyField="id" onRowClick={openEdit} />}
       <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
