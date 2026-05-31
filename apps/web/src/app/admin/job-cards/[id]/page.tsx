@@ -88,7 +88,7 @@ export default function JobCardDetailPage() {
     setSavingNotes(true);
     const res = await api.patch<any>(`/admin/job-cards/${id}`, notes);
     setSavingNotes(false);
-    if (res.success) setData(res.data);
+    if (res.success) load();
   };
 
   const saveCost = async (field: string, value: string) => {
@@ -97,7 +97,7 @@ export default function JobCardDetailPage() {
     const patch: Record<string, number> = { [field]: num };
     if (field === 'estimatedLaborCost') patch.estimatedTotal = Number(data.estimatedPartsCost) + num;
     const res = await api.patch<any>(`/admin/job-cards/${id}`, patch);
-    if (res.success) setData(res.data);
+    if (res.success) load();
   };
 
   const loadInventory = async () => {
