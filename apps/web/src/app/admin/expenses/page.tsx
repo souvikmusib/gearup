@@ -96,7 +96,10 @@ export default function ExpensesPage() {
     <div>
       <div className="flex items-center justify-between mb-4">
         <PageHeader title="Expenses" />
-        <button onClick={openCreate} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">+ Add Expense</button>
+        <div className="flex gap-2">
+          <button onClick={() => router.push('/admin/expenses/categories')} className="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 hover:bg-gray-50 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-800">Manage Categories</button>
+          <button onClick={openCreate} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">+ Add Expense</button>
+        </div>
       </div>
       <div className="flex gap-2 mb-4">
         <input className={inputCls + ' max-w-xs'} placeholder="Search expenses..." value={search} onChange={(e) => { setSearch(e.target.value); load(e.target.value, catFilter); }} />
