@@ -18,11 +18,17 @@ export default function InvoiceDetailPage() {
   const [newLine, setNewLine] = useState({ lineType: 'CUSTOM_CHARGE', description: '', quantity: '1', unitPrice: '', taxRate: '0', discountMode: 'flat' });
   const [addingLine, setAddingLine] = useState(false);
   const [inventoryItems, setInventoryItems] = useState<any[]>([]);
+  const [workers, setWorkers] = useState<any[]>([]);
 
   const loadInventory = async () => {
     if (inventoryItems.length) return;
     const res = await api.get<any>('/admin/inventory/items?pageSize=500');
     if (res.success) setInventoryItems(res.data?.items ?? res.data ?? []);
+  };
+  const loadWorkers = async () => {
+    if (workers.length) return;
+    const res = await api.get<any>('/admin/workers?pageSize=200');
+    if (res.success) setWorkers(res.data?.items ?? res.data ?? []);
   };
 
   const fetch = (useCache = false) => {
@@ -253,8 +259,13 @@ export default function InvoiceDetailPage() {
                     <option value="">Select part...</option>
                     {inventoryItems.map((i: any) => <option key={i.id} value={i.itemName}>{i.itemName} ({i.sku}) — ₹{Number(i.sellingPrice)}</option>)}
                   </select>
+                ) : newLine.lineType === 'LABOR' ? (
+                  <select className={inputCls} value={newLine.description} onFocus={loadWorkers} onChange={(e) => setNewLine({ ...newLine, description: e.target.value ? `Labor — ${e.target.value}` : '' })}>
+                    <option value="">Select worker...</option>
+                    {workers.map((w: any) => <option key={w.id} value={w.fullName}>{w.fullName} ({w.designation || 'General'})</option>)}
+                  </select>
                 ) : (
-                  <input className={inputCls} placeholder={newLine.lineType === 'DISCOUNT_ADJUSTMENT' ? 'Discount reason' : 'e.g. Brake pad replacement'} value={newLine.description} onChange={(e) => setNewLine({ ...newLine, description: e.target.value })} />
+                  <input className={inputCls} placeholder={newLine.lineType === 'DISCOUNT_ADJUSTMENT' ? 'Discount reason' : 'e.g. Custom charge'} value={newLine.description} onChange={(e) => setNewLine({ ...newLine, description: e.target.value })} />
                 )}
               </div>
               <div className="col-span-1">
