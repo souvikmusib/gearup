@@ -58,8 +58,9 @@ export async function POST(req: NextRequest) {
       invoice = await prisma.$transaction(async (tx: any) => {
         let subtotal = 0, taxTotal = 0;
         const lines = body.lineItems.map((li) => {
-          const lineTotal = li.quantity * li.unitPrice;
-          const taxAmount = lineTotal * (li.taxRate / 100);
+          const isDiscount = li.lineType === 'DISCOUNT_ADJUSTMENT';
+          const lineTotal = isDiscount ? -(Math.abs(li.quantity * li.unitPrice)) : li.quantity * li.unitPrice;
+          const taxAmount = isDiscount ? 0 : lineTotal * (li.taxRate / 100);
           subtotal += lineTotal; taxTotal += taxAmount;
           return { ...li, taxAmount, lineTotal: lineTotal + taxAmount };
         });
