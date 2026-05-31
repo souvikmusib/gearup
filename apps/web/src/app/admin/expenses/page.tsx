@@ -118,11 +118,11 @@ export default function ExpensesPage() {
         <div className="space-y-3">
           {error && <p className="text-sm text-red-600">{error}</p>}
           <div className="grid grid-cols-2 gap-3">
-            <div><label className="block text-xs font-medium mb-1">Date *</label><input type="date" className={inputCls} value={form.expenseDate} onChange={(e) => setForm({ ...form, expenseDate: e.target.value })} /></div>
-            <div><label className="block text-xs font-medium mb-1">Amount *</label><input type="number" className={inputCls} value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} /></div>
+            <div><label className="block text-xs font-medium mb-1">Date <span className="text-red-500">*</span></label><input type="date" className={inputCls} value={form.expenseDate} onChange={(e) => setForm({ ...form, expenseDate: e.target.value })} /></div>
+            <div><label className="block text-xs font-medium mb-1">Amount <span className="text-red-500">*</span></label><input type="number" className={inputCls} value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} /></div>
           </div>
-          <div><label className="block text-xs font-medium mb-1">Title *</label><input className={inputCls} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
-          <div><label className="block text-xs font-medium mb-1">Category *</label>
+          <div><label className="block text-xs font-medium mb-1">Title <span className="text-red-500">*</span></label><input className={inputCls} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
+          <div><label className="block text-xs font-medium mb-1">Category <span className="text-red-500">*</span></label>
             <select className={inputCls} value={form.categoryId} onChange={(e) => setForm({ ...form, categoryId: e.target.value })}>
               <option value="">Select...</option>
               {categories.map((c: any) => <option key={c.id} value={c.id}>{c.categoryName}</option>)}

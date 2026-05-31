@@ -69,21 +69,21 @@ export default function VehiclesPage() {
       <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Add Vehicle">
         <div className="space-y-3">
           {error && <p className="text-sm text-red-600">{error}</p>}
-          <div><label className="block text-xs font-medium mb-1">Customer *</label>
+          <div><label className="block text-xs font-medium mb-1">Customer <span className="text-red-500">*</span></label>
             <select className={inputCls} value={form.customerId} onChange={(e) => setForm({ ...form, customerId: e.target.value })}>
               <option value="">Select...</option>
               {customers.map((c: any) => <option key={c.id} value={c.id}>{c.fullName} ({c.phoneNumber})</option>)}
             </select>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <div><label className="block text-xs font-medium mb-1">Type *</label>
+            <div><label className="block text-xs font-medium mb-1">Type <span className="text-red-500">*</span></label>
               <select className={inputCls} value={form.vehicleType} onChange={(e) => setForm({ ...form, vehicleType: e.target.value })}>
                 <option value="BIKE">Motorcycle</option><option value="OTHER">Scooter / Other</option>
               </select>
             </div>
-            <div><label className="block text-xs font-medium mb-1">Reg Number *</label><input className={inputCls} value={form.registrationNumber} onChange={(e) => setForm({ ...form, registrationNumber: formatRegNumber(e.target.value) })} placeholder="WB-26-AB-1234" /></div>
-            <div><label className="block text-xs font-medium mb-1">Brand *</label><input className={inputCls} value={form.brand} onChange={(e) => setForm({ ...form, brand: e.target.value })} /></div>
-            <div><label className="block text-xs font-medium mb-1">Model *</label><input className={inputCls} value={form.model} onChange={(e) => setForm({ ...form, model: e.target.value })} /></div>
+            <div><label className="block text-xs font-medium mb-1">Reg Number <span className="text-red-500">*</span></label><input className={inputCls} value={form.registrationNumber} onChange={(e) => setForm({ ...form, registrationNumber: formatRegNumber(e.target.value) })} placeholder="WB-26-AB-1234" /></div>
+            <div><label className="block text-xs font-medium mb-1">Brand <span className="text-red-500">*</span></label><input className={inputCls} value={form.brand} onChange={(e) => setForm({ ...form, brand: e.target.value })} /></div>
+            <div><label className="block text-xs font-medium mb-1">Model <span className="text-red-500">*</span></label><input className={inputCls} value={form.model} onChange={(e) => setForm({ ...form, model: e.target.value })} /></div>
             <div><label className="block text-xs font-medium mb-1">Variant</label><input className={inputCls} value={form.variant} onChange={(e) => setForm({ ...form, variant: e.target.value })} /></div>
             <div><label className="block text-xs font-medium mb-1">Fuel Type</label><input className={inputCls} value={form.fuelType} onChange={(e) => setForm({ ...form, fuelType: e.target.value })} placeholder="Petrol/Diesel/EV" /></div>
           </div>

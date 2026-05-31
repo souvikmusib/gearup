@@ -138,7 +138,7 @@ export default function AppointmentDetailPage() {
 
       <Modal open={showReschedule} onClose={() => setShowReschedule(false)} title="Reschedule Appointment">
         <div className="space-y-4">
-          <div><label className="block text-sm font-medium mb-1">New Date & Time *</label><input type="datetime-local" className={inputCls} value={rescheduleDate} onChange={(e) => setRescheduleDate(e.target.value)} /></div>
+          <div><label className="block text-sm font-medium mb-1">New Date & Time <span className="text-red-500">*</span></label><input type="datetime-local" className={inputCls} value={rescheduleDate} onChange={(e) => setRescheduleDate(e.target.value)} /></div>
           <div><label className="block text-sm font-medium mb-1">Reason</label><input className={inputCls} value={rescheduleReason} onChange={(e) => setRescheduleReason(e.target.value)} /></div>
           <button onClick={submitReschedule} disabled={!rescheduleDate || !!loading} className="w-full rounded-lg bg-yellow-600 py-2 text-sm font-semibold text-white hover:bg-yellow-700 disabled:opacity-50">
             {loading ? 'Saving...' : 'Reschedule'}

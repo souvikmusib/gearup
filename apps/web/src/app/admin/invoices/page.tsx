@@ -127,7 +127,7 @@ export default function InvoicesPage() {
           {error && <p className="text-sm text-red-600">{error}</p>}
           {modalLoading && <ProcessLoader title="Preparing invoice form" steps={['Loading eligible job cards', 'Reading selected job-card parts', 'Calculating starter line items']} />}
           <div>
-            <label className="block text-sm font-medium mb-1">Job Card *</label>
+            <label className="block text-sm font-medium mb-1">Job Card <span className="text-red-500">*</span></label>
             <select className={inputCls} value={selectedJC?.id || ''} onChange={(e) => onJobCardSelect(e.target.value)}>
               <option value="">Select job card...</option>
               {jobCards.map((jc: any) => <option key={jc.id} value={jc.id}>{jc.jobCardNumber} — {jc.customer?.fullName} ({jc.vehicle?.registrationNumber})</option>)}

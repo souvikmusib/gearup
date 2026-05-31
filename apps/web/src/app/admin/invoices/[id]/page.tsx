@@ -235,7 +235,7 @@ export default function InvoiceDetailPage() {
                 </select>
               </div>
               <div className="col-span-4">
-                <label className="block text-[10px] text-gray-400 mb-0.5">Description *</label>
+                <label className="block text-[10px] text-gray-400 mb-0.5">Description <span className="text-red-500">*</span></label>
                 <input className={inputCls} placeholder="e.g. Brake pad replacement" value={newLine.description} onChange={(e) => setNewLine({ ...newLine, description: e.target.value })} />
               </div>
               <div className="col-span-1">

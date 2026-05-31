@@ -125,10 +125,10 @@ export default function InventoryItemsPage() {
       <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Create Item">
         <form onSubmit={onSubmit} className="space-y-3">
-          <input className={inputCls} placeholder="SKU *" required value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} />
-          <input className={inputCls} placeholder="Item Name *" required value={form.itemName} onChange={(e) => setForm({ ...form, itemName: e.target.value })} />
+          <div><label className="block text-xs font-medium mb-1">SKU <span className="text-red-500">*</span></label><input className={inputCls} placeholder="SKU" required value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} /></div>
+          <div><label className="block text-xs font-medium mb-1">Item Name <span className="text-red-500">*</span></label><input className={inputCls} placeholder="Item Name" required value={form.itemName} onChange={(e) => setForm({ ...form, itemName: e.target.value })} /></div>
           <div className="grid grid-cols-2 gap-3">
-            <div><label className={labelCls}>Category *</label>
+            <div><label className={labelCls}>Category <span className="text-red-500">*</span></label>
               <select className={inputCls} required value={form.categoryId} onFocus={loadLookups} onChange={(e) => setForm({ ...form, categoryId: e.target.value })}>
                 <option value="">Select...</option>
                 {categories.map((c: any) => <option key={c.id} value={c.id}>{c.categoryName}</option>)}
@@ -141,7 +141,7 @@ export default function InventoryItemsPage() {
               </select>
             </div>
           </div>
-          <input className={inputCls} placeholder="Unit (e.g. pcs, litre) *" required value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })} />
+          <div><label className="block text-xs font-medium mb-1">Unit <span className="text-red-500">*</span></label><input className={inputCls} placeholder="e.g. pcs, litre" required value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })} /></div>
           <div className="grid grid-cols-2 gap-3">
             <input className={inputCls} placeholder="Cost Price" type="number" step="0.01" required value={form.costPrice} onChange={(e) => setForm({ ...form, costPrice: e.target.value })} />
             <input className={inputCls} placeholder="Selling Price" type="number" step="0.01" required value={form.sellingPrice} onChange={(e) => setForm({ ...form, sellingPrice: e.target.value })} />

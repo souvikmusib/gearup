@@ -79,7 +79,7 @@ export default function WorkersPage() {
       <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Create Worker">
         <form onSubmit={onSubmit} className="space-y-3">
-          <input className={inputCls} placeholder="Full Name *" required value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} />
+          <div><label className="block text-xs font-medium mb-1">Full Name <span className="text-red-500">*</span></label><input className={inputCls} placeholder="Full Name" required value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} /></div>
           <div className="grid grid-cols-2 gap-3">
             <input className={inputCls} placeholder="Phone" value={form.phoneNumber} onChange={(e) => setForm({ ...form, phoneNumber: e.target.value })} />
             <input className={inputCls} placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />

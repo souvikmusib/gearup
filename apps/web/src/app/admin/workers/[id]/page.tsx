@@ -136,8 +136,8 @@ export default function WorkerDetailPage() {
             </select>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <div><label className="block text-xs font-medium mb-1">Start Date *</label><input type="date" className={inputCls} required value={leaveForm.startDate} onChange={(e) => setLeaveForm({ ...leaveForm, startDate: e.target.value })} /></div>
-            <div><label className="block text-xs font-medium mb-1">End Date *</label><input type="date" className={inputCls} required value={leaveForm.endDate} onChange={(e) => setLeaveForm({ ...leaveForm, endDate: e.target.value })} /></div>
+            <div><label className="block text-xs font-medium mb-1">Start Date <span className="text-red-500">*</span></label><input type="date" className={inputCls} required value={leaveForm.startDate} onChange={(e) => setLeaveForm({ ...leaveForm, startDate: e.target.value })} /></div>
+            <div><label className="block text-xs font-medium mb-1">End Date <span className="text-red-500">*</span></label><input type="date" className={inputCls} required value={leaveForm.endDate} onChange={(e) => setLeaveForm({ ...leaveForm, endDate: e.target.value })} /></div>
           </div>
           <div><label className="block text-xs font-medium mb-1">Reason</label><input className={inputCls} value={leaveForm.reason} onChange={(e) => setLeaveForm({ ...leaveForm, reason: e.target.value })} /></div>
           <button onClick={submitLeave} disabled={saving} className="w-full rounded-lg bg-blue-600 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50">{saving ? 'Saving...' : 'Submit Leave'}</button>
