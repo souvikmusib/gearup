@@ -15,7 +15,7 @@ export default function InvoiceDetailPage() {
   const [payMode, setPayMode] = useState('CASH');
   const [payRef, setPayRef] = useState('');
   const [loading, setLoading] = useState('');
-  const [newLine, setNewLine] = useState({ lineType: 'CUSTOM_CHARGE', description: '', quantity: '1', unitPrice: '', taxRate: '0' });
+  const [newLine, setNewLine] = useState({ lineType: 'CUSTOM_CHARGE', description: '', quantity: '1', unitPrice: '', taxRate: '0', discountMode: 'flat' });
   const [addingLine, setAddingLine] = useState(false);
 
   const fetch = (useCache = false) => {
@@ -49,12 +49,14 @@ export default function InvoiceDetailPage() {
   const addLine = async () => {
     if (!newLine.description) return;
     setAddingLine(true);
-    const res = await api.post<any>(`/admin/invoices/${id}/line-items`, {
+    const payload: Record<string, any> = {
       lineType: newLine.lineType, description: newLine.description,
       quantity: Number(newLine.quantity) || 1, unitPrice: Number(newLine.unitPrice) || 0, taxRate: Number(newLine.taxRate) || 0,
-    });
+    };
+    if (newLine.lineType === 'DISCOUNT_ADJUSTMENT') payload.discountMode = newLine.discountMode;
+    const res = await api.post<any>(`/admin/invoices/${id}/line-items`, payload);
     setAddingLine(false);
-    if (res.success) { setNewLine({ lineType: 'CUSTOM_CHARGE', description: '', quantity: '1', unitPrice: '', taxRate: '0' }); fetch(); }
+    if (res.success) { setNewLine({ lineType: 'CUSTOM_CHARGE', description: '', quantity: '1', unitPrice: '', taxRate: '0', discountMode: 'flat' }); fetch(); }
     else { console.error('Add line failed:', res.error); alert(res.error?.message || 'Failed to add line item'); }
   };
 
@@ -243,12 +245,19 @@ export default function InvoiceDetailPage() {
                 <input type="number" className={inputCls} value={newLine.quantity} onChange={(e) => setNewLine({ ...newLine, quantity: e.target.value })} />
               </div>
               <div className="col-span-2">
-                <label className="block text-[10px] text-gray-400 mb-0.5">{newLine.lineType === 'DISCOUNT_ADJUSTMENT' ? 'Discount (₹)' : 'Unit Price (₹)'}</label>
+                <label className="block text-[10px] text-gray-400 mb-0.5">{newLine.lineType === 'DISCOUNT_ADJUSTMENT' ? (newLine.discountMode === 'percent' ? '% off' : 'Discount (₹)') : 'Unit Price (₹)'}</label>
                 <input type="number" step="0.01" className={inputCls} placeholder="0" value={newLine.unitPrice} onChange={(e) => setNewLine({ ...newLine, unitPrice: e.target.value })} />
               </div>
               <div className="col-span-1">
-                <label className="block text-[10px] text-gray-400 mb-0.5">Tax %</label>
-                <input type="number" step="0.01" className={inputCls} value={newLine.taxRate} onChange={(e) => setNewLine({ ...newLine, taxRate: e.target.value })} />
+                {newLine.lineType === 'DISCOUNT_ADJUSTMENT' ? (
+                  <><label className="block text-[10px] text-gray-400 mb-0.5">Mode</label>
+                  <select className={inputCls} value={newLine.discountMode} onChange={(e) => setNewLine({ ...newLine, discountMode: e.target.value })}>
+                    <option value="flat">₹</option><option value="percent">%</option>
+                  </select></>
+                ) : (
+                  <><label className="block text-[10px] text-gray-400 mb-0.5">Tax %</label>
+                  <input type="number" step="0.01" className={inputCls} value={newLine.taxRate} onChange={(e) => setNewLine({ ...newLine, taxRate: e.target.value })} /></>
+                )}
               </div>
               <div className="col-span-2">
                 <button onClick={addLine} disabled={addingLine} className="w-full rounded-lg bg-green-600 px-3 py-2 text-sm font-semibold text-white hover:bg-green-700 disabled:opacity-50">

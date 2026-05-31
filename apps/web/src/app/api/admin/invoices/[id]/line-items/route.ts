@@ -28,12 +28,25 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     const body = z.object({
       lineType: z.enum(['PART', 'LABOR', 'CUSTOM_CHARGE', 'DISCOUNT_ADJUSTMENT']),
       description: z.string().min(1), quantity: z.number().default(1), unitPrice: z.number().default(0), taxRate: z.number().default(0),
+      discountMode: z.enum(['flat', 'percent']).optional(),
     }).parse(await req.json());
     const isDiscount = body.lineType === 'DISCOUNT_ADJUSTMENT';
-    const taxAmount = isDiscount ? 0 : body.quantity * body.unitPrice * (body.taxRate / 100);
-    const lineTotal = isDiscount ? -(Math.abs(body.quantity * body.unitPrice)) : body.quantity * body.unitPrice + taxAmount;
+    let lineTotal: number;
+    let taxAmount: number;
+    if (isDiscount) {
+      taxAmount = 0;
+      if (body.discountMode === 'percent') {
+        const invoice = await prisma.invoice.findUniqueOrThrow({ where: { id: params.id }, select: { subtotal: true } });
+        lineTotal = -(Number(invoice.subtotal) * (body.unitPrice / 100));
+      } else {
+        lineTotal = -(Math.abs(body.quantity * body.unitPrice));
+      }
+    } else {
+      taxAmount = body.quantity * body.unitPrice * (body.taxRate / 100);
+      lineTotal = body.quantity * body.unitPrice + taxAmount;
+    }
     const count = await prisma.invoiceLineItem.count({ where: { invoiceId: params.id } });
-    const item = await prisma.invoiceLineItem.create({ data: { invoiceId: params.id, ...body, taxAmount, lineTotal, sortOrder: count } });
+    const item = await prisma.invoiceLineItem.create({ data: { invoiceId: params.id, lineType: body.lineType, description: body.description, quantity: body.quantity, unitPrice: body.unitPrice, taxRate: body.taxRate, taxAmount, lineTotal, sortOrder: count } });
     await recalcTotals(params.id);
     logActivity({ entityType: 'InvoiceLineItem', entityId: item.id, action: 'invoice.line.added', newValue: body, actorType: 'ADMIN', actorId: user.sub });
     return NextResponse.json({ success: true, data: item }, { status: 201 });
