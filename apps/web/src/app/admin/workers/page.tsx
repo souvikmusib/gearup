@@ -18,7 +18,7 @@ export default function WorkersPage() {
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('');
   const [showCreate, setShowCreate] = useState(false);
-  const [form, setForm] = useState({ fullName: '', phoneNumber: '', email: '', designation: '', specialization: '', shiftStart: '', shiftEnd: '' });
+  const [form, setForm] = useState({ fullName: '', phoneNumber: '', email: '', designation: '', specialization: '', shiftStart: '', shiftEnd: '', monthlySalary: '' });
   const router = useRouter();
   const timer = useRef<NodeJS.Timeout>();
 
@@ -52,8 +52,8 @@ export default function WorkersPage() {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const res = await api.post('/admin/workers', form);
-    if (res.success) { setShowCreate(false); setForm({ fullName: '', phoneNumber: '', email: '', designation: '', specialization: '', shiftStart: '', shiftEnd: '' }); load(); }
+    const res = await api.post('/admin/workers', { ...form, monthlySalary: form.monthlySalary ? Number(form.monthlySalary) : undefined });
+    if (res.success) { setShowCreate(false); setForm({ fullName: '', phoneNumber: '', email: '', designation: '', specialization: '', shiftStart: '', shiftEnd: '', monthlySalary: '' }); load(); }
   };
 
   const columns = [
@@ -95,6 +95,7 @@ export default function WorkersPage() {
           <div className="grid grid-cols-2 gap-3">
             <input className={inputCls} placeholder="Shift Start" type="time" value={form.shiftStart} onChange={(e) => setForm({ ...form, shiftStart: e.target.value })} />
             <input className={inputCls} placeholder="Shift End" type="time" value={form.shiftEnd} onChange={(e) => setForm({ ...form, shiftEnd: e.target.value })} />
+            <input className={inputCls} placeholder="Monthly Salary (₹)" type="number" value={form.monthlySalary} onChange={(e) => setForm({ ...form, monthlySalary: e.target.value })} />
           </div>
           <button type="submit" className="w-full rounded-lg bg-blue-600 py-2 text-sm font-medium text-white hover:bg-blue-700">Create</button>
         </form>
