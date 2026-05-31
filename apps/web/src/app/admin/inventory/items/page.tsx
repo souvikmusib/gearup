@@ -184,6 +184,7 @@ export default function InventoryItemsPage() {
           <button type="submit" disabled={editSaving} className="w-full rounded-lg bg-blue-600 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
             {editSaving ? 'Saving...' : 'Save Changes'}
           </button>
+          <button type="button" onClick={async () => { if (!confirm('Delete this item?')) return; const res = await api.delete(`/admin/inventory/items/${editItem?.id}`); if (res.success) { setEditItem(null); load(); } else alert(res.error?.message || 'Cannot delete'); }} className="w-full mt-2 rounded-lg py-2 text-sm font-medium text-red-600 border border-red-300 hover:bg-red-50 dark:border-red-700 dark:hover:bg-red-900/20">Delete Item</button>
         </form>
       </Modal>
       <Modal open={!!stockItem} onClose={() => setStockItem(null)} title={`Adjust Stock: ${stockItem?.itemName ?? ''}`}>

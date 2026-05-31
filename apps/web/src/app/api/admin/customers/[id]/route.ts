@@ -31,3 +31,22 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     return NextResponse.json({ success: true, data: customer });
   } catch (e) { return handleApiError(e); }
 }
+
+export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    const user = requirePermission(PERMISSIONS.CUSTOMERS_EDIT);
+    const [vehicles, jobCards, invoices] = await Promise.all([
+      prisma.vehicle.count({ where: { customerId: params.id } }),
+      prisma.jobCard.count({ where: { customerId: params.id } }),
+      prisma.invoice.count({ where: { customerId: params.id } }),
+    ]);
+    if (vehicles > 0 || jobCards > 0 || invoices > 0) {
+      return NextResponse.json({ success: false, error: { message: `Cannot delete — customer has ${vehicles} vehicle(s), ${jobCards} job card(s), ${invoices} invoice(s)` } }, { status: 409 });
+    }
+    await prisma.serviceRequest.deleteMany({ where: { customerId: params.id } });
+    await prisma.appointment.deleteMany({ where: { customerId: params.id } });
+    await prisma.customer.delete({ where: { id: params.id } });
+    logActivity({ entityType: 'Customer', entityId: params.id, action: 'customer.deleted', actorType: 'ADMIN', actorId: user.sub });
+    return NextResponse.json({ success: true });
+  } catch (e) { return handleApiError(e); }
+}
