@@ -35,7 +35,8 @@ export default function AdminLoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-950 px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">⚙️ GearUp Admin</h1>
+          <img src="/brand/gearup-logo.png" alt="GearUp" className="mx-auto h-14 w-auto object-contain" />
+          <h1 className="mt-4 text-2xl font-bold text-gray-900 dark:text-white">Admin</h1>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Sign in to manage your garage</p>
         </div>
 

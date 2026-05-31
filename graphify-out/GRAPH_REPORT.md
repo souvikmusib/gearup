@@ -1,119 +1,137 @@
-# Graph Report - .  (2026-04-26)
+# Graph Report - gearup  (2026-06-01)
 
 ## Corpus Check
-- 165 files · ~64,600 words
+- 181 files · ~103,990 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 401 nodes · 431 edges · 92 communities detected
-- Extraction: 92% EXTRACTED · 8% INFERRED · 0% AMBIGUOUS · INFERRED: 34 edges (avg confidence: 0.8)
+- 1404 nodes · 2376 edges · 121 communities (98 shown, 23 thin omitted)
+- Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 70 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
+## Graph Freshness
+- Built from commit: `7823b6b0`
+- Run `git rev-parse HEAD` and compare to check if the graph is stale.
+- Run `graphify update .` after code changes (no API cost).
+
 ## Community Hubs (Navigation)
-- [[_COMMUNITY_Admin API Routes|Admin API Routes]]
-- [[_COMMUNITY_Admin UI Pages|Admin UI Pages]]
-- [[_COMMUNITY_Reporting And Calendar|Reporting And Calendar]]
-- [[_COMMUNITY_Worker Reports Navigation|Worker Reports Navigation]]
-- [[_COMMUNITY_Architecture And Testing Docs|Architecture And Testing Docs]]
-- [[_COMMUNITY_API Error Handling|API Error Handling]]
-- [[_COMMUNITY_Public Booking E2E|Public Booking E2E]]
-- [[_COMMUNITY_Client Auth And Cache|Client Auth And Cache]]
-- [[_COMMUNITY_Booking Form Validation|Booking Form Validation]]
-- [[_COMMUNITY_E2E API Helpers|E2E API Helpers]]
-- [[_COMMUNITY_API Client Internals|API Client Internals]]
-- [[_COMMUNITY_ID Generators|ID Generators]]
-- [[_COMMUNITY_Admin E2E Auth|Admin E2E Auth]]
-- [[_COMMUNITY_Backend Auth Permissions|Backend Auth Permissions]]
-- [[_COMMUNITY_Auth Context Storage|Auth Context Storage]]
-- [[_COMMUNITY_Settings Boolean Forms|Settings Boolean Forms]]
-- [[_COMMUNITY_Date Time Formatting|Date Time Formatting]]
-- [[_COMMUNITY_Legacy Deployment Docs|Legacy Deployment Docs]]
-- [[_COMMUNITY_Middleware Rate Limiting|Middleware Rate Limiting]]
-- [[_COMMUNITY_Dashboard Activity Formatting|Dashboard Activity Formatting]]
-- [[_COMMUNITY_Admin Sidebar UI|Admin Sidebar UI]]
-- [[_COMMUNITY_Pagination Utilities|Pagination Utilities]]
-- [[_COMMUNITY_Theme Context|Theme Context]]
-- [[_COMMUNITY_Empty State Component|Empty State Component]]
-- [[_COMMUNITY_Status Badge Component|Status Badge Component]]
-- [[_COMMUNITY_Page Header Component|Page Header Component]]
-- [[_COMMUNITY_Stat Card Component|Stat Card Component]]
-- [[_COMMUNITY_Database Seed Script|Database Seed Script]]
-- [[_COMMUNITY_Root App Layout|Root App Layout]]
-- [[_COMMUNITY_Admin Route Prefetch|Admin Route Prefetch]]
-- [[_COMMUNITY_Adminindexpage|Adminindexpage]]
-- [[_COMMUNITY_Customerspage|Customerspage]]
-- [[_COMMUNITY_Customerdetailpage|Customerdetailpage]]
-- [[_COMMUNITY_Integrationspage|Integrationspage]]
-- [[_COMMUNITY_Paymentspage|Paymentspage]]
-- [[_COMMUNITY_Tabcls|Tabcls]]
-- [[_COMMUNITY_Invoicedetailpage|Invoicedetailpage]]
-- [[_COMMUNITY_Appointmentdetailpage|Appointmentdetailpage]]
-- [[_COMMUNITY_Expensecategoriespage|Expensecategoriespage]]
-- [[_COMMUNITY_Servicerequestdetailpage|Servicerequestdetailpage]]
-- [[_COMMUNITY_Activitylogspage|Activitylogspage]]
-- [[_COMMUNITY_Lowstockpage|Lowstockpage]]
-- [[_COMMUNITY_Inventorycategoriespage|Inventorycategoriespage]]
-- [[_COMMUNITY_Workerdetailpage|Workerdetailpage]]
-- [[_COMMUNITY_Vehicledetailpage|Vehicledetailpage]]
-- [[_COMMUNITY_Notificationtemplatespage|Notificationtemplatespage]]
-- [[_COMMUNITY_Adminloginpage|Adminloginpage]]
-- [[_COMMUNITY_Inventoryreportpage|Inventoryreportpage]]
-- [[_COMMUNITY_Workersreportpage|Workersreportpage]]
-- [[_COMMUNITY_Layout Publiclayout|Layout Publiclayout]]
-- [[_COMMUNITY_Contactpage|Contactpage]]
-- [[_COMMUNITY_Index Providers|Index Providers]]
-- [[_COMMUNITY_Pagination|Pagination]]
-- [[_COMMUNITY_Modal|Modal]]
-- [[_COMMUNITY_Theme Themetoggle Toggle|Theme Themetoggle Toggle]]
-- [[_COMMUNITY_Prisma Withserverlesspoollimits|Prisma Withserverlesspoollimits]]
-- [[_COMMUNITY_Activity Logactivity Logger|Activity Logactivity Logger]]
-- [[_COMMUNITY_Method Mismatch Production|Method Mismatch Production]]
-- [[_COMMUNITY_Region Alignment Cross|Region Alignment Cross]]
-- [[_COMMUNITY_Claude Context Graphify|Claude Context Graphify]]
-- [[_COMMUNITY_Scheduling Existing Model|Scheduling Existing Model]]
-- [[_COMMUNITY_Pooler Prisma Singleton|Pooler Prisma Singleton]]
-- [[_COMMUNITY_Index|Index]]
-- [[_COMMUNITY_Table|Table]]
-- [[_COMMUNITY_api.ts|api.ts]]
-- [[_COMMUNITY_Index|Index]]
-- [[_COMMUNITY_Domain|Domain]]
-- [[_COMMUNITY_Auth|Auth]]
-- [[_COMMUNITY_Config Tailwind|Config Tailwind]]
-- [[_COMMUNITY_Config Sentry Server|Config Sentry Server]]
-- [[_COMMUNITY_Env Next|Env Next]]
-- [[_COMMUNITY_Client Config Sentry|Client Config Sentry]]
-- [[_COMMUNITY_Config Edge Sentry|Config Edge Sentry]]
-- [[_COMMUNITY_Config Playwright|Config Playwright]]
-- [[_COMMUNITY_Config Postcss|Config Postcss]]
-- [[_COMMUNITY_page.tsx|page.tsx]]
-- [[_COMMUNITY_page.tsx|page.tsx]]
-- [[_COMMUNITY_page.tsx|page.tsx]]
-- [[_COMMUNITY_page.tsx|page.tsx]]
-- [[_COMMUNITY_page.tsx|page.tsx]]
-- [[_COMMUNITY_page.tsx|page.tsx]]
-- [[_COMMUNITY_page.tsx|page.tsx]]
-- [[_COMMUNITY_page.tsx|page.tsx]]
-- [[_COMMUNITY_page.tsx|page.tsx]]
-- [[_COMMUNITY_page.tsx|page.tsx]]
-- [[_COMMUNITY_page.tsx|page.tsx]]
-- [[_COMMUNITY_Breadcrumbs|Breadcrumbs]]
-- [[_COMMUNITY_Skeletons|Skeletons]]
-- [[_COMMUNITY_Toolbar|Toolbar]]
-- [[_COMMUNITY_Constants|Constants]]
-- [[_COMMUNITY_Servicing System|Servicing System]]
-- [[_COMMUNITY_Postgres Prisma Supabase|Postgres Prisma Supabase]]
+- [[_COMMUNITY_Community 0|Community 0]]
+- [[_COMMUNITY_Community 1|Community 1]]
+- [[_COMMUNITY_Community 2|Community 2]]
+- [[_COMMUNITY_Community 3|Community 3]]
+- [[_COMMUNITY_Community 4|Community 4]]
+- [[_COMMUNITY_Community 5|Community 5]]
+- [[_COMMUNITY_Community 6|Community 6]]
+- [[_COMMUNITY_Community 7|Community 7]]
+- [[_COMMUNITY_Community 8|Community 8]]
+- [[_COMMUNITY_Community 9|Community 9]]
+- [[_COMMUNITY_Community 10|Community 10]]
+- [[_COMMUNITY_Community 11|Community 11]]
+- [[_COMMUNITY_Community 12|Community 12]]
+- [[_COMMUNITY_Community 13|Community 13]]
+- [[_COMMUNITY_Community 14|Community 14]]
+- [[_COMMUNITY_Community 15|Community 15]]
+- [[_COMMUNITY_Community 16|Community 16]]
+- [[_COMMUNITY_Community 17|Community 17]]
+- [[_COMMUNITY_Community 18|Community 18]]
+- [[_COMMUNITY_Community 19|Community 19]]
+- [[_COMMUNITY_Community 20|Community 20]]
+- [[_COMMUNITY_Community 21|Community 21]]
+- [[_COMMUNITY_Community 22|Community 22]]
+- [[_COMMUNITY_Community 23|Community 23]]
+- [[_COMMUNITY_Community 24|Community 24]]
+- [[_COMMUNITY_Community 25|Community 25]]
+- [[_COMMUNITY_Community 26|Community 26]]
+- [[_COMMUNITY_Community 27|Community 27]]
+- [[_COMMUNITY_Community 28|Community 28]]
+- [[_COMMUNITY_Community 29|Community 29]]
+- [[_COMMUNITY_Community 30|Community 30]]
+- [[_COMMUNITY_Community 31|Community 31]]
+- [[_COMMUNITY_Community 32|Community 32]]
+- [[_COMMUNITY_Community 33|Community 33]]
+- [[_COMMUNITY_Community 34|Community 34]]
+- [[_COMMUNITY_Community 35|Community 35]]
+- [[_COMMUNITY_Community 36|Community 36]]
+- [[_COMMUNITY_Community 37|Community 37]]
+- [[_COMMUNITY_Community 38|Community 38]]
+- [[_COMMUNITY_Community 39|Community 39]]
+- [[_COMMUNITY_Community 40|Community 40]]
+- [[_COMMUNITY_Community 41|Community 41]]
+- [[_COMMUNITY_Community 42|Community 42]]
+- [[_COMMUNITY_Community 43|Community 43]]
+- [[_COMMUNITY_Community 44|Community 44]]
+- [[_COMMUNITY_Community 45|Community 45]]
+- [[_COMMUNITY_Community 46|Community 46]]
+- [[_COMMUNITY_Community 47|Community 47]]
+- [[_COMMUNITY_Community 48|Community 48]]
+- [[_COMMUNITY_Community 49|Community 49]]
+- [[_COMMUNITY_Community 50|Community 50]]
+- [[_COMMUNITY_Community 51|Community 51]]
+- [[_COMMUNITY_Community 52|Community 52]]
+- [[_COMMUNITY_Community 53|Community 53]]
+- [[_COMMUNITY_Community 54|Community 54]]
+- [[_COMMUNITY_Community 55|Community 55]]
+- [[_COMMUNITY_Community 56|Community 56]]
+- [[_COMMUNITY_Community 57|Community 57]]
+- [[_COMMUNITY_Community 58|Community 58]]
+- [[_COMMUNITY_Community 59|Community 59]]
+- [[_COMMUNITY_Community 60|Community 60]]
+- [[_COMMUNITY_Community 61|Community 61]]
+- [[_COMMUNITY_Community 62|Community 62]]
+- [[_COMMUNITY_Community 63|Community 63]]
+- [[_COMMUNITY_Community 64|Community 64]]
+- [[_COMMUNITY_Community 65|Community 65]]
+- [[_COMMUNITY_Community 66|Community 66]]
+- [[_COMMUNITY_Community 67|Community 67]]
+- [[_COMMUNITY_Community 68|Community 68]]
+- [[_COMMUNITY_Community 69|Community 69]]
+- [[_COMMUNITY_Community 70|Community 70]]
+- [[_COMMUNITY_Community 71|Community 71]]
+- [[_COMMUNITY_Community 72|Community 72]]
+- [[_COMMUNITY_Community 73|Community 73]]
+- [[_COMMUNITY_Community 74|Community 74]]
+- [[_COMMUNITY_Community 75|Community 75]]
+- [[_COMMUNITY_Community 76|Community 76]]
+- [[_COMMUNITY_Community 77|Community 77]]
+- [[_COMMUNITY_Community 78|Community 78]]
+- [[_COMMUNITY_Community 79|Community 79]]
+- [[_COMMUNITY_Community 80|Community 80]]
+- [[_COMMUNITY_Community 81|Community 81]]
+- [[_COMMUNITY_Community 82|Community 82]]
+- [[_COMMUNITY_Community 83|Community 83]]
+- [[_COMMUNITY_Community 84|Community 84]]
+- [[_COMMUNITY_Community 85|Community 85]]
+- [[_COMMUNITY_Community 86|Community 86]]
+- [[_COMMUNITY_Community 87|Community 87]]
+- [[_COMMUNITY_Community 94|Community 94]]
+- [[_COMMUNITY_Community 95|Community 95]]
+- [[_COMMUNITY_Community 96|Community 96]]
+- [[_COMMUNITY_Community 97|Community 97]]
+- [[_COMMUNITY_Community 98|Community 98]]
+- [[_COMMUNITY_Community 99|Community 99]]
+- [[_COMMUNITY_Community 100|Community 100]]
+- [[_COMMUNITY_Community 101|Community 101]]
+- [[_COMMUNITY_Community 102|Community 102]]
+- [[_COMMUNITY_Community 103|Community 103]]
+- [[_COMMUNITY_Community 104|Community 104]]
+- [[_COMMUNITY_Community 105|Community 105]]
+- [[_COMMUNITY_Community 106|Community 106]]
+- [[_COMMUNITY_Community 107|Community 107]]
+- [[_COMMUNITY_Community 108|Community 108]]
+- [[_COMMUNITY_Community 119|Community 119]]
+- [[_COMMUNITY_Community 120|Community 120]]
 
 ## God Nodes (most connected - your core abstractions)
-1. `GET()` - 47 edges
-2. `POST()` - 26 edges
-3. `load()` - 19 edges
-4. `PATCH()` - 19 edges
-5. `DELETE()` - 12 edges
-6. `submit()` - 11 edges
-7. `Admin Permission Guard Pattern` - 8 edges
-8. `Number()` - 7 edges
-9. `openCreate()` - 6 edges
-10. `Ultra-Detailed E2E Execution Contract` - 6 edges
+1. `handleApiError()` - 131 edges
+2. `requirePermission()` - 114 edges
+3. `logActivity()` - 73 edges
+4. `GearUp Ultra-Detailed End-to-End Test Plan` - 67 edges
+5. `api` - 49 edges
+6. `GET()` - 47 edges
+7. `Number()` - 39 edges
+8. `paginate()` - 27 edges
+9. `POST()` - 26 edges
+10. `load()` - 19 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `Next.js 14 App Router Stack` --semantically_similar_to--> `Current Single-App Architecture (apps/web)`  [INFERRED] [semantically similar]
@@ -122,10 +140,10 @@
   docs/CALENDAR_RESEARCH.md → apps/web/src/app/admin/calendar/page.tsx
 - `Hybrid Calendar Recommendation` --conceptually_related_to--> `Admin Worker Calendar`  [INFERRED]
   docs/CALENDAR_RESEARCH.md → apps/web/src/app/admin/calendar/page.tsx
-- `Canonical Test Plan Pointer` --references--> `Ultra-Detailed E2E Execution Contract`  [EXTRACTED]
-  test plan.md → docs/TEST_PLAN.md
-- `Custom JWT and RBAC Auth Model` --conceptually_related_to--> `Role Permission Matrix`  [EXTRACTED]
-  README.md → docs/rbac.md
+- `main()` --calls--> `Number()`  [INFERRED]
+  apps/web/prisma/seed.ts → apps/web/src/app/admin/job-cards/[id]/page.tsx
+- `onJobCardSelect()` --calls--> `Number()`  [INFERRED]
+  apps/web/src/app/admin/invoices/page.tsx → apps/web/src/app/admin/job-cards/[id]/page.tsx
 
 ## Hyperedges (group relationships)
 - **Deployment Model Documentation Cluster** — architecture_monorepo_split_apps_web_api, deployment_guide_split_frontend_backend, handoff_guide_split_frontend_backend, codebase_context_current_architecture [INFERRED 0.63]
@@ -138,536 +156,359 @@
 - **Worker Availability Flow** — workers_id_route_worker_profile_endpoint, leave_route_worker_leave_lifecycle_endpoint, workers_calendar_route_worker_calendar_endpoint, reports_workers_route_worker_productivity_report_endpoint [INFERRED 0.78]
 - **Client Auth Session Flow** — client_api_request_wrapper, auth_context_auth_provider, auth_context_cached_user, admin_sidebar_auth_user_footer [INFERRED 0.84]
 
-## Communities
+## Communities (121 total, 23 thin omitted)
 
-### Community 0 - "Admin API Routes"
+### Community 0 - "Community 0"
 Cohesion: 0.05
-Nodes (8): DELETE(), ensureDraft(), generateInvoiceHTML(), GET(), isUniqueJobCardInvoiceError(), PATCH(), POST(), recalcTotals()
+Nodes (109): GET(), createSchema, GET(), POST(), getAuthToken(), requireAnyPermission(), requirePermission(), verifyAuth() (+101 more)
 
-### Community 1 - "Admin UI Pages"
+### Community 1 - "Community 1"
+Cohesion: 0.03
+Nodes (60): 10. Negative and Abuse Test Catalog, 11.1 ServiceRequestStatus, 11.2 AppointmentStatus, 11.3 JobCardStatus, 11.4 Invoice and Payment, 11. State Machine Validation, 12.1 Authentication and Token Security, 12.2 Authorization (+52 more)
+
+### Community 2 - "Community 2"
+Cohesion: 0.05
+Nodes (31): [custForm, setCustForm], [customers, setCustomers], [data, setData], [error, setError], [form, setForm], load(), [loading, setLoading], [newCust, setNewCust] (+23 more)
+
+### Community 3 - "Community 3"
+Cohesion: 0.05
+Nodes (41): 10. Known Issues & TODOs, 1. Infrastructure & Deployment, 2. Authentication & Authorization, 3. API Endpoints — CRUD Operations, 4. Public Endpoints, 5. Frontend Navigation, 6. Performance, 7. Data Integrity (+33 more)
+
+### Community 4 - "Community 4"
+Cohesion: 0.08
+Nodes (36): Admin Navigation Tree, Authenticated User Footer, Reports Navigation Section, Workers Navigation Links, Auth Provider, Cached User State, Fetch Current User Flow, Client Permission Check (+28 more)
+
+### Community 5 - "Community 5"
+Cohesion: 0.06
+Nodes (20): [addingPart, setAddingPart], ALL_STATUSES, [creatingInvoice, setCreatingInvoice], [data, setData], { id }, [inventoryItems, setInventoryItems], [loading, setLoading], locked (+12 more)
+
+### Community 6 - "Community 6"
 Cohesion: 0.07
-Nodes (23): addPart(), addTask(), assignWorker(), deleteExpense(), goToInvoice(), load(), loadCategories(), loadLookups() (+15 more)
+Nodes (25): [appointments, setAppointments], appointmentsReq, apptReq, [assignments, setAssignments], byWorker, { cached, promise }, fmtDate(), fmtTime() (+17 more)
 
-### Community 2 - "Reporting And Calendar"
+### Community 7 - "Community 7"
+Cohesion: 0.07
+Nodes (21): [data, setData], [error, setError], [filters, setFilters], INVOICE_STATUSES, [jobCards, setJobCards], [lineItems, setLineItems], load, [loading, setLoading] (+13 more)
+
+### Community 8 - "Community 8"
+Cohesion: 0.08
+Nodes (26): [categories, setCategories], [categoryFilter, setCategoryFilter], [data, setData], [editForm, setEditForm], [editItem, setEditItem], [editSaving, setEditSaving], [form, setForm], load (+18 more)
+
+### Community 9 - "Community 9"
 Cohesion: 0.08
 Nodes (28): Admin Idle Route Prefetch, Customer Update Activity Log, Customer Detail And Update API, One Invoice Per Job Card Guard, Invoice Totals Calculation, Invoices List And Create API, Dedicated Appointments Report API, Dashboard Summary Report (+20 more)
 
-### Community 3 - "Worker Reports Navigation"
-Cohesion: 0.11
-Nodes (27): Admin Navigation Tree, Authenticated User Footer, Reports Navigation Section, Workers Navigation Links, Leave Approval Worker Status Update, Worker Leave Audit Logging, Worker Leave Lifecycle Endpoint, JobCard Status Aggregation (+19 more)
+### Community 10 - "Community 10"
+Cohesion: 0.07
+Nodes (26): 10. Reports & Dashboard, 11. Settings, 12. Activity Logs, 1. Service Requests, 2. Appointments, 3. Job Cards, 4. Invoices, 5. Payments (+18 more)
 
-### Community 4 - "Architecture And Testing Docs"
+### Community 11 - "Community 11"
+Cohesion: 0.09
+Nodes (17): blur(), [error, setError], FieldErrors, [fieldErrors, setFieldErrors], [form, setForm], [loading, setLoading], lookupTimer, onPhoneChange() (+9 more)
+
+### Community 12 - "Community 12"
+Cohesion: 0.08
+Nodes (24): Coverage Matrix, Critical (Before Production Launch), Executive Summary, Failure Analysis, GearUp Servicing — E2E Testing Report, Important, Nice to Have, Performance Observations (+16 more)
+
+### Community 13 - "Community 13"
+Cohesion: 0.09
+Nodes (22): ActorType, AdminUserStatus, AppointmentStatus, ApprovalStatus, HolidayType, InventoryMovementType, InvoiceLineType, InvoiceStatus (+14 more)
+
+### Community 14 - "Community 14"
+Cohesion: 0.1
+Nodes (19): copyText(), canSubmit, [copied, setCopied], copyReference(), [error, setError], [loading, setLoading], LookupType, [lookupType, setLookupType] (+11 more)
+
+### Community 15 - "Community 15"
+Cohesion: 0.14
+Nodes (14): CacheEntry, cacheKey(), fetchAndStore(), inFlight, normalizePath(), now(), peek(), request() (+6 more)
+
+### Community 16 - "Community 16"
+Cohesion: 0.09
+Nodes (15): { cached, promise }, [data, setData], DEFAULTS, [form, setForm], [initial, setInitial], [loading, setLoading], [message, setMessage], [saving, setSaving] (+7 more)
+
+### Community 17 - "Community 17"
+Cohesion: 0.09
+Nodes (7): { cached, promise }, [data, setData], [loading, setLoading], [roles, setRoles], api, { cached, promise }, [data, setData]
+
+### Community 18 - "Community 18"
+Cohesion: 0.12
+Nodes (20): [categories, setCategories], [catFilter, setCatFilter], deleteExpense(), [editForm, setEditForm], [editItem, setEditItem], [editSaving, setEditSaving], [error, setError], [form, setForm] (+12 more)
+
+### Community 19 - "Community 19"
 Cohesion: 0.11
 Nodes (20): Legacy Express Backend on Render Model, API Route Handlers in apps/web, Current Single-App Architecture (apps/web), Production E2E Report (2026-04-19), Notification Deduplication Key Pattern, Notification Queue and Retry Pipeline, P0 Go-Live Acceptance Scenarios, Role Permission Matrix (+12 more)
 
-### Community 5 - "API Error Handling"
-Cohesion: 0.17
-Nodes (5): AppError, ForbiddenError, NotFoundError, UnauthorizedError, ValidationError
+### Community 20 - "Community 20"
+Cohesion: 0.12
+Nodes (15): { cached, promise }, [customers, setCustomers], [data, setData], [error, setError], [form, setForm], load(), [loading, setLoading], router (+7 more)
 
-### Community 6 - "Public Booking E2E"
+### Community 22 - "Community 22"
+Cohesion: 0.12
+Nodes (16): Calendar & Scheduling — Research & Recommendations for GearUp, Commercial (Auto Repair Specific), Commercial / Paid, Free / Open Source, Implementation Effort, Open Source / Self-Hosted, Option 1: React UI Calendar Libraries (embed in our app), Option 2: Full Scheduling Platforms (replace our scheduling logic) (+8 more)
+
+### Community 23 - "Community 23"
+Cohesion: 0.19
+Nodes (13): apiDelete(), apiGet(), apiPatch(), apiPost(), authHeaders(), nameInput, pending, regInput (+5 more)
+
+### Community 24 - "Community 24"
+Cohesion: 0.13
+Nodes (15): onSubmit(), [data, setData], [form, setForm], load, [loading, setLoading], onSearch, onSubmit(), [page, setPage] (+7 more)
+
+### Community 25 - "Community 25"
+Cohesion: 0.15
+Nodes (12): [data, setData], [editForm, setEditForm], [editItem, setEditItem], empty, [form, setForm], load(), [loading, setLoading], remove() (+4 more)
+
+### Community 26 - "Community 26"
+Cohesion: 0.15
+Nodes (16): addPart(), addTask(), assignWorker(), goToInvoice(), load(), Number(), onItemSelect(), removePart() (+8 more)
+
+### Community 27 - "Community 27"
+Cohesion: 0.15
+Nodes (15): addPart(), addTask(), assignWorker(), deleteExpense(), goToInvoice(), load(), Number(), onItemSelect() (+7 more)
+
+### Community 28 - "Community 28"
+Cohesion: 0.14
+Nodes (9): [collapsed, setCollapsed], isActive, isOpen, [mobileOpen, setMobileOpen], NAV, [openSubs, setOpenSubs], pathname, { user, logout } (+1 more)
+
+### Community 29 - "Community 29"
+Cohesion: 0.14
+Nodes (8): dashboard, DashboardData, [data, setData], [logs, setLogs], logsReq, quickActions, RecentLog, router
+
+### Community 30 - "Community 30"
+Cohesion: 0.14
+Nodes (13): code:bash (cd gearup-servicing), code:bash (cd apps/api), GearUp Servicing — Post-Build Handoff Guide, Step 10: First Week Monitoring, Step 1: Create GitHub Repository, Step 2: Set Up Supabase, Step 3: Set Up Sentry, Step 4: Deploy Backend to Render (+5 more)
+
+### Community 31 - "Community 31"
+Cohesion: 0.18
+Nodes (4): AuthContext, AuthCtx, useAuth(), AdminLoginPage()
+
+### Community 32 - "Community 32"
+Cohesion: 0.18
+Nodes (12): [data, setData], [form, setForm], load(), [loading, setLoading], past, remove(), [saving, setSaving], [showCreate, setShowCreate] (+4 more)
+
+### Community 33 - "Community 33"
+Cohesion: 0.22
+Nodes (10): NotFoundError, actionSchema, GET(), POST(), publicEstimate(), normalizePhone(), normalizeVehicle(), POST() (+2 more)
+
+### Community 34 - "Community 34"
+Cohesion: 0.21
+Nodes (4): ThemeToggle(), Theme, ThemeContext, useTheme()
+
+### Community 35 - "Community 35"
+Cohesion: 0.17
+Nodes (8): id, pathname, PREFETCH_ENDPOINTS, router, t, timers, { user, loading }, w
+
+### Community 36 - "Community 36"
+Cohesion: 0.17
+Nodes (11): [data, setData], load, [loading, setLoading], onSearch, [page, setPage], router, [search, setSearch], [status, setStatus] (+3 more)
+
+### Community 37 - "Community 37"
+Cohesion: 0.21
+Nodes (5): alphanumeric, generateInvoiceNumber(), generateJobCardNumber(), generateReferenceId(), generateWorkerCode()
+
+### Community 39 - "Community 39"
+Cohesion: 0.17
+Nodes (10): APPT_COLORS, [apptEvents, setApptEvents], events, evts, router, [selectedWorker, setSelectedWorker], [tab, setTab], worker (+2 more)
+
+### Community 40 - "Community 40"
+Cohesion: 0.17
+Nodes (11): 1. GitHub Repository, 2. Supabase Setup, 3. Sentry Setup, 4. Render (Backend), 5. Vercel (Frontend), 6. Post-Deploy Verification, 7. Custom Domain (Optional), code:bash (git init) (+3 more)
+
+### Community 41 - "Community 41"
 Cohesion: 0.22
 Nodes (11): Admin Layout Auth Guard, Book Service Form, Book Service Name And Registration Formatters, Book Service Validation And Submission, Authenticated API E2E Helpers, Job Card Workflow E2E Tests, Public Pages E2E Tests, Public Home Booking CTA (+3 more)
 
-### Community 7 - "Client Auth And Cache"
+### Community 43 - "Community 43"
+Cohesion: 0.22
+Nodes (7): buildSpokedWheel(), connectPoints(), context, layers, process, rootRef, services
+
+### Community 44 - "Community 44"
+Cohesion: 0.2
+Nodes (9): Authentication, code:block1 (gearup-servicing/), Cron Jobs, Data Flow, GearUp Servicing — Architecture, Monorepo Structure, Overview, RBAC (+1 more)
+
+### Community 45 - "Community 45"
+Cohesion: 0.25
+Nodes (4): metadata, AuthProvider(), Providers(), ThemeProvider()
+
+### Community 46 - "Community 46"
+Cohesion: 0.25
+Nodes (3): ListToolbarProps, [search, setSearch], Pagination()
+
+### Community 47 - "Community 47"
+Cohesion: 0.22
+Nodes (8): API Authentication, code:bash (pnpm install), code:block2 (apps/web/                    – Next.js app (frontend + API)), code:bash (# Login), GearUp Servicing, Getting Started, Project Structure, Stack
+
+### Community 48 - "Community 48"
+Cohesion: 0.22
+Nodes (8): 10. Production Data (as of 2026-04-19), 11. Test Results Summary, 12. Known Issues & Remediation, 1. Stack & Infrastructure, 2. Repository Structure, code:block1 (gearup/), Environment Variables (Production), GearUp Servicing — Codebase Context
+
+### Community 49 - "Community 49"
+Cohesion: 0.22
+Nodes (9): 4. Authentication & Authorization, Account Security, Auth Flow, Client-Side Auth (lib/auth/auth-context.tsx), code:block3 (1. POST /api/admin/auth/login { adminUserId, password }), code:typescript (verifyAuth()           // Returns AuthTokenPayload or throws), code:typescript (useAuth()  // { token, user, login(token), logout(), isAuthe), RBAC — 5 Roles, 33 Permissions (+1 more)
+
+### Community 50 - "Community 50"
+Cohesion: 0.25
+Nodes (8): 7. Frontend Architecture, Admin Sidebar Navigation, Auth Context (`lib/auth/auth-context.tsx`), Client-Side API Client (`lib/api/client.ts`), code:typescript (const BASE = '/api';  // Same-origin, no CORS needed), code:block9 (Dashboard), Page Layout, Shared UI Components (`packages/ui`)
+
+### Community 51 - "Community 51"
+Cohesion: 0.25
+Nodes (7): Channels, code:block1 (Hi {{customerName}}, your service request {{referenceId}} ha), Deduplication, Delivery Pipeline, Event Types, GearUp Servicing — Notifications, Template Format
+
+### Community 52 - "Community 52"
+Cohesion: 0.38
+Nodes (6): isRateLimited(), middleware(), config, isRateLimited(), middleware(), rateMap
+
+### Community 53 - "Community 53"
+Cohesion: 0.29
+Nodes (6): crumbs, displayCrumbs, labels, pathname, router, segments
+
+### Community 54 - "Community 54"
+Cohesion: 0.29
+Nodes (6): DEFAULT_TIPS, etaTimer, interval, safeSteps, [showEta, setShowEta], [tick, setTick]
+
+### Community 55 - "Community 55"
+Cohesion: 0.29
+Nodes (6): { cached, promise }, [data, setData], [from, setFrom], params, qs, [to, setTo]
+
+### Community 56 - "Community 56"
+Cohesion: 0.29
+Nodes (6): [hours, setHours], hoursReq, [loading, setLoading], roleCounts, [workers, setWorkers], workersReq
+
+### Community 57 - "Community 57"
+Cohesion: 0.29
+Nodes (6): { cached, promise }, [data, setData], [from, setFrom], params, qs, [to, setTo]
+
+### Community 58 - "Community 58"
+Cohesion: 0.29
+Nodes (5): [comment, setComment], [error, setError], Estimate, [estimate, setEstimate], [status, setStatus]
+
+### Community 59 - "Community 59"
+Cohesion: 0.29
+Nodes (7): 8. Key Library Files, `lib/activity-logger.ts`, `lib/auth.ts`, `lib/errors.ts`, `lib/id-generators.ts`, `lib/pagination.ts`, `lib/prisma.ts`
+
+### Community 60 - "Community 60"
+Cohesion: 0.29
+Nodes (7): 5. API Reference (31 Route Handlers), Admin CRUD Endpoints, API Response Format, Auth Endpoints, code:json ({), Error Codes, Public Endpoints (no auth)
+
+### Community 61 - "Community 61"
 Cohesion: 0.33
-Nodes (9): Auth Provider, Cached User State, Fetch Current User Flow, Client Permission Check, API Request Wrapper, GET Response Cache, In-Flight GET Deduplication, Stale While Revalidate Getter (+1 more)
+Nodes (6): 9.5 Suite E - Core Workflow Chain (P0), TC-WF-001 SR -> Appointment, TC-WF-002 Appointment -> Job Card, TC-WF-003 Job Card Lifecycle, TC-WF-004 Job Card -> Invoice, TC-WF-005 Invoice -> Payment
 
-### Community 8 - "Booking Form Validation"
-Cohesion: 0.36
-Nodes (4): blur(), onPhoneChange(), set(), validate()
-
-### Community 9 - "E2E API Helpers"
-Cohesion: 0.48
-Nodes (5): apiDelete(), apiGet(), apiPatch(), apiPost(), authHeaders()
-
-### Community 10 - "API Client Internals"
-Cohesion: 0.52
-Nodes (5): cacheKey(), fetchAndStore(), now(), peek(), request()
-
-### Community 11 - "ID Generators"
+### Community 62 - "Community 62"
 Cohesion: 0.33
-Nodes (0): 
+Nodes (6): 9.6 Suite F - Master Data CRUD, Customers, Expenses, Inventory Items, Vehicles, Workers
 
-### Community 12 - "Admin E2E Auth"
+### Community 63 - "Community 63"
+Cohesion: 0.33
+Nodes (6): 9.3 Suite C - Authentication and Session (P0), TC-AUTH-001 Valid Login, TC-AUTH-002 Wrong Password and Lockout, TC-AUTH-003 Me Endpoint Contract, TC-AUTH-004 Session Expiry UX, TC-AUTH-005 Password Change
+
+### Community 64 - "Community 64"
 Cohesion: 0.4
-Nodes (0): 
+Nodes (4): ApiError, ApiResponse, PaginationMeta, PaginationQuery
 
-### Community 13 - "Backend Auth Permissions"
-Cohesion: 0.7
-Nodes (4): getAuthToken(), requireAnyPermission(), requirePermission(), verifyAuth()
-
-### Community 14 - "Auth Context Storage"
+### Community 65 - "Community 65"
 Cohesion: 0.4
-Nodes (0): 
+Nodes (4): AuthTokenPayload, LoginRequest, LoginResponse, MeResponse
 
-### Community 15 - "Settings Boolean Forms"
+### Community 66 - "Community 66"
 Cohesion: 0.5
-Nodes (1): save()
+Nodes (3): loginAndNavigate(), loginAs(), nav
 
-### Community 16 - "Date Time Formatting"
+### Community 67 - "Community 67"
+Cohesion: 0.4
+Nodes (5): blur(), onPhoneChange(), set(), submit(), validate()
+
+### Community 68 - "Community 68"
+Cohesion: 0.4
+Nodes (5): 6. Business Workflows, code:block7 (Customer → Vehicle → Service Request → Appointment → Job Car), Module Classification, Primary Workflow: Vehicle Servicing Lifecycle, Seeded Workflow Examples (Production Data)
+
+### Community 69 - "Community 69"
+Cohesion: 0.4
+Nodes (5): 9. Performance Profile, API Response Times (Vercel → Supabase cross-region), Bundle Sizes, Known Performance Issue, Page Load (TTFB from Vercel edge)
+
+### Community 70 - "Community 70"
+Cohesion: 0.4
+Nodes (4): Edge Cases, GearUp Servicing — QA Acceptance Matrix, P0 — Must Pass Before Go-Live, P1 — Should Pass
+
+### Community 71 - "Community 71"
+Cohesion: 0.4
+Nodes (4): Backend (`apps/api`), Frontend (`apps/web`), GearUp Servicing — Environment Variables, Security Notes
+
+### Community 72 - "Community 72"
+Cohesion: 0.4
+Nodes (5): 9.2 Suite B - Public Funnel (P0), TC-PUB-001 Public Booking Success, TC-PUB-002 Public Booking Validation Failures, TC-PUB-003 Public Tracking Success, TC-PUB-004 Public Tracking Data Protection
+
+### Community 73 - "Community 73"
+Cohesion: 0.4
+Nodes (4): GearUp Servicing — RBAC, Implementation, Permission Matrix, Roles
+
+### Community 75 - "Community 75"
 Cohesion: 0.5
-Nodes (1): fmtTime()
+Nodes (3): child, command, rootEnvPath
 
-### Community 17 - "Legacy Deployment Docs"
+### Community 77 - "Community 77"
+Cohesion: 0.5
+Nodes (3): { cached, promise }, [data, setData], [loading, setLoading]
+
+### Community 78 - "Community 78"
+Cohesion: 0.5
+Nodes (3): { cached, promise }, [data, setData], [loading, setLoading]
+
+### Community 79 - "Community 79"
+Cohesion: 0.5
+Nodes (3): $CMEM gearup 2026-05-31 11:16pm GMT+5:30, $CMEM gearup 2026-06-01 3:22am GMT+5:30, Memory Context
+
+### Community 80 - "Community 80"
+Cohesion: 0.5
+Nodes (4): 3. Database Schema (Prisma), code:block2 (AdminUserStatus: ACTIVE | INACTIVE | LOCKED), Enums (17), Models (31 total)
+
+### Community 81 - "Community 81"
+Cohesion: 0.5
+Nodes (4): 13. Development Commands, Admin Credentials, code:bash (pnpm install              # Install all dependencies), code:block11 (URL:      https://gearup.sgnk.ai/admin/login)
+
+### Community 82 - "Community 82"
+Cohesion: 0.5
+Nodes (4): 14.2 Suggested Execution Commands, code:bash (pnpm install), code:bash (pnpm --filter @gearup/web dev), code:bash (cd apps/web)
+
+### Community 83 - "Community 83"
+Cohesion: 0.5
+Nodes (4): 5.3 API Route Coverage (Method Matrix), Admin Auth API, Admin Domain API, Public API
+
+### Community 84 - "Community 84"
+Cohesion: 0.5
+Nodes (3): Answer, Q: Why does Ultra-Detailed E2E Execution Contract connect E2e Notification Production to Apps Web Legacy?, Source Nodes
+
+### Community 85 - "Community 85"
+Cohesion: 0.5
+Nodes (3): Answer, Q: Why does Ultra-Detailed E2E Execution Contract connect E2e Notification Production to Apps Web Legacy?, Source Nodes
+
+### Community 86 - "Community 86"
 Cohesion: 0.67
 Nodes (4): Split apps/web + apps/api Monorepo Model, Deployment Guide with Split Frontend/Backend Steps, Frontend and Backend Environment Variable Catalog, Post-Build Handoff with Split Deployment Steps
-
-### Community 18 - "Middleware Rate Limiting"
-Cohesion: 1.0
-Nodes (2): isRateLimited(), middleware()
-
-### Community 19 - "Dashboard Activity Formatting"
-Cohesion: 0.67
-Nodes (0): 
-
-### Community 20 - "Admin Sidebar UI"
-Cohesion: 0.67
-Nodes (0): 
-
-### Community 21 - "Pagination Utilities"
-Cohesion: 0.67
-Nodes (0): 
-
-### Community 22 - "Theme Context"
-Cohesion: 0.67
-Nodes (0): 
-
-### Community 23 - "Empty State Component"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 24 - "Status Badge Component"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 25 - "Page Header Component"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 26 - "Stat Card Component"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 27 - "Database Seed Script"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 28 - "Root App Layout"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 29 - "Admin Route Prefetch"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 30 - "Adminindexpage"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 31 - "Customerspage"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 32 - "Customerdetailpage"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 33 - "Integrationspage"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 34 - "Paymentspage"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 35 - "Tabcls"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 36 - "Invoicedetailpage"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 37 - "Appointmentdetailpage"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 38 - "Expensecategoriespage"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 39 - "Servicerequestdetailpage"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 40 - "Activitylogspage"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 41 - "Lowstockpage"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 42 - "Inventorycategoriespage"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 43 - "Workerdetailpage"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 44 - "Vehicledetailpage"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 45 - "Notificationtemplatespage"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 46 - "Adminloginpage"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 47 - "Inventoryreportpage"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 48 - "Workersreportpage"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 49 - "Layout Publiclayout"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 50 - "Contactpage"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 51 - "Index Providers"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 52 - "Pagination"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 53 - "Modal"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 54 - "Theme Themetoggle Toggle"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 55 - "Prisma Withserverlesspoollimits"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 56 - "Activity Logactivity Logger"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 57 - "Method Mismatch Production"
-Cohesion: 1.0
-Nodes (2): Production Ready Verdict, Settings Test Method Mismatch (POST vs PATCH)
-
-### Community 58 - "Region Alignment Cross"
-Cohesion: 1.0
-Nodes (2): Region Alignment Optimization Recommendation, Cross-Region Latency Finding
-
-### Community 59 - "Claude Context Graphify"
-Cohesion: 1.0
-Nodes (2): Graphify Trigger Instruction, Claude Memory Context
-
-### Community 60 - "Scheduling Existing Model"
-Cohesion: 1.0
-Nodes (2): Existing Scheduling Data Model, GearUp Scheduling UI Needs
-
-### Community 61 - "Pooler Prisma Singleton"
-Cohesion: 1.0
-Nodes (2): Prisma Singleton, Supabase Pooler URL Tuning
-
-### Community 62 - "Index"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 63 - "Table"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 64 - "api.ts"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 65 - "Index"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 66 - "Domain"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 67 - "Auth"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 68 - "Config Tailwind"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 69 - "Config Sentry Server"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 70 - "Env Next"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 71 - "Client Config Sentry"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 72 - "Config Edge Sentry"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 73 - "Config Playwright"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 74 - "Config Postcss"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 75 - "page.tsx"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 76 - "page.tsx"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 77 - "page.tsx"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 78 - "page.tsx"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 79 - "page.tsx"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 80 - "page.tsx"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 81 - "page.tsx"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 82 - "page.tsx"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 83 - "page.tsx"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 84 - "page.tsx"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 85 - "page.tsx"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 86 - "Breadcrumbs"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 87 - "Skeletons"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 88 - "Toolbar"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 89 - "Constants"
-Cohesion: 1.0
-Nodes (0): 
-
-### Community 90 - "Servicing System"
-Cohesion: 1.0
-Nodes (1): GearUp Servicing System
-
-### Community 91 - "Postgres Prisma Supabase"
-Cohesion: 1.0
-Nodes (1): Supabase Postgres via Prisma
 
 ## Ambiguous Edges - Review These
 - `Current Single-App Architecture (apps/web)` → `Legacy Express Backend on Render Model`  [AMBIGUOUS]
   docs/TEST_PLAN.md · relation: conceptually_related_to
 
 ## Knowledge Gaps
-- **36 isolated node(s):** `Canonical Test Plan Pointer`, `GearUp Servicing System`, `Next.js 14 App Router Stack`, `Supabase Postgres via Prisma`, `Custom JWT and RBAC Auth Model` (+31 more)
+- **646 isolated node(s):** `Column`, `DataTableProps`, `STATUS_COLORS`, `ApiResponse`, `ApiError` (+641 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **Thin community `Empty State Component`** (2 nodes): `EmptyState()`, `empty-state.tsx`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Status Badge Component`** (2 nodes): `status-badge.tsx`, `StatusBadge()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Page Header Component`** (2 nodes): `page-header.tsx`, `PageHeader()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Stat Card Component`** (2 nodes): `stat-card.tsx`, `StatCard()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Database Seed Script`** (2 nodes): `seed.ts`, `main()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Root App Layout`** (2 nodes): `layout.tsx`, `RootLayout()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Admin Route Prefetch`** (2 nodes): `layout.tsx`, `runRoutePrefetch()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Adminindexpage`** (2 nodes): `page.tsx`, `AdminIndexPage()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Customerspage`** (2 nodes): `page.tsx`, `CustomersPage()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Customerdetailpage`** (2 nodes): `page.tsx`, `CustomerDetailPage()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Integrationspage`** (2 nodes): `page.tsx`, `IntegrationsPage()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Paymentspage`** (2 nodes): `page.tsx`, `PaymentsPage()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Tabcls`** (2 nodes): `page.tsx`, `tabCls()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Invoicedetailpage`** (2 nodes): `page.tsx`, `InvoiceDetailPage()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Appointmentdetailpage`** (2 nodes): `page.tsx`, `AppointmentDetailPage()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Expensecategoriespage`** (2 nodes): `page.tsx`, `ExpenseCategoriesPage()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Servicerequestdetailpage`** (2 nodes): `page.tsx`, `ServiceRequestDetailPage()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Activitylogspage`** (2 nodes): `page.tsx`, `ActivityLogsPage()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Lowstockpage`** (2 nodes): `page.tsx`, `LowStockPage()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Inventorycategoriespage`** (2 nodes): `page.tsx`, `InventoryCategoriesPage()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Workerdetailpage`** (2 nodes): `page.tsx`, `WorkerDetailPage()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Vehicledetailpage`** (2 nodes): `page.tsx`, `VehicleDetailPage()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Notificationtemplatespage`** (2 nodes): `page.tsx`, `NotificationTemplatesPage()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Adminloginpage`** (2 nodes): `page.tsx`, `AdminLoginPage()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Inventoryreportpage`** (2 nodes): `page.tsx`, `InventoryReportPage()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Workersreportpage`** (2 nodes): `page.tsx`, `WorkersReportPage()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Layout Publiclayout`** (2 nodes): `layout.tsx`, `PublicLayout()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Contactpage`** (2 nodes): `page.tsx`, `ContactPage()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Index Providers`** (2 nodes): `index.tsx`, `Providers()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Pagination`** (2 nodes): `pagination.tsx`, `Pagination()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Modal`** (2 nodes): `modal.tsx`, `Modal()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Theme Themetoggle Toggle`** (2 nodes): `theme-toggle.tsx`, `ThemeToggle()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Prisma Withserverlesspoollimits`** (2 nodes): `prisma.ts`, `withServerlessPoolLimits()`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Activity Logactivity Logger`** (2 nodes): `logActivity()`, `activity-logger.ts`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Method Mismatch Production`** (2 nodes): `Production Ready Verdict`, `Settings Test Method Mismatch (POST vs PATCH)`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Region Alignment Cross`** (2 nodes): `Region Alignment Optimization Recommendation`, `Cross-Region Latency Finding`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Claude Context Graphify`** (2 nodes): `Graphify Trigger Instruction`, `Claude Memory Context`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Scheduling Existing Model`** (2 nodes): `Existing Scheduling Data Model`, `GearUp Scheduling UI Needs`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Pooler Prisma Singleton`** (2 nodes): `Prisma Singleton`, `Supabase Pooler URL Tuning`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Index`** (1 nodes): `index.ts`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Table`** (1 nodes): `data-table.tsx`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `api.ts`** (1 nodes): `api.ts`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Index`** (1 nodes): `index.ts`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Domain`** (1 nodes): `domain.ts`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Auth`** (1 nodes): `auth.ts`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Config Tailwind`** (1 nodes): `tailwind.config.js`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Config Sentry Server`** (1 nodes): `sentry.server.config.ts`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Env Next`** (1 nodes): `next-env.d.ts`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Client Config Sentry`** (1 nodes): `sentry.client.config.ts`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Config Edge Sentry`** (1 nodes): `sentry.edge.config.ts`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Config Playwright`** (1 nodes): `playwright.config.ts`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Config Postcss`** (1 nodes): `postcss.config.js`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `page.tsx`** (1 nodes): `page.tsx`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `page.tsx`** (1 nodes): `page.tsx`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `page.tsx`** (1 nodes): `page.tsx`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `page.tsx`** (1 nodes): `page.tsx`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `page.tsx`** (1 nodes): `page.tsx`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `page.tsx`** (1 nodes): `page.tsx`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `page.tsx`** (1 nodes): `page.tsx`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `page.tsx`** (1 nodes): `page.tsx`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `page.tsx`** (1 nodes): `page.tsx`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `page.tsx`** (1 nodes): `page.tsx`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `page.tsx`** (1 nodes): `page.tsx`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Breadcrumbs`** (1 nodes): `breadcrumbs.tsx`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Skeletons`** (1 nodes): `skeletons.tsx`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Toolbar`** (1 nodes): `list-toolbar.tsx`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Constants`** (1 nodes): `constants.ts`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Servicing System`** (1 nodes): `GearUp Servicing System`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Postgres Prisma Supabase`** (1 nodes): `Supabase Postgres via Prisma`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **23 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
 - **What is the exact relationship between `Current Single-App Architecture (apps/web)` and `Legacy Express Backend on Render Model`?**
   _Edge tagged AMBIGUOUS (relation: conceptually_related_to) - confidence is low._
-- **Why does `submit()` connect `Admin UI Pages` to `Booking Form Validation`?**
-  _High betweenness centrality (0.007) - this node is a cross-community bridge._
-- **What connects `Canonical Test Plan Pointer`, `GearUp Servicing System`, `Next.js 14 App Router Stack` to the rest of the system?**
-  _36 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `Admin API Routes` be split into smaller, more focused modules?**
+- **Why does `Number()` connect `Community 26` to `Community 0`, `Community 33`, `Community 2`, `Community 5`, `Community 7`, `Community 8`, `Community 76`, `Community 18`?**
+  _High betweenness centrality (0.157) - this node is a cross-community bridge._
+- **Why does `api` connect `Community 17` to `Community 2`, `Community 5`, `Community 6`, `Community 7`, `Community 8`, `Community 11`, `Community 14`, `Community 15`, `Community 16`, `Community 18`, `Community 20`, `Community 21`, `Community 24`, `Community 25`, `Community 29`, `Community 31`, `Community 32`, `Community 35`, `Community 36`, `Community 38`, `Community 39`, `Community 46`, `Community 55`, `Community 56`, `Community 57`, `Community 58`, `Community 77`, `Community 78`?**
+  _High betweenness centrality (0.111) - this node is a cross-community bridge._
+- **Why does `handleApiError()` connect `Community 0` to `Community 33`?**
+  _High betweenness centrality (0.050) - this node is a cross-community bridge._
+- **What connects `Column`, `DataTableProps`, `STATUS_COLORS` to the rest of the system?**
+  _646 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Should `Community 0` be split into smaller, more focused modules?**
   _Cohesion score 0.05 - nodes in this community are weakly interconnected._
-- **Should `Admin UI Pages` be split into smaller, more focused modules?**
-  _Cohesion score 0.07 - nodes in this community are weakly interconnected._
-- **Should `Reporting And Calendar` be split into smaller, more focused modules?**
-  _Cohesion score 0.08 - nodes in this community are weakly interconnected._
-- **Should `Worker Reports Navigation` be split into smaller, more focused modules?**
-  _Cohesion score 0.11 - nodes in this community are weakly interconnected._
+- **Should `Community 1` be split into smaller, more focused modules?**
+  _Cohesion score 0.03 - nodes in this community are weakly interconnected._

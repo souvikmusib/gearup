@@ -4,7 +4,7 @@ import { requirePermission } from '@/lib/auth';
 import { handleApiError } from '@/lib/errors';
 import { PERMISSIONS } from '@gearup/types';
 
-function generateInvoiceHTML(invoice: any, settings: Record<string, any>) {
+function generateInvoiceHTML(invoice: any, settings: Record<string, any>, logoUrl: string) {
   const biz = {
     name: settings['business.name'] || 'GearUp Auto Service',
     phone: settings['business.phone'] || '',
@@ -47,6 +47,7 @@ function generateInvoiceHTML(invoice: any, settings: Record<string, any>) {
     .page { max-width:800px; margin:0 auto; padding:40px; }
     .header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:32px; padding-bottom:20px; border-bottom:2px solid #111; }
     .biz-name { font-size:22px; font-weight:700; }
+    .biz-logo { display:block; width:180px; height:auto; margin-bottom:10px; }
     .biz-detail { color:#666; font-size:12px; margin-top:4px; }
     .inv-title { font-size:28px; font-weight:700; text-align:right; }
     .inv-number { color:#666; font-size:14px; text-align:right; margin-top:4px; }
@@ -70,6 +71,7 @@ function generateInvoiceHTML(invoice: any, settings: Record<string, any>) {
   <div class="page">
     <div class="header">
       <div>
+        <img class="biz-logo" src="${logoUrl}" alt="${biz.name}">
         <div class="biz-name">${biz.name}</div>
         ${biz.address ? `<div class="biz-detail">${biz.address}</div>` : ''}
         ${biz.phone ? `<div class="biz-detail">📞 ${biz.phone}</div>` : ''}
@@ -149,7 +151,7 @@ function generateInvoiceHTML(invoice: any, settings: Record<string, any>) {
 </html>`;
 }
 
-export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
     requirePermission(PERMISSIONS.INVOICES_VIEW);
 
@@ -167,7 +169,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
     const settingsRaw = await prisma.setting.findMany();
     const settings = Object.fromEntries(settingsRaw.map((s: any) => [s.key, s.value]));
 
-    const html = generateInvoiceHTML(invoice, settings);
+    const html = generateInvoiceHTML(invoice, settings, `${req.nextUrl.origin}/brand/gearup-logo.png`);
 
     return new NextResponse(html, {
       headers: {

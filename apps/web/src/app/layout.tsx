@@ -7,6 +7,10 @@ import { Providers } from '@/providers';
 export const metadata: Metadata = {
   title: 'GearUp Servicing',
   description: 'Professional vehicle servicing management',
+  icons: {
+    icon: '/brand/gearup-logo.png',
+    apple: '/brand/gearup-logo.png',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
