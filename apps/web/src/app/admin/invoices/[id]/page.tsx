@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';
 import { PageHeader, StatusBadge } from '@gearup/ui';
+import { WhatsAppButton } from '@/components/shared/whatsapp-button';
 import { FileText, CheckCircle, CreditCard, Download } from 'lucide-react';
 
 export default function InvoiceDetailPage() {
@@ -295,6 +296,9 @@ export default function InvoiceDetailPage() {
           <p className="font-medium">{data.customer?.fullName}</p>
           <p className="text-gray-500">{data.customer?.phoneNumber}</p>
           {data.customer?.email && <p className="text-gray-500">{data.customer.email}</p>}
+          {data.customer?.phoneNumber && data.invoiceStatus === 'FINALIZED' && (
+            <div className="mt-2"><WhatsAppButton phone={data.customer.phoneNumber} message={`Hi ${data.customer.fullName}, your invoice ${data.invoiceNumber} for ₹${Number(data.grandTotal).toFixed(0)} is ready.\n\nThank you for choosing GearUp Servicing!\n📞 9242519099`} /></div>
+          )}
         </div>
         <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
           <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">Vehicle</p>

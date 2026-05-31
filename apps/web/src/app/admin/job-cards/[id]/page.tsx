@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';
 import { PageHeader, StatusBadge } from '@gearup/ui';
+import { WhatsAppButton } from '@/components/shared/whatsapp-button';
 
 // Simplified statuses (what the UI shows and allows)
 const SIMPLE_STATUSES = ['OPEN', 'ESTIMATE_READY', 'IN_PROGRESS', 'READY', 'DELIVERED', 'CANCELLED'] as const;
@@ -261,6 +262,9 @@ export default function JobCardDetailPage() {
               <p className="text-sm text-gray-600 dark:text-gray-400">Vehicle: {data.vehicle?.registrationNumber} — {data.vehicle?.brand} {data.vehicle?.model}</p>
               <p className="text-sm text-gray-500">Intake: {new Date(data.intakeDate).toLocaleDateString()}</p>
               {data.actualDeliveryAt && <p className="text-sm text-green-600">Delivered: {new Date(data.actualDeliveryAt).toLocaleDateString()}</p>}
+              {status === 'READY' && data.customer?.phoneNumber && (
+                <div className="mt-2"><WhatsAppButton phone={data.customer.phoneNumber} message={`Hi ${data.customer.fullName}, your ${data.vehicle?.brand} ${data.vehicle?.model} (${data.vehicle?.registrationNumber}) is ready for pickup!\n\nJob Card: ${data.jobCardNumber}\n\n— GearUp Servicing\n📞 9242519099`} /></div>
+              )}
             </div>
           </div>
 
