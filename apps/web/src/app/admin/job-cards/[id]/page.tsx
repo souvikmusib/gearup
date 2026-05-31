@@ -286,7 +286,7 @@ export default function JobCardDetailPage() {
             <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Workers</h3>
             {data.assignments?.length ? data.assignments.map((a: any) => (
               <div key={a.id} className="flex items-center justify-between text-sm mt-1">
-                <span className="text-gray-600 dark:text-gray-400">{a.worker?.fullName} <span className="text-xs text-gray-400">({a.assignmentRole ?? 'General'})</span></span>
+                <span className="text-gray-600 dark:text-gray-400">{a.worker?.fullName}{a.assignmentRole ? <span className="text-xs text-gray-400"> ({a.assignmentRole})</span> : ''}</span>
                 {canEditWorkers(status) && <button onClick={() => unassignWorker(a.id)} className="text-red-500 hover:text-red-700 text-xs">✕</button>}
               </div>
             )) : <p className="text-sm text-gray-400">No workers assigned</p>}
