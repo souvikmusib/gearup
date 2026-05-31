@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { api } from '@/lib/api/client';
 import { PageHeader, DataTable, StatusBadge } from '@gearup/ui';
 import { Modal } from '@/components/shared/modal';
+import { formatRegNumber } from '@/lib/format-reg';
 
 export default function JobCardsPage() {
   const [data, setData] = useState<any[]>([]);
@@ -193,7 +194,7 @@ export default function JobCardsPage() {
                 <select className={inputCls} value={vehForm.vehicleType} onChange={(e) => setVehForm({ ...vehForm, vehicleType: e.target.value })}>
                   <option value="BIKE">Motorcycle</option><option value="OTHER">Scooter / Other</option>
                 </select>
-                <input className={inputCls} placeholder="Reg. Number *" value={vehForm.registrationNumber} onChange={(e) => setVehForm({ ...vehForm, registrationNumber: e.target.value })} />
+                <input className={inputCls} placeholder="WB-26-AB-1234" value={vehForm.registrationNumber} onChange={(e) => setVehForm({ ...vehForm, registrationNumber: formatRegNumber(e.target.value) })} />
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <input className={inputCls} placeholder="Brand *" value={vehForm.brand} onChange={(e) => setVehForm({ ...vehForm, brand: e.target.value })} />
