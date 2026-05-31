@@ -81,7 +81,7 @@ export default function JobCardDetailPage() {
     setLoading(simpleStatus);
     const res = await api.patch<any>(`/admin/job-cards/${id}`, { status: dbStatus });
     setLoading('');
-    if (res.success) setData(res.data);
+    if (res.success) load();
   };
 
   const saveNotes = async () => {
