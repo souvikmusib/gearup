@@ -68,8 +68,8 @@ export default function CustomersPage() {
       <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Create Customer">
         <form onSubmit={onSubmit} className="space-y-3">
-          <input className={inputCls} placeholder="Full Name" required value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} />
-          <input className={inputCls} placeholder="Phone Number" required value={form.phoneNumber} onChange={(e) => setForm({ ...form, phoneNumber: e.target.value })} />
+          <input className={inputCls} placeholder="Full Name *" required value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} />
+          <input className={inputCls} placeholder="Phone Number *" required value={form.phoneNumber} onChange={(e) => setForm({ ...form, phoneNumber: e.target.value })} />
           <input className={inputCls} placeholder="Email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
           <button type="submit" className="w-full rounded-lg bg-blue-600 py-2 text-sm font-medium text-white hover:bg-blue-700">Create</button>
         </form>

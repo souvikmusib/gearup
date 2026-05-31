@@ -125,8 +125,8 @@ export default function InventoryItemsPage() {
       <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Create Item">
         <form onSubmit={onSubmit} className="space-y-3">
-          <input className={inputCls} placeholder="SKU" required value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} />
-          <input className={inputCls} placeholder="Item Name" required value={form.itemName} onChange={(e) => setForm({ ...form, itemName: e.target.value })} />
+          <input className={inputCls} placeholder="SKU *" required value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} />
+          <input className={inputCls} placeholder="Item Name *" required value={form.itemName} onChange={(e) => setForm({ ...form, itemName: e.target.value })} />
           <div className="grid grid-cols-2 gap-3">
             <div><label className={labelCls}>Category *</label>
               <select className={inputCls} required value={form.categoryId} onFocus={loadLookups} onChange={(e) => setForm({ ...form, categoryId: e.target.value })}>
@@ -141,7 +141,7 @@ export default function InventoryItemsPage() {
               </select>
             </div>
           </div>
-          <input className={inputCls} placeholder="Unit (e.g. pcs, litre)" required value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })} />
+          <input className={inputCls} placeholder="Unit (e.g. pcs, litre) *" required value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })} />
           <div className="grid grid-cols-2 gap-3">
             <input className={inputCls} placeholder="Cost Price" type="number" step="0.01" required value={form.costPrice} onChange={(e) => setForm({ ...form, costPrice: e.target.value })} />
             <input className={inputCls} placeholder="Selling Price" type="number" step="0.01" required value={form.sellingPrice} onChange={(e) => setForm({ ...form, sellingPrice: e.target.value })} />
