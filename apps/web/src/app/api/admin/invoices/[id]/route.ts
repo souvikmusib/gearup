@@ -16,7 +16,7 @@ const updateSchema = z.object({
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
   try {
     requirePermission(PERMISSIONS.INVOICES_VIEW);
-    const invoice = await prisma.invoice.findUniqueOrThrow({ where: { id: params.id }, include: { lineItems: { orderBy: { sortOrder: 'asc' } }, payments: { orderBy: { paymentDate: 'desc' } }, customer: true, vehicle: true, jobCard: { select: { jobCardNumber: true } } } });
+    const invoice = await prisma.invoice.findUniqueOrThrow({ where: { id: params.id }, include: { lineItems: { orderBy: { sortOrder: 'asc' } }, payments: { orderBy: { paymentDate: 'desc' } }, customer: true, vehicle: true, jobCard: { select: { id: true, jobCardNumber: true } } } });
     return NextResponse.json({ success: true, data: invoice });
   } catch (e) { return handleApiError(e); }
 }
