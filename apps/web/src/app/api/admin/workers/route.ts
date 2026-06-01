@@ -9,7 +9,7 @@ import { PERMISSIONS } from '@gearup/types';
 import { z } from 'zod';
 
 const workerSchema = z.object({
-  fullName: z.string().min(1), phoneNumber: z.string().optional(), email: z.string().email().optional().or(z.literal('')),
+  fullName: z.string().min(1), phoneNumber: z.string().optional(), email: z.string().transform(v => v.trim() || undefined).pipe(z.string().email().optional()),
   designation: z.string().optional(), specialization: z.string().optional(), employmentType: z.string().optional(),
   joiningDate: z.string().optional(), dailyCapacity: z.number().optional(), shiftStart: z.string().optional(),
   shiftEnd: z.string().optional(), notes: z.string().optional(), monthlySalary: z.number().optional(),

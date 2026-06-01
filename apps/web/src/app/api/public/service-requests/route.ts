@@ -7,7 +7,7 @@ import { z } from 'zod';
 
 const schema = z.object({
   fullName: z.string().min(1), phoneNumber: z.string().min(5), alternatePhone: z.string().optional(),
-  email: z.string().email().optional(), vehicleType: z.enum(['CAR', 'BIKE', 'OTHER']),
+  email: z.string().transform(v => v.trim() || undefined).pipe(z.string().email().optional()), vehicleType: z.enum(['CAR', 'BIKE', 'OTHER']),
   brand: z.string().min(1), model: z.string().min(1), variant: z.string().optional(),
   vehicleId: z.string().optional(), registrationNumber: z.string().min(1), serviceCategory: z.string().min(1), issueDescription: z.string().min(1),
   preferredDate: z.string().optional(), preferredSlotLabel: z.string().optional(),
