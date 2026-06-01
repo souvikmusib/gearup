@@ -122,6 +122,7 @@ enum InvoiceLineType {
   LABOR
   CUSTOM_CHARGE
   DISCOUNT_ADJUSTMENT
+  AMC
 }
 
 enum NotificationChannel {

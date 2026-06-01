@@ -26,14 +26,50 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     const user = requirePermission(PERMISSIONS.INVOICES_CREATE);
     await ensureDraft(params.id);
     const body = z.object({
-      lineType: z.enum(['PART', 'LABOR', 'CUSTOM_CHARGE', 'DISCOUNT_ADJUSTMENT']),
+      lineType: z.enum(['PART', 'LABOR', 'CUSTOM_CHARGE', 'DISCOUNT_ADJUSTMENT', 'AMC']),
       description: z.string().min(1), quantity: z.number().default(1), unitPrice: z.number().default(0), taxRate: z.number().default(0),
       discountMode: z.enum(['flat', 'percent']).optional(),
+      amcPlanId: z.string().optional(),
+      amcContractId: z.string().optional(),
     }).parse(await req.json());
     const isDiscount = body.lineType === 'DISCOUNT_ADJUSTMENT';
+    const isAmc = body.lineType === 'AMC';
     let lineTotal: number;
     let taxAmount: number;
-    if (isDiscount) {
+    if (isAmc) {
+      // AMC line item — covered under contract, ₹0
+      taxAmount = 0;
+      lineTotal = 0;
+
+      const invoice = await prisma.invoice.findUniqueOrThrow({ where: { id: params.id }, select: { vehicleId: true, customerId: true, jobCardId: true } });
+
+      if (body.amcContractId) {
+        // Use existing contract
+        const contract = await prisma.amcContract.findUniqueOrThrow({ where: { id: body.amcContractId } });
+        if (contract.status !== 'ACTIVE') throw new ValidationError('AMC contract is not active');
+        if (contract.servicesRemaining <= 0) throw new ValidationError('No services remaining on AMC contract');
+        await prisma.amcServiceUsage.create({ data: { amcContractId: contract.id, jobCardId: invoice.jobCardId, serviceNumber: contract.servicesUsed + 1, serviceDate: new Date() } });
+        await prisma.amcContract.update({ where: { id: contract.id }, data: { servicesUsed: { increment: 1 }, servicesRemaining: { decrement: 1 } } });
+      } else if (body.amcPlanId) {
+        // Create new contract from plan
+        const plan = await prisma.amcPlan.findUniqueOrThrow({ where: { id: body.amcPlanId } });
+        const startDate = new Date();
+        const endDate = new Date(); endDate.setMonth(endDate.getMonth() + plan.durationMonths);
+        const count = await prisma.amcContract.count();
+        const contract = await prisma.amcContract.create({
+          data: {
+            contractNumber: `AMC-${String(count + 1).padStart(5, '0')}`,
+            customerId: invoice.customerId, vehicleId: invoice.vehicleId, amcPlanId: plan.id,
+            startDate, endDate, totalServices: plan.totalServicesIncluded,
+            servicesUsed: 1, servicesRemaining: plan.totalServicesIncluded - 1,
+            amountPaid: plan.price, paymentDate: new Date(),
+          },
+        });
+        await prisma.amcServiceUsage.create({ data: { amcContractId: contract.id, jobCardId: invoice.jobCardId, serviceNumber: 1, serviceDate: new Date() } });
+        // AMC line total = plan price (customer pays for the AMC)
+        lineTotal = Number(plan.price);
+      }
+    } else if (isDiscount) {
       taxAmount = 0;
       if (body.discountMode === 'percent') {
         const invoice = await prisma.invoice.findUniqueOrThrow({ where: { id: params.id }, select: { subtotal: true } });
