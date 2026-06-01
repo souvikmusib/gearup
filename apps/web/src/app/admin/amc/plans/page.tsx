@@ -92,9 +92,9 @@ export default function AmcPlansPage() {
             <option value="650cc+">650cc+</option>
           </select>
           <div className="grid grid-cols-3 gap-2">
-            <input className="border rounded px-3 py-2 dark:bg-gray-800 dark:border-gray-700" type="number" placeholder="Months" value={form.durationMonths} onChange={(e) => setForm({ ...form, durationMonths: e.target.value })} />
-            <input className="border rounded px-3 py-2 dark:bg-gray-800 dark:border-gray-700" type="number" placeholder="Services" value={form.totalServicesIncluded} onChange={(e) => setForm({ ...form, totalServicesIncluded: e.target.value })} />
-            <input className="border rounded px-3 py-2 dark:bg-gray-800 dark:border-gray-700" type="number" placeholder="Price (₹)" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} />
+            <div><label className="text-xs text-gray-500">Duration (months)</label><input className="w-full border rounded px-3 py-2 dark:bg-gray-800 dark:border-gray-700" type="number" value={form.durationMonths} onChange={(e) => setForm({ ...form, durationMonths: e.target.value })} /></div>
+            <div><label className="text-xs text-gray-500">No. of Services</label><input className="w-full border rounded px-3 py-2 dark:bg-gray-800 dark:border-gray-700" type="number" value={form.totalServicesIncluded} onChange={(e) => setForm({ ...form, totalServicesIncluded: e.target.value })} /></div>
+            <div><label className="text-xs text-gray-500">Price (₹)</label><input className="w-full border rounded px-3 py-2 dark:bg-gray-800 dark:border-gray-700" type="number" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} /></div>
           </div>
           <textarea className="w-full border rounded px-3 py-2 dark:bg-gray-800 dark:border-gray-700" placeholder="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
           <textarea className="w-full border rounded px-3 py-2 dark:bg-gray-800 dark:border-gray-700" placeholder="Exclusions" value={form.exclusions} onChange={(e) => setForm({ ...form, exclusions: e.target.value })} />
