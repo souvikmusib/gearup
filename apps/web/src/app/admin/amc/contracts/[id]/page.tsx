@@ -35,6 +35,19 @@ export default function AmcContractDetailPage() {
     load();
   };
 
+  const handleDeleteUsage = async (usageId: string) => {
+    if (!confirm('Remove this service usage? This will restore 1 service to the contract.')) return;
+    await api.delete(`/admin/amc/contracts/${id}/usages/${usageId}`);
+    load();
+  };
+
+  const handleDelete = async () => {
+    if (!confirm('Delete this contract and all its usage history? This cannot be undone.')) return;
+    const res = await api.delete<any>(`/admin/amc/contracts/${id}`);
+    if (res.success) window.location.href = '/admin/amc/contracts';
+    else alert(res.error?.message || 'Failed to delete');
+  };
+
   if (loading) return <ProcessLoader title="Loading contract..." />;
   if (!contract) return <p>Contract not found</p>;
 
@@ -72,6 +85,7 @@ export default function AmcContractDetailPage() {
           <div className="flex gap-2 mt-3">
             {canUse && <button onClick={() => setShowUse(true)} className="bg-blue-600 text-white rounded px-3 py-1 text-sm">Use Service</button>}
             {contract.status === 'ACTIVE' && <button onClick={handleCancel} className="bg-red-100 text-red-700 rounded px-3 py-1 text-sm">Cancel</button>}
+            <button onClick={handleDelete} className="bg-red-600 text-white rounded px-3 py-1 text-sm">Delete</button>
           </div>
         </div>
       </div>
@@ -82,7 +96,7 @@ export default function AmcContractDetailPage() {
           <p className="text-gray-500 text-sm">No services used yet.</p>
         ) : (
           <table className="w-full text-sm">
-            <thead><tr className="text-left text-gray-500 border-b"><th className="pb-2">#</th><th className="pb-2">Date</th><th className="pb-2">Job Card</th><th className="pb-2">Notes</th></tr></thead>
+            <thead><tr className="text-left text-gray-500 border-b"><th className="pb-2">#</th><th className="pb-2">Date</th><th className="pb-2">Job Card</th><th className="pb-2">Notes</th><th className="pb-2"></th></tr></thead>
             <tbody>
               {contract.usages?.map((u: any) => (
                 <tr key={u.id} className="border-b last:border-0">
@@ -90,6 +104,7 @@ export default function AmcContractDetailPage() {
                   <td className="py-2">{new Date(u.serviceDate).toLocaleDateString('en-IN')}</td>
                   <td className="py-2"><Link href={`/admin/job-cards/${u.jobCard?.id}`} className="text-blue-600 hover:underline">{u.jobCard?.jobCardNumber}</Link></td>
                   <td className="py-2 text-gray-500">{u.notes || '—'}</td>
+                  <td className="py-2"><button onClick={() => handleDeleteUsage(u.id)} className="text-red-600 text-xs hover:underline">Remove</button></td>
                 </tr>
               ))}
             </tbody>

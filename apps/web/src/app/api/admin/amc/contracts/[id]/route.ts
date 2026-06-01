@@ -33,6 +33,17 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   } catch (e) { return handleApiError(e); }
 }
 
+export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    requirePermission(PERMISSIONS.AMC_CONTRACTS_MANAGE);
+    await prisma.$transaction(async (tx: any) => {
+      await tx.amcServiceUsage.deleteMany({ where: { amcContractId: params.id } });
+      await tx.amcContract.delete({ where: { id: params.id } });
+    });
+    return NextResponse.json({ success: true });
+  } catch (e) { return handleApiError(e); }
+}
+
 // POST /api/admin/amc/contracts/[id] — use a service
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   try {
