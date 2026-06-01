@@ -8,7 +8,8 @@ import { z } from 'zod';
 const createSchema = z.object({
   planName: z.string().min(1),
   description: z.string().optional(),
-  vehicleType: z.enum(['CAR', 'BIKE', 'OTHER']),
+  vehicleType: z.enum(['CAR', 'BIKE', 'SCOOTY', 'OTHER']),
+  ccRange: z.string().optional(),
   durationMonths: z.number().int().positive(),
   totalServicesIncluded: z.number().int().positive(),
   price: z.number().positive(),

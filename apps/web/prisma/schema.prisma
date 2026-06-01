@@ -24,6 +24,7 @@ enum ActorType {
 enum VehicleType {
   CAR
   BIKE
+  SCOOTY
   OTHER
 }
 
@@ -784,6 +785,7 @@ model AmcPlan {
   planName              String
   description           String?
   vehicleType           VehicleType
+  ccRange               String?
   durationMonths        Int
   totalServicesIncluded Int
   price                 Decimal     @db.Decimal(12, 2)

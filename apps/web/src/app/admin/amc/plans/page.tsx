@@ -5,7 +5,7 @@ import { ProcessLoader } from '@/components/shared/process-loader';
 import { PageHeader, DataTable, StatusBadge } from '@gearup/ui';
 import { Modal } from '@/components/shared/modal';
 
-const emptyForm = { planName: '', vehicleType: 'BIKE', durationMonths: '12', totalServicesIncluded: '3', price: '', description: '', exclusions: '' };
+const emptyForm = { planName: '', vehicleType: 'BIKE', ccRange: '', durationMonths: '12', totalServicesIncluded: '3', price: '', description: '', exclusions: '' };
 
 export default function AmcPlansPage() {
   const [data, setData] = useState<any[]>([]);
@@ -22,7 +22,7 @@ export default function AmcPlansPage() {
   const openCreate = () => { setEditId(null); setForm(emptyForm); setShowForm(true); setError(''); };
   const openEdit = (plan: any) => {
     setEditId(plan.id);
-    setForm({ planName: plan.planName, vehicleType: plan.vehicleType, durationMonths: String(plan.durationMonths), totalServicesIncluded: String(plan.totalServicesIncluded), price: String(plan.price), description: plan.description || '', exclusions: plan.exclusions || '' });
+    setForm({ planName: plan.planName, vehicleType: plan.vehicleType, ccRange: plan.ccRange || '', durationMonths: String(plan.durationMonths), totalServicesIncluded: String(plan.totalServicesIncluded), price: String(plan.price), description: plan.description || '', exclusions: plan.exclusions || '' });
     setShowForm(true); setError('');
   };
 
@@ -58,7 +58,8 @@ export default function AmcPlansPage() {
         keyField="id"
         columns={[
           { key: 'planName', header: 'Plan Name' },
-          { key: 'vehicleType', header: 'Vehicle' },
+          { key: 'vehicleType', header: 'Type' },
+          { key: 'ccRange', header: 'CC Range' },
           { key: 'durationMonths', header: 'Duration', render: (row: any) => `${row.durationMonths} mo` },
           { key: 'totalServicesIncluded', header: 'Services' },
           { key: 'price', header: 'Price', render: (row: any) => `₹${Number(row.price).toLocaleString()}` },
@@ -80,7 +81,15 @@ export default function AmcPlansPage() {
           {error && <p className="text-red-600 text-sm">{error}</p>}
           <input className="w-full border rounded px-3 py-2 dark:bg-gray-800 dark:border-gray-700" placeholder="Plan Name" value={form.planName} onChange={(e) => setForm({ ...form, planName: e.target.value })} />
           <select className="w-full border rounded px-3 py-2 dark:bg-gray-800 dark:border-gray-700" value={form.vehicleType} onChange={(e) => setForm({ ...form, vehicleType: e.target.value })}>
-            <option value="BIKE">Bike</option><option value="CAR">Car</option><option value="OTHER">Other</option>
+            <option value="BIKE">Bike</option><option value="SCOOTY">Scooty</option>
+          </select>
+          <select className="w-full border rounded px-3 py-2 dark:bg-gray-800 dark:border-gray-700" value={form.ccRange} onChange={(e) => setForm({ ...form, ccRange: e.target.value })}>
+            <option value="">Select CC Range</option>
+            <option value="100-125cc">100-125cc</option>
+            <option value="150cc+">150cc+</option>
+            <option value="220cc+">220cc+</option>
+            <option value="350cc+">350cc+</option>
+            <option value="650cc+">650cc+</option>
           </select>
           <div className="grid grid-cols-3 gap-2">
             <input className="border rounded px-3 py-2 dark:bg-gray-800 dark:border-gray-700" type="number" placeholder="Months" value={form.durationMonths} onChange={(e) => setForm({ ...form, durationMonths: e.target.value })} />

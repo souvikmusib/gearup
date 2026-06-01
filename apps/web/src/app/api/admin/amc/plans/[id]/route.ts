@@ -22,6 +22,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     const body = z.object({
       planName: z.string().optional(),
       description: z.string().optional(),
+      ccRange: z.string().optional(),
       durationMonths: z.number().int().positive().optional(),
       totalServicesIncluded: z.number().int().positive().optional(),
       price: z.number().positive().optional(),
