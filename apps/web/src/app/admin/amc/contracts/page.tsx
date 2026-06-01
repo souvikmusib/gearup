@@ -14,6 +14,8 @@ export default function AmcContractsPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [plans, setPlans] = useState<any[]>([]);
+  const [customers, setCustomers] = useState<any[]>([]);
+  const [vehicles, setVehicles] = useState<any[]>([]);
   const [form, setForm] = useState({ customerId: '', vehicleId: '', amcPlanId: '', startDate: '', amountPaid: '', paymentMode: 'CASH', notes: '' });
 
   const load = (status = statusFilter) => {
@@ -25,6 +27,16 @@ export default function AmcContractsPage() {
   const openCreate = () => {
     setShowCreate(true); setError('');
     api.get<any>('/admin/amc/plans').then((r) => { if (r.success) setPlans((r.data ?? []).filter((p: any) => p.isActive)); });
+    api.get<any>('/admin/customers?pageSize=200').then((r) => { if (r.success) setCustomers(r.data?.items ?? r.data ?? []); });
+  };
+
+  const onCustomerChange = (customerId: string) => {
+    setForm({ ...form, customerId, vehicleId: '' });
+    if (customerId) {
+      api.get<any>(`/admin/vehicles?customerId=${customerId}&pageSize=100`).then((r) => { if (r.success) setVehicles(r.data?.items ?? r.data ?? []); });
+    } else {
+      setVehicles([]);
+    }
   };
 
   const handleCreate = async () => {
@@ -66,6 +78,14 @@ export default function AmcContractsPage() {
       <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Create AMC Contract">
         <div className="space-y-3">
           {error && <p className="text-red-600 text-sm">{error}</p>}
+          <select className="w-full border rounded px-3 py-2 dark:bg-gray-800 dark:border-gray-700" value={form.customerId} onChange={(e) => onCustomerChange(e.target.value)}>
+            <option value="">Select Customer</option>
+            {customers.map((c: any) => <option key={c.id} value={c.id}>{c.fullName} — {c.phoneNumber}</option>)}
+          </select>
+          <select className="w-full border rounded px-3 py-2 dark:bg-gray-800 dark:border-gray-700" value={form.vehicleId} onChange={(e) => setForm({ ...form, vehicleId: e.target.value })} disabled={!form.customerId}>
+            <option value="">{form.customerId ? 'Select Vehicle' : 'Select customer first'}</option>
+            {vehicles.map((v: any) => <option key={v.id} value={v.id}>{v.registrationNumber} — {v.brand} {v.model}</option>)}
+          </select>
           <input className="w-full border rounded px-3 py-2 dark:bg-gray-800 dark:border-gray-700" placeholder="Customer ID" value={form.customerId} onChange={(e) => setForm({ ...form, customerId: e.target.value })} />
           <input className="w-full border rounded px-3 py-2 dark:bg-gray-800 dark:border-gray-700" placeholder="Vehicle ID" value={form.vehicleId} onChange={(e) => setForm({ ...form, vehicleId: e.target.value })} />
           <select className="w-full border rounded px-3 py-2 dark:bg-gray-800 dark:border-gray-700" value={form.amcPlanId} onChange={(e) => setForm({ ...form, amcPlanId: e.target.value })}>
