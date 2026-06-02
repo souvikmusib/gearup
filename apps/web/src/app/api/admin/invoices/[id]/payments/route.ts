@@ -72,15 +72,16 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
           const startDate = new Date();
           const endDate = new Date(); endDate.setMonth(endDate.getMonth() + plan.durationMonths);
           const count = await tx.amcContract.count();
-          await tx.amcContract.create({
+          const contract = await tx.amcContract.create({
             data: {
               contractNumber: `AMC-${String(count + 1).padStart(5, '0')}`,
               customerId: invoice.customerId, vehicleId: invoice.vehicleId, amcPlanId: plan.id,
               startDate, endDate, totalServices: plan.totalServicesIncluded,
-              servicesUsed: 0, servicesRemaining: plan.totalServicesIncluded,
+              servicesUsed: 1, servicesRemaining: plan.totalServicesIncluded - 1,
               amountPaid: line.lineTotal, paymentDate: new Date(),
             },
           });
+          await tx.amcServiceUsage.create({ data: { amcContractId: contract.id, jobCardId: invoice.jobCardId, serviceNumber: 1, serviceDate: new Date() } });
         }
       }
 
