@@ -20,7 +20,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     const body = z.object({
       itemName: z.string().min(1).optional(), categoryId: z.string().optional(), supplierId: z.string().nullable().optional(),
       brand: z.string().nullable().optional(), description: z.string().nullable().optional(), unit: z.string().min(1).optional(),
-      taxRate: z.number().optional(), costPrice: z.number().optional(), sellingPrice: z.number().optional(),
+      taxRate: z.number().optional(), costPrice: z.number().optional(), sellingPrice: z.number().optional(), discountPercent: z.number().min(0).max(100).nullable().optional(),
       reorderLevel: z.number().nullable().optional(), reorderQuantity: z.number().nullable().optional(),
       storageLocation: z.string().nullable().optional(), barcode: z.string().nullable().optional(), isActive: z.boolean().optional(),
     }).parse(await req.json());

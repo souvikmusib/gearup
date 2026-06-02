@@ -51,7 +51,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       const item = await tx.inventoryItem.findUniqueOrThrow({ where: { id: body.inventoryItemId } });
       await adjustStock(tx, body.inventoryItemId, body.requiredQty, 'RESERVED', params.id);
       const created = await tx.jobCardPart.create({
-        data: { jobCardId: params.id, inventoryItemId: body.inventoryItemId, requiredQty: body.requiredQty, reservedQty: body.requiredQty, unitPrice: body.unitPrice ?? Number(item.sellingPrice), notes: body.notes },
+        data: { jobCardId: params.id, inventoryItemId: body.inventoryItemId, requiredQty: body.requiredQty, reservedQty: body.requiredQty, unitPrice: body.unitPrice ?? Number(item.sellingPrice) * (1 - (Number(item.discountPercent) || 0) / 100), notes: body.notes },
         include: { inventoryItem: true },
       });
       await recalcEstimates(tx, params.id);
