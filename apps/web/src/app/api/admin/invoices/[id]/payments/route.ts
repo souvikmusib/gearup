@@ -7,7 +7,7 @@ import { PERMISSIONS } from '@gearup/types';
 import { z } from 'zod';
 
 const schema = z.object({
-  amount: z.number().positive(),
+  amount: z.number().min(0),
   paymentMode: z.string(),
   paymentDate: z.string(),
   referenceNumber: z.string().optional(),
