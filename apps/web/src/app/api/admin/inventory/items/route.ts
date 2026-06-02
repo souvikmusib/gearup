@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
     const body = z.object({
       sku: z.string().min(1), itemName: z.string().min(1), categoryId: z.string(), supplierId: z.string().optional(),
       brand: z.string().optional(), description: z.string().optional(), unit: z.string().min(1),
-      taxRate: z.number().optional(), costPrice: z.number().optional(), sellingPrice: z.number().optional(),
+      taxRate: z.number().optional(), costPrice: z.number().optional(), sellingPrice: z.number().optional(), discountPercent: z.number().min(0).max(100).optional(),
       quantityInStock: z.number().optional(), reorderLevel: z.number().optional(), reorderQuantity: z.number().optional(),
       storageLocation: z.string().optional(), barcode: z.string().optional(),
     }).parse(await req.json());

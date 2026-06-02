@@ -281,10 +281,10 @@ export default function InvoiceDetailPage() {
                 {newLine.lineType === 'PART' ? (
                   <select className={inputCls} value={newLine.description} onFocus={loadInventory} onChange={(e) => {
                     const item = inventoryItems.find((i: any) => i.itemName === e.target.value);
-                    setNewLine({ ...newLine, description: e.target.value, unitPrice: item ? String(Number(item.sellingPrice)) : newLine.unitPrice });
+                    setNewLine({ ...newLine, description: e.target.value, unitPrice: item ? String(Number(item.sellingPrice) * (1 - (Number(item.discountPercent) || 0) / 100)) : newLine.unitPrice });
                   }}>
                     <option value="">Select part...</option>
-                    {inventoryItems.map((i: any) => <option key={i.id} value={i.itemName}>{i.itemName} ({i.sku}) — ₹{Number(i.sellingPrice)}</option>)}
+                    {inventoryItems.map((i: any) => { const dp = Number(i.discountPercent) || 0; const price = Number(i.sellingPrice) * (1 - dp / 100); return <option key={i.id} value={i.itemName}>{i.itemName} ({i.sku}) — ₹{price.toFixed(0)}{dp ? ` (${dp}% off)` : ''}</option>; })}
                   </select>
                 ) : newLine.lineType === 'AMC' ? (
                   <div className="space-y-1">
