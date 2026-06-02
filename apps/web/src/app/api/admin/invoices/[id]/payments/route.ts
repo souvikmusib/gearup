@@ -63,6 +63,28 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         });
       }
 
+      // If fully paid, activate AMC contracts for any AMC line items
+      if (paymentStatus === 'PAID') {
+        const amcLines = await tx.invoiceLineItem.findMany({ where: { invoiceId: params.id, lineType: 'AMC', referenceItemId: { not: null } } });
+        for (const line of amcLines) {
+          const plan = await tx.amcPlan.findUnique({ where: { id: line.referenceItemId! } });
+          if (!plan) continue;
+          const startDate = new Date();
+          const endDate = new Date(); endDate.setMonth(endDate.getMonth() + plan.durationMonths);
+          const count = await tx.amcContract.count();
+          const contract = await tx.amcContract.create({
+            data: {
+              contractNumber: `AMC-${String(count + 1).padStart(5, '0')}`,
+              customerId: invoice.customerId, vehicleId: invoice.vehicleId, amcPlanId: plan.id,
+              startDate, endDate, totalServices: plan.totalServicesIncluded,
+              servicesUsed: 1, servicesRemaining: plan.totalServicesIncluded - 1,
+              amountPaid: line.lineTotal, paymentDate: new Date(),
+            },
+          });
+          await tx.amcServiceUsage.create({ data: { amcContractId: contract.id, jobCardId: invoice.jobCardId, serviceNumber: 1, serviceDate: new Date() } });
+        }
+      }
+
       return payment;
     });
 
