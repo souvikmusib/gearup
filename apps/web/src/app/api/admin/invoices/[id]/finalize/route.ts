@@ -12,7 +12,11 @@ export async function POST(_req: NextRequest, { params }: { params: { id: string
     if (existing.invoiceStatus !== 'DRAFT') throw new ValidationError('Only DRAFT invoices can be finalized');
     const invoice = await prisma.invoice.update({
       where: { id: params.id },
-      data: { invoiceStatus: 'FINALIZED', finalizedAt: new Date() },
+      data: {
+        invoiceStatus: 'FINALIZED',
+        finalizedAt: new Date(),
+        ...(Number(existing.grandTotal) <= 0 ? { paymentStatus: 'PAID', amountDue: 0 } : {}),
+      },
     });
     logActivity({ entityType: 'Invoice', entityId: invoice.id, action: 'invoice.finalized', actorType: 'ADMIN', actorId: user.sub });
     return NextResponse.json({ success: true, data: invoice });
