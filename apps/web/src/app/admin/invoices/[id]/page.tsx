@@ -15,7 +15,7 @@ export default function InvoiceDetailPage() {
   const [payMode, setPayMode] = useState('CASH');
   const [payRef, setPayRef] = useState('');
   const [loading, setLoading] = useState('');
-  const [newLine, setNewLine] = useState({ lineType: 'CUSTOM_CHARGE', description: '', quantity: '1', unitPrice: '', taxRate: '0', discountMode: 'flat', amcPlanId: '', amcContractId: '' });
+  const [newLine, setNewLine] = useState({ lineType: 'CUSTOM_CHARGE', description: '', quantity: '1', unitPrice: '', taxRate: '0', discountPercent: '0', discountMode: 'flat', amcPlanId: '', amcContractId: '' });
   const [addingLine, setAddingLine] = useState(false);
   const [inventoryItems, setInventoryItems] = useState<any[]>([]);
   const [workers, setWorkers] = useState<any[]>([]);
@@ -83,14 +83,14 @@ export default function InvoiceDetailPage() {
     setAddingLine(true);
     const payload: Record<string, any> = {
       lineType: newLine.lineType, description: newLine.description,
-      quantity: Number(newLine.quantity) || 1, unitPrice: Number(newLine.unitPrice) || 0, taxRate: Number(newLine.taxRate) || 0,
+      quantity: Number(newLine.quantity) || 1, unitPrice: Number(newLine.unitPrice) || 0, taxRate: Number(newLine.taxRate) || 0, discountPercent: Number(newLine.discountPercent) || 0,
     };
     if (newLine.lineType === 'DISCOUNT_ADJUSTMENT') payload.discountMode = newLine.discountMode;
     if (newLine.lineType === 'AMC' && newLine.amcContractId) payload.amcContractId = newLine.amcContractId;
     if (newLine.lineType === 'AMC' && newLine.amcPlanId && !newLine.amcContractId) payload.amcPlanId = newLine.amcPlanId;
     const res = await api.post<any>(`/admin/invoices/${id}/line-items`, payload);
     setAddingLine(false);
-    if (res.success) { setNewLine({ lineType: 'CUSTOM_CHARGE', description: '', quantity: '1', unitPrice: '', taxRate: '0', discountMode: 'flat', amcPlanId: '', amcContractId: '' }); fetch(); }
+    if (res.success) { setNewLine({ lineType: 'CUSTOM_CHARGE', description: '', quantity: '1', unitPrice: '', taxRate: '0', discountPercent: '0', discountMode: 'flat', amcPlanId: '', amcContractId: '' }); fetch(); }
     else { console.error('Add line failed:', res.error); alert(res.error?.message || 'Failed to add line item'); }
   };
 
@@ -334,6 +334,10 @@ export default function InvoiceDetailPage() {
                   <><label className="block text-[10px] text-gray-400 mb-0.5">Tax %</label>
                   <input type="number" step="0.01" className={inputCls} value={newLine.taxRate} onChange={(e) => setNewLine({ ...newLine, taxRate: e.target.value })} /></>
                 )}
+              </div>
+              <div className="col-span-1">
+                <label className="block text-[10px] text-gray-400 mb-0.5">Disc %</label>
+                <input type="number" step="0.01" min="0" max="100" className={inputCls} value={newLine.discountPercent} onChange={(e) => setNewLine({ ...newLine, discountPercent: e.target.value })} />
               </div>
               <div className="col-span-2">
                 <button onClick={addLine} disabled={addingLine} className="w-full rounded-lg bg-green-600 px-3 py-2 text-sm font-semibold text-white hover:bg-green-700 disabled:opacity-50">

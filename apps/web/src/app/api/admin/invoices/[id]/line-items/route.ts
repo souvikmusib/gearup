@@ -27,7 +27,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     await ensureDraft(params.id);
     const body = z.object({
       lineType: z.enum(['PART', 'LABOR', 'CUSTOM_CHARGE', 'DISCOUNT_ADJUSTMENT', 'AMC']),
-      description: z.string().min(1), quantity: z.number().default(1), unitPrice: z.number().default(0), taxRate: z.number().default(0),
+      description: z.string().min(1), quantity: z.number().default(1), unitPrice: z.number().default(0), taxRate: z.number().default(0), discountPercent: z.number().min(0).max(100).default(0),
       discountMode: z.enum(['flat', 'percent']).optional(),
       amcPlanId: z.string().optional(),
       amcContractId: z.string().optional(),
@@ -64,8 +64,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         lineTotal = -(Math.abs(body.quantity * body.unitPrice));
       }
     } else {
-      taxAmount = body.quantity * body.unitPrice * (body.taxRate / 100);
-      lineTotal = body.quantity * body.unitPrice + taxAmount;
+      const subtotal = body.quantity * body.unitPrice * (1 - body.discountPercent / 100);
+      taxAmount = subtotal * (body.taxRate / 100);
+      lineTotal = subtotal + taxAmount;
     }
     const count = await prisma.invoiceLineItem.count({ where: { invoiceId: params.id } });
     let referenceItemId: string | undefined;
@@ -86,7 +87,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       }
     }
 
-    const item = await prisma.invoiceLineItem.create({ data: { invoiceId: params.id, lineType: body.lineType, description: body.description, quantity: body.quantity, unitPrice: body.unitPrice, taxRate: body.taxRate, taxAmount, lineTotal, sortOrder: count, referenceItemId } });
+    const item = await prisma.invoiceLineItem.create({ data: { invoiceId: params.id, lineType: body.lineType, description: body.description, quantity: body.quantity, unitPrice: body.unitPrice, discountPercent: body.discountPercent, taxRate: body.taxRate, taxAmount, lineTotal, sortOrder: count, referenceItemId } });
     await recalcTotals(params.id);
     logActivity({ entityType: 'InvoiceLineItem', entityId: item.id, action: 'invoice.line.added', newValue: body, actorType: 'ADMIN', actorId: user.sub });
     return NextResponse.json({ success: true, data: item }, { status: 201 });
@@ -98,15 +99,17 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     const user = requirePermission(PERMISSIONS.INVOICES_CREATE);
     await ensureDraft(params.id);
     const body = z.object({
-      lineItemId: z.string(), description: z.string().optional(), quantity: z.number().optional(), unitPrice: z.number().optional(), taxRate: z.number().optional(),
+      lineItemId: z.string(), description: z.string().optional(), quantity: z.number().optional(), unitPrice: z.number().optional(), taxRate: z.number().optional(), discountPercent: z.number().min(0).max(100).optional(),
     }).parse(await req.json());
     const { lineItemId, ...data } = body;
     const existing = await prisma.invoiceLineItem.findUniqueOrThrow({ where: { id: lineItemId, invoiceId: params.id } });
     const qty = data.quantity ?? Number(existing.quantity);
     const price = data.unitPrice ?? Number(existing.unitPrice);
+    const discount = data.discountPercent ?? Number(existing.discountPercent);
     const rate = data.taxRate ?? Number(existing.taxRate);
-    const taxAmount = qty * price * (rate / 100);
-    const lineTotal = qty * price + taxAmount;
+    const subtotal = qty * price * (1 - discount / 100);
+    const taxAmount = subtotal * (rate / 100);
+    const lineTotal = subtotal + taxAmount;
     const item = await prisma.invoiceLineItem.update({ where: { id: lineItemId }, data: { ...data, taxAmount, lineTotal } });
     await recalcTotals(params.id);
     logActivity({ entityType: 'InvoiceLineItem', entityId: lineItemId, action: 'invoice.line.updated', newValue: body, actorType: 'ADMIN', actorId: user.sub });

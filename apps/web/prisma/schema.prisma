@@ -648,6 +648,7 @@ model InvoiceLineItem {
   description     String
   quantity        Decimal         @default(1) @db.Decimal(12, 2)
   unitPrice       Decimal         @default(0) @db.Decimal(12, 2)
+  discountPercent Decimal         @default(0) @db.Decimal(5, 2)
   taxRate         Decimal         @default(0) @db.Decimal(5, 2)
   taxAmount       Decimal         @default(0) @db.Decimal(12, 2)
   lineTotal       Decimal         @default(0) @db.Decimal(12, 2)
