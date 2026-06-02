@@ -78,28 +78,31 @@ export default function AmcContractsPage() {
       <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Create AMC Contract">
         <div className="space-y-3">
           {error && <p className="text-red-600 text-sm">{error}</p>}
+          <div><label className="text-xs text-gray-500">Customer</label>
           <select className="w-full border rounded px-3 py-2 dark:bg-gray-800 dark:border-gray-700" value={form.customerId} onChange={(e) => onCustomerChange(e.target.value)}>
             <option value="">Select Customer</option>
             {customers.map((c: any) => <option key={c.id} value={c.id}>{c.fullName} — {c.phoneNumber}</option>)}
-          </select>
+          </select></div>
+          <div><label className="text-xs text-gray-500">Vehicle</label>
           <select className="w-full border rounded px-3 py-2 dark:bg-gray-800 dark:border-gray-700" value={form.vehicleId} onChange={(e) => setForm({ ...form, vehicleId: e.target.value })} disabled={!form.customerId}>
             <option value="">{form.customerId ? 'Select Vehicle' : 'Select customer first'}</option>
             {vehicles.map((v: any) => <option key={v.id} value={v.id}>{v.registrationNumber} — {v.brand} {v.model}</option>)}
-          </select>
-          <input className="w-full border rounded px-3 py-2 dark:bg-gray-800 dark:border-gray-700" placeholder="Customer ID" value={form.customerId} onChange={(e) => setForm({ ...form, customerId: e.target.value })} />
-          <input className="w-full border rounded px-3 py-2 dark:bg-gray-800 dark:border-gray-700" placeholder="Vehicle ID" value={form.vehicleId} onChange={(e) => setForm({ ...form, vehicleId: e.target.value })} />
-          <select className="w-full border rounded px-3 py-2 dark:bg-gray-800 dark:border-gray-700" value={form.amcPlanId} onChange={(e) => setForm({ ...form, amcPlanId: e.target.value })}>
+          </select></div>
+          <div><label className="text-xs text-gray-500">Plan</label>
+          <select className="w-full border rounded px-3 py-2 dark:bg-gray-800 dark:border-gray-700" value={form.amcPlanId} onChange={(e) => { const plan = plans.find((p: any) => p.id === e.target.value); setForm({ ...form, amcPlanId: e.target.value, amountPaid: plan ? String(Number(plan.price)) : '' }); }}>
             <option value="">Select Plan</option>
-            {plans.map((p: any) => <option key={p.id} value={p.id}>{p.planName} — ₹{Number(p.price).toLocaleString()}</option>)}
-          </select>
-          <input className="w-full border rounded px-3 py-2 dark:bg-gray-800 dark:border-gray-700" type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} />
-          <input className="w-full border rounded px-3 py-2 dark:bg-gray-800 dark:border-gray-700" type="number" placeholder="Amount Paid (₹)" value={form.amountPaid} onChange={(e) => setForm({ ...form, amountPaid: e.target.value })} />
-          <select className="w-full border rounded px-3 py-2 dark:bg-gray-800 dark:border-gray-700" value={form.paymentMode} onChange={(e) => setForm({ ...form, paymentMode: e.target.value })}>
-            <option value="CASH">Cash</option>
-            <option value="UPI">UPI</option>
-            <option value="CARD">Card</option>
-            <option value="BANK_TRANSFER">Bank Transfer</option>
-          </select>
+            {plans.map((p: any) => <option key={p.id} value={p.id}>{p.planName} ({p.ccRange || p.vehicleType}) — ₹{Number(p.price).toLocaleString()}</option>)}
+          </select></div>
+          <div><label className="text-xs text-gray-500">Start Date</label>
+          <input className="w-full border rounded px-3 py-2 dark:bg-gray-800 dark:border-gray-700" type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} /></div>
+          <div className="grid grid-cols-2 gap-2">
+            <div><label className="text-xs text-gray-500">Amount Paid (₹)</label>
+            <input className="w-full border rounded px-3 py-2 dark:bg-gray-800 dark:border-gray-700" type="number" value={form.amountPaid} onChange={(e) => setForm({ ...form, amountPaid: e.target.value })} /></div>
+            <div><label className="text-xs text-gray-500">Payment Mode</label>
+            <select className="w-full border rounded px-3 py-2 dark:bg-gray-800 dark:border-gray-700" value={form.paymentMode} onChange={(e) => setForm({ ...form, paymentMode: e.target.value })}>
+              <option value="CASH">Cash</option><option value="UPI">UPI</option><option value="CARD">Card</option><option value="BANK_TRANSFER">Bank Transfer</option>
+            </select></div>
+          </div>
           <textarea className="w-full border rounded px-3 py-2 dark:bg-gray-800 dark:border-gray-700" placeholder="Notes (optional)" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
           <button disabled={saving || !form.customerId || !form.vehicleId || !form.amcPlanId || !form.startDate || !form.amountPaid} onClick={handleCreate} className="w-full bg-blue-600 text-white rounded px-4 py-2 disabled:opacity-50">
             {saving ? 'Creating...' : 'Create Contract'}
