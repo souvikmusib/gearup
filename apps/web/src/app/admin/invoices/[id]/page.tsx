@@ -15,10 +15,12 @@ export default function InvoiceDetailPage() {
   const [payMode, setPayMode] = useState('CASH');
   const [payRef, setPayRef] = useState('');
   const [loading, setLoading] = useState('');
-  const [newLine, setNewLine] = useState({ lineType: 'CUSTOM_CHARGE', description: '', quantity: '1', unitPrice: '', taxRate: '0', discountMode: 'flat' });
+  const [newLine, setNewLine] = useState({ lineType: 'CUSTOM_CHARGE', description: '', quantity: '1', unitPrice: '', taxRate: '0', discountMode: 'flat', amcPlanId: '', amcContractId: '' });
   const [addingLine, setAddingLine] = useState(false);
   const [inventoryItems, setInventoryItems] = useState<any[]>([]);
   const [workers, setWorkers] = useState<any[]>([]);
+  const [amcPlans, setAmcPlans] = useState<any[]>([]);
+  const [amcContracts, setAmcContracts] = useState<any[]>([]);
 
   const loadInventory = async () => {
     if (inventoryItems.length) return;
@@ -29,6 +31,14 @@ export default function InvoiceDetailPage() {
     if (workers.length) return;
     const res = await api.get<any>('/admin/workers?pageSize=200');
     if (res.success) setWorkers(res.data?.items ?? res.data ?? []);
+  };
+  const loadAmcOptions = async () => {
+    const [plansRes, contractsRes] = await Promise.all([
+      api.get<any>('/admin/amc/plans'),
+      api.get<any>('/admin/amc/contracts?status=ACTIVE'),
+    ]);
+    if (plansRes.success) setAmcPlans((plansRes.data ?? []).filter((p: any) => p.isActive));
+    if (contractsRes.success) setAmcContracts(contractsRes.data ?? []);
   };
 
   const fetch = (useCache = false) => {
@@ -76,9 +86,11 @@ export default function InvoiceDetailPage() {
       quantity: Number(newLine.quantity) || 1, unitPrice: Number(newLine.unitPrice) || 0, taxRate: Number(newLine.taxRate) || 0,
     };
     if (newLine.lineType === 'DISCOUNT_ADJUSTMENT') payload.discountMode = newLine.discountMode;
+    if (newLine.lineType === 'AMC' && newLine.amcContractId) payload.amcContractId = newLine.amcContractId;
+    if (newLine.lineType === 'AMC' && newLine.amcPlanId && !newLine.amcContractId) payload.amcPlanId = newLine.amcPlanId;
     const res = await api.post<any>(`/admin/invoices/${id}/line-items`, payload);
     setAddingLine(false);
-    if (res.success) { setNewLine({ lineType: 'CUSTOM_CHARGE', description: '', quantity: '1', unitPrice: '', taxRate: '0', discountMode: 'flat' }); fetch(); }
+    if (res.success) { setNewLine({ lineType: 'CUSTOM_CHARGE', description: '', quantity: '1', unitPrice: '', taxRate: '0', discountMode: 'flat', amcPlanId: '', amcContractId: '' }); fetch(); }
     else { console.error('Add line failed:', res.error); alert(res.error?.message || 'Failed to add line item'); }
   };
 
@@ -260,8 +272,8 @@ export default function InvoiceDetailPage() {
             <div className="grid grid-cols-12 gap-2 items-end">
               <div className="col-span-2">
                 <label className="block text-[10px] text-gray-400 mb-0.5">Type</label>
-                <select className={inputCls} value={newLine.lineType} onChange={(e) => setNewLine({ ...newLine, lineType: e.target.value, description: e.target.value === 'DISCOUNT_ADJUSTMENT' ? 'Discount' : newLine.description })}>
-                  <option value="PART">Part</option><option value="LABOR">Labor</option><option value="CUSTOM_CHARGE">Custom</option><option value="DISCOUNT_ADJUSTMENT">Discount</option>
+                <select className={inputCls} value={newLine.lineType} onChange={(e) => { setNewLine({ ...newLine, lineType: e.target.value, description: e.target.value === 'DISCOUNT_ADJUSTMENT' ? 'Discount' : e.target.value === 'AMC' ? 'AMC Service' : newLine.description }); if (e.target.value === 'AMC') loadAmcOptions(); }}>
+                  <option value="PART">Part</option><option value="LABOR">Labor</option><option value="CUSTOM_CHARGE">Custom</option><option value="DISCOUNT_ADJUSTMENT">Discount</option><option value="AMC">AMC</option>
                 </select>
               </div>
               <div className="col-span-4">
@@ -274,6 +286,27 @@ export default function InvoiceDetailPage() {
                     <option value="">Select part...</option>
                     {inventoryItems.map((i: any) => <option key={i.id} value={i.itemName}>{i.itemName} ({i.sku}) — ₹{Number(i.sellingPrice)}</option>)}
                   </select>
+                ) : newLine.lineType === 'AMC' ? (
+                  <div className="space-y-1">
+                    {amcContracts.filter((c: any) => c.vehicleId === data?.vehicleId && c.servicesRemaining > 0).length > 0 ? (
+                      <select className={inputCls} value={newLine.amcContractId} onChange={(e) => {
+                        const contract = amcContracts.find((c: any) => c.id === e.target.value);
+                        setNewLine({ ...newLine, amcContractId: e.target.value, amcPlanId: '', description: contract ? `AMC Service (${contract.plan?.planName} — ${contract.servicesRemaining} left)` : '', unitPrice: '0' });
+                      }}>
+                        <option value="">Use existing contract...</option>
+                        {amcContracts.filter((c: any) => c.vehicleId === data?.vehicleId && c.servicesRemaining > 0).map((c: any) => <option key={c.id} value={c.id}>{c.contractNumber} — {c.plan?.planName} ({c.servicesRemaining}/{c.totalServices} left)</option>)}
+                      </select>
+                    ) : null}
+                    {!newLine.amcContractId && (
+                      <select className={inputCls} value={newLine.amcPlanId} onChange={(e) => {
+                        const plan = amcPlans.find((p: any) => p.id === e.target.value);
+                        setNewLine({ ...newLine, amcPlanId: e.target.value, amcContractId: '', description: plan ? `AMC — ${plan.planName} (${plan.ccRange || plan.vehicleType})` : '', unitPrice: plan ? String(Number(plan.price)) : '0' });
+                      }}>
+                        <option value="">New AMC — select plan...</option>
+                        {amcPlans.map((p: any) => <option key={p.id} value={p.id}>{p.planName} ({p.ccRange || p.vehicleType}) — ₹{Number(p.price).toLocaleString()}</option>)}
+                      </select>
+                    )}
+                  </div>
                 ) : newLine.lineType === 'LABOR' ? (
                   <select className={inputCls} value={newLine.description} onFocus={loadWorkers} onChange={(e) => setNewLine({ ...newLine, description: e.target.value ? `Labor — ${e.target.value}` : '' })}>
                     <option value="">Select worker...</option>
