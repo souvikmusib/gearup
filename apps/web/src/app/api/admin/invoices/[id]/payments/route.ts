@@ -7,7 +7,7 @@ import { PERMISSIONS } from '@gearup/types';
 import { z } from 'zod';
 
 const schema = z.object({
-  amount: z.number().positive(),
+  amount: z.number().min(0),
   paymentMode: z.string(),
   paymentDate: z.string(),
   referenceNumber: z.string().optional(),
@@ -61,6 +61,27 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
           where: { id: invoice.jobCardId },
           data: { status: 'DELIVERED', actualDeliveryAt: new Date() },
         });
+      }
+
+      // If fully paid, activate AMC contracts for any AMC line items
+      if (paymentStatus === 'PAID') {
+        const amcLines = await tx.invoiceLineItem.findMany({ where: { invoiceId: params.id, lineType: 'AMC', referenceItemId: { not: null } } });
+        for (const line of amcLines) {
+          const plan = await tx.amcPlan.findUnique({ where: { id: line.referenceItemId! } });
+          if (!plan) continue;
+          const startDate = new Date();
+          const endDate = new Date(); endDate.setMonth(endDate.getMonth() + plan.durationMonths);
+          const count = await tx.amcContract.count();
+          await tx.amcContract.create({
+            data: {
+              contractNumber: `AMC-${String(count + 1).padStart(5, '0')}`,
+              customerId: invoice.customerId, vehicleId: invoice.vehicleId, amcPlanId: plan.id,
+              startDate, endDate, totalServices: plan.totalServicesIncluded,
+              servicesUsed: 0, servicesRemaining: plan.totalServicesIncluded,
+              amountPaid: line.lineTotal, paymentDate: new Date(),
+            },
+          });
+        }
       }
 
       return payment;

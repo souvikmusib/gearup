@@ -24,6 +24,7 @@ enum ActorType {
 enum VehicleType {
   CAR
   BIKE
+  SCOOTY
   OTHER
 }
 
@@ -121,6 +122,7 @@ enum InvoiceLineType {
   LABOR
   CUSTOM_CHARGE
   DISCOUNT_ADJUSTMENT
+  AMC
 }
 
 enum NotificationChannel {
@@ -236,6 +238,7 @@ model Customer {
   appointments    Appointment[]
   jobCards        JobCard[]
   invoices        Invoice[]
+  amcContracts    AmcContract[]
 
   @@index([phoneNumber])
   @@index([email])
@@ -266,6 +269,7 @@ model Vehicle {
   appointments    Appointment[]
   jobCards        JobCard[]
   invoices        Invoice[]
+  amcContracts    AmcContract[]
 
   @@index([customerId])
   @@index([registrationNumber])
@@ -462,6 +466,7 @@ model JobCard {
   tasks          JobCardTask[]
   parts          JobCardPart[]
   invoices       Invoice[]
+  amcUsages      AmcServiceUsage[]
 
   @@index([appointmentId])
   @@index([serviceRequestId])
@@ -766,4 +771,75 @@ model Setting {
   value     Json
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// ── AMC (Annual Maintenance Contract) ───────────
+
+enum AmcContractStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+}
+
+model AmcPlan {
+  id                    String      @id @default(cuid())
+  planName              String
+  description           String?
+  vehicleType           VehicleType
+  ccRange               String?
+  durationMonths        Int
+  totalServicesIncluded Int
+  price                 Decimal     @db.Decimal(12, 2)
+  coveredItems          Json?
+  exclusions            String?
+  isActive              Boolean     @default(true)
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  contracts AmcContract[]
+}
+
+model AmcContract {
+  id                String            @id @default(cuid())
+  contractNumber    String            @unique
+  customerId        String
+  vehicleId         String
+  amcPlanId         String
+  startDate         DateTime
+  endDate           DateTime
+  totalServices     Int
+  servicesUsed      Int               @default(0)
+  servicesRemaining Int
+  amountPaid        Decimal           @db.Decimal(12, 2)
+  paymentMode       PaymentMode?
+  paymentDate       DateTime?
+  status            AmcContractStatus @default(ACTIVE)
+  notes             String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  customer Customer          @relation(fields: [customerId], references: [id])
+  vehicle  Vehicle           @relation(fields: [vehicleId], references: [id])
+  plan     AmcPlan           @relation(fields: [amcPlanId], references: [id])
+  usages   AmcServiceUsage[]
+
+  @@index([customerId])
+  @@index([vehicleId])
+  @@index([status])
+}
+
+model AmcServiceUsage {
+  id            String   @id @default(cuid())
+  amcContractId String
+  jobCardId     String
+  serviceNumber Int
+  serviceDate   DateTime
+  notes         String?
+  createdAt     DateTime @default(now())
+
+  contract AmcContract @relation(fields: [amcContractId], references: [id])
+  jobCard  JobCard     @relation(fields: [jobCardId], references: [id])
+
+  @@index([amcContractId])
+  @@index([jobCardId])
 }
