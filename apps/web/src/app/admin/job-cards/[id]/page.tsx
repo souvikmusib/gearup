@@ -42,6 +42,13 @@ const NEXT_STATUS: Record<string, { label: string; next: string; color: string }
   READY: { label: 'Mark Delivered', next: 'DELIVERED', color: 'bg-green-600 hover:bg-green-700' },
 };
 
+const PREV_STATUS: Record<string, { label: string; prev: string }> = {
+  ESTIMATE_READY: { label: 'Back to Open', prev: 'OPEN' },
+  IN_PROGRESS: { label: 'Back to Estimate', prev: 'ESTIMATE_READY' },
+  READY: { label: 'Back to In Progress', prev: 'IN_PROGRESS' },
+  DELIVERED: { label: 'Back to Ready', prev: 'READY' },
+};
+
 // Status-based section visibility
 function canEditWorkers(s: string) { return ['OPEN', 'ESTIMATE_READY', 'IN_PROGRESS'].includes(s); }
 function canEditParts(s: string) { return ['OPEN', 'ESTIMATE_READY', 'IN_PROGRESS'].includes(s); }
@@ -95,7 +102,7 @@ export default function JobCardDetailPage() {
     const num = Number(value);
     if (isNaN(num) || num < 0) return;
     const patch: Record<string, number> = { [field]: num };
-    if (field === 'estimatedLaborCost') patch.estimatedTotal = Number(data.estimatedPartsCost) + num;
+    if (field === 'estimatedLaborCost') patch.estimatedTotal = Number(data.estimatedPartsCost) + num + Number(data.estimatedOtherCost);
     const res = await api.patch<any>(`/admin/job-cards/${id}`, patch);
     if (res.success) load();
   };
@@ -191,6 +198,7 @@ export default function JobCardDetailPage() {
   const status = toSimpleStatus(data.status);
   const locked = isLocked(status);
   const next = NEXT_STATUS[status];
+  const prev = PREV_STATUS[status];
 
   return (
     <div className="space-y-6">
@@ -203,6 +211,12 @@ export default function JobCardDetailPage() {
 
       {/* Status controls */}
       <div className="flex flex-wrap items-center gap-3">
+        {prev && !locked && (
+          <button onClick={() => updateStatus(prev.prev)} disabled={!!loading}
+            className="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 border border-gray-300 hover:bg-gray-50 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-800 disabled:opacity-50">
+            {loading === prev.prev ? 'Updating...' : `← ${prev.label}`}
+          </button>
+        )}
         {next && !locked && (
           <button onClick={() => updateStatus(next.next)} disabled={!!loading}
             className={`rounded-lg px-5 py-2.5 text-sm font-semibold text-white shadow ${next.color} disabled:opacity-50`}>
@@ -279,6 +293,7 @@ export default function JobCardDetailPage() {
               ) : (
                 <span>₹{Number(data.estimatedLaborCost).toFixed(2)}</span>
               )}
+              <span className="text-gray-500">Other:</span><span>₹{Number(data.estimatedOtherCost).toFixed(2)}</span>
               <span className="text-gray-500 font-semibold">Total:</span><span className="font-bold">₹{Number(data.estimatedTotal).toFixed(2)}</span>
             </div>
           </div>

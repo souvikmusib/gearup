@@ -449,9 +449,11 @@ model JobCard {
   assignedServiceManagerId String?
   estimatedPartsCost       Decimal        @default(0) @db.Decimal(12, 2)
   estimatedLaborCost       Decimal        @default(0) @db.Decimal(12, 2)
+  estimatedOtherCost       Decimal        @default(0) @db.Decimal(12, 2)
   estimatedTotal           Decimal        @default(0) @db.Decimal(12, 2)
   finalPartsCost           Decimal        @default(0) @db.Decimal(12, 2)
   finalLaborCost           Decimal        @default(0) @db.Decimal(12, 2)
+  finalOtherCost           Decimal        @default(0) @db.Decimal(12, 2)
   finalTotal               Decimal        @default(0) @db.Decimal(12, 2)
   customerVisibleNotes     String?
   internalNotes            String?

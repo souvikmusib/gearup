@@ -88,6 +88,37 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     }
 
     const item = await prisma.invoiceLineItem.create({ data: { invoiceId: params.id, lineType: body.lineType, description: body.description, quantity: body.quantity, unitPrice: body.unitPrice, discountPercent: body.discountPercent, taxRate: body.taxRate, taxAmount, lineTotal, sortOrder: count, referenceItemId } });
+
+    // Sync to job card (all types except DISCOUNT_ADJUSTMENT)
+    const invoice = await prisma.invoice.findUniqueOrThrow({ where: { id: params.id }, select: { jobCardId: true } });
+    if (invoice.jobCardId && body.lineType !== 'DISCOUNT_ADJUSTMENT') {
+      if (body.lineType === 'PART' && referenceItemId) {
+        const exists = await prisma.jobCardPart.findFirst({ where: { jobCardId: invoice.jobCardId, inventoryItemId: referenceItemId } });
+        if (!exists) {
+          await prisma.jobCardPart.create({ data: { jobCardId: invoice.jobCardId, inventoryItemId: referenceItemId, requiredQty: body.quantity, reservedQty: body.quantity, unitPrice: body.unitPrice } });
+          // Recalc job card parts total
+          const parts = await prisma.jobCardPart.findMany({ where: { jobCardId: invoice.jobCardId } });
+          const estimatedPartsCost = parts.reduce((sum: number, p: any) => sum + Number(p.requiredQty) * Number(p.unitPrice), 0);
+          const jc = await prisma.jobCard.findUniqueOrThrow({ where: { id: invoice.jobCardId }, select: { estimatedLaborCost: true, estimatedOtherCost: true } });
+          await prisma.jobCard.update({ where: { id: invoice.jobCardId }, data: { estimatedPartsCost, estimatedTotal: estimatedPartsCost + Number(jc.estimatedLaborCost) + Number(jc.estimatedOtherCost) } });
+        }
+      } else if (body.lineType !== 'PART') {
+        const exists = await prisma.jobCardTask.findFirst({ where: { jobCardId: invoice.jobCardId, taskName: body.description } });
+        if (!exists) {
+          await prisma.jobCardTask.create({ data: { jobCardId: invoice.jobCardId, taskName: body.description, status: 'COMPLETED' } });
+          const jc = await prisma.jobCard.findUniqueOrThrow({ where: { id: invoice.jobCardId }, select: { estimatedLaborCost: true, estimatedOtherCost: true, estimatedPartsCost: true } });
+          const amount = body.unitPrice * body.quantity;
+          if (body.lineType === 'LABOR') {
+            const newLaborCost = Number(jc.estimatedLaborCost) + amount;
+            await prisma.jobCard.update({ where: { id: invoice.jobCardId }, data: { estimatedLaborCost: newLaborCost, estimatedTotal: Number(jc.estimatedPartsCost) + newLaborCost + Number(jc.estimatedOtherCost) } });
+          } else {
+            const newOtherCost = Number(jc.estimatedOtherCost) + amount;
+            await prisma.jobCard.update({ where: { id: invoice.jobCardId }, data: { estimatedOtherCost: newOtherCost, estimatedTotal: Number(jc.estimatedPartsCost) + Number(jc.estimatedLaborCost) + newOtherCost } });
+          }
+        }
+      }
+    }
+
     await recalcTotals(params.id);
     logActivity({ entityType: 'InvoiceLineItem', entityId: item.id, action: 'invoice.line.added', newValue: body, actorType: 'ADMIN', actorId: user.sub });
     return NextResponse.json({ success: true, data: item }, { status: 201 });
