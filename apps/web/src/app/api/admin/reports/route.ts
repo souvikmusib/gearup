@@ -50,14 +50,22 @@ export async function GET(req: NextRequest) {
 
     if (type === 'revenue') {
       const where: Record<string, unknown> = {};
-      if (from && to) where.paymentDate = { gte: new Date(from), lte: new Date(to) };
-      const payments = await prisma.payment.groupBy({ by: ['paymentMode'], where, _sum: { amount: true }, _count: true });
-      const total = await prisma.payment.aggregate({ where, _sum: { amount: true } });
+      if (from && to) where.paymentDate = { gte: new Date(from), lte: new Date(to + 'T23:59:59') };
+      const [payments, total, dailyRaw] = await Promise.all([
+        prisma.payment.groupBy({ by: ['paymentMode'], where, _sum: { amount: true }, _count: true }),
+        prisma.payment.aggregate({ where, _sum: { amount: true } }),
+        prisma.payment.findMany({ where, select: { amount: true, paymentDate: true }, orderBy: { paymentDate: 'asc' } }),
+      ]);
+      // Aggregate daily
+      const dailyMap: Record<string, number> = {};
+      dailyRaw.forEach((p) => { const day = new Date(p.paymentDate).toISOString().slice(0, 10); dailyMap[day] = (dailyMap[day] || 0) + Number(p.amount); });
+      const daily = Object.entries(dailyMap).map(([date, amount]) => ({ date, amount }));
       return NextResponse.json({
         success: true,
         data: {
           byMode: payments.map((p) => ({ mode: p.paymentMode, _count: p._count, _sum: Number(p._sum.amount ?? 0) })),
           totalRevenue: Number(total._sum.amount ?? 0),
+          daily,
         },
       });
     }
