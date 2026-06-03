@@ -186,7 +186,7 @@ function generateCustomerDraftHTML(invoice: any, settings: Record<string, any>, 
   </div>
   <div style="display:flex;gap:16px;margin-bottom:20px">
     <div style="flex:1;background:#f9fafb;padding:12px;border-radius:8px"><div style="font-size:10px;text-transform:uppercase;color:#888;font-weight:600">Customer</div><div style="font-weight:500;margin-top:4px">${invoice.customer.fullName}</div><div style="color:#666;font-size:12px">${invoice.customer.phoneNumber}</div></div>
-    <div style="flex:1;background:#f9fafb;padding:12px;border-radius:8px"><div style="font-size:10px;text-transform:uppercase;color:#888;font-weight:600">Vehicle</div><div style="font-weight:500;margin-top:4px">${invoice.vehicle?.brand ?? ''} ${invoice.vehicle?.model ?? ''}</div><div style="color:#666;font-size:12px">${invoice.vehicle?.registrationNumber ?? 'Counter Sale'}</div></div>
+    <div style="flex:1;background:#f9fafb;padding:12px;border-radius:8px"><div style="font-size:10px;text-transform:uppercase;color:#888;font-weight:600">Vehicle</div><div style="font-weight:500;margin-top:4px">${invoice.vehicle?.brand ?? ''} ${invoice.vehicle?.model ?? ''}</div><div style="color:#666;font-size:12px">${invoice.vehicle?.registrationNumber ?? 'Counter Sale'}</div>${invoice.jobCard?.odometerAtIntake ? `<div style="color:#666;font-size:11px;margin-top:2px">Odometer: ${invoice.jobCard.odometerAtIntake.toLocaleString()} km${invoice.jobCard.fuelIndicator ? ` · Fuel: ${invoice.jobCard.fuelIndicator}` : ''}</div>` : ''}</div>
   </div>
   ${invoice.jobCard?.issueSummary ? `<div style="margin-bottom:16px;padding:12px;background:#fffbeb;border-radius:8px;border:1px solid #fde68a"><strong>Issue:</strong> ${invoice.jobCard.issueSummary}</div>` : ''}
   <table><thead><tr><th>#</th><th>Service / Part</th><th style="text-align:center">Type</th><th style="text-align:center">Qty</th></tr></thead><tbody>${rows}</tbody></table>
@@ -212,7 +212,7 @@ function generateMechanicCopyHTML(invoice: any, settings: Record<string, any>, l
     <div style="text-align:right"><div style="font-size:16px;font-weight:700">${invoice.jobCard?.jobCardNumber || '-'}</div><div style="color:#666;font-size:12px">${new Date(invoice.invoiceDate).toLocaleDateString('en-IN')}</div></div>
   </div>
   <div style="display:flex;gap:16px;margin-bottom:20px">
-    <div style="flex:1;background:#f9fafb;padding:12px;border-radius:8px"><strong>Vehicle:</strong> ${invoice.vehicle ? `${invoice.vehicle.brand} ${invoice.vehicle.model} — ${invoice.vehicle.registrationNumber}` : 'Counter Sale'}</div>
+    <div style="flex:1;background:#f9fafb;padding:12px;border-radius:8px"><strong>Vehicle:</strong> ${invoice.vehicle ? `${invoice.vehicle.brand} ${invoice.vehicle.model} — ${invoice.vehicle.registrationNumber}` : 'Counter Sale'}${invoice.jobCard?.odometerAtIntake ? `<br><span style="font-size:12px;color:#666">Odometer: ${invoice.jobCard.odometerAtIntake.toLocaleString()} km${invoice.jobCard.fuelIndicator ? ` · Fuel: ${invoice.jobCard.fuelIndicator}` : ''}</span>` : ''}</div>
     <div style="flex:1;background:#f9fafb;padding:12px;border-radius:8px"><strong>Customer:</strong> ${invoice.customer.fullName} (${invoice.customer.phoneNumber})</div>
   </div>
   ${invoice.jobCard?.issueSummary ? `<div style="margin-bottom:16px;padding:12px;background:#fef3c7;border-radius:8px;border:1px solid #fde68a"><strong>Issue:</strong> ${invoice.jobCard.issueSummary}</div>` : ''}
@@ -341,7 +341,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
         payments: { orderBy: { paymentDate: 'desc' } },
         customer: true,
         vehicle: true,
-        jobCard: { select: { jobCardNumber: true, issueSummary: true, tasks: { select: { taskName: true, status: true } }, parts: { include: { inventoryItem: { select: { itemName: true } } } } } },
+        jobCard: { select: { jobCardNumber: true, issueSummary: true, odometerAtIntake: true, fuelIndicator: true, tasks: { select: { taskName: true, status: true } }, parts: { include: { inventoryItem: { select: { itemName: true } } } } } },
       },
     });
 

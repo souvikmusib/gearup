@@ -23,7 +23,7 @@ export default function JobCardsPage() {
   const [vehicles, setVehicles] = useState<any[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [form, setForm] = useState({ customerId: '', vehicleId: '', issueSummary: '', priority: '', customerComplaints: '', odometerAtIntake: '', serviceRequestId: '', appointmentId: '' });
+  const [form, setForm] = useState({ customerId: '', vehicleId: '', issueSummary: '', priority: '', customerComplaints: '', odometerAtIntake: '', fuelIndicator: '', serviceRequestId: '', appointmentId: '' });
   const [newCust, setNewCust] = useState(false);
   const [custForm, setCustForm] = useState({ fullName: '', phoneNumber: '', email: '' });
   const [newVeh, setNewVeh] = useState(false);
@@ -117,12 +117,12 @@ export default function JobCardsPage() {
   const submit = async () => {
     if (!form.customerId || !form.vehicleId || !form.issueSummary) { setError('Fill all required fields'); return; }
     setSaving(true); setError('');
-    const payload: Record<string, unknown> = { ...form, odometerAtIntake: form.odometerAtIntake ? Number(form.odometerAtIntake) : undefined };
+    const payload: Record<string, unknown> = { ...form, odometerAtIntake: form.odometerAtIntake ? Number(form.odometerAtIntake) : undefined, fuelIndicator: form.fuelIndicator || undefined };
     if (!payload.serviceRequestId) delete payload.serviceRequestId;
     if (!payload.appointmentId) delete payload.appointmentId;
     const res = await api.post<any>('/admin/job-cards', payload);
     setSaving(false);
-    if (res.success) { setShowCreate(false); setForm({ customerId: '', vehicleId: '', issueSummary: '', priority: '', customerComplaints: '', odometerAtIntake: '', serviceRequestId: '', appointmentId: '' }); load(); }
+    if (res.success) { setShowCreate(false); setForm({ customerId: '', vehicleId: '', issueSummary: '', priority: '', customerComplaints: '', odometerAtIntake: '', fuelIndicator: '', serviceRequestId: '', appointmentId: '' }); load(); }
     else setError(res.error?.message || 'Failed to create');
   };
 
@@ -244,6 +244,7 @@ export default function JobCardsPage() {
             </select>
           </div>
           <div><label className="block text-sm font-medium mb-1">Odometer Reading (km)</label><input type="number" className={inputCls} placeholder="e.g. 23450" value={form.odometerAtIntake} onChange={(e) => setForm((f) => ({ ...f, odometerAtIntake: e.target.value }))} /></div>
+          <div><label className="block text-sm font-medium mb-1">Fuel Indicator</label><select className={inputCls} value={form.fuelIndicator} onChange={(e) => setForm((f) => ({ ...f, fuelIndicator: e.target.value }))}><option value="">Select...</option><option value="E">E (Empty)</option><option value="1/4">1/4</option><option value="1/2">1/2</option><option value="3/4">3/4</option><option value="F">F (Full)</option></select></div>
           <button onClick={submit} disabled={saving} className="w-full rounded-lg bg-blue-600 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50">
             {saving ? 'Creating...' : 'Create Job Card'}
           </button>
