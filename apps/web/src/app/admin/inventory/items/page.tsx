@@ -17,9 +17,9 @@ export default function InventoryItemsPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [categories, setCategories] = useState<any[]>([]);
   const [suppliers, setSuppliers] = useState<any[]>([]);
-  const [form, setForm] = useState({ sku: '', itemName: '', categoryId: '', supplierId: '', unit: '', costPrice: '', sellingPrice: '', discountPercent: '', quantityInStock: '' });
+  const [form, setForm] = useState({ sku: '', itemName: '', categoryId: '', supplierId: '', unit: '', costPrice: '', sellingPrice: '', discountPercent: '', quantityInStock: '', variablePrice: false });
   const [editItem, setEditItem] = useState<any>(null);
-  const [editForm, setEditForm] = useState({ itemName: '', categoryId: '', supplierId: '', unit: '', costPrice: '', sellingPrice: '', discountPercent: '', reorderLevel: '', storageLocation: '', isActive: true });
+  const [editForm, setEditForm] = useState({ itemName: '', categoryId: '', supplierId: '', unit: '', costPrice: '', sellingPrice: '', discountPercent: '', reorderLevel: '', storageLocation: '', isActive: true, variablePrice: false });
   const [editSaving, setEditSaving] = useState(false);
   const [stockItem, setStockItem] = useState<any>(null);
   const [stockForm, setStockForm] = useState({ type: 'STOCK_IN', quantity: '', reason: '' });
@@ -67,7 +67,7 @@ export default function InventoryItemsPage() {
     if (form.discountPercent) body.discountPercent = Number(form.discountPercent);
     if (!body.supplierId) delete body.supplierId;
     const res = await api.post('/admin/inventory/items', body);
-    if (res.success) { setShowCreate(false); setForm({ sku: '', itemName: '', categoryId: '', supplierId: '', unit: '', costPrice: '', sellingPrice: '', discountPercent: '', quantityInStock: '' }); load(); }
+    if (res.success) { setShowCreate(false); setForm({ sku: '', itemName: '', categoryId: '', supplierId: '', unit: '', costPrice: '', sellingPrice: '', discountPercent: '', quantityInStock: '', variablePrice: false }); load(); }
   };
 
   const openEdit = (item: any) => {
@@ -75,7 +75,7 @@ export default function InventoryItemsPage() {
     setEditForm({
       itemName: item.itemName || '', categoryId: item.categoryId || '', supplierId: item.supplierId || '', unit: item.unit || '',
       costPrice: String(Number(item.costPrice) || ''), sellingPrice: String(Number(item.sellingPrice) || ''), discountPercent: String(Number(item.discountPercent) || ''),
-      reorderLevel: item.reorderLevel != null ? String(Number(item.reorderLevel)) : '', storageLocation: item.storageLocation || '', isActive: item.isActive ?? true,
+      reorderLevel: item.reorderLevel != null ? String(Number(item.reorderLevel)) : '', storageLocation: item.storageLocation || '', isActive: item.isActive ?? true, variablePrice: item.variablePrice ?? false,
     });
     loadLookups();
   };
@@ -159,6 +159,7 @@ export default function InventoryItemsPage() {
             <input className={inputCls} placeholder="Discount %" type="number" step="0.01" min="0" max="100" value={form.discountPercent} onChange={(e) => setForm({ ...form, discountPercent: e.target.value })} />
           </div>
           <input className={inputCls} placeholder="Initial Stock Quantity" type="number" required value={form.quantityInStock} onChange={(e) => setForm({ ...form, quantityInStock: e.target.value })} />
+          <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.variablePrice} onChange={(e) => setForm({ ...form, variablePrice: e.target.checked })} className="rounded" /><span>Variable price (enter price at sale time)</span></label>
           <button type="submit" className="w-full rounded-lg bg-blue-600 py-2 text-sm font-medium text-white hover:bg-blue-700">Create</button>
         </form>
       </Modal>
@@ -192,6 +193,10 @@ export default function InventoryItemsPage() {
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" checked={editForm.isActive} onChange={(e) => setEditForm({ ...editForm, isActive: e.target.checked })} className="rounded" />
             Active
+          </label>
+          <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" checked={editForm.variablePrice} onChange={(e) => setEditForm({ ...editForm, variablePrice: e.target.checked })} className="rounded" />
+            Variable price (enter price at sale time)
           </label>
           <button type="submit" disabled={editSaving} className="w-full rounded-lg bg-blue-600 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
             {editSaving ? 'Saving...' : 'Save Changes'}
