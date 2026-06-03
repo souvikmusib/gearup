@@ -107,8 +107,8 @@ function generateInvoiceHTML(invoice: any, settings: Record<string, any>, logoUr
       </div>
       <div class="meta-box">
         <div class="meta-label">Vehicle</div>
-        <div class="meta-value">${invoice.vehicle.brand} ${invoice.vehicle.model}</div>
-        <div style="color:#666;font-size:12px;margin-top:2px">${invoice.vehicle.registrationNumber}</div>
+        <div class="meta-value">${invoice.vehicle?.brand ?? ''} ${invoice.vehicle?.model ?? ''}</div>
+        <div style="color:#666;font-size:12px;margin-top:2px">${invoice.vehicle?.registrationNumber ?? 'Counter Sale'}</div>
       </div>
       <div class="meta-box">
         <div class="meta-label">Invoice Date</div>
@@ -186,7 +186,7 @@ function generateCustomerDraftHTML(invoice: any, settings: Record<string, any>, 
   </div>
   <div style="display:flex;gap:16px;margin-bottom:20px">
     <div style="flex:1;background:#f9fafb;padding:12px;border-radius:8px"><div style="font-size:10px;text-transform:uppercase;color:#888;font-weight:600">Customer</div><div style="font-weight:500;margin-top:4px">${invoice.customer.fullName}</div><div style="color:#666;font-size:12px">${invoice.customer.phoneNumber}</div></div>
-    <div style="flex:1;background:#f9fafb;padding:12px;border-radius:8px"><div style="font-size:10px;text-transform:uppercase;color:#888;font-weight:600">Vehicle</div><div style="font-weight:500;margin-top:4px">${invoice.vehicle.brand} ${invoice.vehicle.model}</div><div style="color:#666;font-size:12px">${invoice.vehicle.registrationNumber}</div></div>
+    <div style="flex:1;background:#f9fafb;padding:12px;border-radius:8px"><div style="font-size:10px;text-transform:uppercase;color:#888;font-weight:600">Vehicle</div><div style="font-weight:500;margin-top:4px">${invoice.vehicle?.brand ?? ''} ${invoice.vehicle?.model ?? ''}</div><div style="color:#666;font-size:12px">${invoice.vehicle?.registrationNumber ?? 'Counter Sale'}</div></div>
   </div>
   ${invoice.jobCard?.issueSummary ? `<div style="margin-bottom:16px;padding:12px;background:#fffbeb;border-radius:8px;border:1px solid #fde68a"><strong>Issue:</strong> ${invoice.jobCard.issueSummary}</div>` : ''}
   <table><thead><tr><th>#</th><th>Service / Part</th><th style="text-align:center">Type</th><th style="text-align:center">Qty</th></tr></thead><tbody>${rows}</tbody></table>
@@ -212,7 +212,7 @@ function generateMechanicCopyHTML(invoice: any, settings: Record<string, any>, l
     <div style="text-align:right"><div style="font-size:16px;font-weight:700">${invoice.jobCard?.jobCardNumber || '-'}</div><div style="color:#666;font-size:12px">${new Date(invoice.invoiceDate).toLocaleDateString('en-IN')}</div></div>
   </div>
   <div style="display:flex;gap:16px;margin-bottom:20px">
-    <div style="flex:1;background:#f9fafb;padding:12px;border-radius:8px"><strong>Vehicle:</strong> ${invoice.vehicle.brand} ${invoice.vehicle.model} — ${invoice.vehicle.registrationNumber}</div>
+    <div style="flex:1;background:#f9fafb;padding:12px;border-radius:8px"><strong>Vehicle:</strong> ${invoice.vehicle ? `${invoice.vehicle.brand} ${invoice.vehicle.model} — ${invoice.vehicle.registrationNumber}` : 'Counter Sale'}</div>
     <div style="flex:1;background:#f9fafb;padding:12px;border-radius:8px"><strong>Customer:</strong> ${invoice.customer.fullName} (${invoice.customer.phoneNumber})</div>
   </div>
   ${invoice.jobCard?.issueSummary ? `<div style="margin-bottom:16px;padding:12px;background:#fef3c7;border-radius:8px;border:1px solid #fde68a"><strong>Issue:</strong> ${invoice.jobCard.issueSummary}</div>` : ''}
@@ -224,6 +224,109 @@ function generateMechanicCopyHTML(invoice: any, settings: Record<string, any>, l
     <div><strong>Mechanic Signature:</strong> ___________________</div>
     <div><strong>Date:</strong> ___________________</div>
   </div>
+</div></body></html>`;
+}
+
+function generateAmcInvoiceHTML(invoice: any, settings: Record<string, any>, logoUrl: string, amcContract: any) {
+  const biz = {
+    name: settings['business.name'] || 'GearUp Auto Service',
+    phone: settings['business.phone'] || '',
+    email: settings['business.email'] || '',
+    address: settings['business.address'] || '',
+    gst: settings['business.gst'] || '',
+  };
+
+  const planPrice = Number(amcContract.plan.price);
+  const amcSavings = invoice.lineItems.filter((li: any) => li.lineType === 'AMC' && Number(li.lineTotal) === 0).length * planPrice;
+
+  const rows = invoice.lineItems.map((li: any, i: number) => {
+    const isAmcCovered = li.lineType === 'AMC' && Number(li.lineTotal) === 0;
+    return `<tr${isAmcCovered ? ' style="background:#fefce8"' : ''}>
+      <td style="padding:10px 12px;border-bottom:1px solid ${isAmcCovered ? '#fde047' : '#f3f4f6'}">${i + 1}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid ${isAmcCovered ? '#fde047' : '#f3f4f6'}"><strong>${li.description}</strong>${isAmcCovered ? '<span style="display:inline-block;background:#111;color:#d4a017;font-size:8px;font-weight:700;padding:2px 7px;border-radius:2px;text-transform:uppercase;letter-spacing:1px;margin-left:8px;border:1px solid #d4a017">★ AMC</span>' : ''}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid ${isAmcCovered ? '#fde047' : '#f3f4f6'};text-align:right">${Number(li.quantity)}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid ${isAmcCovered ? '#fde047' : '#f3f4f6'};text-align:right">${isAmcCovered ? `<span style="text-decoration:line-through;color:#9ca3af;font-size:11px">₹${planPrice.toLocaleString()}</span>` : `₹${Number(li.unitPrice).toLocaleString()}`}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid ${isAmcCovered ? '#fde047' : '#f3f4f6'};text-align:right;font-weight:600">${isAmcCovered ? '<span style="font-weight:800;color:#dc2626;font-size:13px">FREE</span>' : `₹${Number(li.lineTotal).toLocaleString()}`}</td>
+    </tr>`;
+  }).join('');
+
+  const payments = invoice.payments?.map((p: any) => `
+    <tr><td style="padding:6px 12px;border-bottom:1px solid #f3f4f6">${new Date(p.paymentDate).toLocaleDateString('en-IN')}</td><td style="padding:6px 12px;border-bottom:1px solid #f3f4f6">${p.paymentMode}</td><td style="padding:6px 12px;border-bottom:1px solid #f3f4f6">${p.referenceNumber || '-'}</td><td style="padding:6px 12px;border-bottom:1px solid #f3f4f6;text-align:right;font-weight:600;color:#16a34a">₹${Number(p.amount).toLocaleString()}</td></tr>`).join('') || '';
+
+  const endDate = new Date(amcContract.endDate).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' });
+
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Invoice ${invoice.invoiceNumber}</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; color:#1a1a1a; font-size:13px; }
+@media print { body { -webkit-print-color-adjust:exact; print-color-adjust:exact; } @page { margin:10mm; } }
+.page { max-width:800px; margin:0 auto; border:2px solid #111; }
+table { width:100%; border-collapse:collapse; }
+th { background:#f9fafb; padding:9px 12px; text-align:left; font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:#6b7280; font-weight:600; border-bottom:2px solid #e5e7eb; }
+</style></head><body><div class="page">
+
+<div style="background:#111;color:white;padding:22px 32px;display:flex;justify-content:space-between;align-items:center;border-bottom:4px solid #dc2626">
+  <div style="display:flex;align-items:center;gap:14px">
+    <img src="${logoUrl}" style="height:48px;width:auto" alt="${biz.name}">
+    <div>
+      <div style="color:#d4a017;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:2px">Service · Spares · Safety</div>
+      <div style="color:#9ca3af;font-size:11px;margin-top:4px">${biz.address} · ${biz.phone}</div>
+    </div>
+  </div>
+  <div style="text-align:right">
+    <div style="font-size:20px;font-weight:800">${invoice.invoiceNumber}</div>
+    <div style="color:#9ca3af;font-size:12px;margin-top:4px">${new Date(invoice.invoiceDate).toLocaleDateString('en-IN', { day:'numeric', month:'long', year:'numeric' })}</div>
+    <div style="display:inline-block;background:${invoice.paymentStatus === 'PAID' ? '#16a34a' : '#dc2626'};color:white;font-size:10px;font-weight:700;padding:3px 10px;border-radius:3px;margin-top:6px;letter-spacing:0.5px">${invoice.paymentStatus}</div>
+  </div>
+</div>
+
+<div style="background:#dc2626;color:white;padding:14px 32px;display:flex;justify-content:space-between;align-items:center">
+  <div style="display:flex;align-items:center;gap:12px">
+    <span style="color:#d4a017;font-size:22px">★</span>
+    <div>
+      <div style="font-size:15px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px">AMC ${amcContract.plan.planName} Member</div>
+      <div style="font-size:10px;opacity:0.9">#${amcContract.contractNumber} · Valid till ${endDate}</div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:14px">
+    <div style="text-align:center"><div style="font-size:22px;font-weight:800;color:#d4a017">${amcContract.servicesRemaining}</div><div style="font-size:9px;text-transform:uppercase;letter-spacing:0.5px;opacity:0.85">Remaining</div></div>
+    <div style="width:1px;height:30px;background:rgba(255,255,255,0.3)"></div>
+    <div style="text-align:center"><div style="font-size:22px;font-weight:800;color:#d4a017">${amcContract.totalServices}</div><div style="font-size:9px;text-transform:uppercase;letter-spacing:0.5px;opacity:0.85">Total</div></div>
+  </div>
+</div>
+
+<div style="padding:24px 32px">
+  <div style="display:flex;gap:10px;margin-bottom:22px">
+    <div style="border:1px solid #e5e7eb;padding:11px;border-radius:4px;flex:1"><div style="font-size:9px;text-transform:uppercase;letter-spacing:0.5px;color:#6b7280;font-weight:600">Customer</div><div style="font-size:13px;margin-top:3px;font-weight:600">${invoice.customer.fullName}</div><div style="font-size:11px;color:#6b7280;margin-top:1px">${invoice.customer.phoneNumber}</div></div>
+    <div style="border:1px solid #e5e7eb;padding:11px;border-radius:4px;flex:1"><div style="font-size:9px;text-transform:uppercase;letter-spacing:0.5px;color:#6b7280;font-weight:600">Vehicle</div><div style="font-size:13px;margin-top:3px;font-weight:600">${invoice.vehicle?.brand ?? ''} ${invoice.vehicle?.model ?? ''}</div><div style="font-size:11px;color:#6b7280;margin-top:1px">${invoice.vehicle?.registrationNumber ?? 'Counter Sale'}</div></div>
+    <div style="border:1px solid #e5e7eb;padding:11px;border-radius:4px;flex:1"><div style="font-size:9px;text-transform:uppercase;letter-spacing:0.5px;color:#6b7280;font-weight:600">Job Card</div><div style="font-size:13px;margin-top:3px;font-weight:600">${invoice.jobCard?.jobCardNumber ?? '-'}</div><div style="font-size:11px;color:#6b7280;margin-top:1px">${invoice.jobCard?.issueSummary?.slice(0, 30) ?? ''}</div></div>
+  </div>
+
+  <table><thead><tr><th style="width:30px">#</th><th>Item</th><th style="text-align:right">Qty</th><th style="text-align:right">Rate</th><th style="text-align:right">Amount</th></tr></thead><tbody>${rows}</tbody></table>
+
+  <div style="margin-top:16px;display:flex;justify-content:flex-end">
+    <table style="width:240px"><tbody>
+      <tr><td style="padding:5px 10px;border:none;font-size:13px;color:#6b7280">Subtotal</td><td style="padding:5px 10px;border:none;font-size:13px;text-align:right">₹${Number(invoice.subtotal).toLocaleString()}</td></tr>
+      ${amcSavings > 0 ? `<tr><td style="padding:5px 10px;border:none;font-size:13px;color:#dc2626;font-weight:700">★ AMC Benefit</td><td style="padding:5px 10px;border:none;font-size:13px;text-align:right;color:#dc2626;font-weight:700">−₹${amcSavings.toLocaleString()}</td></tr>` : ''}
+      ${Number(invoice.taxTotal) > 0 ? `<tr><td style="padding:5px 10px;border:none;font-size:13px;color:#6b7280">Tax</td><td style="padding:5px 10px;border:none;font-size:13px;text-align:right">₹${Number(invoice.taxTotal).toLocaleString()}</td></tr>` : ''}
+      <tr><td style="padding:5px 10px;border:none;font-size:18px;font-weight:800;border-top:3px solid #111;padding-top:10px">Total</td><td style="padding:5px 10px;border:none;font-size:18px;font-weight:800;text-align:right;border-top:3px solid #111;padding-top:10px">₹${Number(invoice.grandTotal).toLocaleString()}</td></tr>
+    </tbody></table>
+  </div>
+
+  ${payments ? `<div style="margin-top:20px"><div style="font-size:12px;font-weight:600;margin-bottom:6px;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px">Payments</div><table><thead><tr><th>Date</th><th>Mode</th><th>Ref</th><th style="text-align:right">Amount</th></tr></thead><tbody>${payments}</tbody></table></div>` : ''}
+</div>
+
+<div style="background:#111;padding:16px 32px;display:flex;align-items:center;justify-content:space-between">
+  <div style="display:flex;align-items:center;gap:12px;color:white">
+    <span style="color:#d4a017;font-size:20px">★</span>
+    <div><div style="font-size:18px;font-weight:800;color:#d4a017">₹${amcSavings.toLocaleString()} Saved</div><div style="font-size:11px;color:#9ca3af;margin-top:1px">AMC ${amcContract.plan.planName} benefit applied</div></div>
+  </div>
+  <div style="text-align:right;color:#9ca3af;font-size:11px;line-height:1.6"><strong style="color:white">${amcContract.servicesRemaining} free service${amcContract.servicesRemaining > 1 ? 's' : ''}</strong> remaining<br>Valid until ${endDate}</div>
+</div>
+
+<div style="padding:12px 32px;text-align:center;color:#6b7280;font-size:10px;border-top:1px solid #f3f4f6">
+  Thank you for choosing Gear Up! · ${biz.gst ? `GSTIN: ${biz.gst} · ` : ''}${biz.email}
+</div>
 </div></body></html>`;
 }
 
@@ -247,11 +350,20 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     const logoUrl = `${req.nextUrl.origin}/brand/gearup-logo.png`;
     const type = req.nextUrl.searchParams.get('type') || 'invoice';
 
+    // Check if invoice has AMC line items
+    const hasAmc = invoice.lineItems.some((li: any) => li.lineType === 'AMC');
+    let amcContract: any = null;
+    if (hasAmc && invoice.vehicleId) {
+      amcContract = await prisma.amcContract.findFirst({ where: { vehicleId: invoice.vehicleId, status: 'ACTIVE' }, include: { plan: true } });
+    }
+
     let html: string;
     if (type === 'customer-draft') {
       html = generateCustomerDraftHTML(invoice, settings, logoUrl);
     } else if (type === 'mechanic') {
       html = generateMechanicCopyHTML(invoice, settings, logoUrl);
+    } else if (hasAmc && amcContract) {
+      html = generateAmcInvoiceHTML(invoice, settings, logoUrl, amcContract);
     } else {
       html = generateInvoiceHTML(invoice, settings, logoUrl);
     }

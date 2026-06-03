@@ -5,13 +5,19 @@ import { api } from '@/lib/api/client';
 import { ProcessLoader } from '@/components/shared/process-loader';
 import { PageHeader, DataTable, StatusBadge } from '@gearup/ui';
 import { Modal } from '@/components/shared/modal';
+import { Pagination } from '@/components/shared/pagination';
 import { formatRegNumber } from '@/lib/format-reg';
 
 export default function JobCardsPage() {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [workerFilter, setWorkerFilter] = useState('');
+  const [priorityFilter, setPriorityFilter] = useState('');
+  const [allWorkers, setAllWorkers] = useState<any[]>([]);
   const [showCreate, setShowCreate] = useState(false);
   const [customers, setCustomers] = useState<any[]>([]);
   const [vehicles, setVehicles] = useState<any[]>([]);
@@ -25,22 +31,30 @@ export default function JobCardsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const load = (s = search, st = statusFilter) => {
+  const load = (s = search, st = statusFilter, wk = workerFilter, pr = priorityFilter, pg = page) => {
     const p = new URLSearchParams();
     if (s) p.set('search', s);
     if (st) p.set('status', st);
+    if (wk) p.set('workerId', wk);
+    if (pr) p.set('priority', pr);
+    p.set('page', String(pg));
     const qs = p.toString();
-    const endpoint = `/admin/job-cards${qs ? `?${qs}` : ''}`;
+    const endpoint = `/admin/job-cards?${qs}`;
     const { cached, promise } = api.getSWR<any>(endpoint);
     if (cached?.success) {
       setData(cached.data?.items ?? cached.data ?? []);
+      setTotalPages(cached.meta?.totalPages ?? 1);
       setLoading(false);
     } else {
       setLoading(true);
     }
-    promise.then((r) => { if (r.success) setData(r.data?.items ?? r.data ?? []); setLoading(false); });
+    promise.then((r) => { if (r.success) { setData(r.data?.items ?? r.data ?? []); setTotalPages(r.meta?.totalPages ?? 1); } setLoading(false); });
   };
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+    api.get<any>('/admin/workers?pageSize=200').then((r) => { if (r.success) setAllWorkers(r.data?.items ?? r.data ?? []); });
+  }, []);
+  useEffect(() => { load(); }, [page]);
 
   // Auto-open create modal when redirected from service request
   useEffect(() => {
@@ -131,14 +145,28 @@ export default function JobCardsPage() {
         <PageHeader title="Job Cards" description="Active and completed work orders" />
         <button onClick={openCreate} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">+ New Job Card</button>
       </div>
-      <div className="flex gap-2 mb-4">
-        <input className={inputCls + ' max-w-xs'} placeholder="Search job cards..." value={search} onChange={(e) => { setSearch(e.target.value); load(e.target.value, statusFilter); }} />
-        <select className={inputCls + ' w-48'} value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); load(search, e.target.value); }}>
+      <div className="flex flex-wrap gap-2 mb-4">
+        <input className={inputCls + ' max-w-xs'} placeholder="Search job cards..." value={search} onChange={(e) => { setSearch(e.target.value); load(e.target.value, statusFilter, workerFilter, priorityFilter); }} />
+        <select className={inputCls + ' w-44'} value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); load(search, e.target.value, workerFilter, priorityFilter); }}>
           <option value="">All Statuses</option>
           {['CREATED','ESTIMATE_PREPARED','WORK_IN_PROGRESS','READY_FOR_DELIVERY','DELIVERED','CANCELLED'].map((s) => <option key={s} value={s}>{s === 'CREATED' ? 'OPEN' : s === 'ESTIMATE_PREPARED' ? 'ESTIMATE READY' : s === 'WORK_IN_PROGRESS' ? 'IN PROGRESS' : s === 'READY_FOR_DELIVERY' ? 'READY' : s.replace(/_/g, ' ')}</option>)}
         </select>
+        <select className={inputCls + ' w-48'} value={workerFilter} onChange={(e) => { setWorkerFilter(e.target.value); load(search, statusFilter, e.target.value, priorityFilter); }}>
+          <option value="">All Workers</option>
+          {allWorkers.map((w: any) => {
+            const activeCount = data.filter((jc: any) => jc.assignments?.some((a: any) => a.worker?.fullName === w.fullName) && !['DELIVERED','CANCELLED'].includes(jc.status)).length;
+            return <option key={w.id} value={w.id}>{w.fullName} ({activeCount} active)</option>;
+          })}
+        </select>
+        <select className={inputCls + ' w-36'} value={priorityFilter} onChange={(e) => { setPriorityFilter(e.target.value); load(search, statusFilter, workerFilter, e.target.value); }}>
+          <option value="">All Priorities</option>
+          <option value="HIGH">High</option>
+          <option value="MEDIUM">Medium</option>
+          <option value="LOW">Low</option>
+        </select>
       </div>
       <DataTable columns={columns} data={data} keyField="id" onRowClick={(r: any) => router.push(`/admin/job-cards/${r.id}`)} />
+      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
 
       <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Create Job Card">
         <div className="space-y-4">

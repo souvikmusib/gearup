@@ -5,10 +5,13 @@ import { api } from '@/lib/api/client';
 import { ProcessLoader } from '@/components/shared/process-loader';
 import { PageHeader, DataTable, StatusBadge } from '@gearup/ui';
 import { Modal } from '@/components/shared/modal';
+import { Pagination } from '@/components/shared/pagination';
 
 export default function AppointmentsPage() {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [showCreate, setShowCreate] = useState(false);
@@ -17,24 +20,28 @@ export default function AppointmentsPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [form, setForm] = useState({ customerId: '', vehicleId: '', appointmentDate: '', slotStart: '', slotEnd: '' });
+  const [showNewCust, setShowNewCust] = useState(false);
+  const [custForm, setCustForm] = useState({ fullName: '', phoneNumber: '' });
   const router = useRouter();
 
-  const load = (s = search, st = statusFilter) => {
+  const load = (s = search, st = statusFilter, pg = page) => {
     const p = new URLSearchParams();
     if (s) p.set('search', s);
     if (st) p.set('status', st);
+    p.set('page', String(pg));
     const qs = p.toString();
-    const endpoint = `/admin/appointments${qs ? `?${qs}` : ''}`;
+    const endpoint = `/admin/appointments?${qs}`;
     const { cached, promise } = api.getSWR<any>(endpoint);
     if (cached?.success) {
       setData(cached.data?.items ?? cached.data ?? []);
+      setTotalPages(cached.meta?.totalPages ?? 1);
       setLoading(false);
     } else {
       setLoading(true);
     }
-    promise.then((r) => { if (r.success) setData(r.data?.items ?? r.data ?? []); setLoading(false); });
+    promise.then((r) => { if (r.success) { setData(r.data?.items ?? r.data ?? []); setTotalPages(r.meta?.totalPages ?? 1); } setLoading(false); });
   };
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [page]);
 
   const openCreate = async () => {
     setShowCreate(true);
@@ -91,16 +98,35 @@ export default function AppointmentsPage() {
         </select>
       </div>
       <DataTable columns={columns} data={data} keyField="id" onRowClick={(r: any) => router.push(`/admin/appointments/${r.id}`)} />
+      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
 
       <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Create Appointment">
         <div className="space-y-4">
           {error && <p className="text-sm text-red-600">{error}</p>}
           <div>
-            <label className="block text-sm font-medium mb-1">Customer <span className="text-red-500">*</span></label>
-            <select className={inputCls} value={form.customerId} onChange={(e) => onCustomerChange(e.target.value)}>
-              <option value="">Select customer...</option>
-              {customers.map((c: any) => <option key={c.id} value={c.id}>{c.fullName} ({c.phoneNumber})</option>)}
-            </select>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-sm font-medium">Customer <span className="text-red-500">*</span></label>
+              <button type="button" onClick={() => setShowNewCust(!showNewCust)} className="text-xs text-blue-600 hover:underline">{showNewCust ? '← Select existing' : '+ New customer'}</button>
+            </div>
+            {showNewCust ? (
+              <div className="flex gap-2">
+                <input className={inputCls} placeholder="Full Name *" value={custForm.fullName} onChange={(e) => setCustForm({ ...custForm, fullName: e.target.value })} />
+                <input className={inputCls} placeholder="Phone *" value={custForm.phoneNumber} onChange={(e) => setCustForm({ ...custForm, phoneNumber: e.target.value })} />
+                <button type="button" onClick={async () => {
+                  if (!custForm.fullName || !custForm.phoneNumber) return;
+                  setSaving(true);
+                  const res = await api.post<any>('/admin/customers', custForm);
+                  setSaving(false);
+                  if (res.success) { setCustomers((p) => [res.data, ...p]); onCustomerChange(res.data.id); setShowNewCust(false); setCustForm({ fullName: '', phoneNumber: '' }); }
+                  else setError(res.error?.message || 'Failed');
+                }} disabled={saving || !custForm.fullName || !custForm.phoneNumber} className="shrink-0 rounded-lg bg-green-600 px-3 py-2 text-xs font-semibold text-white hover:bg-green-700 disabled:opacity-50">Add</button>
+              </div>
+            ) : (
+              <select className={inputCls} value={form.customerId} onChange={(e) => onCustomerChange(e.target.value)}>
+                <option value="">Select customer...</option>
+                {customers.map((c: any) => <option key={c.id} value={c.id}>{c.fullName} ({c.phoneNumber})</option>)}
+              </select>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Vehicle <span className="text-red-500">*</span></label>

@@ -4,10 +4,13 @@ import { api } from '@/lib/api/client';
 import { ProcessLoader } from '@/components/shared/process-loader';
 import { PageHeader, DataTable } from '@gearup/ui';
 import { Modal } from '@/components/shared/modal';
+import { Pagination } from '@/components/shared/pagination';
 
 export default function ExpensesPage() {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [categories, setCategories] = useState<any[]>([]);
   const [search, setSearch] = useState('');
   const [catFilter, setCatFilter] = useState('');
@@ -19,27 +22,29 @@ export default function ExpensesPage() {
   const [editForm, setEditForm] = useState({ expenseDate: '', categoryId: '', title: '', amount: '', vendorName: '', paymentMode: 'CASH', notes: '' });
   const [editSaving, setEditSaving] = useState(false);
 
-  const load = (s = search, cat = catFilter) => {
+  const load = (s = search, cat = catFilter, pg = page) => {
     const p = new URLSearchParams();
     if (s) p.set('search', s);
     if (cat) p.set('categoryId', cat);
+    p.set('page', String(pg));
     const qs = p.toString();
-    const endpoint = `/admin/expenses${qs ? `?${qs}` : ''}`;
+    const endpoint = `/admin/expenses?${qs}`;
     const { cached, promise } = api.getSWR<any>(endpoint);
     if (cached?.success) {
       setData(cached.data?.items ?? cached.data ?? []);
+      setTotalPages(cached.meta?.totalPages ?? 1);
       setLoading(false);
     } else {
       setLoading(true);
     }
-    promise.then((r) => { if (r.success) setData(r.data?.items ?? r.data ?? []); setLoading(false); });
+    promise.then((r) => { if (r.success) { setData(r.data?.items ?? r.data ?? []); setTotalPages(r.meta?.totalPages ?? 1); } setLoading(false); });
   };
   useEffect(() => {
     load();
     const { cached, promise } = api.getSWR<any>('/admin/expenses/categories');
     if (cached?.success) setCategories(cached.data ?? []);
     promise.then((r) => { if (r.success) setCategories(r.data ?? []); });
-  }, []);
+  }, [page]);
 
   const openCreate = async () => {
     setShowCreate(true); setError('');
@@ -117,6 +122,7 @@ export default function ExpensesPage() {
         { key: 'paymentMode', header: 'Mode' },
         { key: 'actions', header: '', render: (r: any) => <button onClick={(e) => deleteExpense(r.id, e)} className="text-xs text-red-500 hover:underline">Delete</button> },
       ]} data={data} keyField="id" onRowClick={openEdit} />
+      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
 
       <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Add Expense">
         <div className="space-y-3">

@@ -23,9 +23,10 @@ export default function VehicleDetailPage() {
   const save = async () => {
     setSaving(true);
     const { brand, model, variant, odometerReading, notes } = form;
-    const res = await api.patch<any>(`/admin/vehicles/${id}`, { brand, model, variant, odometerReading: odometerReading ? Number(odometerReading) : undefined, notes });
+    const res = await api.patch<any>(`/admin/vehicles/${id}`, { brand: brand || '', model: model || '', variant: variant || '', odometerReading: odometerReading ? Number(odometerReading) : undefined, notes: notes || '' });
     setSaving(false);
     if (res.success) { setData(res.data); setShowEdit(false); }
+    else alert(res.error?.message || 'Failed to save');
   };
 
   if (!data) return <p className="py-8 text-center text-gray-500">Loading...</p>;

@@ -23,6 +23,9 @@ export default function InvoiceDetailPage() {
   const [amcPlans, setAmcPlans] = useState<any[]>([]);
   const [amcContracts, setAmcContracts] = useState<any[]>([]);
 
+  const [refreshing, setRefreshing] = useState(false);
+  const [addStep, setAddStep] = useState<'type' | 'details'>('type');
+
   const loadInventory = async () => {
     if (inventoryItems.length) return;
     const res = await api.get<any>('/admin/inventory/items?pageSize=500');
@@ -34,6 +37,7 @@ export default function InvoiceDetailPage() {
     if (res.success) setWorkers(res.data?.items ?? res.data ?? []);
   };
   const loadAmcOptions = async () => {
+    if (amcPlans.length) return;
     const [plansRes, contractsRes] = await Promise.all([
       api.get<any>('/admin/amc/plans'),
       api.get<any>('/admin/amc/contracts?status=ACTIVE'),
@@ -49,9 +53,15 @@ export default function InvoiceDetailPage() {
       if (cached?.success) setData(cached.data);
       return promise.then((r) => { if (r.success) setData(r.data); });
     }
-    return api.get<any>(endpoint).then((r) => { if (r.success) setData(r.data); });
+    setRefreshing(true);
+    return api.get<any>(endpoint).then((r) => { if (r.success) setData(r.data); setRefreshing(false); });
   };
-  useEffect(() => { fetch(true); }, [id]);
+  useEffect(() => {
+    fetch(true);
+    // Pre-fetch inventory + workers so dropdowns are instant
+    loadInventory();
+    loadWorkers();
+  }, [id]);
 
   const finalize = async () => {
     setLoading('finalize');
@@ -89,10 +99,15 @@ export default function InvoiceDetailPage() {
     if (newLine.lineType === 'DISCOUNT_ADJUSTMENT') payload.discountMode = newLine.discountMode;
     if (newLine.lineType === 'AMC' && newLine.amcContractId) payload.amcContractId = newLine.amcContractId;
     if (newLine.lineType === 'AMC' && newLine.amcPlanId && !newLine.amcContractId) payload.amcPlanId = newLine.amcPlanId;
+    // Optimistic: add to table immediately
+    const optimistic = { id: 'temp-' + Date.now(), ...payload, taxAmount: 0, lineTotal: payload.quantity * payload.unitPrice };
+    setData((d: any) => d ? { ...d, lineItems: [...(d.lineItems || []), optimistic] } : d);
+    setNewLine({ lineType: 'CUSTOM_CHARGE', description: '', quantity: '1', unitPrice: '', taxRate: '0', discountPercent: '0', discountMode: 'flat', amcPlanId: '', amcContractId: '' });
+    setAddStep('type');
     const res = await api.post<any>(`/admin/invoices/${id}/line-items`, payload);
     setAddingLine(false);
-    if (res.success) { setNewLine({ lineType: 'CUSTOM_CHARGE', description: '', quantity: '1', unitPrice: '', taxRate: '0', discountPercent: '0', discountMode: 'flat', amcPlanId: '', amcContractId: '' }); fetch(); }
-    else { console.error('Add line failed:', res.error); alert(res.error?.message || 'Failed to add line item'); }
+    if (res.success) { fetch(); }
+    else { fetch(); alert(res.error?.message || 'Failed to add line item'); }
   };
 
   const updateLine = async (lineItemId: string, field: string, value: string) => {
@@ -103,6 +118,8 @@ export default function InvoiceDetailPage() {
   };
 
   const removeLine = async (lineItemId: string) => {
+    // Optimistic: remove from table immediately
+    setData((d: any) => d ? { ...d, lineItems: d.lineItems?.filter((li: any) => li.id !== lineItemId) } : d);
     await api.delete<any>(`/admin/invoices/${id}/line-items?lineItemId=${lineItemId}`);
     fetch();
   };
@@ -237,6 +254,7 @@ export default function InvoiceDetailPage() {
       <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
         <div className="px-5 py-3 border-b border-gray-100 dark:border-gray-800">
           <h3 className="font-semibold text-gray-900 dark:text-white">Line Items</h3>
+          {refreshing && <span className="text-xs text-blue-500 animate-pulse">Updating...</span>}
         </div>
         <table className="w-full text-sm">
           <thead>
@@ -281,83 +299,94 @@ export default function InvoiceDetailPage() {
         </table>
         {isDraft && (
           <div className="px-5 py-4 border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 rounded-b-xl">
-            <p className="text-xs font-medium text-gray-500 mb-2">Add Line Item</p>
-            <div className="grid grid-cols-12 gap-2 items-end">
-              <div className="col-span-2">
-                <label className="block text-[10px] text-gray-400 mb-0.5">Type</label>
-                <select className={inputCls} value={newLine.lineType} onChange={(e) => { setNewLine({ ...newLine, lineType: e.target.value, description: e.target.value === 'DISCOUNT_ADJUSTMENT' ? 'Discount' : e.target.value === 'AMC' ? 'AMC Service' : newLine.description }); if (e.target.value === 'AMC') loadAmcOptions(); }}>
-                  <option value="PART">Part</option><option value="LABOR">Labor</option><option value="CUSTOM_CHARGE">Custom</option><option value="DISCOUNT_ADJUSTMENT">Discount</option><option value="AMC">AMC</option>
-                </select>
+            {addStep === 'type' ? (
+              <div>
+                <p className="text-xs font-medium text-gray-500 mb-3">Add to Invoice</p>
+                <div className="flex flex-wrap gap-2">
+                  <button onClick={() => { setNewLine({ ...newLine, lineType: 'PART', description: '', unitPrice: '', discountPercent: '0' }); setAddStep('details'); }} className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-medium hover:bg-white dark:hover:bg-gray-700 transition">🔩 Part</button>
+                  <button onClick={() => { setNewLine({ ...newLine, lineType: 'LABOR', description: '', unitPrice: '' }); setAddStep('details'); }} className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-medium hover:bg-white dark:hover:bg-gray-700 transition">👷 Labor</button>
+                  <button onClick={() => { setNewLine({ ...newLine, lineType: 'CUSTOM_CHARGE', description: '', unitPrice: '' }); setAddStep('details'); }} className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-medium hover:bg-white dark:hover:bg-gray-700 transition">📝 Custom Charge</button>
+                  <button onClick={() => { setNewLine({ ...newLine, lineType: 'DISCOUNT_ADJUSTMENT', description: 'Discount', unitPrice: '', discountMode: 'flat' }); setAddStep('details'); }} className="rounded-lg border border-green-300 dark:border-green-700 px-4 py-2.5 text-sm font-medium text-green-700 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 transition">🏷️ Discount</button>
+                  <button onClick={() => { setNewLine({ ...newLine, lineType: 'AMC', description: '', unitPrice: '0' }); loadAmcOptions(); setAddStep('details'); }} className="rounded-lg border border-amber-300 dark:border-amber-700 px-4 py-2.5 text-sm font-medium text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition">🛡️ AMC</button>
+                </div>
               </div>
-              <div className="col-span-4">
-                <label className="block text-[10px] text-gray-400 mb-0.5">Description <span className="text-red-500">*</span></label>
-                {newLine.lineType === 'PART' ? (
-                  <select className={inputCls} value={newLine.description} onFocus={loadInventory} onChange={(e) => {
-                    const item = inventoryItems.find((i: any) => i.itemName === e.target.value);
-                    setNewLine({ ...newLine, description: e.target.value, unitPrice: item ? String(Number(item.sellingPrice)) : newLine.unitPrice, discountPercent: item ? String(Number(item.discountPercent) || '0') : '0' });
-                  }}>
-                    <option value="">Select part...</option>
-                    {inventoryItems.map((i: any) => { const dp = Number(i.discountPercent) || 0; return <option key={i.id} value={i.itemName}>{i.itemName} ({i.sku}) — ₹{Number(i.sellingPrice)}{dp ? ` (${dp}% off)` : ''}</option>; })}
-                  </select>
-                ) : newLine.lineType === 'AMC' ? (
-                  <div className="space-y-1">
-                    {amcContracts.filter((c: any) => c.vehicleId === data?.vehicleId && c.servicesRemaining > 0).length > 0 ? (
-                      <select className={inputCls} value={newLine.amcContractId} onChange={(e) => {
-                        const contract = amcContracts.find((c: any) => c.id === e.target.value);
-                        setNewLine({ ...newLine, amcContractId: e.target.value, amcPlanId: '', description: contract ? `AMC Service (${contract.plan?.planName} — ${contract.servicesRemaining} left)` : '', unitPrice: '0' });
+            ) : (
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-xs font-medium text-gray-500">Add {newLine.lineType === 'PART' ? 'Part' : newLine.lineType === 'LABOR' ? 'Labor' : newLine.lineType === 'DISCOUNT_ADJUSTMENT' ? 'Discount' : newLine.lineType === 'AMC' ? 'AMC' : 'Custom Charge'}</p>
+                  <button onClick={() => setAddStep('type')} className="text-xs text-gray-400 hover:text-gray-600">← Back</button>
+                </div>
+                <div className="grid grid-cols-12 gap-2 items-end">
+                  <div className="col-span-5">
+                    {newLine.lineType === 'PART' ? (
+                      <><label className="block text-[10px] text-gray-400 mb-0.5">Select Part <span className="text-red-500">*</span></label>
+                      <select className={inputCls} value={newLine.description} onChange={(e) => {
+                        const item = inventoryItems.find((i: any) => i.itemName === e.target.value);
+                        setNewLine({ ...newLine, description: e.target.value, unitPrice: item ? String(Number(item.sellingPrice)) : newLine.unitPrice, discountPercent: item ? String(Number(item.discountPercent) || '0') : '0' });
                       }}>
-                        <option value="">Use existing contract...</option>
-                        {amcContracts.filter((c: any) => c.vehicleId === data?.vehicleId && c.servicesRemaining > 0).map((c: any) => <option key={c.id} value={c.id}>{c.contractNumber} — {c.plan?.planName} ({c.servicesRemaining}/{c.totalServices} left)</option>)}
-                      </select>
-                    ) : null}
-                    {!newLine.amcContractId && (
-                      <select className={inputCls} value={newLine.amcPlanId} onChange={(e) => {
-                        const plan = amcPlans.find((p: any) => p.id === e.target.value);
-                        setNewLine({ ...newLine, amcPlanId: e.target.value, amcContractId: '', description: plan ? `AMC — ${plan.planName} (${plan.ccRange || plan.vehicleType})` : '', unitPrice: plan ? String(Number(plan.price)) : '0' });
-                      }}>
-                        <option value="">New AMC — select plan...</option>
-                        {amcPlans.map((p: any) => <option key={p.id} value={p.id}>{p.planName} ({p.ccRange || p.vehicleType}) — ₹{Number(p.price).toLocaleString()}</option>)}
-                      </select>
+                        <option value="">Select part...</option>
+                        {inventoryItems.map((i: any) => { const dp = Number(i.discountPercent) || 0; return <option key={i.id} value={i.itemName}>{i.itemName} ({i.sku}) — ₹{Number(i.sellingPrice)}{dp ? ` (${dp}% off)` : ''}</option>; })}
+                      </select></>
+                    ) : newLine.lineType === 'AMC' ? (
+                      <><label className="block text-[10px] text-gray-400 mb-0.5">AMC Option</label>
+                      <div className="space-y-1">
+                        {amcContracts.filter((c: any) => c.vehicleId === data?.vehicleId && c.servicesRemaining > 0).length > 0 && (
+                          <select className={inputCls} value={newLine.amcContractId} onChange={(e) => {
+                            const contract = amcContracts.find((c: any) => c.id === e.target.value);
+                            setNewLine({ ...newLine, amcContractId: e.target.value, amcPlanId: '', description: contract ? `AMC Service (${contract.plan?.planName} — ${contract.servicesRemaining} left)` : '', unitPrice: '0' });
+                          }}>
+                            <option value="">Use existing contract...</option>
+                            {amcContracts.filter((c: any) => c.vehicleId === data?.vehicleId && c.servicesRemaining > 0).map((c: any) => <option key={c.id} value={c.id}>{c.contractNumber} — {c.plan?.planName} ({c.servicesRemaining}/{c.totalServices} left)</option>)}
+                          </select>
+                        )}
+                        {!newLine.amcContractId && (
+                          <select className={inputCls} value={newLine.amcPlanId} onChange={(e) => {
+                            const plan = amcPlans.find((p: any) => p.id === e.target.value);
+                            setNewLine({ ...newLine, amcPlanId: e.target.value, amcContractId: '', description: plan ? `AMC — ${plan.planName} (${plan.ccRange || plan.vehicleType})` : '', unitPrice: plan ? String(Number(plan.price)) : '0' });
+                          }}>
+                            <option value="">New AMC — select plan...</option>
+                            {amcPlans.map((p: any) => <option key={p.id} value={p.id}>{p.planName} ({p.ccRange || p.vehicleType}) — ₹{Number(p.price).toLocaleString()}</option>)}
+                          </select>
+                        )}
+                      </div></>
+                    ) : newLine.lineType === 'LABOR' ? (
+                      <><label className="block text-[10px] text-gray-400 mb-0.5">Worker <span className="text-red-500">*</span></label>
+                      <select className={inputCls} value={newLine.description} onChange={(e) => setNewLine({ ...newLine, description: e.target.value ? `Labor — ${e.target.value}` : '' })}>
+                        <option value="">Select worker...</option>
+                        {workers.map((w: any) => <option key={w.id} value={w.fullName}>{w.fullName} ({w.designation || 'General'})</option>)}
+                      </select></>
+                    ) : (
+                      <><label className="block text-[10px] text-gray-400 mb-0.5">{newLine.lineType === 'DISCOUNT_ADJUSTMENT' ? 'Reason' : 'Description'} <span className="text-red-500">*</span></label>
+                      <input className={inputCls} placeholder={newLine.lineType === 'DISCOUNT_ADJUSTMENT' ? 'e.g. Loyalty discount' : 'e.g. Washing, Polishing'} value={newLine.description} onChange={(e) => setNewLine({ ...newLine, description: e.target.value })} /></>
                     )}
                   </div>
-                ) : newLine.lineType === 'LABOR' ? (
-                  <select className={inputCls} value={newLine.description} onFocus={loadWorkers} onChange={(e) => setNewLine({ ...newLine, description: e.target.value ? `Labor — ${e.target.value}` : '' })}>
-                    <option value="">Select worker...</option>
-                    {workers.map((w: any) => <option key={w.id} value={w.fullName}>{w.fullName} ({w.designation || 'General'})</option>)}
-                  </select>
-                ) : (
-                  <input className={inputCls} placeholder={newLine.lineType === 'DISCOUNT_ADJUSTMENT' ? 'Discount reason' : 'e.g. Custom charge'} value={newLine.description} onChange={(e) => setNewLine({ ...newLine, description: e.target.value })} />
-                )}
+                  <div className="col-span-2">
+                    <label className="block text-[10px] text-gray-400 mb-0.5">{newLine.lineType === 'DISCOUNT_ADJUSTMENT' ? (newLine.discountMode === 'percent' ? '% off' : 'Amount (₹)') : 'Price (₹)'}</label>
+                    <input type="number" step="0.01" className={inputCls} placeholder="0" value={newLine.unitPrice} onChange={(e) => setNewLine({ ...newLine, unitPrice: e.target.value })} />
+                  </div>
+                  <div className="col-span-1">
+                    <label className="block text-[10px] text-gray-400 mb-0.5">Qty</label>
+                    <input type="number" className={inputCls} value={newLine.quantity} onChange={(e) => setNewLine({ ...newLine, quantity: e.target.value })} />
+                  </div>
+                  <div className="col-span-1">
+                    {newLine.lineType === 'DISCOUNT_ADJUSTMENT' ? (
+                      <><label className="block text-[10px] text-gray-400 mb-0.5">Mode</label>
+                      <select className={inputCls} value={newLine.discountMode} onChange={(e) => setNewLine({ ...newLine, discountMode: e.target.value })}>
+                        <option value="flat">₹</option><option value="percent">%</option>
+                      </select></>
+                    ) : (
+                      <><label className="block text-[10px] text-gray-400 mb-0.5">Disc %</label>
+                      <input type="number" step="0.01" min="0" max="100" className={inputCls} value={newLine.discountPercent} onChange={(e) => setNewLine({ ...newLine, discountPercent: e.target.value })} /></>
+                    )}
+                  </div>
+                  <div className="col-span-3">
+                    <button onClick={addLine} disabled={addingLine || !newLine.description} className="w-full rounded-lg bg-green-600 px-3 py-2 text-sm font-semibold text-white hover:bg-green-700 disabled:opacity-50">
+                      {addingLine ? 'Adding...' : '+ Add'}
+                    </button>
+                  </div>
+                </div>
               </div>
-              <div className="col-span-1">
-                <label className="block text-[10px] text-gray-400 mb-0.5">Qty</label>
-                <input type="number" className={inputCls} value={newLine.quantity} onChange={(e) => setNewLine({ ...newLine, quantity: e.target.value })} />
-              </div>
-              <div className="col-span-2">
-                <label className="block text-[10px] text-gray-400 mb-0.5">{newLine.lineType === 'DISCOUNT_ADJUSTMENT' ? (newLine.discountMode === 'percent' ? '% off' : 'Discount (₹)') : 'Unit Price (₹)'}</label>
-                <input type="number" step="0.01" className={inputCls} placeholder="0" value={newLine.unitPrice} onChange={(e) => setNewLine({ ...newLine, unitPrice: e.target.value })} />
-              </div>
-              <div className="col-span-1">
-                {newLine.lineType === 'DISCOUNT_ADJUSTMENT' ? (
-                  <><label className="block text-[10px] text-gray-400 mb-0.5">Mode</label>
-                  <select className={inputCls} value={newLine.discountMode} onChange={(e) => setNewLine({ ...newLine, discountMode: e.target.value })}>
-                    <option value="flat">₹</option><option value="percent">%</option>
-                  </select></>
-                ) : (
-                  <><label className="block text-[10px] text-gray-400 mb-0.5">Tax %</label>
-                  <input type="number" step="0.01" className={inputCls} value={newLine.taxRate} onChange={(e) => setNewLine({ ...newLine, taxRate: e.target.value })} /></>
-                )}
-              </div>
-              <div className="col-span-1">
-                <label className="block text-[10px] text-gray-400 mb-0.5">Disc %</label>
-                <input type="number" step="0.01" min="0" max="100" className={inputCls} value={newLine.discountPercent} onChange={(e) => setNewLine({ ...newLine, discountPercent: e.target.value })} />
-              </div>
-              <div className="col-span-2">
-                <button onClick={addLine} disabled={addingLine} className="w-full rounded-lg bg-green-600 px-3 py-2 text-sm font-semibold text-white hover:bg-green-700 disabled:opacity-50">
-                  {addingLine ? 'Adding...' : newLine.lineType === 'DISCOUNT_ADJUSTMENT' ? '+ Discount' : '+ Add Item'}
-                </button>
-              </div>
-            </div>
+            )}
           </div>
         )}
       </div>

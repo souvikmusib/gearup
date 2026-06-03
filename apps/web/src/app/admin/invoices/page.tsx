@@ -19,6 +19,11 @@ export default function InvoicesPage() {
   const [search, setSearch] = useState('');
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [showCreate, setShowCreate] = useState(false);
+  const [saleType, setSaleType] = useState<'SERVICE' | 'COUNTER'>('SERVICE');
+  const [counterCustomerId, setCounterCustomerId] = useState('')
+  const [customers, setCustomers] = useState<any[]>([]);
+  const [showNewCustomer, setShowNewCustomer] = useState(false);
+  const [newCustomer, setNewCustomer] = useState({ fullName: '', phoneNumber: '' });
   const [jobCards, setJobCards] = useState<any[]>([]);
   const [selectedJC, setSelectedJC] = useState<any>(null);
   const [lineItems, setLineItems] = useState<any[]>([]);
@@ -58,11 +63,22 @@ export default function InvoicesPage() {
   }, [filters, load]);
 
   const openCreate = async () => {
+    setSaleType('SERVICE');
     setShowCreate(true); setError(''); setSelectedJC(null); setLineItems([]);
     setModalLoading(true);
     const res = await api.get<any>('/admin/job-cards?pageSize=100');
     setModalLoading(false);
     if (res.success) setJobCards((res.data?.items ?? res.data ?? []).filter((jc: any) => !['CANCELLED', 'CREATED'].includes(jc.status)));
+  };
+
+  const [counterInvoiceStarted, setCounterInvoiceStarted] = useState(false);
+
+  const openCounterSale = () => {
+    setSaleType('COUNTER');
+    setShowCreate(true); setError(''); setSelectedJC(null); setCounterCustomerId('');
+    setShowNewCustomer(false); setNewCustomer({ fullName: '', phoneNumber: '' });
+    setLineItems([]); setCounterInvoiceStarted(false);
+    api.get<any>('/admin/customers?pageSize=200').then((r) => { if (r.success) setCustomers(r.data?.items ?? r.data ?? []); });
   };
 
   const onJobCardSelect = async (jcId: string) => {
@@ -87,12 +103,35 @@ export default function InvoicesPage() {
   const updateLine = (i: number, field: string, value: any) => setLineItems((l) => l.map((li, idx) => idx === i ? { ...li, [field]: value } : li));
 
   const submit = async () => {
-    if (!selectedJC || lineItems.length === 0) { setError('Select a job card and add line items'); return; }
+    if (saleType === 'SERVICE' && (!selectedJC || lineItems.length === 0)) { setError('Select a job card and add line items'); return; }
+    if (saleType === 'COUNTER' && lineItems.length === 0) { setError('Add at least one line item'); return; }
+    if (saleType === 'COUNTER' && !counterCustomerId && !showNewCustomer) { setError('Select a customer'); return; }
+    if (saleType === 'COUNTER' && showNewCustomer && (!newCustomer.fullName || !newCustomer.phoneNumber)) { setError('Enter customer name and phone'); return; }
     setSaving(true); setError('');
-    const res = await api.post<any>('/admin/invoices', {
-      customerId: selectedJC.customerId, vehicleId: selectedJC.vehicleId, jobCardId: selectedJC.id,
-      invoiceDate: new Date().toISOString(), lineItems: lineItems.map((li, i) => ({ ...li, sortOrder: i })),
-    });
+
+    // Create new customer if needed
+    let customerId = '';
+    if (saleType === 'SERVICE' && selectedJC) {
+      customerId = selectedJC.customerId;
+    } else if (showNewCustomer) {
+      const custRes = await api.post<any>('/admin/customers', newCustomer);
+      if (!custRes.success) { setSaving(false); setError(custRes.error?.message || 'Failed to create customer'); return; }
+      customerId = custRes.data.id;
+    } else {
+      customerId = counterCustomerId;
+    }
+
+    const payload: Record<string, any> = {
+      saleType,
+      customerId,
+      invoiceDate: new Date().toISOString(),
+      lineItems: lineItems.map((li, i) => ({ ...li, sortOrder: i })),
+    };
+    if (saleType === 'SERVICE' && selectedJC) {
+      payload.vehicleId = selectedJC.vehicleId;
+      payload.jobCardId = selectedJC.id;
+    }
+    const res = await api.post<any>('/admin/invoices', payload);
     setSaving(false);
     if (res.success) { setShowCreate(false); load(); }
     else setError(res.error?.message || 'Failed to create');
@@ -114,6 +153,7 @@ export default function InvoicesPage() {
       <div className="flex items-center justify-between mb-4">
         <PageHeader title="Invoices" />
         <button onClick={openCreate} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">+ New Invoice</button>
+        <button onClick={openCounterSale} className="rounded-lg border border-blue-600 px-4 py-2 text-sm font-semibold text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950">+ Counter Sale</button>
       </div>
       <ListToolbar searchPlaceholder="Search invoices..." onSearch={onSearch}
         filters={[{ label: 'Payment Status', value: 'paymentStatus', options: PAYMENT_STATUSES }, { label: 'Invoice Status', value: 'invoiceStatus', options: INVOICE_STATUSES }]}
@@ -122,18 +162,45 @@ export default function InvoicesPage() {
         <DataTable columns={columns} data={data} keyField="id" onRowClick={(r: any) => router.push(`/admin/invoices/${r.id}`)} />}
       <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
 
-      <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Create Invoice">
+      <Modal open={showCreate} onClose={() => setShowCreate(false)} title={saleType === 'COUNTER' ? 'Counter Sale' : 'Create Invoice'}>
         <div className="space-y-4 max-h-[70vh] overflow-y-auto">
           {error && <p className="text-sm text-red-600">{error}</p>}
           {modalLoading && <ProcessLoader title="Preparing invoice form" steps={['Loading eligible job cards', 'Reading selected job-card parts', 'Calculating starter line items']} />}
           <div>
-            <label className="block text-sm font-medium mb-1">Job Card <span className="text-red-500">*</span></label>
-            <select className={inputCls} value={selectedJC?.id || ''} onChange={(e) => onJobCardSelect(e.target.value)}>
-              <option value="">Select job card...</option>
-              {jobCards.map((jc: any) => <option key={jc.id} value={jc.id}>{jc.jobCardNumber} — {jc.customer?.fullName} ({jc.vehicle?.registrationNumber})</option>)}
-            </select>
+            {saleType === 'SERVICE' ? (
+              <>
+                <label className="block text-sm font-medium mb-1">Job Card <span className="text-red-500">*</span></label>
+                <select className={inputCls} value={selectedJC?.id || ''} onChange={(e) => onJobCardSelect(e.target.value)}>
+                  <option value="">Select job card...</option>
+                  {jobCards.map((jc: any) => <option key={jc.id} value={jc.id}>{jc.jobCardNumber} — {jc.customer?.fullName} ({jc.vehicle?.registrationNumber})</option>)}
+                </select>
+              </>
+            ) : (
+              <div className="space-y-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium">Customer <span className="text-red-500">*</span></label>
+                  <button type="button" onClick={() => setShowNewCustomer(!showNewCustomer)} className="text-xs text-blue-600 hover:underline">
+                    {showNewCustomer ? '← Select existing' : '+ New customer'}
+                  </button>
+                </div>
+                {showNewCustomer ? (
+                  <div className="grid grid-cols-2 gap-2">
+                    <input className={inputCls} placeholder="Full Name *" value={newCustomer.fullName} onChange={(e) => setNewCustomer({ ...newCustomer, fullName: e.target.value })} />
+                    <input className={inputCls} placeholder="Phone *" value={newCustomer.phoneNumber} onChange={(e) => setNewCustomer({ ...newCustomer, phoneNumber: e.target.value })} />
+                  </div>
+                ) : (
+                  <select className={inputCls} value={counterCustomerId} onChange={(e) => setCounterCustomerId(e.target.value)}>
+                    <option value="">Select customer...</option>
+                    {customers.map((c: any) => <option key={c.id} value={c.id}>{c.fullName} — {c.phoneNumber}</option>)}
+                  </select>
+                )}
+              </div>
+            )}
           </div>
-          {selectedJC && (
+          {saleType === 'COUNTER' && !counterInvoiceStarted && (counterCustomerId || (showNewCustomer && newCustomer.fullName && newCustomer.phoneNumber)) && (
+            <button onClick={() => setCounterInvoiceStarted(true)} className="w-full rounded-lg bg-blue-600 py-2 text-sm font-semibold text-white hover:bg-blue-700">Create Invoice</button>
+          )}
+          {(selectedJC || (saleType === 'COUNTER' && counterInvoiceStarted)) && (
             <>
               <div>
                 <div className="flex items-center justify-between mb-2">
