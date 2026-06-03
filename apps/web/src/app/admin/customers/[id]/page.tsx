@@ -23,9 +23,10 @@ export default function CustomerDetailPage() {
   const save = async () => {
     setSaving(true);
     const { fullName, phoneNumber, alternatePhone, email, addressLine1, addressLine2, city, state, postalCode, notes } = form;
-    const res = await api.patch<any>(`/admin/customers/${id}`, { fullName, phoneNumber, alternatePhone, email, addressLine1, addressLine2, city, state, postalCode, notes });
+    const res = await api.patch<any>(`/admin/customers/${id}`, { fullName, phoneNumber, alternatePhone: alternatePhone || '', email: email || '', addressLine1: addressLine1 || '', addressLine2: addressLine2 || '', city: city || '', state: state || '', postalCode: postalCode || '', notes: notes || '' });
     setSaving(false);
     if (res.success) { setData(res.data); setShowEdit(false); }
+    else alert(res.error?.message || 'Failed to save');
   };
 
   if (!data) return <p className="py-8 text-center text-gray-500">Loading...</p>;

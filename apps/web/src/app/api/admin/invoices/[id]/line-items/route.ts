@@ -104,18 +104,15 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
           await prisma.jobCard.update({ where: { id: jobCardId }, data: { estimatedPartsCost, estimatedTotal: estimatedPartsCost + Number(jc.estimatedLaborCost) + Number(jc.estimatedOtherCost) } });
         }
       } else if (body.lineType !== 'PART') {
-        const exists = await prisma.jobCardTask.findFirst({ where: { jobCardId, taskName: body.description } });
-        if (!exists) {
-          await prisma.jobCardTask.create({ data: { jobCardId, taskName: body.description, status: 'COMPLETED' } });
-          const jc = await prisma.jobCard.findUniqueOrThrow({ where: { id: jobCardId }, select: { estimatedLaborCost: true, estimatedOtherCost: true, estimatedPartsCost: true } });
-          const amount = body.unitPrice * body.quantity;
-          if (body.lineType === 'LABOR') {
-            const newLaborCost = Number(jc.estimatedLaborCost) + amount;
-            await prisma.jobCard.update({ where: { id: jobCardId }, data: { estimatedLaborCost: newLaborCost, estimatedTotal: Number(jc.estimatedPartsCost) + newLaborCost + Number(jc.estimatedOtherCost) } });
-          } else {
-            const newOtherCost = Number(jc.estimatedOtherCost) + amount;
-            await prisma.jobCard.update({ where: { id: jobCardId }, data: { estimatedOtherCost: newOtherCost, estimatedTotal: Number(jc.estimatedPartsCost) + Number(jc.estimatedLaborCost) + newOtherCost } });
-          }
+        await prisma.jobCardTask.create({ data: { jobCardId, taskName: body.description, status: 'COMPLETED' } });
+        const jc = await prisma.jobCard.findUniqueOrThrow({ where: { id: jobCardId }, select: { estimatedLaborCost: true, estimatedOtherCost: true, estimatedPartsCost: true } });
+        const amount = body.unitPrice * body.quantity;
+        if (body.lineType === 'LABOR') {
+          const newLaborCost = Number(jc.estimatedLaborCost) + amount;
+          await prisma.jobCard.update({ where: { id: jobCardId }, data: { estimatedLaborCost: newLaborCost, estimatedTotal: Number(jc.estimatedPartsCost) + newLaborCost + Number(jc.estimatedOtherCost) } });
+        } else {
+          const newOtherCost = Number(jc.estimatedOtherCost) + amount;
+          await prisma.jobCard.update({ where: { id: jobCardId }, data: { estimatedOtherCost: newOtherCost, estimatedTotal: Number(jc.estimatedPartsCost) + Number(jc.estimatedLaborCost) + newOtherCost } });
         }
       }
     };

@@ -17,6 +17,8 @@ export default function AppointmentsPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [form, setForm] = useState({ customerId: '', vehicleId: '', appointmentDate: '', slotStart: '', slotEnd: '' });
+  const [showNewCust, setShowNewCust] = useState(false);
+  const [custForm, setCustForm] = useState({ fullName: '', phoneNumber: '' });
   const router = useRouter();
 
   const load = (s = search, st = statusFilter) => {
@@ -96,11 +98,29 @@ export default function AppointmentsPage() {
         <div className="space-y-4">
           {error && <p className="text-sm text-red-600">{error}</p>}
           <div>
-            <label className="block text-sm font-medium mb-1">Customer <span className="text-red-500">*</span></label>
-            <select className={inputCls} value={form.customerId} onChange={(e) => onCustomerChange(e.target.value)}>
-              <option value="">Select customer...</option>
-              {customers.map((c: any) => <option key={c.id} value={c.id}>{c.fullName} ({c.phoneNumber})</option>)}
-            </select>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-sm font-medium">Customer <span className="text-red-500">*</span></label>
+              <button type="button" onClick={() => setShowNewCust(!showNewCust)} className="text-xs text-blue-600 hover:underline">{showNewCust ? '← Select existing' : '+ New customer'}</button>
+            </div>
+            {showNewCust ? (
+              <div className="flex gap-2">
+                <input className={inputCls} placeholder="Full Name *" value={custForm.fullName} onChange={(e) => setCustForm({ ...custForm, fullName: e.target.value })} />
+                <input className={inputCls} placeholder="Phone *" value={custForm.phoneNumber} onChange={(e) => setCustForm({ ...custForm, phoneNumber: e.target.value })} />
+                <button type="button" onClick={async () => {
+                  if (!custForm.fullName || !custForm.phoneNumber) return;
+                  setSaving(true);
+                  const res = await api.post<any>('/admin/customers', custForm);
+                  setSaving(false);
+                  if (res.success) { setCustomers((p) => [res.data, ...p]); onCustomerChange(res.data.id); setShowNewCust(false); setCustForm({ fullName: '', phoneNumber: '' }); }
+                  else setError(res.error?.message || 'Failed');
+                }} disabled={saving || !custForm.fullName || !custForm.phoneNumber} className="shrink-0 rounded-lg bg-green-600 px-3 py-2 text-xs font-semibold text-white hover:bg-green-700 disabled:opacity-50">Add</button>
+              </div>
+            ) : (
+              <select className={inputCls} value={form.customerId} onChange={(e) => onCustomerChange(e.target.value)}>
+                <option value="">Select customer...</option>
+                {customers.map((c: any) => <option key={c.id} value={c.id}>{c.fullName} ({c.phoneNumber})</option>)}
+              </select>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Vehicle <span className="text-red-500">*</span></label>

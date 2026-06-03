@@ -71,11 +71,13 @@ export default function InvoicesPage() {
     if (res.success) setJobCards((res.data?.items ?? res.data ?? []).filter((jc: any) => !['CANCELLED', 'CREATED'].includes(jc.status)));
   };
 
+  const [counterInvoiceStarted, setCounterInvoiceStarted] = useState(false);
+
   const openCounterSale = () => {
     setSaleType('COUNTER');
     setShowCreate(true); setError(''); setSelectedJC(null); setCounterCustomerId('');
     setShowNewCustomer(false); setNewCustomer({ fullName: '', phoneNumber: '' });
-    setLineItems([{ lineType: 'PART', description: '', quantity: 1, unitPrice: 0, taxRate: 0 }]);
+    setLineItems([]); setCounterInvoiceStarted(false);
     api.get<any>('/admin/customers?pageSize=200').then((r) => { if (r.success) setCustomers(r.data?.items ?? r.data ?? []); });
   };
 
@@ -195,7 +197,10 @@ export default function InvoicesPage() {
               </div>
             )}
           </div>
-          {(selectedJC || saleType === 'COUNTER') && (
+          {saleType === 'COUNTER' && !counterInvoiceStarted && (counterCustomerId || (showNewCustomer && newCustomer.fullName && newCustomer.phoneNumber)) && (
+            <button onClick={() => setCounterInvoiceStarted(true)} className="w-full rounded-lg bg-blue-600 py-2 text-sm font-semibold text-white hover:bg-blue-700">Create Invoice</button>
+          )}
+          {(selectedJC || (saleType === 'COUNTER' && counterInvoiceStarted)) && (
             <>
               <div>
                 <div className="flex items-center justify-between mb-2">
