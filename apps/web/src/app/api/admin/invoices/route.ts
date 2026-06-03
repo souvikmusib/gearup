@@ -40,6 +40,12 @@ export async function GET(req: NextRequest) {
     const where: Record<string, unknown> = {};
     const ps = sp.get('paymentStatus'); if (ps) where.paymentStatus = ps;
     const is = sp.get('invoiceStatus'); if (is) where.invoiceStatus = is;
+    const saleType = sp.get('saleType'); if (saleType) where.saleType = saleType;
+    const search = sp.get('search'); if (search) where.OR = [{ invoiceNumber: { contains: search, mode: 'insensitive' } }, { customer: { fullName: { contains: search, mode: 'insensitive' } } }];
+    const from = sp.get('from'); const to = sp.get('to');
+    if (from && to) where.invoiceDate = { gte: new Date(from), lte: new Date(to + 'T23:59:59') };
+    else if (from) where.invoiceDate = { gte: new Date(from) };
+    else if (to) where.invoiceDate = { lte: new Date(to + 'T23:59:59') };
     const [data, total] = await Promise.all([
       prisma.invoice.findMany({ where, ...p, orderBy: { invoiceDate: 'desc' }, include: { customer: { select: { fullName: true, phoneNumber: true } }, vehicle: { select: { registrationNumber: true } } } }),
       prisma.invoice.count({ where }),

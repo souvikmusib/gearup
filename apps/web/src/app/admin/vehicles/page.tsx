@@ -6,10 +6,13 @@ import { ProcessLoader } from '@/components/shared/process-loader';
 import { PageHeader, DataTable } from '@gearup/ui';
 import { formatRegNumber } from '@/lib/format-reg';
 import { Modal } from '@/components/shared/modal';
+import { Pagination } from '@/components/shared/pagination';
 
 export default function VehiclesPage() {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState('');
   const [showCreate, setShowCreate] = useState(false);
   const [customers, setCustomers] = useState<any[]>([]);
@@ -20,19 +23,21 @@ export default function VehiclesPage() {
   const [custForm, setCustForm] = useState({ fullName: '', phoneNumber: '' });
   const router = useRouter();
 
-  const load = (s = search) => {
+  const load = (s = search, pg = page) => {
     const p = new URLSearchParams();
     if (s) p.set('search', s);
+    p.set('page', String(pg));
     const qs = p.toString();
-    const endpoint = `/admin/vehicles${qs ? `?${qs}` : ''}`;
+    const endpoint = `/admin/vehicles?${qs}`;
     const { cached, promise } = api.getSWR<any>(endpoint);
     if (cached?.success) {
       setData(cached.data?.items ?? cached.data ?? []);
+      setTotalPages(cached.meta?.totalPages ?? 1);
       setLoading(false);
     } else {
       setLoading(true);
     }
-    promise.then((r) => { if (r.success) setData(r.data?.items ?? r.data ?? []); setLoading(false); });
+    promise.then((r) => { if (r.success) { setData(r.data?.items ?? r.data ?? []); setTotalPages(r.meta?.totalPages ?? 1); } setLoading(false); });
   };
   useEffect(() => { load(); }, []);
 
@@ -68,6 +73,7 @@ export default function VehiclesPage() {
         <input className="w-full max-w-xs rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white" placeholder="Search by reg number, brand..." value={search} onChange={(e) => { setSearch(e.target.value); load(e.target.value); }} />
       </div>
       <DataTable columns={columns} data={data} keyField="id" onRowClick={(r: any) => router.push(`/admin/vehicles/${r.id}`)} />
+      <Pagination page={page} totalPages={totalPages} onPageChange={(p) => { setPage(p); load(search, p); }} />
 
       <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Add Vehicle">
         <div className="space-y-3">

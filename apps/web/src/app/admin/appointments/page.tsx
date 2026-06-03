@@ -5,10 +5,13 @@ import { api } from '@/lib/api/client';
 import { ProcessLoader } from '@/components/shared/process-loader';
 import { PageHeader, DataTable, StatusBadge } from '@gearup/ui';
 import { Modal } from '@/components/shared/modal';
+import { Pagination } from '@/components/shared/pagination';
 
 export default function AppointmentsPage() {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [showCreate, setShowCreate] = useState(false);
@@ -21,20 +24,22 @@ export default function AppointmentsPage() {
   const [custForm, setCustForm] = useState({ fullName: '', phoneNumber: '' });
   const router = useRouter();
 
-  const load = (s = search, st = statusFilter) => {
+  const load = (s = search, st = statusFilter, pg = page) => {
     const p = new URLSearchParams();
     if (s) p.set('search', s);
     if (st) p.set('status', st);
+    p.set('page', String(pg));
     const qs = p.toString();
-    const endpoint = `/admin/appointments${qs ? `?${qs}` : ''}`;
+    const endpoint = `/admin/appointments?${qs}`;
     const { cached, promise } = api.getSWR<any>(endpoint);
     if (cached?.success) {
       setData(cached.data?.items ?? cached.data ?? []);
+      setTotalPages(cached.meta?.totalPages ?? 1);
       setLoading(false);
     } else {
       setLoading(true);
     }
-    promise.then((r) => { if (r.success) setData(r.data?.items ?? r.data ?? []); setLoading(false); });
+    promise.then((r) => { if (r.success) { setData(r.data?.items ?? r.data ?? []); setTotalPages(r.meta?.totalPages ?? 1); } setLoading(false); });
   };
   useEffect(() => { load(); }, []);
 
@@ -93,6 +98,7 @@ export default function AppointmentsPage() {
         </select>
       </div>
       <DataTable columns={columns} data={data} keyField="id" onRowClick={(r: any) => router.push(`/admin/appointments/${r.id}`)} />
+      <Pagination page={page} totalPages={totalPages} onPageChange={(p) => { setPage(p); load(search, statusFilter, p); }} />
 
       <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Create Appointment">
         <div className="space-y-4">

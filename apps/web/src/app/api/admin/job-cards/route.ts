@@ -27,6 +27,10 @@ export async function GET(req: NextRequest) {
     const where: Record<string, unknown> = {};
     if (status) where.status = status;
     if (search) where.OR = [{ jobCardNumber: { contains: search, mode: 'insensitive' } }, { customer: { fullName: { contains: search, mode: 'insensitive' } } }];
+    const workerId = sp.get('workerId') || '';
+    const priority = sp.get('priority') || '';
+    if (workerId) where.assignments = { some: { workerId } };
+    if (priority) where.priority = priority;
     const [data, total] = await Promise.all([
       prisma.jobCard.findMany({ where, ...p, orderBy: { createdAt: 'desc' }, include: { customer: { select: { fullName: true, phoneNumber: true } }, vehicle: { select: { registrationNumber: true, brand: true, model: true } }, assignments: { include: { worker: { select: { fullName: true } } } } } }),
       prisma.jobCard.count({ where }),
