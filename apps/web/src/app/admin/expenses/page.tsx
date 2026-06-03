@@ -44,7 +44,7 @@ export default function ExpensesPage() {
     const { cached, promise } = api.getSWR<any>('/admin/expenses/categories');
     if (cached?.success) setCategories(cached.data ?? []);
     promise.then((r) => { if (r.success) setCategories(r.data ?? []); });
-  }, []);
+  }, [page]);
 
   const openCreate = async () => {
     setShowCreate(true); setError('');
@@ -122,7 +122,7 @@ export default function ExpensesPage() {
         { key: 'paymentMode', header: 'Mode' },
         { key: 'actions', header: '', render: (r: any) => <button onClick={(e) => deleteExpense(r.id, e)} className="text-xs text-red-500 hover:underline">Delete</button> },
       ]} data={data} keyField="id" onRowClick={openEdit} />
-      <Pagination page={page} totalPages={totalPages} onPageChange={(p) => { setPage(p); load(search, catFilter, p); }} />
+      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
 
       <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Add Expense">
         <div className="space-y-3">

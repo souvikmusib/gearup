@@ -39,7 +39,7 @@ export default function VehiclesPage() {
     }
     promise.then((r) => { if (r.success) { setData(r.data?.items ?? r.data ?? []); setTotalPages(r.meta?.totalPages ?? 1); } setLoading(false); });
   };
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [page]);
 
   const openCreate = async () => {
     setShowCreate(true); setError('');
@@ -73,7 +73,7 @@ export default function VehiclesPage() {
         <input className="w-full max-w-xs rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white" placeholder="Search by reg number, brand..." value={search} onChange={(e) => { setSearch(e.target.value); load(e.target.value); }} />
       </div>
       <DataTable columns={columns} data={data} keyField="id" onRowClick={(r: any) => router.push(`/admin/vehicles/${r.id}`)} />
-      <Pagination page={page} totalPages={totalPages} onPageChange={(p) => { setPage(p); load(search, p); }} />
+      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
 
       <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Add Vehicle">
         <div className="space-y-3">

@@ -54,6 +54,7 @@ export default function JobCardsPage() {
     load();
     api.get<any>('/admin/workers?pageSize=200').then((r) => { if (r.success) setAllWorkers(r.data?.items ?? r.data ?? []); });
   }, []);
+  useEffect(() => { load(); }, [page]);
 
   // Auto-open create modal when redirected from service request
   useEffect(() => {
@@ -165,7 +166,7 @@ export default function JobCardsPage() {
         </select>
       </div>
       <DataTable columns={columns} data={data} keyField="id" onRowClick={(r: any) => router.push(`/admin/job-cards/${r.id}`)} />
-      <Pagination page={page} totalPages={totalPages} onPageChange={(p) => { setPage(p); load(search, statusFilter, workerFilter, priorityFilter, p); }} />
+      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
 
       <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Create Job Card">
         <div className="space-y-4">

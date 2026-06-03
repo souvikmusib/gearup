@@ -41,7 +41,7 @@ export default function AppointmentsPage() {
     }
     promise.then((r) => { if (r.success) { setData(r.data?.items ?? r.data ?? []); setTotalPages(r.meta?.totalPages ?? 1); } setLoading(false); });
   };
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [page]);
 
   const openCreate = async () => {
     setShowCreate(true);
@@ -98,7 +98,7 @@ export default function AppointmentsPage() {
         </select>
       </div>
       <DataTable columns={columns} data={data} keyField="id" onRowClick={(r: any) => router.push(`/admin/appointments/${r.id}`)} />
-      <Pagination page={page} totalPages={totalPages} onPageChange={(p) => { setPage(p); load(search, statusFilter, p); }} />
+      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
 
       <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Create Appointment">
         <div className="space-y-4">
