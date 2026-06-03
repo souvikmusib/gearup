@@ -57,9 +57,11 @@ export default function AppointmentsPage() {
     setSaving(true); setError('');
     const dt = new Date(form.appointmentDate);
     const slotEnd = new Date(dt.getTime() + 30 * 60000);
+    // Use date portion directly to avoid timezone-shift issues
+    const dateOnly = form.appointmentDate.slice(0, 10) + 'T00:00:00.000Z';
     const res = await api.post<any>('/admin/appointments', {
       customerId: form.customerId, vehicleId: form.vehicleId,
-      appointmentDate: dt.toISOString(), slotStart: dt.toISOString(), slotEnd: slotEnd.toISOString(),
+      appointmentDate: dateOnly, slotStart: dt.toISOString(), slotEnd: slotEnd.toISOString(),
     });
     setSaving(false);
     if (res.success) { setShowCreate(false); setForm({ customerId: '', vehicleId: '', appointmentDate: '', slotStart: '', slotEnd: '' }); load(); }
