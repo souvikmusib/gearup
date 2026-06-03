@@ -106,7 +106,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       } else if (body.lineType !== 'PART') {
         await prisma.jobCardTask.create({ data: { jobCardId, taskName: body.description, status: 'COMPLETED' } });
         const jc = await prisma.jobCard.findUniqueOrThrow({ where: { id: jobCardId }, select: { estimatedLaborCost: true, estimatedOtherCost: true, estimatedPartsCost: true } });
-        const amount = body.unitPrice * body.quantity;
+        const amount = isAmc ? Number(lineTotal) : body.unitPrice * body.quantity;
         if (body.lineType === 'LABOR') {
           const newLaborCost = Number(jc.estimatedLaborCost) + amount;
           await prisma.jobCard.update({ where: { id: jobCardId }, data: { estimatedLaborCost: newLaborCost, estimatedTotal: Number(jc.estimatedPartsCost) + newLaborCost + Number(jc.estimatedOtherCost) } });
