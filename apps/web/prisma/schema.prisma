@@ -437,6 +437,7 @@ model JobCard {
   vehicleId                String
   intakeDate               DateTime
   odometerAtIntake         Int?
+  fuelIndicator            String?
   estimatedDeliveryAt      DateTime?
   actualDeliveryAt         DateTime?
   issueSummary             String
@@ -571,6 +572,7 @@ model InventoryItem {
   storageLocation        String?
   barcode                String?
   isActive               Boolean   @default(true)
+  variablePrice          Boolean   @default(false)
   createdAt              DateTime  @default(now())
   updatedAt              DateTime  @updatedAt
 

@@ -12,7 +12,7 @@ const createSchema = z.object({
   appointmentId: z.string().optional(), serviceRequestId: z.string().optional(),
   customerId: z.string(), vehicleId: z.string(), issueSummary: z.string().min(1),
   customerComplaints: z.string().optional(), priority: z.string().optional(), estimatedDeliveryAt: z.string().optional(),
-  odometerAtIntake: z.number().optional(),
+  odometerAtIntake: z.number().optional(), fuelIndicator: z.string().optional(),
 });
 
 export async function GET(req: NextRequest) {

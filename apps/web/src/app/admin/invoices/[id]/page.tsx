@@ -322,10 +322,10 @@ export default function InvoiceDetailPage() {
                       <><label className="block text-[10px] text-gray-400 mb-0.5">Select Part <span className="text-red-500">*</span></label>
                       <select className={inputCls} value={newLine.description} onChange={(e) => {
                         const item = inventoryItems.find((i: any) => i.itemName === e.target.value);
-                        setNewLine({ ...newLine, description: e.target.value, unitPrice: item ? String(Number(item.sellingPrice)) : newLine.unitPrice, discountPercent: item ? String(Number(item.discountPercent) || '0') : '0' });
+                        setNewLine({ ...newLine, description: e.target.value, unitPrice: item && !item.variablePrice ? String(Number(item.sellingPrice)) : '', discountPercent: item ? String(Number(item.discountPercent) || '0') : '0' });
                       }}>
                         <option value="">Select part...</option>
-                        {inventoryItems.map((i: any) => { const dp = Number(i.discountPercent) || 0; return <option key={i.id} value={i.itemName}>{i.itemName} ({i.sku}) — ₹{Number(i.sellingPrice)}{dp ? ` (${dp}% off)` : ''}</option>; })}
+                        {inventoryItems.map((i: any) => { const dp = Number(i.discountPercent) || 0; return <option key={i.id} value={i.itemName}>{i.itemName} ({i.sku}){i.variablePrice ? ' [Variable]' : ` — ₹${Number(i.sellingPrice)}`}{dp ? ` (${dp}% off)` : ''}</option>; })}
                       </select></>
                     ) : newLine.lineType === 'AMC' ? (
                       <><label className="block text-[10px] text-gray-400 mb-0.5">AMC Option</label>
