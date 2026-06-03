@@ -94,7 +94,7 @@ export async function GET(req: NextRequest) {
         select: {
           id: true,
           fullName: true,
-          _count: { select: { assignments: { where: { unassignedAt: null } } } },
+          _count: { select: { assignments: { where: { unassignedAt: null, jobCard: { status: { notIn: ['DELIVERED', 'CANCELLED'] } } } } } },
         },
       });
       return NextResponse.json({ success: true, data: workers.map((w) => ({ id: w.id, fullName: w.fullName, activeAssignments: w._count.assignments })) });
