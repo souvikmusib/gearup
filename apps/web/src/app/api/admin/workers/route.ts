@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
     if (status) where.status = status;
     if (search) where.OR = [{ fullName: { contains: search, mode: 'insensitive' } }, { workerCode: { contains: search, mode: 'insensitive' } }];
     const [data, total] = await Promise.all([
-      prisma.worker.findMany({ where, ...p, orderBy: { createdAt: 'desc' }, include: { _count: { select: { assignments: true } } } }),
+      prisma.worker.findMany({ where, ...p, orderBy: { createdAt: 'desc' }, include: { _count: { select: { assignments: { where: { jobCard: { status: { notIn: ['DELIVERED', 'CANCELLED'] } } } } } } } }),
       prisma.worker.count({ where }),
     ]);
     return NextResponse.json({ success: true, data, meta: paginationMeta(total, page, pageSize) });

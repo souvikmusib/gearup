@@ -32,6 +32,7 @@ export default function DashboardPage() {
   const [logs, setLogs] = useState<RecentLog[]>([]);
   const [revenueChart, setRevenueChart] = useState<any[]>([]);
   const [jobStats, setJobStats] = useState<any[]>([]);
+  const [workerLoad, setWorkerLoad] = useState<any[]>([]);
   const router = useRouter();
 
   useEffect(() => {
@@ -52,6 +53,9 @@ export default function DashboardPage() {
     });
     api.get<any>('/admin/reports?type=jobs').then((r) => {
       if (r.success) setJobStats(r.data ?? []);
+    });
+    api.get<any>('/admin/reports?type=workers').then((r) => {
+      if (r.success) setWorkerLoad(r.data ?? []);
     });
   }, []);
 
@@ -148,6 +152,27 @@ export default function DashboardPage() {
           ) : <p className="text-sm text-gray-500 text-center py-8">No job cards</p>}
         </div>
       </div>
+
+      {/* Worker Load */}
+      {workerLoad.length > 0 && (
+        <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-semibold text-gray-900 dark:text-white">Worker Load</h3>
+            <button onClick={() => router.push('/admin/workers')} className="text-sm text-blue-600 hover:text-blue-700 font-medium">View all →</button>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            {workerLoad.filter((w: any) => w.activeAssignments > 0).map((w: any) => (
+              <div key={w.id} className="flex items-center gap-2 rounded-lg border border-gray-100 dark:border-gray-800 px-3 py-2">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{w.fullName}</span>
+                <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${w.activeAssignments >= 3 ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : w.activeAssignments >= 2 ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'}`}>
+                  {w.activeAssignments} job{w.activeAssignments > 1 ? 's' : ''}
+                </span>
+              </div>
+            ))}
+            {workerLoad.every((w: any) => w.activeAssignments === 0) && <p className="text-sm text-gray-500">All workers free</p>}
+          </div>
+        </div>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Quick Actions */}
