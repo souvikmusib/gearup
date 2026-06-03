@@ -19,6 +19,9 @@ export default function InvoicesPage() {
   const [search, setSearch] = useState('');
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [showCreate, setShowCreate] = useState(false);
+  const [saleType, setSaleType] = useState<'SERVICE' | 'COUNTER'>('SERVICE');
+  const [counterCustomerId, setCounterCustomerId] = useState('')
+  const [customers, setCustomers] = useState<any[]>([]);
   const [jobCards, setJobCards] = useState<any[]>([]);
   const [selectedJC, setSelectedJC] = useState<any>(null);
   const [lineItems, setLineItems] = useState<any[]>([]);
@@ -58,11 +61,19 @@ export default function InvoicesPage() {
   }, [filters, load]);
 
   const openCreate = async () => {
+    setSaleType('SERVICE');
     setShowCreate(true); setError(''); setSelectedJC(null); setLineItems([]);
     setModalLoading(true);
     const res = await api.get<any>('/admin/job-cards?pageSize=100');
     setModalLoading(false);
     if (res.success) setJobCards((res.data?.items ?? res.data ?? []).filter((jc: any) => !['CANCELLED', 'CREATED'].includes(jc.status)));
+  };
+
+  const openCounterSale = () => {
+    setSaleType('COUNTER');
+    setShowCreate(true); setError(''); setSelectedJC(null); setCounterCustomerId('');
+    setLineItems([{ lineType: 'PART', description: '', quantity: 1, unitPrice: 0, taxRate: 0 }]);
+    api.get<any>('/admin/customers?pageSize=200').then((r) => { if (r.success) setCustomers(r.data?.items ?? r.data ?? []); });
   };
 
   const onJobCardSelect = async (jcId: string) => {
@@ -87,12 +98,24 @@ export default function InvoicesPage() {
   const updateLine = (i: number, field: string, value: any) => setLineItems((l) => l.map((li, idx) => idx === i ? { ...li, [field]: value } : li));
 
   const submit = async () => {
-    if (!selectedJC || lineItems.length === 0) { setError('Select a job card and add line items'); return; }
+    if (saleType === 'SERVICE' && (!selectedJC || lineItems.length === 0)) { setError('Select a job card and add line items'); return; }
+    if (saleType === 'COUNTER' && lineItems.length === 0) { setError('Add at least one line item'); return; }
+    if (saleType === 'COUNTER' && !counterCustomerId) { setError('Select a customer'); return; }
     setSaving(true); setError('');
-    const res = await api.post<any>('/admin/invoices', {
-      customerId: selectedJC.customerId, vehicleId: selectedJC.vehicleId, jobCardId: selectedJC.id,
-      invoiceDate: new Date().toISOString(), lineItems: lineItems.map((li, i) => ({ ...li, sortOrder: i })),
-    });
+    const payload: Record<string, any> = {
+      saleType,
+      invoiceDate: new Date().toISOString(),
+      lineItems: lineItems.map((li, i) => ({ ...li, sortOrder: i })),
+    };
+    if (saleType === 'SERVICE' && selectedJC) {
+      payload.customerId = selectedJC.customerId;
+      payload.vehicleId = selectedJC.vehicleId;
+      payload.jobCardId = selectedJC.id;
+    } else {
+      // Counter sale — use a walk-in customer or require selection
+      payload.customerId = selectedJC?.customerId || counterCustomerId;
+    }
+    const res = await api.post<any>('/admin/invoices', payload);
     setSaving(false);
     if (res.success) { setShowCreate(false); load(); }
     else setError(res.error?.message || 'Failed to create');
@@ -114,6 +137,7 @@ export default function InvoicesPage() {
       <div className="flex items-center justify-between mb-4">
         <PageHeader title="Invoices" />
         <button onClick={openCreate} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">+ New Invoice</button>
+        <button onClick={openCounterSale} className="rounded-lg border border-blue-600 px-4 py-2 text-sm font-semibold text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950">+ Counter Sale</button>
       </div>
       <ListToolbar searchPlaceholder="Search invoices..." onSearch={onSearch}
         filters={[{ label: 'Payment Status', value: 'paymentStatus', options: PAYMENT_STATUSES }, { label: 'Invoice Status', value: 'invoiceStatus', options: INVOICE_STATUSES }]}
@@ -127,11 +151,23 @@ export default function InvoicesPage() {
           {error && <p className="text-sm text-red-600">{error}</p>}
           {modalLoading && <ProcessLoader title="Preparing invoice form" steps={['Loading eligible job cards', 'Reading selected job-card parts', 'Calculating starter line items']} />}
           <div>
-            <label className="block text-sm font-medium mb-1">Job Card <span className="text-red-500">*</span></label>
-            <select className={inputCls} value={selectedJC?.id || ''} onChange={(e) => onJobCardSelect(e.target.value)}>
-              <option value="">Select job card...</option>
-              {jobCards.map((jc: any) => <option key={jc.id} value={jc.id}>{jc.jobCardNumber} — {jc.customer?.fullName} ({jc.vehicle?.registrationNumber})</option>)}
-            </select>
+            {saleType === 'SERVICE' ? (
+              <>
+                <label className="block text-sm font-medium mb-1">Job Card <span className="text-red-500">*</span></label>
+                <select className={inputCls} value={selectedJC?.id || ''} onChange={(e) => onJobCardSelect(e.target.value)}>
+                  <option value="">Select job card...</option>
+                  {jobCards.map((jc: any) => <option key={jc.id} value={jc.id}>{jc.jobCardNumber} — {jc.customer?.fullName} ({jc.vehicle?.registrationNumber})</option>)}
+                </select>
+              </>
+            ) : (
+              <>
+                <label className="block text-sm font-medium mb-1">Customer <span className="text-red-500">*</span></label>
+                <select className={inputCls} value={counterCustomerId} onChange={(e) => setCounterCustomerId(e.target.value)}>
+                  <option value="">Select customer (or leave for walk-in)...</option>
+                  {customers.map((c: any) => <option key={c.id} value={c.id}>{c.fullName} — {c.phoneNumber}</option>)}
+                </select>
+              </>
+            )}
           </div>
           {selectedJC && (
             <>

@@ -16,7 +16,8 @@ const lineItemSchema = z.object({
   discountMode: z.enum(['flat', 'percent']).optional(),
 });
 const createSchema = z.object({
-  customerId: z.string(), vehicleId: z.string(), jobCardId: z.string(), appointmentId: z.string().optional(),
+  customerId: z.string(), vehicleId: z.string().optional(), jobCardId: z.string().optional(), appointmentId: z.string().optional(),
+  saleType: z.enum(['SERVICE', 'COUNTER']).default('SERVICE'),
   invoiceDate: z.string(), dueDate: z.string().optional(), discountType: z.string().optional(),
   discountValue: z.number().optional(), notes: z.string().optional(), lineItems: z.array(lineItemSchema),
 });
@@ -51,9 +52,11 @@ export async function POST(req: NextRequest) {
   try {
     const user = requirePermission(PERMISSIONS.INVOICES_CREATE);
     const body = createSchema.parse(await req.json());
-    // Enforce 1 invoice per job card
-    const existing = await prisma.invoice.findFirst({ where: { jobCardId: body.jobCardId } });
-    if (existing) return NextResponse.json({ success: false, error: { message: `Invoice ${existing.invoiceNumber} already exists for this job card` } }, { status: 409 });
+    // Enforce 1 invoice per job card (only for service invoices)
+    if (body.jobCardId) {
+      const existing = await prisma.invoice.findFirst({ where: { jobCardId: body.jobCardId } });
+      if (existing) return NextResponse.json({ success: false, error: { message: `Invoice ${existing.invoiceNumber} already exists for this job card` } }, { status: 409 });
+    }
     let invoice;
     try {
       invoice = await prisma.$transaction(async (tx: any) => {

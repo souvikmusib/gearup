@@ -607,8 +607,8 @@ model Invoice {
   id               String        @id @default(cuid())
   invoiceNumber    String        @unique
   customerId       String
-  vehicleId        String
-  jobCardId        String
+  vehicleId        String?
+  jobCardId        String?
   appointmentId    String?
   invoiceDate      DateTime
   dueDate          DateTime?
@@ -629,15 +629,15 @@ model Invoice {
   updatedAt        DateTime      @updatedAt
 
   customer  Customer          @relation(fields: [customerId], references: [id])
-  vehicle   Vehicle           @relation(fields: [vehicleId], references: [id])
-  jobCard   JobCard           @relation(fields: [jobCardId], references: [id])
+  vehicle   Vehicle?          @relation(fields: [vehicleId], references: [id])
+  jobCard   JobCard?          @relation(fields: [jobCardId], references: [id])
   createdBy AdminUser         @relation(fields: [createdByAdminId], references: [id])
   lineItems InvoiceLineItem[]
   payments  Payment[]
 
   @@index([customerId])
   @@index([vehicleId])
-  @@unique([jobCardId])
+  @@index([jobCardId])
   @@index([invoiceDate])
   @@index([paymentStatus])
 }

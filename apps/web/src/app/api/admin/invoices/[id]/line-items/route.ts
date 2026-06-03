@@ -36,7 +36,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
     const isDiscount = body.lineType === 'DISCOUNT_ADJUSTMENT';
     const isAmc = body.lineType === 'AMC';
-    const jobCardId = inv.jobCardId;
+    const jobCardId = inv.jobCardId || undefined;
     let lineTotal: number;
     let taxAmount: number;
     let referenceItemId: string | undefined;
@@ -49,6 +49,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         const contract = await prisma.amcContract.findUniqueOrThrow({ where: { id: body.amcContractId } });
         if (contract.status !== 'ACTIVE') throw new ValidationError('AMC contract is not active');
         if (contract.servicesRemaining <= 0) throw new ValidationError('No services remaining on AMC contract');
+        if (!jobCardId) throw new ValidationError('AMC service usage requires a job card');
         await Promise.all([
           prisma.amcServiceUsage.create({ data: { amcContractId: contract.id, jobCardId, serviceNumber: contract.servicesUsed + 1, serviceDate: new Date() } }),
           prisma.amcContract.update({ where: { id: contract.id }, data: { servicesUsed: { increment: 1 }, servicesRemaining: { decrement: 1 } } }),
