@@ -22,6 +22,8 @@ export default function InvoicesPage() {
   const [saleType, setSaleType] = useState<'SERVICE' | 'COUNTER'>('SERVICE');
   const [counterCustomerId, setCounterCustomerId] = useState('')
   const [customers, setCustomers] = useState<any[]>([]);
+  const [showNewCustomer, setShowNewCustomer] = useState(false);
+  const [newCustomer, setNewCustomer] = useState({ fullName: '', phoneNumber: '' });
   const [jobCards, setJobCards] = useState<any[]>([]);
   const [selectedJC, setSelectedJC] = useState<any>(null);
   const [lineItems, setLineItems] = useState<any[]>([]);
@@ -72,6 +74,7 @@ export default function InvoicesPage() {
   const openCounterSale = () => {
     setSaleType('COUNTER');
     setShowCreate(true); setError(''); setSelectedJC(null); setCounterCustomerId('');
+    setShowNewCustomer(false); setNewCustomer({ fullName: '', phoneNumber: '' });
     setLineItems([{ lineType: 'PART', description: '', quantity: 1, unitPrice: 0, taxRate: 0 }]);
     api.get<any>('/admin/customers?pageSize=200').then((r) => { if (r.success) setCustomers(r.data?.items ?? r.data ?? []); });
   };
@@ -100,20 +103,31 @@ export default function InvoicesPage() {
   const submit = async () => {
     if (saleType === 'SERVICE' && (!selectedJC || lineItems.length === 0)) { setError('Select a job card and add line items'); return; }
     if (saleType === 'COUNTER' && lineItems.length === 0) { setError('Add at least one line item'); return; }
-    if (saleType === 'COUNTER' && !counterCustomerId) { setError('Select a customer'); return; }
+    if (saleType === 'COUNTER' && !counterCustomerId && !showNewCustomer) { setError('Select a customer'); return; }
+    if (saleType === 'COUNTER' && showNewCustomer && (!newCustomer.fullName || !newCustomer.phoneNumber)) { setError('Enter customer name and phone'); return; }
     setSaving(true); setError('');
+
+    // Create new customer if needed
+    let customerId = '';
+    if (saleType === 'SERVICE' && selectedJC) {
+      customerId = selectedJC.customerId;
+    } else if (showNewCustomer) {
+      const custRes = await api.post<any>('/admin/customers', newCustomer);
+      if (!custRes.success) { setSaving(false); setError(custRes.error?.message || 'Failed to create customer'); return; }
+      customerId = custRes.data.id;
+    } else {
+      customerId = counterCustomerId;
+    }
+
     const payload: Record<string, any> = {
       saleType,
+      customerId,
       invoiceDate: new Date().toISOString(),
       lineItems: lineItems.map((li, i) => ({ ...li, sortOrder: i })),
     };
     if (saleType === 'SERVICE' && selectedJC) {
-      payload.customerId = selectedJC.customerId;
       payload.vehicleId = selectedJC.vehicleId;
       payload.jobCardId = selectedJC.id;
-    } else {
-      // Counter sale — use a walk-in customer or require selection
-      payload.customerId = selectedJC?.customerId || counterCustomerId;
     }
     const res = await api.post<any>('/admin/invoices', payload);
     setSaving(false);
@@ -146,7 +160,7 @@ export default function InvoicesPage() {
         <DataTable columns={columns} data={data} keyField="id" onRowClick={(r: any) => router.push(`/admin/invoices/${r.id}`)} />}
       <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
 
-      <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Create Invoice">
+      <Modal open={showCreate} onClose={() => setShowCreate(false)} title={saleType === 'COUNTER' ? 'Counter Sale' : 'Create Invoice'}>
         <div className="space-y-4 max-h-[70vh] overflow-y-auto">
           {error && <p className="text-sm text-red-600">{error}</p>}
           {modalLoading && <ProcessLoader title="Preparing invoice form" steps={['Loading eligible job cards', 'Reading selected job-card parts', 'Calculating starter line items']} />}
@@ -160,16 +174,28 @@ export default function InvoicesPage() {
                 </select>
               </>
             ) : (
-              <>
-                <label className="block text-sm font-medium mb-1">Customer <span className="text-red-500">*</span></label>
-                <select className={inputCls} value={counterCustomerId} onChange={(e) => setCounterCustomerId(e.target.value)}>
-                  <option value="">Select customer (or leave for walk-in)...</option>
-                  {customers.map((c: any) => <option key={c.id} value={c.id}>{c.fullName} — {c.phoneNumber}</option>)}
-                </select>
-              </>
+              <div className="space-y-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium">Customer <span className="text-red-500">*</span></label>
+                  <button type="button" onClick={() => setShowNewCustomer(!showNewCustomer)} className="text-xs text-blue-600 hover:underline">
+                    {showNewCustomer ? '← Select existing' : '+ New customer'}
+                  </button>
+                </div>
+                {showNewCustomer ? (
+                  <div className="grid grid-cols-2 gap-2">
+                    <input className={inputCls} placeholder="Full Name *" value={newCustomer.fullName} onChange={(e) => setNewCustomer({ ...newCustomer, fullName: e.target.value })} />
+                    <input className={inputCls} placeholder="Phone *" value={newCustomer.phoneNumber} onChange={(e) => setNewCustomer({ ...newCustomer, phoneNumber: e.target.value })} />
+                  </div>
+                ) : (
+                  <select className={inputCls} value={counterCustomerId} onChange={(e) => setCounterCustomerId(e.target.value)}>
+                    <option value="">Select customer...</option>
+                    {customers.map((c: any) => <option key={c.id} value={c.id}>{c.fullName} — {c.phoneNumber}</option>)}
+                  </select>
+                )}
+              </div>
             )}
           </div>
-          {selectedJC && (
+          {(selectedJC || saleType === 'COUNTER') && (
             <>
               <div>
                 <div className="flex items-center justify-between mb-2">
