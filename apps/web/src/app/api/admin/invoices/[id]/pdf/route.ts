@@ -14,16 +14,27 @@ function generateInvoiceHTML(invoice: any, settings: Record<string, any>, logoUr
   };
   const footer = settings['invoice.footer'] || 'Thank you for your business!';
 
-  const rows = invoice.lineItems.map((li: any, i: number) => `
+  const rows = invoice.lineItems.map((li: any, i: number) => {
+    const disc = Number(li.discountPercent) || 0;
+    const discAmount = disc ? Number(li.quantity) * Number(li.unitPrice) * (disc / 100) : 0;
+    return `
     <tr>
-      <td style="padding:8px 12px;border-bottom:1px solid #eee">${i + 1}</td>
-      <td style="padding:8px 12px;border-bottom:1px solid #eee">${li.description}</td>
-      <td style="padding:8px 12px;border-bottom:1px solid #eee;text-align:center">${li.lineType}</td>
-      <td style="padding:8px 12px;border-bottom:1px solid #eee;text-align:right">${Number(li.quantity)}</td>
-      <td style="padding:8px 12px;border-bottom:1px solid #eee;text-align:right">₹${Number(li.unitPrice).toLocaleString()}</td>
-      <td style="padding:8px 12px;border-bottom:1px solid #eee;text-align:right">${Number(li.taxRate)}%</td>
-      <td style="padding:8px 12px;border-bottom:1px solid #eee;text-align:right;font-weight:600">₹${Number(li.lineTotal).toLocaleString()}</td>
-    </tr>`).join('');
+      <td style="padding:8px 12px;border-bottom:${disc ? 'none' : '1px solid #eee'}">${i + 1}</td>
+      <td style="padding:8px 12px;border-bottom:${disc ? 'none' : '1px solid #eee'}">${li.description}</td>
+      <td style="padding:8px 12px;border-bottom:${disc ? 'none' : '1px solid #eee'};text-align:center">${li.lineType}</td>
+      <td style="padding:8px 12px;border-bottom:${disc ? 'none' : '1px solid #eee'};text-align:right">${Number(li.quantity)}</td>
+      <td style="padding:8px 12px;border-bottom:${disc ? 'none' : '1px solid #eee'};text-align:right">₹${Number(li.unitPrice).toLocaleString()}</td>
+      <td style="padding:8px 12px;border-bottom:${disc ? 'none' : '1px solid #eee'};text-align:right">${Number(li.taxRate)}%</td>
+      <td style="padding:8px 12px;border-bottom:${disc ? 'none' : '1px solid #eee'};text-align:right;font-weight:600">₹${Number(li.lineTotal).toLocaleString()}</td>
+    </tr>${disc ? `
+    <tr style="color:#16a34a;font-size:11px">
+      <td style="padding:0 12px 8px;border-bottom:1px solid #eee"></td>
+      <td colspan="3" style="padding:0 12px 8px;border-bottom:1px solid #eee">↳ Discount ${disc}% (-₹${discAmount.toFixed(0)})</td>
+      <td style="border-bottom:1px solid #eee"></td>
+      <td style="border-bottom:1px solid #eee"></td>
+      <td style="border-bottom:1px solid #eee"></td>
+    </tr>` : ''}`;
+  }).join('');
 
   const payments = invoice.payments?.map((p: any) => `
     <tr>
@@ -151,6 +162,71 @@ function generateInvoiceHTML(invoice: any, settings: Record<string, any>, logoUr
 </html>`;
 }
 
+function generateCustomerDraftHTML(invoice: any, settings: Record<string, any>, logoUrl: string) {
+  const biz = {
+    name: settings['business.name'] || 'GearUp Auto Service',
+    phone: settings['business.phone'] || '',
+    address: settings['business.address'] || '',
+  };
+
+  const rows = invoice.lineItems.filter((li: any) => li.lineType !== 'DISCOUNT_ADJUSTMENT').map((li: any, i: number) => `
+    <tr>
+      <td style="padding:8px 12px;border-bottom:1px solid #eee">${i + 1}</td>
+      <td style="padding:8px 12px;border-bottom:1px solid #eee">${li.description}</td>
+      <td style="padding:8px 12px;border-bottom:1px solid #eee;text-align:center">${li.lineType === 'PART' ? 'Part' : li.lineType === 'LABOR' ? 'Labor' : li.lineType === 'AMC' ? 'AMC' : 'Service'}</td>
+      <td style="padding:8px 12px;border-bottom:1px solid #eee;text-align:center">${Number(li.quantity)}</td>
+    </tr>`).join('');
+
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Service Summary — ${invoice.invoiceNumber}</title>
+<style>* { margin:0; padding:0; box-sizing:border-box; } body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; color:#1a1a1a; font-size:13px; } .page { max-width:800px; margin:0 auto; padding:40px; } .header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:24px; padding-bottom:16px; border-bottom:2px solid #111; } .biz-name { font-size:20px; font-weight:700; } table { width:100%; border-collapse:collapse; margin-top:16px; } th { background:#f3f4f6; padding:10px 12px; text-align:left; font-size:11px; text-transform:uppercase; color:#666; font-weight:600; } .footer { margin-top:32px; padding-top:12px; border-top:1px solid #eee; text-align:center; color:#888; font-size:12px; }</style>
+</head><body><div class="page">
+  <div class="header">
+    <div><img src="${logoUrl}" style="width:150px;margin-bottom:8px" alt="${biz.name}"><div class="biz-name">${biz.name}</div>${biz.phone ? `<div style="color:#666;font-size:12px">📞 ${biz.phone}</div>` : ''}</div>
+    <div style="text-align:right"><div style="font-size:22px;font-weight:700">SERVICE SUMMARY</div><div style="color:#666;font-size:13px;margin-top:4px">${invoice.invoiceNumber}</div><div style="color:#666;font-size:12px;margin-top:4px">${new Date(invoice.invoiceDate).toLocaleDateString('en-IN', { day:'numeric', month:'long', year:'numeric' })}</div></div>
+  </div>
+  <div style="display:flex;gap:16px;margin-bottom:20px">
+    <div style="flex:1;background:#f9fafb;padding:12px;border-radius:8px"><div style="font-size:10px;text-transform:uppercase;color:#888;font-weight:600">Customer</div><div style="font-weight:500;margin-top:4px">${invoice.customer.fullName}</div><div style="color:#666;font-size:12px">${invoice.customer.phoneNumber}</div></div>
+    <div style="flex:1;background:#f9fafb;padding:12px;border-radius:8px"><div style="font-size:10px;text-transform:uppercase;color:#888;font-weight:600">Vehicle</div><div style="font-weight:500;margin-top:4px">${invoice.vehicle.brand} ${invoice.vehicle.model}</div><div style="color:#666;font-size:12px">${invoice.vehicle.registrationNumber}</div></div>
+  </div>
+  ${invoice.jobCard?.issueSummary ? `<div style="margin-bottom:16px;padding:12px;background:#fffbeb;border-radius:8px;border:1px solid #fde68a"><strong>Issue:</strong> ${invoice.jobCard.issueSummary}</div>` : ''}
+  <table><thead><tr><th>#</th><th>Service / Part</th><th style="text-align:center">Type</th><th style="text-align:center">Qty</th></tr></thead><tbody>${rows}</tbody></table>
+  <div style="margin-top:24px;padding:16px;background:#f0fdf4;border-radius:8px;border:1px solid #bbf7d0;text-align:center;font-weight:600;font-size:15px">Estimate Total: ₹${Number(invoice.grandTotal).toLocaleString()}</div>
+  <div class="footer"><p>Thank you for choosing ${biz.name}!</p></div>
+</div></body></html>`;
+}
+
+function generateMechanicCopyHTML(invoice: any, settings: Record<string, any>, logoUrl: string) {
+  const biz = { name: settings['business.name'] || 'GearUp Auto Service' };
+
+  const tasks = invoice.jobCard?.tasks?.map((t: any, i: number) => `
+    <tr><td style="padding:6px 12px;border-bottom:1px solid #eee">${i + 1}</td><td style="padding:6px 12px;border-bottom:1px solid #eee">${t.taskName}</td><td style="padding:6px 12px;border-bottom:1px solid #eee;text-align:center">${t.status === 'COMPLETED' ? '✅' : '⬜'}</td></tr>`).join('') || '<tr><td colspan="3" style="padding:12px;color:#888;text-align:center">No tasks</td></tr>';
+
+  const parts = invoice.jobCard?.parts?.map((p: any, i: number) => `
+    <tr><td style="padding:6px 12px;border-bottom:1px solid #eee">${i + 1}</td><td style="padding:6px 12px;border-bottom:1px solid #eee">${p.inventoryItem?.itemName || 'Part'}</td><td style="padding:6px 12px;border-bottom:1px solid #eee;text-align:center">${Number(p.requiredQty)}</td><td style="padding:6px 12px;border-bottom:1px solid #eee;text-align:right">₹${Number(p.unitPrice).toLocaleString()}</td></tr>`).join('') || '<tr><td colspan="4" style="padding:12px;color:#888;text-align:center">No parts</td></tr>';
+
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Mechanic Copy — ${invoice.jobCard?.jobCardNumber || invoice.invoiceNumber}</title>
+<style>* { margin:0; padding:0; box-sizing:border-box; } body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; color:#1a1a1a; font-size:13px; } .page { max-width:800px; margin:0 auto; padding:40px; } table { width:100%; border-collapse:collapse; margin-top:8px; } th { background:#f3f4f6; padding:8px 12px; text-align:left; font-size:11px; text-transform:uppercase; color:#666; font-weight:600; } h2 { font-size:16px; margin-top:24px; margin-bottom:4px; }</style>
+</head><body><div class="page">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;padding-bottom:12px;border-bottom:2px solid #111">
+    <div><div style="font-size:20px;font-weight:700">${biz.name}</div><div style="font-size:11px;color:#888;margin-top:2px">MECHANIC WORK ORDER</div></div>
+    <div style="text-align:right"><div style="font-size:16px;font-weight:700">${invoice.jobCard?.jobCardNumber || '-'}</div><div style="color:#666;font-size:12px">${new Date(invoice.invoiceDate).toLocaleDateString('en-IN')}</div></div>
+  </div>
+  <div style="display:flex;gap:16px;margin-bottom:20px">
+    <div style="flex:1;background:#f9fafb;padding:12px;border-radius:8px"><strong>Vehicle:</strong> ${invoice.vehicle.brand} ${invoice.vehicle.model} — ${invoice.vehicle.registrationNumber}</div>
+    <div style="flex:1;background:#f9fafb;padding:12px;border-radius:8px"><strong>Customer:</strong> ${invoice.customer.fullName} (${invoice.customer.phoneNumber})</div>
+  </div>
+  ${invoice.jobCard?.issueSummary ? `<div style="margin-bottom:16px;padding:12px;background:#fef3c7;border-radius:8px;border:1px solid #fde68a"><strong>Issue:</strong> ${invoice.jobCard.issueSummary}</div>` : ''}
+  <h2>Tasks</h2>
+  <table><thead><tr><th>#</th><th>Task</th><th style="text-align:center">Done</th></tr></thead><tbody>${tasks}</tbody></table>
+  <h2>Parts Required</h2>
+  <table><thead><tr><th>#</th><th>Part</th><th style="text-align:center">Qty</th><th style="text-align:right">Price</th></tr></thead><tbody>${parts}</tbody></table>
+  <div style="margin-top:32px;border-top:1px solid #eee;padding-top:16px;display:flex;justify-content:space-between">
+    <div><strong>Mechanic Signature:</strong> ___________________</div>
+    <div><strong>Date:</strong> ___________________</div>
+  </div>
+</div></body></html>`;
+}
+
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
     requirePermission(PERMISSIONS.INVOICES_VIEW);
@@ -162,19 +238,28 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
         payments: { orderBy: { paymentDate: 'desc' } },
         customer: true,
         vehicle: true,
-        jobCard: { select: { jobCardNumber: true } },
+        jobCard: { select: { jobCardNumber: true, issueSummary: true, tasks: { select: { taskName: true, status: true } }, parts: { include: { inventoryItem: { select: { itemName: true } } } } } },
       },
     });
 
     const settingsRaw = await prisma.setting.findMany();
     const settings = Object.fromEntries(settingsRaw.map((s: any) => [s.key, s.value]));
+    const logoUrl = `${req.nextUrl.origin}/brand/gearup-logo.png`;
+    const type = req.nextUrl.searchParams.get('type') || 'invoice';
 
-    const html = generateInvoiceHTML(invoice, settings, `${req.nextUrl.origin}/brand/gearup-logo.png`);
+    let html: string;
+    if (type === 'customer-draft') {
+      html = generateCustomerDraftHTML(invoice, settings, logoUrl);
+    } else if (type === 'mechanic') {
+      html = generateMechanicCopyHTML(invoice, settings, logoUrl);
+    } else {
+      html = generateInvoiceHTML(invoice, settings, logoUrl);
+    }
 
     return new NextResponse(html, {
       headers: {
         'Content-Type': 'text/html; charset=utf-8',
-        'Content-Disposition': `inline; filename="${invoice.invoiceNumber}.html"`,
+        'Content-Disposition': `inline; filename="${invoice.invoiceNumber}-${type}.html"`,
       },
     });
   } catch (e) { return handleApiError(e); }

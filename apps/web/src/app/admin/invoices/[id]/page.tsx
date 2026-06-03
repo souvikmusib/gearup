@@ -15,8 +15,9 @@ export default function InvoiceDetailPage() {
   const [payMode, setPayMode] = useState('CASH');
   const [payRef, setPayRef] = useState('');
   const [loading, setLoading] = useState('');
-  const [newLine, setNewLine] = useState({ lineType: 'CUSTOM_CHARGE', description: '', quantity: '1', unitPrice: '', taxRate: '0', discountMode: 'flat', amcPlanId: '', amcContractId: '' });
+  const [newLine, setNewLine] = useState({ lineType: 'CUSTOM_CHARGE', description: '', quantity: '1', unitPrice: '', taxRate: '0', discountPercent: '0', discountMode: 'flat', amcPlanId: '', amcContractId: '' });
   const [addingLine, setAddingLine] = useState(false);
+  const [showPdfMenu, setShowPdfMenu] = useState(false);
   const [inventoryItems, setInventoryItems] = useState<any[]>([]);
   const [workers, setWorkers] = useState<any[]>([]);
   const [amcPlans, setAmcPlans] = useState<any[]>([]);
@@ -83,14 +84,14 @@ export default function InvoiceDetailPage() {
     setAddingLine(true);
     const payload: Record<string, any> = {
       lineType: newLine.lineType, description: newLine.description,
-      quantity: Number(newLine.quantity) || 1, unitPrice: Number(newLine.unitPrice) || 0, taxRate: Number(newLine.taxRate) || 0,
+      quantity: Number(newLine.quantity) || 1, unitPrice: Number(newLine.unitPrice) || 0, taxRate: Number(newLine.taxRate) || 0, discountPercent: Number(newLine.discountPercent) || 0,
     };
     if (newLine.lineType === 'DISCOUNT_ADJUSTMENT') payload.discountMode = newLine.discountMode;
     if (newLine.lineType === 'AMC' && newLine.amcContractId) payload.amcContractId = newLine.amcContractId;
     if (newLine.lineType === 'AMC' && newLine.amcPlanId && !newLine.amcContractId) payload.amcPlanId = newLine.amcPlanId;
     const res = await api.post<any>(`/admin/invoices/${id}/line-items`, payload);
     setAddingLine(false);
-    if (res.success) { setNewLine({ lineType: 'CUSTOM_CHARGE', description: '', quantity: '1', unitPrice: '', taxRate: '0', discountMode: 'flat', amcPlanId: '', amcContractId: '' }); fetch(); }
+    if (res.success) { setNewLine({ lineType: 'CUSTOM_CHARGE', description: '', quantity: '1', unitPrice: '', taxRate: '0', discountPercent: '0', discountMode: 'flat', amcPlanId: '', amcContractId: '' }); fetch(); }
     else { console.error('Add line failed:', res.error); alert(res.error?.message || 'Failed to add line item'); }
   };
 
@@ -106,11 +107,11 @@ export default function InvoiceDetailPage() {
     fetch();
   };
 
-  const openPdf = async () => {
+  const openPdf = async (type = 'invoice') => {
     const token = localStorage.getItem('gearup_token');
     if (!token) { alert('Not authenticated. Please login again.'); return; }
     try {
-      const res = await window.fetch(`${window.location.origin}/api/admin/invoices/${id}/pdf`, {
+      const res = await window.fetch(`${window.location.origin}/api/admin/invoices/${id}/pdf?type=${type}`, {
         method: 'GET',
         headers: { 'Authorization': `Bearer ${token}` },
       });
@@ -162,10 +163,19 @@ export default function InvoiceDetailPage() {
           </button>
         )}
 
-        <button onClick={openPdf} className="inline-flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">
-          <Download className="h-4 w-4" />
-          Download PDF
-        </button>
+        <div className="relative">
+          <button onClick={() => setShowPdfMenu(!showPdfMenu)} className="inline-flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">
+            <Download className="h-4 w-4" />
+            Download
+          </button>
+          {showPdfMenu && (
+            <div className="absolute right-0 top-full mt-1 w-48 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-lg z-10">
+              <button onClick={() => { openPdf(); setShowPdfMenu(false); }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 rounded-t-lg">Invoice</button>
+              <button onClick={() => { openPdf('customer-draft'); setShowPdfMenu(false); }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800">Customer Draft Copy</button>
+              <button onClick={() => { openPdf('mechanic'); setShowPdfMenu(false); }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 rounded-b-lg">Mechanic Copy</button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Payment Form */}
@@ -237,6 +247,7 @@ export default function InvoiceDetailPage() {
               <th className="px-5 py-2.5 text-right">Qty</th>
               <th className="px-5 py-2.5 text-right">Unit Price</th>
               <th className="px-5 py-2.5 text-right">Tax %</th>
+              <th className="px-5 py-2.5 text-right">Disc %</th>
               <th className="px-5 py-2.5 text-right">Total</th>
               {isDraft && <th className="px-3 py-2.5"></th>}
             </tr>
@@ -252,12 +263,14 @@ export default function InvoiceDetailPage() {
                     <td className="px-2 py-1.5 text-right"><input type="number" className="w-16 rounded border border-gray-300 px-1.5 py-0.5 text-xs text-right dark:border-gray-600 dark:bg-gray-700 dark:text-white" defaultValue={Number(li.quantity)} onBlur={(e) => updateLine(li.id, 'quantity', e.target.value)} /></td>
                     <td className="px-2 py-1.5 text-right"><input type="number" step="0.01" className="w-24 rounded border border-gray-300 px-1.5 py-0.5 text-xs text-right dark:border-gray-600 dark:bg-gray-700 dark:text-white" defaultValue={Number(li.unitPrice)} onBlur={(e) => updateLine(li.id, 'unitPrice', e.target.value)} /></td>
                     <td className="px-2 py-1.5 text-right"><input type="number" step="0.01" className="w-16 rounded border border-gray-300 px-1.5 py-0.5 text-xs text-right dark:border-gray-600 dark:bg-gray-700 dark:text-white" defaultValue={Number(li.taxRate)} onBlur={(e) => updateLine(li.id, 'taxRate', e.target.value)} /></td>
+                    <td className="px-2 py-1.5 text-right"><input type="number" step="0.01" min="0" max="100" className="w-16 rounded border border-gray-300 px-1.5 py-0.5 text-xs text-right dark:border-gray-600 dark:bg-gray-700 dark:text-white" defaultValue={Number(li.discountPercent)} onBlur={(e) => updateLine(li.id, 'discountPercent', e.target.value)} /></td>
                   </>
                 ) : (
                   <>
                     <td className="px-5 py-2.5 text-right">{Number(li.quantity)}</td>
                     <td className="px-5 py-2.5 text-right">₹{Number(li.unitPrice).toLocaleString()}</td>
                     <td className="px-5 py-2.5 text-right text-gray-500">{Number(li.taxRate)}%</td>
+                    <td className="px-5 py-2.5 text-right text-gray-500">{Number(li.discountPercent)}%</td>
                   </>
                 )}
                 <td className="px-5 py-2.5 text-right font-semibold">₹{Number(li.lineTotal).toLocaleString()}</td>
@@ -281,10 +294,10 @@ export default function InvoiceDetailPage() {
                 {newLine.lineType === 'PART' ? (
                   <select className={inputCls} value={newLine.description} onFocus={loadInventory} onChange={(e) => {
                     const item = inventoryItems.find((i: any) => i.itemName === e.target.value);
-                    setNewLine({ ...newLine, description: e.target.value, unitPrice: item ? String(Number(item.sellingPrice) * (1 - (Number(item.discountPercent) || 0) / 100)) : newLine.unitPrice });
+                    setNewLine({ ...newLine, description: e.target.value, unitPrice: item ? String(Number(item.sellingPrice)) : newLine.unitPrice, discountPercent: item ? String(Number(item.discountPercent) || '0') : '0' });
                   }}>
                     <option value="">Select part...</option>
-                    {inventoryItems.map((i: any) => { const dp = Number(i.discountPercent) || 0; const price = Number(i.sellingPrice) * (1 - dp / 100); return <option key={i.id} value={i.itemName}>{i.itemName} ({i.sku}) — ₹{price.toFixed(0)}{dp ? ` (${dp}% off)` : ''}</option>; })}
+                    {inventoryItems.map((i: any) => { const dp = Number(i.discountPercent) || 0; return <option key={i.id} value={i.itemName}>{i.itemName} ({i.sku}) — ₹{Number(i.sellingPrice)}{dp ? ` (${dp}% off)` : ''}</option>; })}
                   </select>
                 ) : newLine.lineType === 'AMC' ? (
                   <div className="space-y-1">
@@ -334,6 +347,10 @@ export default function InvoiceDetailPage() {
                   <><label className="block text-[10px] text-gray-400 mb-0.5">Tax %</label>
                   <input type="number" step="0.01" className={inputCls} value={newLine.taxRate} onChange={(e) => setNewLine({ ...newLine, taxRate: e.target.value })} /></>
                 )}
+              </div>
+              <div className="col-span-1">
+                <label className="block text-[10px] text-gray-400 mb-0.5">Disc %</label>
+                <input type="number" step="0.01" min="0" max="100" className={inputCls} value={newLine.discountPercent} onChange={(e) => setNewLine({ ...newLine, discountPercent: e.target.value })} />
               </div>
               <div className="col-span-2">
                 <button onClick={addLine} disabled={addingLine} className="w-full rounded-lg bg-green-600 px-3 py-2 text-sm font-semibold text-white hover:bg-green-700 disabled:opacity-50">

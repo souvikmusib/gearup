@@ -58,6 +58,28 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       return created;
     });
     logActivity({ entityType: 'JobCardPart', entityId: part.id, action: 'job-card.part.added', newValue: { jobCardId: params.id, ...body }, actorType: 'ADMIN', actorId: user.sub });
+
+    // Sync to invoice if one exists (draft only)
+    const invoice = await prisma.invoice.findFirst({ where: { jobCardId: params.id, invoiceStatus: 'DRAFT' } });
+    if (invoice) {
+      const item = await prisma.inventoryItem.findUniqueOrThrow({ where: { id: body.inventoryItemId } });
+      const exists = await prisma.invoiceLineItem.findFirst({ where: { invoiceId: invoice.id, referenceItemId: body.inventoryItemId } });
+      if (!exists) {
+        const unitPrice = Number(part.unitPrice);
+        const taxRate = Number(item.taxRate);
+        const subtotal = body.requiredQty * unitPrice;
+        const taxAmount = subtotal * (taxRate / 100);
+        const count = await prisma.invoiceLineItem.count({ where: { invoiceId: invoice.id } });
+        await prisma.invoiceLineItem.create({ data: { invoiceId: invoice.id, lineType: 'PART', description: item.itemName, quantity: body.requiredQty, unitPrice, taxRate, taxAmount, lineTotal: subtotal + taxAmount, sortOrder: count, referenceItemId: item.id } });
+        // Recalc invoice totals
+        const lines = await prisma.invoiceLineItem.findMany({ where: { invoiceId: invoice.id } });
+        const invSubtotal = lines.reduce((s, l) => s + Number(l.lineTotal) - Number(l.taxAmount), 0);
+        const invTaxTotal = lines.reduce((s, l) => s + Number(l.taxAmount), 0);
+        const grandTotal = invSubtotal + invTaxTotal - Number(invoice.discountAmount);
+        await prisma.invoice.update({ where: { id: invoice.id }, data: { subtotal: invSubtotal, taxTotal: invTaxTotal, grandTotal, amountDue: grandTotal - Number(invoice.amountPaid) } });
+      }
+    }
+
     return NextResponse.json({ success: true, data: part }, { status: 201 });
   } catch (e) { return handleApiError(e); }
 }
