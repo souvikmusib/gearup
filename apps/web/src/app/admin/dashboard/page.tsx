@@ -161,15 +161,15 @@ export default function DashboardPage() {
             <button onClick={() => router.push('/admin/workers')} className="text-sm text-blue-600 hover:text-blue-700 font-medium">View all →</button>
           </div>
           <div className="flex flex-wrap gap-3">
-            {workerLoad.filter((w: any) => w.activeAssignments > 0).map((w: any) => (
+            {workerLoad.filter((w: any) => w.totalAssignments > 0).map((w: any) => (
               <div key={w.id} className="flex items-center gap-2 rounded-lg border border-gray-100 dark:border-gray-800 px-3 py-2">
                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{w.fullName}</span>
-                <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${w.activeAssignments >= 3 ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : w.activeAssignments >= 2 ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'}`}>
-                  {w.activeAssignments} job{w.activeAssignments > 1 ? 's' : ''}
+                <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${w.activeAssignments >= 3 ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : w.activeAssignments >= 2 ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' : w.activeAssignments >= 1 ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'}`}>
+                  {w.activeAssignments} ({w.totalAssignments})
                 </span>
               </div>
             ))}
-            {workerLoad.every((w: any) => w.activeAssignments === 0) && <p className="text-sm text-gray-500">All workers free</p>}
+            {workerLoad.every((w: any) => w.totalAssignments === 0) && <p className="text-sm text-gray-500">No assignments yet</p>}
           </div>
         </div>
       )}

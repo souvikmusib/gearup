@@ -97,7 +97,9 @@ export async function GET(req: NextRequest) {
           _count: { select: { assignments: { where: { unassignedAt: null, jobCard: { status: { notIn: ['DELIVERED', 'CANCELLED'] } } } } } },
         },
       });
-      return NextResponse.json({ success: true, data: workers.map((w) => ({ id: w.id, fullName: w.fullName, activeAssignments: w._count.assignments })) });
+      const totals = await prisma.workerAssignment.groupBy({ by: ['workerId'], _count: true });
+      const totalMap = Object.fromEntries(totals.map((t) => [t.workerId, t._count]));
+      return NextResponse.json({ success: true, data: workers.map((w) => ({ id: w.id, fullName: w.fullName, activeAssignments: w._count.assignments, totalAssignments: totalMap[w.id] || 0 })) });
     }
 
     if (type === 'expenses') {
