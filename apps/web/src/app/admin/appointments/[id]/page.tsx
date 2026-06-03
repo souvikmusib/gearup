@@ -39,7 +39,8 @@ export default function AppointmentDetailPage() {
   const [showReschedule, setShowReschedule] = useState(false);
   const [rescheduleDate, setRescheduleDate] = useState('');
   const [rescheduleReason, setRescheduleReason] = useState('');
-
+  const [showEdit, setShowEdit] = useState(false);
+  const [editForm, setEditForm] = useState({ appointmentDate: '', assignedWorkerId: '' });
   const load = () => {
     const { cached, promise } = api.getSWR<any>(`/admin/appointments/${id}`);
     if (cached?.success) setData(cached.data);
@@ -79,6 +80,28 @@ export default function AppointmentDetailPage() {
     if (res.success) setData(res.data);
   };
 
+  const openEdit = () => {
+    const dt = new Date(data.slotStart);
+    const local = new Date(dt.getTime() - dt.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+    setEditForm({ appointmentDate: local, assignedWorkerId: data.assignedWorkerId || '' });
+    setShowEdit(true);
+  };
+
+  const saveEdit = async () => {
+    if (!editForm.appointmentDate) return;
+    setLoading('edit');
+    const dt = new Date(editForm.appointmentDate);
+    const res = await api.patch<any>(`/admin/appointments/${id}`, {
+      appointmentDate: dt.toISOString(),
+      slotStart: dt.toISOString(),
+      slotEnd: new Date(dt.getTime() + 30 * 60000).toISOString(),
+      assignedWorkerId: editForm.assignedWorkerId || undefined,
+    });
+    setLoading('');
+    if (res.success) { setData(res.data); setShowEdit(false); }
+    else alert(res.error?.message || 'Failed to save');
+  };
+
   if (!data) return <p className="py-8 text-center text-gray-500">Loading...</p>;
 
   const actions = STATUS_ACTIONS[data.status] || [];
@@ -86,7 +109,10 @@ export default function AppointmentDetailPage() {
 
   return (
     <div>
-      <PageHeader title={`Appointment ${data.referenceId}`} />
+      <div className="flex items-center justify-between mb-4">
+        <PageHeader title={`Appointment ${data.referenceId}`} />
+        <button onClick={openEdit} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">Edit</button>
+      </div>
 
       {actions.length > 0 && (
         <div className="mb-6 flex flex-wrap gap-2">
@@ -135,6 +161,21 @@ export default function AppointmentDetailPage() {
           )}
         </div>
       </div>
+
+      <Modal open={showEdit} onClose={() => setShowEdit(false)} title="Edit Appointment">
+        <div className="space-y-4">
+          <div><label className="block text-sm font-medium mb-1">Date & Time <span className="text-red-500">*</span></label><input type="datetime-local" className={inputCls} value={editForm.appointmentDate} onChange={(e) => setEditForm({ ...editForm, appointmentDate: e.target.value })} /></div>
+          <div><label className="block text-sm font-medium mb-1">Assigned Worker</label>
+            <select className={inputCls} value={editForm.assignedWorkerId} onChange={(e) => setEditForm({ ...editForm, assignedWorkerId: e.target.value })}>
+              <option value="">Unassigned</option>
+              {workers.map((w: any) => <option key={w.id} value={w.id}>{w.fullName}</option>)}
+            </select>
+          </div>
+          <button onClick={saveEdit} disabled={!!loading} className="w-full rounded-lg bg-blue-600 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50">
+            {loading === 'edit' ? 'Saving...' : 'Save Changes'}
+          </button>
+        </div>
+      </Modal>
 
       <Modal open={showReschedule} onClose={() => setShowReschedule(false)} title="Reschedule Appointment">
         <div className="space-y-4">
