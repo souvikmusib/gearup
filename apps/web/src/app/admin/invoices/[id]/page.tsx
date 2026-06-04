@@ -84,7 +84,7 @@ export default function InvoiceDetailPage() {
     e.preventDefault();
     setLoading('pay');
     const res = await api.post<any>(`/admin/invoices/${id}/payments`, {
-      amount: Number(payAmount), paymentMode: payMode, paymentDate: new Date(payDate + 'T00:00:00').toISOString(), referenceNumber: payRef || undefined,
+      amount: Number(payAmount), paymentMode: payMode, paymentDate: payDate + 'T00:00:00+05:30', referenceNumber: payRef || undefined,
     });
     if (res.success) { setShowPayForm(false); setPayAmount(''); setPayRef(''); fetch(); }
     setLoading('');

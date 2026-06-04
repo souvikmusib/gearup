@@ -12,8 +12,12 @@ export async function GET(req: NextRequest) {
     const from = sp.get('from'); const to = sp.get('to');
 
     if (type === 'dashboard') {
-      const today = new Date(); today.setHours(0, 0, 0, 0);
-      const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
+      // Use IST (UTC+5:30) for "today" boundaries
+      const now = new Date();
+      const istOffset = 5.5 * 60 * 60 * 1000;
+      const istNow = new Date(now.getTime() + istOffset);
+      const today = new Date(istNow.toISOString().slice(0, 10) + 'T00:00:00+05:30');
+      const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
       const [
         todayAppointments,
         pendingRequests,
