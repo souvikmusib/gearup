@@ -22,8 +22,8 @@ export default function VehicleDetailPage() {
 
   const save = async () => {
     setSaving(true);
-    const { brand, model, variant, odometerReading, notes } = form;
-    const res = await api.patch<any>(`/admin/vehicles/${id}`, { brand: brand || '', model: model || '', variant: variant || '', odometerReading: odometerReading ? Number(odometerReading) : undefined, notes: notes || '' });
+    const { brand, model, variant, odometerReading, notes, registrationNumber } = form;
+    const res = await api.patch<any>(`/admin/vehicles/${id}`, { registrationNumber: registrationNumber || undefined, brand: brand || '', model: model || '', variant: variant || '', odometerReading: odometerReading ? Number(odometerReading) : undefined, notes: notes || '' });
     setSaving(false);
     if (res.success) { setData(res.data); setShowEdit(false); }
     else alert(res.error?.message || 'Failed to save');
@@ -119,6 +119,7 @@ export default function VehicleDetailPage() {
 
       <Modal open={showEdit} onClose={() => setShowEdit(false)} title="Edit Vehicle">
         <div className="space-y-3">
+          <div><label className="block text-xs font-medium mb-1">Registration Number</label><input className={inputCls} value={form.registrationNumber || ''} onChange={(e) => setForm({ ...form, registrationNumber: e.target.value })} /></div>
           <div className="grid grid-cols-2 gap-3">
             <div><label className="block text-xs font-medium mb-1">Brand</label><input className={inputCls} value={form.brand || ''} onChange={(e) => setForm({ ...form, brand: e.target.value })} /></div>
             <div><label className="block text-xs font-medium mb-1">Model</label><input className={inputCls} value={form.model || ''} onChange={(e) => setForm({ ...form, model: e.target.value })} /></div>
