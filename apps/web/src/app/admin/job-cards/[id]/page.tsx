@@ -393,9 +393,13 @@ export default function JobCardDetailPage() {
           </div>
 
           {/* Invoice */}
-          {canCreateInvoice(status) && (
+          {data.invoices?.length > 0 ? (
+            <button onClick={() => router.push(`/admin/invoices/${data.invoices[0].id}`)} className="w-full rounded-lg bg-blue-600 py-2 text-sm font-semibold text-white hover:bg-blue-700">
+              View Invoice {data.invoices[0].invoiceNumber}
+            </button>
+          ) : canCreateInvoice(status) && (
             <button onClick={goToInvoice} disabled={creatingInvoice} className="w-full rounded-lg bg-blue-600 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50">
-              {creatingInvoice ? 'Creating...' : data.invoices?.length > 0 ? `View Invoice ${data.invoices[0].invoiceNumber}` : '+ Create Invoice'}
+              {creatingInvoice ? 'Creating...' : '+ Create Invoice'}
             </button>
           )}
 
