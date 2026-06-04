@@ -14,6 +14,7 @@ export default function InvoiceDetailPage() {
   const [payAmount, setPayAmount] = useState('');
   const [payMode, setPayMode] = useState('CASH');
   const [payRef, setPayRef] = useState('');
+  const [payDate, setPayDate] = useState(new Date().toISOString().slice(0, 10));
   const [loading, setLoading] = useState('');
   const [newLine, setNewLine] = useState({ lineType: 'CUSTOM_CHARGE', description: '', quantity: '1', unitPrice: '', taxRate: '0', discountPercent: '0', discountMode: 'flat', amcPlanId: '', amcContractId: '' });
   const [addingLine, setAddingLine] = useState(false);
@@ -83,7 +84,7 @@ export default function InvoiceDetailPage() {
     e.preventDefault();
     setLoading('pay');
     const res = await api.post<any>(`/admin/invoices/${id}/payments`, {
-      amount: Number(payAmount), paymentMode: payMode, paymentDate: new Date().toISOString(), referenceNumber: payRef || undefined,
+      amount: Number(payAmount), paymentMode: payMode, paymentDate: new Date(payDate + 'T00:00:00').toISOString(), referenceNumber: payRef || undefined,
     });
     if (res.success) { setShowPayForm(false); setPayAmount(''); setPayRef(''); fetch(); }
     setLoading('');
@@ -199,10 +200,14 @@ export default function InvoiceDetailPage() {
       {showPayForm && (
         <form onSubmit={recordPayment} className="rounded-xl border border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/30 p-5">
           <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Record Payment</h3>
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-4">
             <div>
               <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Amount (₹)</label>
               <input type="number" step="0.01" required value={payAmount} onChange={(e) => setPayAmount(e.target.value)} className={inputCls} />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Payment Date</label>
+              <input type="date" value={payDate} onChange={(e) => setPayDate(e.target.value)} className={inputCls} />
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Payment Mode</label>

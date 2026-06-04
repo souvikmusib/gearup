@@ -9,7 +9,7 @@ import { z } from 'zod';
 
 const createSchema = z.object({
   fullName: z.string().min(1), phoneNumber: z.string().min(5), alternatePhone: z.string().optional(),
-  email: z.string().transform(v => v.trim() || undefined).pipe(z.string().email().optional()), addressLine1: z.string().optional(), addressLine2: z.string().optional(),
+  email: z.string().optional().transform(v => v?.trim() || undefined).pipe(z.string().email().optional()), addressLine1: z.string().optional(), addressLine2: z.string().optional(),
   city: z.string().optional(), state: z.string().optional(), postalCode: z.string().optional(),
   notes: z.string().optional(), source: z.string().optional(),
 });
