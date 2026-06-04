@@ -105,7 +105,7 @@ export default function VehiclesPage() {
                 <option value="BIKE">Motorcycle</option><option value="OTHER">Scooter / Other</option>
               </select>
             </div>
-            <div><label className="block text-xs font-medium mb-1">Reg Number <span className="text-red-500">*</span></label><input className={inputCls} value={form.registrationNumber} onChange={(e) => setForm({ ...form, registrationNumber: formatRegNumber(e.target.value) })} placeholder="WB-26-AB-1234" /></div>
+            <div><label className="block text-xs font-medium mb-1">Reg Number <span className="text-red-500">*</span></label><input className={inputCls} value={form.registrationNumber} onChange={(e) => setForm({ ...form, registrationNumber: e.target.value.toUpperCase() })} placeholder="WB-26-AB-1234" /></div>
             <div><label className="block text-xs font-medium mb-1">Brand <span className="text-red-500">*</span></label><input className={inputCls} value={form.brand} onChange={(e) => setForm({ ...form, brand: e.target.value })} /></div>
             <div><label className="block text-xs font-medium mb-1">Model <span className="text-red-500">*</span></label><input className={inputCls} value={form.model} onChange={(e) => setForm({ ...form, model: e.target.value })} /></div>
             <div><label className="block text-xs font-medium mb-1">Variant</label><input className={inputCls} value={form.variant} onChange={(e) => setForm({ ...form, variant: e.target.value })} /></div>
