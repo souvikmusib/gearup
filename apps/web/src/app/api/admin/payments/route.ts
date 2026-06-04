@@ -12,9 +12,14 @@ export async function GET(req: NextRequest) {
     const page = Number(sp.get('page')) || 1;
     const pageSize = Number(sp.get('pageSize')) || 20;
     const p = paginate({ page, pageSize });
+    const where: Record<string, unknown> = {};
+    const from = sp.get('from'); const to = sp.get('to');
+    if (from && to) where.paymentDate = { gte: new Date(from + 'T00:00:00+05:30'), lte: new Date(to + 'T23:59:59+05:30') };
+    else if (from) where.paymentDate = { gte: new Date(from + 'T00:00:00+05:30') };
+    else if (to) where.paymentDate = { lte: new Date(to + 'T23:59:59+05:30') };
     const [data, total] = await Promise.all([
-      prisma.payment.findMany({ ...p, orderBy: { paymentDate: 'desc' }, include: { invoice: { select: { invoiceNumber: true, customer: { select: { fullName: true } } } } } }),
-      prisma.payment.count(),
+      prisma.payment.findMany({ where, ...p, orderBy: { paymentDate: 'desc' }, include: { invoice: { select: { invoiceNumber: true, customer: { select: { fullName: true } } } } } }),
+      prisma.payment.count({ where }),
     ]);
     return NextResponse.json({ success: true, data, meta: paginationMeta(total, page, pageSize) });
   } catch (e) { return handleApiError(e); }
