@@ -17,9 +17,9 @@ export default function InventoryItemsPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [categories, setCategories] = useState<any[]>([]);
   const [suppliers, setSuppliers] = useState<any[]>([]);
-  const [form, setForm] = useState({ sku: '', itemName: '', categoryId: '', supplierId: '', unit: '', costPrice: '', sellingPrice: '', discountPercent: '', quantityInStock: '', variablePrice: false });
+  const [form, setForm] = useState({ sku: '', itemName: '', categoryId: '', supplierId: '', unit: '', costPrice: '', mrp: '', sellingPrice: '', discountPercent: '', quantityInStock: '', variablePrice: false });
   const [editItem, setEditItem] = useState<any>(null);
-  const [editForm, setEditForm] = useState({ itemName: '', categoryId: '', supplierId: '', unit: '', costPrice: '', sellingPrice: '', discountPercent: '', reorderLevel: '', storageLocation: '', isActive: true, variablePrice: false });
+  const [editForm, setEditForm] = useState({ itemName: '', categoryId: '', supplierId: '', unit: '', costPrice: '', mrp: '', sellingPrice: '', discountPercent: '', reorderLevel: '', storageLocation: '', isActive: true, variablePrice: false });
   const [editSaving, setEditSaving] = useState(false);
   const [stockItem, setStockItem] = useState<any>(null);
   const [stockForm, setStockForm] = useState({ type: 'STOCK_IN', quantity: '', reason: '' });
@@ -63,18 +63,18 @@ export default function InventoryItemsPage() {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const body: Record<string, unknown> = { ...form, costPrice: Number(form.costPrice), sellingPrice: Number(form.sellingPrice), quantityInStock: Number(form.quantityInStock) };
+    const body: Record<string, unknown> = { ...form, costPrice: Number(form.costPrice), mrp: form.mrp ? Number(form.mrp) : undefined, sellingPrice: Number(form.sellingPrice), quantityInStock: Number(form.quantityInStock) };
     if (form.discountPercent) body.discountPercent = Number(form.discountPercent);
     if (!body.supplierId) delete body.supplierId;
     const res = await api.post('/admin/inventory/items', body);
-    if (res.success) { setShowCreate(false); setForm({ sku: '', itemName: '', categoryId: '', supplierId: '', unit: '', costPrice: '', sellingPrice: '', discountPercent: '', quantityInStock: '', variablePrice: false }); load(); }
+    if (res.success) { setShowCreate(false); setForm({ sku: '', itemName: '', categoryId: '', supplierId: '', unit: '', costPrice: '', mrp: '', sellingPrice: '', discountPercent: '', quantityInStock: '', variablePrice: false }); load(); }
   };
 
   const openEdit = (item: any) => {
     setEditItem(item);
     setEditForm({
       itemName: item.itemName || '', categoryId: item.categoryId || '', supplierId: item.supplierId || '', unit: item.unit || '',
-      costPrice: String(Number(item.costPrice) || ''), sellingPrice: String(Number(item.sellingPrice) || ''), discountPercent: String(Number(item.discountPercent) || ''),
+      costPrice: String(Number(item.costPrice) || ''), mrp: String(Number(item.mrp) || ''), sellingPrice: String(Number(item.sellingPrice) || ''), discountPercent: String(Number(item.discountPercent) || ''),
       reorderLevel: item.reorderLevel != null ? String(Number(item.reorderLevel)) : '', storageLocation: item.storageLocation || '', isActive: item.isActive ?? true, variablePrice: item.variablePrice ?? false,
     });
     loadLookups();
@@ -155,6 +155,7 @@ export default function InventoryItemsPage() {
           <div><label className="block text-xs font-medium mb-1">Unit <span className="text-red-500">*</span></label><input className={inputCls} placeholder="e.g. pcs, litre" required value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })} /></div>
           <div className="grid grid-cols-2 gap-3">
             <input className={inputCls} placeholder="Cost Price" type="number" step="0.01" required value={form.costPrice} onChange={(e) => setForm({ ...form, costPrice: e.target.value })} />
+            <input className={inputCls} placeholder="MRP" type="number" step="0.01" value={form.mrp} onChange={(e) => setForm({ ...form, mrp: e.target.value })} />
             <input className={inputCls} placeholder="Selling Price" type="number" step="0.01" required value={form.sellingPrice} onChange={(e) => setForm({ ...form, sellingPrice: e.target.value })} />
             <input className={inputCls} placeholder="Discount %" type="number" step="0.01" min="0" max="100" value={form.discountPercent} onChange={(e) => setForm({ ...form, discountPercent: e.target.value })} />
           </div>
@@ -182,6 +183,7 @@ export default function InventoryItemsPage() {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div><label className={labelCls}>Cost Price</label><input className={inputCls} type="number" step="0.01" value={editForm.costPrice} onChange={(e) => setEditForm({ ...editForm, costPrice: e.target.value })} /></div>
+            <div><label className={labelCls}>MRP</label><input className={inputCls} type="number" step="0.01" value={editForm.mrp} onChange={(e) => setEditForm({ ...editForm, mrp: e.target.value })} /></div>
             <div><label className={labelCls}>Selling Price</label><input className={inputCls} type="number" step="0.01" value={editForm.sellingPrice} onChange={(e) => setEditForm({ ...editForm, sellingPrice: e.target.value })} /></div>
             <div><label className={labelCls}>Discount %</label><input className={inputCls} type="number" step="0.01" min="0" max="100" value={editForm.discountPercent} onChange={(e) => setEditForm({ ...editForm, discountPercent: e.target.value })} /></div>
           </div>
