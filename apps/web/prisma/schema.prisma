@@ -574,6 +574,7 @@ model InventoryItem {
   barcode                String?
   isActive               Boolean   @default(true)
   variablePrice          Boolean   @default(false)
+  isBranded              Boolean   @default(true)
   createdAt              DateTime  @default(now())
   updatedAt              DateTime  @updatedAt
 
