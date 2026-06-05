@@ -351,7 +351,22 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     }
 
     let html: string;
-    if (type === 'customer-draft') {
+    if (type === 'combined') {
+      const draftHtml = generateCustomerDraftHTML(invoice, settings, logoUrl);
+      const mechHtml = generateMechanicCopyHTML(invoice, settings, logoUrl);
+      // Extract body content from each
+      const extractBody = (h: string) => { const m = h.match(/<body>([\s\S]*)<\/body>/); return m ? m[1] : h; };
+      html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Combined — ${invoice.invoiceNumber}</title>
+<style>* { margin:0; padding:0; box-sizing:border-box; } body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; color:#1a1a1a; font-size:13px; }
+@media print { .cut-line { break-before: avoid; } }
+.cut-line { border:none; border-top:2px dashed #999; margin:20px 0; position:relative; }
+.cut-line::before { content:'✂'; position:absolute; top:-10px; left:20px; background:#fff; padding:0 8px; color:#999; font-size:14px; }
+</style></head><body>
+${extractBody(draftHtml)}
+<hr class="cut-line">
+${extractBody(mechHtml)}
+</body></html>`;
+    } else if (type === 'customer-draft') {
       html = generateCustomerDraftHTML(invoice, settings, logoUrl);
     } else if (type === 'mechanic') {
       html = generateMechanicCopyHTML(invoice, settings, logoUrl);
