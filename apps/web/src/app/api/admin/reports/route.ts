@@ -54,15 +54,15 @@ export async function GET(req: NextRequest) {
 
     if (type === 'revenue') {
       const where: Record<string, unknown> = {};
-      if (from && to) where.paymentDate = { gte: new Date(from), lte: new Date(to + 'T23:59:59') };
+      if (from && to) where.paymentDate = { gte: new Date(from + 'T00:00:00+05:30'), lte: new Date(to + 'T23:59:59+05:30') };
       const [payments, total, dailyRaw] = await Promise.all([
         prisma.payment.groupBy({ by: ['paymentMode'], where, _sum: { amount: true }, _count: true }),
         prisma.payment.aggregate({ where, _sum: { amount: true } }),
         prisma.payment.findMany({ where, select: { amount: true, paymentDate: true }, orderBy: { paymentDate: 'asc' } }),
       ]);
-      // Aggregate daily
+      // Aggregate daily in IST
       const dailyMap: Record<string, number> = {};
-      dailyRaw.forEach((p) => { const day = new Date(p.paymentDate).toISOString().slice(0, 10); dailyMap[day] = (dailyMap[day] || 0) + Number(p.amount); });
+      dailyRaw.forEach((p) => { const istDate = new Date(new Date(p.paymentDate).getTime() + 5.5 * 60 * 60 * 1000).toISOString().slice(0, 10); dailyMap[istDate] = (dailyMap[istDate] || 0) + Number(p.amount); });
       const daily = Object.entries(dailyMap).map(([date, amount]) => ({ date, amount }));
       return NextResponse.json({
         success: true,
