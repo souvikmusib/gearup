@@ -12,7 +12,7 @@ const vehicleSchema = z.object({
   brand: z.string().min(1), model: z.string().min(1), variant: z.string().optional(),
   yearOfManufacture: z.number().optional(), fuelType: z.string().optional(), transmission: z.string().optional(),
   color: z.string().optional(), vin: z.string().optional(), chassisNumber: z.string().optional(),
-  engineNumber: z.string().optional(), odometerReading: z.number().optional(), notes: z.string().optional(),
+  engineNumber: z.string().optional(), engineCC: z.union([z.number(), z.string().transform(v => v ? Number(v) : undefined)]).optional(), odometerReading: z.number().optional(), notes: z.string().optional(),
 });
 
 export async function GET(req: NextRequest) {

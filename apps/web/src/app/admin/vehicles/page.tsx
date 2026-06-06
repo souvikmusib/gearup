@@ -18,7 +18,7 @@ export default function VehiclesPage() {
   const [customers, setCustomers] = useState<any[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [form, setForm] = useState({ customerId: '', vehicleType: 'BIKE', registrationNumber: '', brand: '', model: '', variant: '', fuelType: '' });
+  const [form, setForm] = useState({ customerId: '', vehicleType: 'BIKE', registrationNumber: '', brand: '', model: '', variant: '', fuelType: '', engineCC: '' });
   const [showNewCust, setShowNewCust] = useState(false);
   const [custForm, setCustForm] = useState({ fullName: '', phoneNumber: '' });
   const router = useRouter();
@@ -52,7 +52,7 @@ export default function VehiclesPage() {
     setSaving(true); setError('');
     const res = await api.post<any>('/admin/vehicles', form);
     setSaving(false);
-    if (res.success) { setShowCreate(false); setForm({ customerId: '', vehicleType: 'BIKE', registrationNumber: '', brand: '', model: '', variant: '', fuelType: '' }); load(); }
+    if (res.success) { setShowCreate(false); setForm({ customerId: '', vehicleType: 'BIKE', registrationNumber: '', brand: '', model: '', variant: '', fuelType: '', engineCC: '' }); load(); }
     else setError(res.error?.message || 'Failed');
   };
 
@@ -109,6 +109,7 @@ export default function VehiclesPage() {
             <div><label className="block text-xs font-medium mb-1">Brand <span className="text-red-500">*</span></label><input className={inputCls} value={form.brand} onChange={(e) => setForm({ ...form, brand: e.target.value })} /></div>
             <div><label className="block text-xs font-medium mb-1">Model <span className="text-red-500">*</span></label><input className={inputCls} value={form.model} onChange={(e) => setForm({ ...form, model: e.target.value })} /></div>
             <div><label className="block text-xs font-medium mb-1">Variant</label><input className={inputCls} value={form.variant} onChange={(e) => setForm({ ...form, variant: e.target.value })} /></div>
+            <div><label className="block text-xs font-medium mb-1">Engine CC</label><input type="number" className={inputCls} value={form.engineCC} onChange={(e) => setForm({ ...form, engineCC: e.target.value })} placeholder="e.g. 125" /></div>
             <div><label className="block text-xs font-medium mb-1">Fuel Type</label><input className={inputCls} value={form.fuelType} onChange={(e) => setForm({ ...form, fuelType: e.target.value })} placeholder="Petrol/Diesel/EV" /></div>
           </div>
           <button onClick={submit} disabled={saving} className="w-full rounded-lg bg-blue-600 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50">{saving ? 'Creating...' : 'Add Vehicle'}</button>
