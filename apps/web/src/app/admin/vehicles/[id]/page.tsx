@@ -24,7 +24,7 @@ export default function VehicleDetailPage() {
   const save = async () => {
     setSaving(true);
     const { brand, model, variant, odometerReading, notes, registrationNumber } = form;
-    const res = await api.patch<any>(`/admin/vehicles/${id}`, { registrationNumber: registrationNumber || undefined, brand: brand || '', model: model || '', variant: variant || '', odometerReading: odometerReading ? Number(odometerReading) : undefined, notes: notes || '' });
+    const res = await api.patch<any>(`/admin/vehicles/${id}`, { registrationNumber: registrationNumber || undefined, brand: brand || '', model: model || '', variant: variant || '', engineCC: form.engineCC ? Number(form.engineCC) : undefined, odometerReading: odometerReading ? Number(odometerReading) : undefined, notes: notes || '' });
     setSaving(false);
     if (res.success) { setData(res.data); setShowEdit(false); }
     else alert(res.error?.message || 'Failed to save');
@@ -125,6 +125,7 @@ export default function VehicleDetailPage() {
             <div><label className="block text-xs font-medium mb-1">Brand</label><input className={inputCls} value={form.brand || ''} onChange={(e) => setForm({ ...form, brand: e.target.value })} /></div>
             <div><label className="block text-xs font-medium mb-1">Model</label><input className={inputCls} value={form.model || ''} onChange={(e) => setForm({ ...form, model: e.target.value })} /></div>
             <div><label className="block text-xs font-medium mb-1">Variant</label><input className={inputCls} value={form.variant || ''} onChange={(e) => setForm({ ...form, variant: e.target.value })} /></div>
+            <div><label className="block text-xs font-medium mb-1">Engine CC</label><input type="number" className={inputCls} value={form.engineCC || ''} onChange={(e) => setForm({ ...form, engineCC: e.target.value })} placeholder="e.g. 125" /></div>
             <div><label className="block text-xs font-medium mb-1">Odometer (km)</label><input type="number" className={inputCls} value={form.odometerReading || ''} onChange={(e) => setForm({ ...form, odometerReading: e.target.value })} /></div>
           </div>
           <div><label className="block text-xs font-medium mb-1">Notes</label><textarea className={inputCls} rows={2} value={form.notes || ''} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></div>

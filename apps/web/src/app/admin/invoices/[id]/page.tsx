@@ -74,16 +74,27 @@ export default function InvoiceDetailPage() {
       if (!r.success) return;
       const hasAmc = (r.data ?? []).some((c: any) => c.vehicleId === data.vehicleId);
       if (hasAmc) { setAmcUpsell(null); return; }
-      // Get best plan for this vehicle and calculate savings
-      api.get<any>('/admin/amc/plans').then((pr) => {
-        if (!pr.success) return;
+      // Get best plan matching vehicle CC
+      Promise.all([api.get<any>('/admin/amc/plans'), api.get<any>(`/admin/vehicles/${data.vehicleId}`)]).then(([pr, vr]) => {
+        if (!pr.success || !vr.success) return;
         const plans = (pr.data ?? []).filter((p: any) => p.isActive);
         if (plans.length === 0) { setAmcUpsell(null); return; }
-        const plan = plans[0]; // pick first active plan
+        const vehicleCC = vr.data?.engineCC;
+        // Match plan by CC range (e.g. "100-125" matches CC between 100-125)
+        let plan = plans[0];
+        if (vehicleCC) {
+          const matched = plans.find((p: any) => {
+            if (!p.ccRange) return false;
+            const match = p.ccRange.match(/(\d+)/g);
+            if (match && match.length >= 2) return vehicleCC >= Number(match[0]) && vehicleCC <= Number(match[1]);
+            if (match && match.length === 1) return vehicleCC >= Number(match[0]);
+            return false;
+          });
+          if (matched) plan = matched;
+        }
         const laborItems = data.lineItems?.filter((li: any) => li.lineType === 'LABOR') ?? [];
         const partItems = data.lineItems?.filter((li: any) => li.lineType === 'PART') ?? [];
         const serviceSavings = laborItems.reduce((s: number, li: any) => s + Number(li.lineTotal), 0);
-        // Parts savings: 1% branded (assume all for now since isBranded defaults true)
         const partsSavings = partItems.reduce((s: number, li: any) => s + Number(li.lineTotal) * 0.01, 0);
         const totalSavings = serviceSavings + partsSavings;
         if (totalSavings > 0) setAmcUpsell({ show: true, plan, savings: totalSavings, partsSavings, serviceSavings });

@@ -259,6 +259,7 @@ model Vehicle {
   vin                String?
   chassisNumber      String?
   engineNumber       String?
+  engineCC           Int?
   odometerReading    Int?
   notes              String?
   createdAt          DateTime    @default(now())

@@ -17,7 +17,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const user = requirePermission(PERMISSIONS.VEHICLES_EDIT);
-    const body = z.object({ registrationNumber: z.string().optional(), brand: z.string().optional(), model: z.string().optional(), variant: z.string().optional(), odometerReading: z.number().optional(), notes: z.string().optional() }).parse(await req.json());
+    const body = z.object({ registrationNumber: z.string().optional(), brand: z.string().optional(), model: z.string().optional(), variant: z.string().optional(), engineCC: z.number().optional(), odometerReading: z.number().optional(), notes: z.string().optional() }).parse(await req.json());
     const vehicle = await prisma.vehicle.update({ where: { id: params.id }, data: body as any });
     logActivity({ entityType: 'Vehicle', entityId: vehicle.id, action: 'vehicle.updated', newValue: vehicle, actorType: 'ADMIN', actorId: user.sub });
     return NextResponse.json({ success: true, data: vehicle });
