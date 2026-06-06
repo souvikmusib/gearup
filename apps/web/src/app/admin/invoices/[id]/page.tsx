@@ -30,7 +30,6 @@ export default function InvoiceDetailPage() {
   const [applyingAmc, setApplyingAmc] = useState(false);
 
   const loadInventory = async () => {
-    if (inventoryItems.length) return;
     const res = await api.get<any>('/admin/inventory/items?pageSize=500');
     if (res.success) setInventoryItems(res.data?.items ?? res.data ?? []);
   };
@@ -340,7 +339,7 @@ export default function InvoiceDetailPage() {
       )}
 
       {/* Line Items */}
-      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
+      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
         <div className="px-5 py-3 border-b border-gray-100 dark:border-gray-800">
           <h3 className="font-semibold text-gray-900 dark:text-white">Line Items</h3>
           {refreshing && <span className="text-xs text-blue-500 animate-pulse">Updating...</span>}
@@ -410,16 +409,16 @@ export default function InvoiceDetailPage() {
                     {newLine.lineType === 'PART' ? (
                       <><label className="block text-[10px] text-gray-400 mb-0.5">Select Part <span className="text-red-500">*</span></label>
                       <div className="relative">
-                        <input className={inputCls} placeholder="Type to search parts..." value={newLine.description} onChange={(e) => setNewLine({ ...newLine, description: e.target.value, unitPrice: '' })} autoComplete="off" />
-                        {newLine.description && !inventoryItems.some((i: any) => i.itemName === newLine.description) && (
-                          <div className="absolute z-10 top-full left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
-                            {inventoryItems.filter((i: any) => i.itemName.toLowerCase().includes(newLine.description.toLowerCase()) || i.sku.toLowerCase().includes(newLine.description.toLowerCase())).slice(0, 10).map((i: any) => {
+                        <input className={inputCls} placeholder="Type to search parts..." value={newLine.description} onChange={(e) => setNewLine({ ...newLine, description: e.target.value, unitPrice: '' })} onFocus={(e) => e.target.setAttribute('data-open', '1')} onBlur={(e) => setTimeout(() => e.target.removeAttribute('data-open'), 200)} autoComplete="off" />
+                        {!inventoryItems.some((i: any) => i.itemName === newLine.description) && (
+                          <div className="absolute z-50 top-full left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
+                            {inventoryItems.filter((i: any) => !newLine.description || i.itemName.toLowerCase().includes(newLine.description.toLowerCase()) || i.sku.toLowerCase().includes(newLine.description.toLowerCase())).slice(0, 10).map((i: any) => {
                               const dp = Number(i.discountPercent) || 0;
                               return <button key={i.id} type="button" onClick={() => setNewLine({ ...newLine, description: i.itemName, unitPrice: i.variablePrice ? '' : String(Number(i.sellingPrice)), discountPercent: String(dp) })} className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 border-b border-gray-50 dark:border-gray-700 last:border-0">
                                 <span className="font-medium">{i.itemName}</span> <span className="text-xs text-gray-400">({i.sku})</span>{i.variablePrice ? <span className="text-xs text-amber-500 ml-1">[Variable]</span> : <span className="text-xs text-gray-500 ml-1">₹{Number(i.sellingPrice)}</span>}{dp ? <span className="text-xs text-green-600 ml-1">{dp}% off</span> : ''}
                               </button>;
                             })}
-                            {inventoryItems.filter((i: any) => i.itemName.toLowerCase().includes(newLine.description.toLowerCase()) || i.sku.toLowerCase().includes(newLine.description.toLowerCase())).length === 0 && <p className="px-3 py-2 text-xs text-gray-400">No matches</p>}
+                            {inventoryItems.filter((i: any) => !newLine.description || i.itemName.toLowerCase().includes(newLine.description.toLowerCase()) || i.sku.toLowerCase().includes(newLine.description.toLowerCase())).length === 0 && <p className="px-3 py-2 text-xs text-gray-400">No matches</p>}
                           </div>
                         )}
                       </div></>

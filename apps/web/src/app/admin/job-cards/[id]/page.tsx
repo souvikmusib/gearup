@@ -66,7 +66,7 @@ export default function JobCardDetailPage() {
   const [notes, setNotes] = useState({ diagnosisNotes: '', internalNotes: '' });
   const [savingNotes, setSavingNotes] = useState(false);
   const [inventoryItems, setInventoryItems] = useState<any[]>([]);
-  const [partForm, setPartForm] = useState({ inventoryItemId: '', requiredQty: '1', unitPrice: '' });
+  const [partForm, setPartForm] = useState({ inventoryItemId: '', requiredQty: '1', unitPrice: '', search: '' });
   const [addingPart, setAddingPart] = useState(false);
   const [workers, setWorkers] = useState<any[]>([]);
   const [workerForm, setWorkerForm] = useState({ workerId: '', assignmentRole: '' });
@@ -115,7 +115,7 @@ export default function JobCardDetailPage() {
 
   const onItemSelect = (itemId: string) => {
     const item = inventoryItems.find((i: any) => i.id === itemId);
-    setPartForm({ inventoryItemId: itemId, requiredQty: '1', unitPrice: item ? String(Number(item.sellingPrice)) : '' });
+    setPartForm({ inventoryItemId: itemId, requiredQty: '1', unitPrice: item ? String(Number(item.sellingPrice)) : '', search: item?.itemName || '' });
   };
 
   const addPart = async () => {
@@ -126,7 +126,7 @@ export default function JobCardDetailPage() {
       unitPrice: partForm.unitPrice ? Number(partForm.unitPrice) : undefined,
     });
     setAddingPart(false);
-    if (res.success) { setPartForm({ inventoryItemId: '', requiredQty: '1', unitPrice: '' }); load(); }
+    if (res.success) { setPartForm({ inventoryItemId: '', requiredQty: '1', unitPrice: '', search: '' }); load(); }
   };
 
   const removePart = async (partId: string) => {
@@ -384,10 +384,19 @@ export default function JobCardDetailPage() {
             )) : <p className="text-sm text-gray-400">No parts</p>}
             {canEditParts(status) && (
               <div className="mt-3 border-t pt-3 dark:border-gray-600 space-y-2">
-                <select className={inputCls} value={partForm.inventoryItemId} onFocus={loadInventory} onChange={(e) => onItemSelect(e.target.value)}>
-                  <option value="">Add a part...</option>
-                  {inventoryItems.map((i: any) => <option key={i.id} value={i.id}>{i.itemName} ({i.sku}) — ₹{Number(i.sellingPrice)}</option>)}
-                </select>
+                <div className="relative">
+                  <input className={inputCls} placeholder="Type to search parts..." value={partForm.search || ''} onFocus={loadInventory} onChange={(e) => setPartForm({ ...partForm, search: e.target.value, inventoryItemId: '' })} autoComplete="off" />
+                  {partForm.search && !partForm.inventoryItemId && (
+                    <div className="absolute z-10 top-full left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
+                      {inventoryItems.filter((i: any) => i.itemName.toLowerCase().includes((partForm.search || '').toLowerCase()) || i.sku.toLowerCase().includes((partForm.search || '').toLowerCase())).slice(0, 10).map((i: any) => (
+                        <button key={i.id} type="button" onClick={() => { onItemSelect(i.id); setPartForm((f: any) => ({ ...f, search: i.itemName })); }} className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 border-b border-gray-50 dark:border-gray-700 last:border-0">
+                          <span className="font-medium">{i.itemName}</span> <span className="text-xs text-gray-400">({i.sku})</span> <span className="text-xs text-gray-500">₹{Number(i.sellingPrice)}</span>
+                        </button>
+                      ))}
+                      {inventoryItems.filter((i: any) => i.itemName.toLowerCase().includes((partForm.search || '').toLowerCase()) || i.sku.toLowerCase().includes((partForm.search || '').toLowerCase())).length === 0 && <p className="px-3 py-2 text-xs text-gray-400">No matches</p>}
+                    </div>
+                  )}
+                </div>
                 {partForm.inventoryItemId && (
                   <div className="flex gap-2">
                     <input type="number" className={inputCls} placeholder="Qty" min="0.01" step="0.01" value={partForm.requiredQty} onChange={(e) => setPartForm({ ...partForm, requiredQty: e.target.value })} />
