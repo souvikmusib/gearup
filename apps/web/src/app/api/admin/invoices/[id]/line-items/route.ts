@@ -92,29 +92,21 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     // Sync to job card (all types except DISCOUNT_ADJUSTMENT) — fire in parallel with recalc
     const syncJobCard = async () => {
       if (!jobCardId || isDiscount) return;
+      // Create task/part on job card if needed
       if (body.lineType === 'PART' && referenceItemId) {
         const exists = await prisma.jobCardPart.findFirst({ where: { jobCardId, inventoryItemId: referenceItemId } });
         if (!exists) {
           await prisma.jobCardPart.create({ data: { jobCardId, inventoryItemId: referenceItemId, requiredQty: body.quantity, reservedQty: body.quantity, unitPrice: body.unitPrice } });
-          const [parts, jc] = await Promise.all([
-            prisma.jobCardPart.findMany({ where: { jobCardId } }),
-            prisma.jobCard.findUniqueOrThrow({ where: { id: jobCardId }, select: { estimatedLaborCost: true, estimatedOtherCost: true } }),
-          ]);
-          const estimatedPartsCost = parts.reduce((sum: number, p: any) => sum + Number(p.requiredQty) * Number(p.unitPrice), 0);
-          await prisma.jobCard.update({ where: { id: jobCardId }, data: { estimatedPartsCost, estimatedTotal: estimatedPartsCost + Number(jc.estimatedLaborCost) + Number(jc.estimatedOtherCost) } });
         }
       } else if (body.lineType !== 'PART') {
         await prisma.jobCardTask.create({ data: { jobCardId, taskName: body.description, status: 'COMPLETED' } });
-        const jc = await prisma.jobCard.findUniqueOrThrow({ where: { id: jobCardId }, select: { estimatedLaborCost: true, estimatedOtherCost: true, estimatedPartsCost: true } });
-        const amount = isAmc ? Number(lineTotal) : body.unitPrice * body.quantity;
-        if (body.lineType === 'LABOR') {
-          const newLaborCost = Number(jc.estimatedLaborCost) + amount;
-          await prisma.jobCard.update({ where: { id: jobCardId }, data: { estimatedLaborCost: newLaborCost, estimatedTotal: Number(jc.estimatedPartsCost) + newLaborCost + Number(jc.estimatedOtherCost) } });
-        } else {
-          const newOtherCost = Number(jc.estimatedOtherCost) + amount;
-          await prisma.jobCard.update({ where: { id: jobCardId }, data: { estimatedOtherCost: newOtherCost, estimatedTotal: Number(jc.estimatedPartsCost) + Number(jc.estimatedLaborCost) + newOtherCost } });
-        }
       }
+      // Recalculate job card costs from ALL invoice line items
+      const allLines = await prisma.invoiceLineItem.findMany({ where: { invoice: { jobCardId } } });
+      const estimatedPartsCost = allLines.filter((l: any) => l.lineType === 'PART').reduce((s: number, l: any) => s + Number(l.lineTotal), 0);
+      const estimatedLaborCost = allLines.filter((l: any) => l.lineType === 'LABOR').reduce((s: number, l: any) => s + Number(l.lineTotal), 0);
+      const estimatedOtherCost = allLines.filter((l: any) => !['PART','LABOR','DISCOUNT_ADJUSTMENT'].includes(l.lineType)).reduce((s: number, l: any) => s + Number(l.lineTotal), 0);
+      await prisma.jobCard.update({ where: { id: jobCardId }, data: { estimatedPartsCost, estimatedLaborCost, estimatedOtherCost, estimatedTotal: estimatedPartsCost + estimatedLaborCost + estimatedOtherCost } });
     };
 
     // Run recalc and job card sync in parallel
