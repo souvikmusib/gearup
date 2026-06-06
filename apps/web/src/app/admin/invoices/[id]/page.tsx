@@ -409,13 +409,20 @@ export default function InvoiceDetailPage() {
                   <div className="col-span-5">
                     {newLine.lineType === 'PART' ? (
                       <><label className="block text-[10px] text-gray-400 mb-0.5">Select Part <span className="text-red-500">*</span></label>
-                      <select className={inputCls} value={newLine.description} onChange={(e) => {
-                        const item = inventoryItems.find((i: any) => i.itemName === e.target.value);
-                        setNewLine({ ...newLine, description: e.target.value, unitPrice: item && !item.variablePrice ? String(Number(item.sellingPrice)) : '', discountPercent: item ? String(Number(item.discountPercent) || '0') : '0' });
-                      }}>
-                        <option value="">Select part...</option>
-                        {inventoryItems.map((i: any) => { const dp = Number(i.discountPercent) || 0; return <option key={i.id} value={i.itemName}>{i.itemName} ({i.sku}){i.variablePrice ? ' [Variable]' : ` — ₹${Number(i.sellingPrice)}`}{dp ? ` (${dp}% off)` : ''}</option>; })}
-                      </select></>
+                      <div className="relative">
+                        <input className={inputCls} placeholder="Type to search parts..." value={newLine.description} onChange={(e) => setNewLine({ ...newLine, description: e.target.value, unitPrice: '' })} autoComplete="off" />
+                        {newLine.description && !inventoryItems.some((i: any) => i.itemName === newLine.description) && (
+                          <div className="absolute z-10 top-full left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
+                            {inventoryItems.filter((i: any) => i.itemName.toLowerCase().includes(newLine.description.toLowerCase()) || i.sku.toLowerCase().includes(newLine.description.toLowerCase())).slice(0, 10).map((i: any) => {
+                              const dp = Number(i.discountPercent) || 0;
+                              return <button key={i.id} type="button" onClick={() => setNewLine({ ...newLine, description: i.itemName, unitPrice: i.variablePrice ? '' : String(Number(i.sellingPrice)), discountPercent: String(dp) })} className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 border-b border-gray-50 dark:border-gray-700 last:border-0">
+                                <span className="font-medium">{i.itemName}</span> <span className="text-xs text-gray-400">({i.sku})</span>{i.variablePrice ? <span className="text-xs text-amber-500 ml-1">[Variable]</span> : <span className="text-xs text-gray-500 ml-1">₹{Number(i.sellingPrice)}</span>}{dp ? <span className="text-xs text-green-600 ml-1">{dp}% off</span> : ''}
+                              </button>;
+                            })}
+                            {inventoryItems.filter((i: any) => i.itemName.toLowerCase().includes(newLine.description.toLowerCase()) || i.sku.toLowerCase().includes(newLine.description.toLowerCase())).length === 0 && <p className="px-3 py-2 text-xs text-gray-400">No matches</p>}
+                          </div>
+                        )}
+                      </div></>
                     ) : newLine.lineType === 'AMC' ? (
                       <><label className="block text-[10px] text-gray-400 mb-0.5">AMC Option</label>
                       <div className="space-y-1">
