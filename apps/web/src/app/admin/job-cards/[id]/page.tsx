@@ -4,6 +4,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';
 import { PageHeader, StatusBadge } from '@gearup/ui';
 import { WhatsAppButton } from '@/components/shared/whatsapp-button';
+import { Modal } from '@/components/shared/modal';
 
 // Simplified statuses (what the UI shows and allows)
 const SIMPLE_STATUSES = ['OPEN', 'ESTIMATE_READY', 'IN_PROGRESS', 'READY', 'DELIVERED', 'CANCELLED'] as const;
@@ -67,6 +68,8 @@ export default function JobCardDetailPage() {
   const [savingNotes, setSavingNotes] = useState(false);
   const [inventoryItems, setInventoryItems] = useState<any[]>([]);
   const [partForm, setPartForm] = useState({ inventoryItemId: '', requiredQty: '1', unitPrice: '', search: '' });
+  const [showNewPart, setShowNewPart] = useState(false);
+  const [newPartForm, setNewPartForm] = useState({ sku: '', itemName: '', unit: 'PCS', costPrice: '', sellingPrice: '', quantityInStock: '' });
   const [addingPart, setAddingPart] = useState(false);
   const [workers, setWorkers] = useState<any[]>([]);
   const [workerForm, setWorkerForm] = useState({ workerId: '', assignmentRole: '' });
@@ -384,16 +387,20 @@ export default function JobCardDetailPage() {
             )) : <p className="text-sm text-gray-400">No parts</p>}
             {canEditParts(status) && (
               <div className="mt-3 border-t pt-3 dark:border-gray-600 space-y-2">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-[10px] text-gray-400">Search Part</span>
+                  <button type="button" onClick={() => setShowNewPart(true)} className="text-[10px] text-blue-600 hover:underline">+ New Part</button>
+                </div>
                 <div className="relative">
-                  <input className={inputCls} placeholder="Type to search parts..." value={partForm.search || ''} onFocus={loadInventory} onChange={(e) => setPartForm({ ...partForm, search: e.target.value, inventoryItemId: '' })} autoComplete="off" />
-                  {partForm.search && !partForm.inventoryItemId && (
-                    <div className="absolute z-10 top-full left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
-                      {inventoryItems.filter((i: any) => i.itemName.toLowerCase().includes((partForm.search || '').toLowerCase()) || i.sku.toLowerCase().includes((partForm.search || '').toLowerCase())).slice(0, 10).map((i: any) => (
+                  <input className={inputCls} placeholder="Type to search parts..." value={partForm.search || ''} onFocus={() => { loadInventory(); setPartForm({ ...partForm, _open: true }); }} onChange={(e) => setPartForm({ ...partForm, search: e.target.value, inventoryItemId: '', _open: true })} onBlur={() => setTimeout(() => setPartForm((f: any) => ({ ...f, _open: false })), 150)} autoComplete="off" />
+                  {partForm._open && !partForm.inventoryItemId && (
+                    <div className="absolute z-50 top-full left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
+                      {inventoryItems.filter((i: any) => !partForm.search || i.itemName.toLowerCase().includes((partForm.search || '').toLowerCase()) || i.sku.toLowerCase().includes((partForm.search || '').toLowerCase())).map((i: any) => (
                         <button key={i.id} type="button" onClick={() => { onItemSelect(i.id); setPartForm((f: any) => ({ ...f, search: i.itemName })); }} className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 border-b border-gray-50 dark:border-gray-700 last:border-0">
                           <span className="font-medium">{i.itemName}</span> <span className="text-xs text-gray-400">({i.sku})</span> <span className="text-xs text-gray-500">₹{Number(i.sellingPrice)}</span>
                         </button>
                       ))}
-                      {inventoryItems.filter((i: any) => i.itemName.toLowerCase().includes((partForm.search || '').toLowerCase()) || i.sku.toLowerCase().includes((partForm.search || '').toLowerCase())).length === 0 && <p className="px-3 py-2 text-xs text-gray-400">No matches</p>}
+                      {inventoryItems.filter((i: any) => !partForm.search || i.itemName.toLowerCase().includes((partForm.search || '').toLowerCase()) || i.sku.toLowerCase().includes((partForm.search || '').toLowerCase())).length === 0 && <p className="px-3 py-2 text-xs text-gray-400">No matches</p>}
                     </div>
                   )}
                 </div>
@@ -424,6 +431,33 @@ export default function JobCardDetailPage() {
           </div>
         </div>
       </div>
+      {/* New Part Modal */}
+      <Modal open={showNewPart} onClose={() => setShowNewPart(false)} title="Add New Part to Inventory">
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div><label className="block text-xs font-medium mb-1">SKU <span className="text-red-500">*</span></label><input className={inputCls} value={newPartForm.sku} onChange={(e) => setNewPartForm({ ...newPartForm, sku: e.target.value })} placeholder="e.g. OIL-20W40" /></div>
+            <div><label className="block text-xs font-medium mb-1">Unit</label><input className={inputCls} value={newPartForm.unit} onChange={(e) => setNewPartForm({ ...newPartForm, unit: e.target.value })} placeholder="PCS / LTR / SET" /></div>
+          </div>
+          <div><label className="block text-xs font-medium mb-1">Item Name <span className="text-red-500">*</span></label><input className={inputCls} value={newPartForm.itemName} onChange={(e) => setNewPartForm({ ...newPartForm, itemName: e.target.value })} placeholder="e.g. Engine Oil 20W40 1L" /></div>
+          <div className="grid grid-cols-3 gap-3">
+            <div><label className="block text-xs font-medium mb-1">Cost Price</label><input type="number" step="0.01" className={inputCls} value={newPartForm.costPrice} onChange={(e) => setNewPartForm({ ...newPartForm, costPrice: e.target.value })} /></div>
+            <div><label className="block text-xs font-medium mb-1">Selling Price <span className="text-red-500">*</span></label><input type="number" step="0.01" className={inputCls} value={newPartForm.sellingPrice} onChange={(e) => setNewPartForm({ ...newPartForm, sellingPrice: e.target.value })} /></div>
+            <div><label className="block text-xs font-medium mb-1">Stock Qty</label><input type="number" className={inputCls} value={newPartForm.quantityInStock} onChange={(e) => setNewPartForm({ ...newPartForm, quantityInStock: e.target.value })} /></div>
+          </div>
+          <button type="button" disabled={!newPartForm.sku || !newPartForm.itemName || !newPartForm.sellingPrice} onClick={async () => {
+            const res = await api.post<any>('/admin/inventory/items', { ...newPartForm, costPrice: Number(newPartForm.costPrice) || 0, sellingPrice: Number(newPartForm.sellingPrice), quantityInStock: Number(newPartForm.quantityInStock) || 0 });
+            if (res.success) {
+              setInventoryItems((prev: any) => [res.data, ...prev]);
+              onItemSelect(res.data.id);
+              setPartForm((f: any) => ({ ...f, search: res.data.itemName }));
+              setShowNewPart(false);
+              setNewPartForm({ sku: '', itemName: '', unit: 'PCS', costPrice: '', sellingPrice: '', quantityInStock: '' });
+            } else { alert(res.error?.message || 'Failed to create part'); }
+          }} className="w-full rounded-lg bg-blue-600 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50">
+            Create & Select Part
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 }
