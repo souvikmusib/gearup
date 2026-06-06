@@ -17,6 +17,8 @@ export default function AppointmentsPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [customers, setCustomers] = useState<any[]>([]);
   const [vehicles, setVehicles] = useState<any[]>([]);
+  const [showNewVeh, setShowNewVeh] = useState(false);
+  const [vehForm, setVehForm] = useState({ vehicleType: 'BIKE', registrationNumber: '', brand: '', model: '' });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [form, setForm] = useState({ customerId: '', vehicleId: '', appointmentDate: '', slotStart: '', slotEnd: '' });
@@ -129,11 +131,30 @@ export default function AppointmentsPage() {
             )}
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Vehicle <span className="text-red-500">*</span></label>
-            <select className={inputCls} value={form.vehicleId} onChange={(e) => setForm((f) => ({ ...f, vehicleId: e.target.value }))}>
-              <option value="">Select vehicle...</option>
-              {vehicles.map((v: any) => <option key={v.id} value={v.id}>{v.registrationNumber} — {v.brand} {v.model}</option>)}
-            </select>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-sm font-medium">Vehicle <span className="text-red-500">*</span></label>
+              {form.customerId && <button type="button" onClick={() => setShowNewVeh(!showNewVeh)} className="text-xs text-blue-600 hover:underline">{showNewVeh ? '← Select existing' : '+ New vehicle'}</button>}
+            </div>
+            {showNewVeh ? (
+              <div className="grid grid-cols-2 gap-2">
+                <input className={inputCls} placeholder="Reg No *" value={vehForm.registrationNumber} onChange={(e) => setVehForm({ ...vehForm, registrationNumber: e.target.value.toUpperCase() })} />
+                <input className={inputCls} placeholder="Brand *" value={vehForm.brand} onChange={(e) => setVehForm({ ...vehForm, brand: e.target.value })} />
+                <input className={inputCls} placeholder="Model *" value={vehForm.model} onChange={(e) => setVehForm({ ...vehForm, model: e.target.value })} />
+                <button type="button" onClick={async () => {
+                  if (!vehForm.registrationNumber || !vehForm.brand || !vehForm.model || !form.customerId) return;
+                  setSaving(true);
+                  const res = await api.post<any>('/admin/vehicles', { ...vehForm, customerId: form.customerId });
+                  setSaving(false);
+                  if (res.success) { setVehicles((p) => [res.data, ...p]); setForm((f) => ({ ...f, vehicleId: res.data.id })); setShowNewVeh(false); setVehForm({ vehicleType: 'BIKE', registrationNumber: '', brand: '', model: '' }); }
+                  else setError(res.error?.message || 'Failed');
+                }} disabled={saving || !vehForm.registrationNumber || !vehForm.brand || !vehForm.model} className="rounded-lg bg-green-600 px-3 py-2 text-xs font-semibold text-white hover:bg-green-700 disabled:opacity-50">Add</button>
+              </div>
+            ) : (
+              <select className={inputCls} value={form.vehicleId} onChange={(e) => setForm((f) => ({ ...f, vehicleId: e.target.value }))}>
+                <option value="">Select vehicle...</option>
+                {vehicles.map((v: any) => <option key={v.id} value={v.id}>{v.registrationNumber} — {v.brand} {v.model}</option>)}
+              </select>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Date & Time <span className="text-red-500">*</span></label>
