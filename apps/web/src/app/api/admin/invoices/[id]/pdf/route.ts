@@ -4,6 +4,15 @@ import { requirePermission } from '@/lib/auth';
 import { handleApiError } from '@/lib/errors';
 import { PERMISSIONS } from '@gearup/types';
 
+function formatDateIST(date: Date | string, opts?: { long?: boolean }): string {
+  const d = new Date(new Date(date).getTime() + 5.5 * 60 * 60 * 1000);
+  if (opts?.long) {
+    const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    return `${d.getUTCDate()} ${months[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+  }
+  return `${d.getUTCDate()}/${d.getUTCMonth() + 1}/${d.getUTCFullYear()}`;
+}
+
 function numberToWords(num: number): string {
   if (num === 0) return 'Zero';
   const ones = ['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'];
@@ -54,7 +63,7 @@ function generateInvoiceHTML(invoice: any, settings: Record<string, any>, logoUr
   }).join('');
 
   const payments = invoice.payments?.map((p: any) => `
-    <tr><td style="padding:6px 10px;border-bottom:1px solid #eee">${new Date(p.paymentDate).toLocaleDateString('en-IN')}</td><td style="padding:6px 10px;border-bottom:1px solid #eee">${p.paymentMode}</td><td style="padding:6px 10px;border-bottom:1px solid #eee">${p.referenceNumber || '-'}</td><td style="padding:6px 10px;border-bottom:1px solid #eee;text-align:right;font-weight:600">₹${Number(p.amount).toLocaleString()}</td></tr>`).join('') || '';
+    <tr><td style="padding:6px 10px;border-bottom:1px solid #eee">${formatDateIST(p.paymentDate)}</td><td style="padding:6px 10px;border-bottom:1px solid #eee">${p.paymentMode}</td><td style="padding:6px 10px;border-bottom:1px solid #eee">${p.referenceNumber || '-'}</td><td style="padding:6px 10px;border-bottom:1px solid #eee;text-align:right;font-weight:600">₹${Number(p.amount).toLocaleString()}</td></tr>`).join('') || '';
 
   const statusColor = invoice.paymentStatus === 'PAID' ? '#16a34a' : invoice.paymentStatus === 'PARTIALLY_PAID' ? '#d97706' : '#dc2626';
   const grandTotal = Number(invoice.grandTotal);
@@ -84,7 +93,7 @@ th { background:#f3f4f6; padding:8px 10px; text-align:left; font-size:10px; text
   <div style="text-align:right">
     <div style="font-size:22px;font-weight:700">TAX INVOICE</div>
     <div style="color:#666;font-size:12px;margin-top:4px">${invoice.invoiceNumber}</div>
-    <div style="color:#666;font-size:11px;margin-top:2px">Date: ${new Date(invoice.invoiceDate).toLocaleDateString('en-IN', { day:'numeric', month:'long', year:'numeric' })}</div>
+    <div style="color:#666;font-size:11px;margin-top:2px">Date: ${formatDateIST(invoice.invoiceDate, { long: true })}</div>
     <div style="margin-top:6px"><span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;color:white;background:${statusColor}">${invoice.paymentStatus}</span></div>
   </div>
 </div>
@@ -106,7 +115,7 @@ th { background:#f3f4f6; padding:8px 10px; text-align:left; font-size:10px; text
     <div style="font-size:9px;text-transform:uppercase;color:#888;font-weight:600">Details</div>
     ${invoice.jobCard ? `<div style="font-weight:600;margin-top:3px">${invoice.jobCard.jobCardNumber}</div>` : '<div style="font-weight:600;margin-top:3px">Counter Sale</div>'}
     <div style="color:#666;font-size:11px">Status: ${invoice.invoiceStatus}</div>
-    ${invoice.finalizedAt ? `<div style="color:#666;font-size:11px">Finalized: ${new Date(invoice.finalizedAt).toLocaleDateString('en-IN')}</div>` : ''}
+    ${invoice.finalizedAt ? `<div style="color:#666;font-size:11px">Finalized: ${formatDateIST(invoice.finalizedAt)}</div>` : ''}
   </div>
 </div>
 
@@ -170,7 +179,7 @@ function generateCustomerDraftHTML(invoice: any, settings: Record<string, any>, 
 </head><body><div class="page">
   <div class="header">
     <div><img src="${logoUrl}" style="width:150px;margin-bottom:8px" alt="${biz.name}"><div class="biz-name">${biz.name}</div>${biz.phone ? `<div style="color:#666;font-size:12px">📞 ${biz.phone}</div>` : ''}</div>
-    <div style="text-align:right"><div style="font-size:22px;font-weight:700">SERVICE SUMMARY</div><div style="color:#666;font-size:13px;margin-top:4px">${invoice.invoiceNumber}</div><div style="color:#666;font-size:12px;margin-top:4px">${new Date(invoice.invoiceDate).toLocaleDateString('en-IN', { day:'numeric', month:'long', year:'numeric' })}</div></div>
+    <div style="text-align:right"><div style="font-size:22px;font-weight:700">SERVICE SUMMARY</div><div style="color:#666;font-size:13px;margin-top:4px">${invoice.invoiceNumber}</div><div style="color:#666;font-size:12px;margin-top:4px">${formatDateIST(invoice.invoiceDate, { long: true })}</div></div>
   </div>
   <div style="display:flex;gap:16px;margin-bottom:20px">
     <div style="flex:1;background:#f9fafb;padding:12px;border-radius:8px"><div style="font-size:10px;text-transform:uppercase;color:#888;font-weight:600">Customer</div><div style="font-weight:500;margin-top:4px">${invoice.customer.fullName}</div><div style="color:#666;font-size:12px">${invoice.customer.phoneNumber}</div></div>
@@ -197,7 +206,7 @@ function generateMechanicCopyHTML(invoice: any, settings: Record<string, any>, l
 </head><body><div class="page">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;padding-bottom:12px;border-bottom:2px solid #111">
     <div><div style="font-size:20px;font-weight:700">${biz.name}</div><div style="font-size:11px;color:#888;margin-top:2px">MECHANIC WORK ORDER</div></div>
-    <div style="text-align:right"><div style="font-size:16px;font-weight:700">${invoice.jobCard?.jobCardNumber || '-'}</div><div style="color:#666;font-size:12px">${new Date(invoice.invoiceDate).toLocaleDateString('en-IN')}</div></div>
+    <div style="text-align:right"><div style="font-size:16px;font-weight:700">${invoice.jobCard?.jobCardNumber || '-'}</div><div style="color:#666;font-size:12px">${formatDateIST(invoice.invoiceDate)}</div></div>
   </div>
   <div style="display:flex;gap:16px;margin-bottom:20px">
     <div style="flex:1;background:#f9fafb;padding:12px;border-radius:8px"><strong>Vehicle:</strong> ${invoice.vehicle ? `${invoice.vehicle.brand} ${invoice.vehicle.model} — ${invoice.vehicle.registrationNumber}` : 'Counter Sale'}${invoice.jobCard?.odometerAtIntake ? `<br><span style="font-size:12px;color:#666">Odometer: ${invoice.jobCard.odometerAtIntake.toLocaleString()} km${invoice.jobCard.fuelIndicator ? ` · Fuel: ${invoice.jobCard.fuelIndicator}` : ''}</span>` : ''}</div>
@@ -239,9 +248,9 @@ function generateAmcInvoiceHTML(invoice: any, settings: Record<string, any>, log
   }).join('');
 
   const payments = invoice.payments?.map((p: any) => `
-    <tr><td style="padding:6px 12px;border-bottom:1px solid #f3f4f6">${new Date(p.paymentDate).toLocaleDateString('en-IN')}</td><td style="padding:6px 12px;border-bottom:1px solid #f3f4f6">${p.paymentMode}</td><td style="padding:6px 12px;border-bottom:1px solid #f3f4f6">${p.referenceNumber || '-'}</td><td style="padding:6px 12px;border-bottom:1px solid #f3f4f6;text-align:right;font-weight:600;color:#16a34a">₹${Number(p.amount).toLocaleString()}</td></tr>`).join('') || '';
+    <tr><td style="padding:6px 12px;border-bottom:1px solid #f3f4f6">${formatDateIST(p.paymentDate)}</td><td style="padding:6px 12px;border-bottom:1px solid #f3f4f6">${p.paymentMode}</td><td style="padding:6px 12px;border-bottom:1px solid #f3f4f6">${p.referenceNumber || '-'}</td><td style="padding:6px 12px;border-bottom:1px solid #f3f4f6;text-align:right;font-weight:600;color:#16a34a">₹${Number(p.amount).toLocaleString()}</td></tr>`).join('') || '';
 
-  const endDate = new Date(amcContract.endDate).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' });
+  const endDate = formatDateIST(amcContract.endDate, { long: true });
 
   return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Invoice ${invoice.invoiceNumber}</title>
 <style>
@@ -263,7 +272,7 @@ th { background:#f9fafb; padding:9px 12px; text-align:left; font-size:10px; text
   </div>
   <div style="text-align:right">
     <div style="font-size:20px;font-weight:800">${invoice.invoiceNumber}</div>
-    <div style="color:#9ca3af;font-size:12px;margin-top:4px">${new Date(invoice.invoiceDate).toLocaleDateString('en-IN', { day:'numeric', month:'long', year:'numeric' })}</div>
+    <div style="color:#9ca3af;font-size:12px;margin-top:4px">${formatDateIST(invoice.invoiceDate, { long: true })}</div>
     <div style="display:inline-block;background:${invoice.paymentStatus === 'PAID' ? '#16a34a' : '#dc2626'};color:white;font-size:10px;font-weight:700;padding:3px 10px;border-radius:3px;margin-top:6px;letter-spacing:0.5px">${invoice.paymentStatus}</div>
   </div>
 </div>
@@ -379,7 +388,7 @@ table { width:100%; border-collapse:collapse; } th { background:#f3f4f6; padding
 <div class="section-top">
   <div class="header">
     <div><img src="${logoUrl}" style="height:26px" alt="${biz.name}"><span style="font-size:8px;color:#999;margin-left:6px;letter-spacing:1px">SERVICE · SPARES · SAFETY</span></div>
-    <div style="text-align:right"><strong style="font-size:11px">CUSTOMER COPY</strong><br><span style="font-size:9px;color:#666">${invoice.invoiceNumber} · ${new Date(invoice.invoiceDate).toLocaleDateString('en-IN')}</span></div>
+    <div style="text-align:right"><strong style="font-size:11px">CUSTOMER COPY</strong><br><span style="font-size:9px;color:#666">${invoice.invoiceNumber} · ${formatDateIST(invoice.invoiceDate)}</span></div>
   </div>
   <div class="meta">
     <div class="meta-box"><div class="meta-label">Customer</div>${invoice.customer.fullName} · ${invoice.customer.phoneNumber}</div>
@@ -396,7 +405,7 @@ table { width:100%; border-collapse:collapse; } th { background:#f3f4f6; padding
 <div class="section-bottom">
   <div class="header">
     <div><img src="${logoUrl}" style="height:24px" alt="${biz.name}"><span style="font-size:8px;color:#666;margin-left:6px">MECHANIC WORK ORDER</span></div>
-    <div style="text-align:right"><strong style="font-size:10px">${invoice.jobCard?.jobCardNumber || invoice.invoiceNumber}</strong><br><span style="font-size:9px;color:#666">${new Date(invoice.invoiceDate).toLocaleDateString('en-IN')}</span></div>
+    <div style="text-align:right"><strong style="font-size:10px">${invoice.jobCard?.jobCardNumber || invoice.invoiceNumber}</strong><br><span style="font-size:9px;color:#666">${formatDateIST(invoice.invoiceDate)}</span></div>
   </div>
   <div class="meta">
     <div class="meta-box"><div class="meta-label">Vehicle</div>${vehicle}${odometer}${fuel}</div>
