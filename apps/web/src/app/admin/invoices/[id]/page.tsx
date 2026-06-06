@@ -5,6 +5,7 @@ import { api } from '@/lib/api/client';
 import { PageHeader, StatusBadge } from '@gearup/ui';
 import { WhatsAppButton } from '@/components/shared/whatsapp-button';
 import { FileText, CheckCircle, CreditCard, Download } from 'lucide-react';
+import { Modal } from '@/components/shared/modal';
 
 export default function InvoiceDetailPage() {
   const { id } = useParams();
@@ -28,6 +29,8 @@ export default function InvoiceDetailPage() {
   const [addStep, setAddStep] = useState<'type' | 'details'>('type');
   const [editingLines, setEditingLines] = useState(false);
   const [lineEdits, setLineEdits] = useState<Record<string, any>>({});
+  const [showNewPart, setShowNewPart] = useState(false);
+  const [newPartForm, setNewPartForm] = useState({ sku: '', itemName: '', unit: 'PCS', costPrice: '', sellingPrice: '', quantityInStock: '' });
   const [amcUpsell, setAmcUpsell] = useState<{ show: boolean; plan: any; savings: number; partsSavings: number; serviceSavings: number } | null>(null);
   const [applyingAmc, setApplyingAmc] = useState(false);
 
@@ -460,7 +463,10 @@ export default function InvoiceDetailPage() {
                 <div className="grid grid-cols-12 gap-2 items-end">
                   <div className="col-span-5">
                     {newLine.lineType === 'PART' ? (
-                      <><label className="block text-[10px] text-gray-400 mb-0.5">Select Part <span className="text-red-500">*</span></label>
+                      <><label className="block text-[10px] text-gray-400 mb-0.5 flex items-center justify-between">
+                        <span>Select Part <span className="text-red-500">*</span></span>
+                        <button type="button" onClick={() => setShowNewPart(true)} className="text-blue-600 hover:underline">+ New Part</button>
+                      </label>
                       <div className="relative">
                         <input className={inputCls} placeholder="Type to search parts..." value={newLine.description} onChange={(e) => setNewLine({ ...newLine, description: e.target.value, unitPrice: '' })} onFocus={(e) => e.target.setAttribute('data-open', '1')} onBlur={(e) => setTimeout(() => e.target.removeAttribute('data-open'), 200)} autoComplete="off" />
                         {!inventoryItems.some((i: any) => i.itemName === newLine.description) && (
@@ -591,6 +597,33 @@ export default function InvoiceDetailPage() {
           {data.finalizedAt && <p className="text-gray-500">Finalized: {new Date(data.finalizedAt).toLocaleDateString('en-IN')}</p>}
         </div>
       </div>
+
+      {/* New Part Modal */}
+      <Modal open={showNewPart} onClose={() => setShowNewPart(false)} title="Add New Part to Inventory">
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div><label className="block text-xs font-medium mb-1">SKU <span className="text-red-500">*</span></label><input className={inputCls} value={newPartForm.sku} onChange={(e) => setNewPartForm({ ...newPartForm, sku: e.target.value })} placeholder="e.g. OIL-20W40" /></div>
+            <div><label className="block text-xs font-medium mb-1">Unit</label><input className={inputCls} value={newPartForm.unit} onChange={(e) => setNewPartForm({ ...newPartForm, unit: e.target.value })} placeholder="PCS / LTR / SET" /></div>
+          </div>
+          <div><label className="block text-xs font-medium mb-1">Item Name <span className="text-red-500">*</span></label><input className={inputCls} value={newPartForm.itemName} onChange={(e) => setNewPartForm({ ...newPartForm, itemName: e.target.value })} placeholder="e.g. Engine Oil 20W40 1L" /></div>
+          <div className="grid grid-cols-3 gap-3">
+            <div><label className="block text-xs font-medium mb-1">Cost Price</label><input type="number" step="0.01" className={inputCls} value={newPartForm.costPrice} onChange={(e) => setNewPartForm({ ...newPartForm, costPrice: e.target.value })} /></div>
+            <div><label className="block text-xs font-medium mb-1">Selling Price <span className="text-red-500">*</span></label><input type="number" step="0.01" className={inputCls} value={newPartForm.sellingPrice} onChange={(e) => setNewPartForm({ ...newPartForm, sellingPrice: e.target.value })} /></div>
+            <div><label className="block text-xs font-medium mb-1">Stock Qty</label><input type="number" className={inputCls} value={newPartForm.quantityInStock} onChange={(e) => setNewPartForm({ ...newPartForm, quantityInStock: e.target.value })} /></div>
+          </div>
+          <button type="button" disabled={!newPartForm.sku || !newPartForm.itemName || !newPartForm.sellingPrice} onClick={async () => {
+            const res = await api.post<any>('/admin/inventory/items', { ...newPartForm, costPrice: Number(newPartForm.costPrice) || 0, sellingPrice: Number(newPartForm.sellingPrice), quantityInStock: Number(newPartForm.quantityInStock) || 0 });
+            if (res.success) {
+              setInventoryItems((prev) => [res.data, ...prev]);
+              setNewLine({ ...newLine, description: res.data.itemName, unitPrice: String(Number(res.data.sellingPrice)), discountPercent: '0' });
+              setShowNewPart(false);
+              setNewPartForm({ sku: '', itemName: '', unit: 'PCS', costPrice: '', sellingPrice: '', quantityInStock: '' });
+            } else { alert(res.error?.message || 'Failed to create part'); }
+          }} className="w-full rounded-lg bg-blue-600 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50">
+            Create & Select Part
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 }
