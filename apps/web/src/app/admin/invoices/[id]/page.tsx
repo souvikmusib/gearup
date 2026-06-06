@@ -26,6 +26,8 @@ export default function InvoiceDetailPage() {
 
   const [refreshing, setRefreshing] = useState(false);
   const [addStep, setAddStep] = useState<'type' | 'details'>('type');
+  const [editingLines, setEditingLines] = useState(false);
+  const [lineEdits, setLineEdits] = useState<Record<string, any>>({});
   const [amcUpsell, setAmcUpsell] = useState<{ show: boolean; plan: any; savings: number; partsSavings: number; serviceSavings: number } | null>(null);
   const [applyingAmc, setApplyingAmc] = useState(false);
 
@@ -170,10 +172,40 @@ export default function InvoiceDetailPage() {
     else { fetch(); alert(res.error?.message || 'Failed to add line item'); }
   };
 
+  const saveAllEdits = async () => {
+    const changed = Object.entries(lineEdits).filter(([_, v]) => Object.keys(v).length > 0);
+    if (changed.length === 0) return;
+    for (const [lineItemId, fields] of changed) {
+      const payload: any = { lineItemId };
+      if (fields.quantity !== undefined) payload.quantity = Number(fields.quantity);
+      if (fields.unitPrice !== undefined) payload.unitPrice = Number(fields.unitPrice);
+      if (fields.taxRate !== undefined) payload.taxRate = Number(fields.taxRate);
+      if (fields.discountPercent !== undefined) payload.discountPercent = Number(fields.discountPercent);
+      await api.patch<any>(`/admin/invoices/${id}/line-items`, payload);
+    }
+    setEditingLines(false);
+    setLineEdits({});
+    fetch();
+  };
+
+  const hasLineChanges = Object.values(lineEdits).some((v: any) => Object.keys(v).length > 0);
+
   const updateLine = async (lineItemId: string, field: string, value: string) => {
     const num = Number(value);
     if (isNaN(num)) return;
     await api.patch<any>(`/admin/invoices/${id}/line-items`, { lineItemId, [field]: num });
+    fetch();
+  };
+
+  const saveLineEdit = async () => {
+    if (!editingLineId) return;
+    const payload: any = { lineItemId: editingLineId };
+    if (editLineForm.quantity !== undefined) payload.quantity = Number(editLineForm.quantity);
+    if (editLineForm.unitPrice !== undefined) payload.unitPrice = Number(editLineForm.unitPrice);
+    if (editLineForm.taxRate !== undefined) payload.taxRate = Number(editLineForm.taxRate);
+    if (editLineForm.discountPercent !== undefined) payload.discountPercent = Number(editLineForm.discountPercent);
+    await api.patch<any>(`/admin/invoices/${id}/line-items`, payload);
+    setEditingLineId(null);
     fetch();
   };
 
@@ -340,9 +372,21 @@ export default function InvoiceDetailPage() {
 
       {/* Line Items */}
       <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
-        <div className="px-5 py-3 border-b border-gray-100 dark:border-gray-800">
-          <h3 className="font-semibold text-gray-900 dark:text-white">Line Items</h3>
-          {refreshing && <span className="text-xs text-blue-500 animate-pulse">Updating...</span>}
+        <div className="px-5 py-3 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <h3 className="font-semibold text-gray-900 dark:text-white">Line Items</h3>
+            {refreshing && <span className="text-xs text-blue-500 animate-pulse">Updating...</span>}
+          </div>
+          {isDraft && (
+            editingLines ? (
+              <div className="flex gap-2">
+                <button onClick={saveAllEdits} disabled={!hasLineChanges} className="text-xs font-semibold text-green-600 hover:text-green-800 disabled:opacity-40 disabled:cursor-not-allowed">Save</button>
+                <button onClick={() => { setEditingLines(false); setLineEdits({}); }} className="text-xs text-gray-400 hover:text-gray-600">Cancel</button>
+              </div>
+            ) : (
+              <button onClick={() => setEditingLines(true)} className="text-xs text-blue-600 hover:text-blue-800">Edit</button>
+            )
+          )}
         </div>
         <table className="w-full text-sm">
           <thead>
@@ -365,12 +409,21 @@ export default function InvoiceDetailPage() {
                 <td className="px-5 py-2.5 font-medium">{li.description}</td>
                 <td className="px-5 py-2.5 text-center"><span className="rounded-full bg-gray-100 dark:bg-gray-800 px-2 py-0.5 text-xs">{li.lineType}</span></td>
                 {isDraft ? (
+                  editingLines ? (
                   <>
-                    <td className="px-2 py-1.5 text-right"><input type="number" className="w-16 rounded border border-gray-300 px-1.5 py-0.5 text-xs text-right dark:border-gray-600 dark:bg-gray-700 dark:text-white" defaultValue={Number(li.quantity)} onBlur={(e) => updateLine(li.id, 'quantity', e.target.value)} /></td>
-                    <td className="px-2 py-1.5 text-right"><input type="number" step="0.01" className="w-24 rounded border border-gray-300 px-1.5 py-0.5 text-xs text-right dark:border-gray-600 dark:bg-gray-700 dark:text-white" defaultValue={Number(li.unitPrice)} onBlur={(e) => updateLine(li.id, 'unitPrice', e.target.value)} /></td>
-                    <td className="px-2 py-1.5 text-right"><input type="number" step="0.01" className="w-16 rounded border border-gray-300 px-1.5 py-0.5 text-xs text-right dark:border-gray-600 dark:bg-gray-700 dark:text-white" defaultValue={Number(li.taxRate)} onBlur={(e) => updateLine(li.id, 'taxRate', e.target.value)} /></td>
-                    <td className="px-2 py-1.5 text-right"><input type="number" step="0.01" min="0" max="100" className="w-16 rounded border border-gray-300 px-1.5 py-0.5 text-xs text-right dark:border-gray-600 dark:bg-gray-700 dark:text-white" defaultValue={Number(li.discountPercent)} onBlur={(e) => updateLine(li.id, 'discountPercent', e.target.value)} /></td>
+                    <td className="px-2 py-1.5 text-right"><input type="number" className="w-16 rounded border border-gray-300 px-1.5 py-0.5 text-xs text-right dark:border-gray-600 dark:bg-gray-700 dark:text-white" defaultValue={Number(li.quantity)} onChange={(e) => setLineEdits((prev) => ({ ...prev, [li.id]: { ...prev[li.id], quantity: e.target.value } }))} /></td>
+                    <td className="px-2 py-1.5 text-right"><input type="number" step="0.01" className="w-24 rounded border border-gray-300 px-1.5 py-0.5 text-xs text-right dark:border-gray-600 dark:bg-gray-700 dark:text-white" defaultValue={Number(li.unitPrice)} onChange={(e) => setLineEdits((prev) => ({ ...prev, [li.id]: { ...prev[li.id], unitPrice: e.target.value } }))} /></td>
+                    <td className="px-2 py-1.5 text-right"><input type="number" step="0.01" className="w-16 rounded border border-gray-300 px-1.5 py-0.5 text-xs text-right dark:border-gray-600 dark:bg-gray-700 dark:text-white" defaultValue={Number(li.taxRate)} onChange={(e) => setLineEdits((prev) => ({ ...prev, [li.id]: { ...prev[li.id], taxRate: e.target.value } }))} /></td>
+                    <td className="px-2 py-1.5 text-right"><input type="number" step="0.01" min="0" max="100" className="w-16 rounded border border-gray-300 px-1.5 py-0.5 text-xs text-right dark:border-gray-600 dark:bg-gray-700 dark:text-white" defaultValue={Number(li.discountPercent)} onChange={(e) => setLineEdits((prev) => ({ ...prev, [li.id]: { ...prev[li.id], discountPercent: e.target.value } }))} /></td>
                   </>
+                  ) : (
+                  <>
+                    <td className="px-5 py-2.5 text-right">{Number(li.quantity)}</td>
+                    <td className="px-5 py-2.5 text-right">₹{Number(li.unitPrice).toLocaleString()}</td>
+                    <td className="px-5 py-2.5 text-right text-gray-500">{Number(li.taxRate)}%</td>
+                    <td className="px-5 py-2.5 text-right text-gray-500">{Number(li.discountPercent)}%</td>
+                  </>
+                  )
                 ) : (
                   <>
                     <td className="px-5 py-2.5 text-right">{Number(li.quantity)}</td>
