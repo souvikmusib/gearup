@@ -92,7 +92,6 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     // Sync to job card (all types except DISCOUNT_ADJUSTMENT) — fire in parallel with recalc
     const syncJobCard = async () => {
       if (!jobCardId || isDiscount) return;
-      // Create task/part on job card if needed
       if (body.lineType === 'PART' && referenceItemId) {
         const exists = await prisma.jobCardPart.findFirst({ where: { jobCardId, inventoryItemId: referenceItemId } });
         if (!exists) {
@@ -101,12 +100,6 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       } else if (body.lineType !== 'PART') {
         await prisma.jobCardTask.create({ data: { jobCardId, taskName: body.description, status: 'COMPLETED' } });
       }
-      // Recalculate job card costs from ALL invoice line items
-      const allLines = await prisma.invoiceLineItem.findMany({ where: { invoice: { jobCardId } } });
-      const estimatedPartsCost = allLines.filter((l: any) => l.lineType === 'PART').reduce((s: number, l: any) => s + Number(l.lineTotal), 0);
-      const estimatedLaborCost = allLines.filter((l: any) => l.lineType === 'LABOR').reduce((s: number, l: any) => s + Number(l.lineTotal), 0);
-      const estimatedOtherCost = allLines.filter((l: any) => !['PART','LABOR','DISCOUNT_ADJUSTMENT'].includes(l.lineType)).reduce((s: number, l: any) => s + Number(l.lineTotal), 0);
-      await prisma.jobCard.update({ where: { id: jobCardId }, data: { estimatedPartsCost, estimatedLaborCost, estimatedOtherCost, estimatedTotal: estimatedPartsCost + estimatedLaborCost + estimatedOtherCost } });
     };
 
     // Run recalc and job card sync in parallel

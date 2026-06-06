@@ -284,18 +284,27 @@ export default function JobCardDetailPage() {
 
           {/* Cost Summary */}
           <div className="rounded-lg border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-800 space-y-2">
-            <h3 className="font-semibold text-gray-900 dark:text-white">Cost Summary</h3>
-            <div className="grid grid-cols-2 gap-2 text-sm items-center">
-              <span className="text-gray-500">Parts:</span><span>₹{Number(data.estimatedPartsCost).toFixed(2)}</span>
-              <span className="text-gray-500">Labor:</span>
-              {canEditCosts(status) ? (
-                <input type="number" step="0.01" className="w-28 rounded border border-gray-300 px-1.5 py-0.5 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white" defaultValue={Number(data.estimatedLaborCost)} onBlur={(e) => saveCost('estimatedLaborCost', e.target.value)} />
-              ) : (
-                <span>₹{Number(data.estimatedLaborCost).toFixed(2)}</span>
-              )}
-              <span className="text-gray-500">Other:</span><span>₹{Number(data.estimatedOtherCost).toFixed(2)}</span>
-              <span className="text-gray-500 font-semibold">Total:</span><span className="font-bold">₹{Number(data.estimatedTotal).toFixed(2)}</span>
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-gray-900 dark:text-white">Billing</h3>
+              {data.invoices?.[0] && <button onClick={() => router.push(`/admin/invoices/${data.invoices[0].id}`)} className="text-xs text-blue-600 hover:underline">Edit on Invoice →</button>}
             </div>
+            {data.invoices?.[0]?.lineItems?.length > 0 ? (
+              <div className="space-y-1">
+                {data.invoices[0].lineItems.map((li: any, i: number) => (
+                  <div key={li.id || i} className="flex items-center justify-between text-sm">
+                    <span className="text-gray-600 dark:text-gray-400 truncate flex-1">{li.description}</span>
+                    <span className="text-xs text-gray-400 mx-2">{Number(li.quantity)} × ₹{Number(li.unitPrice)}</span>
+                    <span className="text-sm font-medium w-16 text-right">₹{Number(li.lineTotal).toLocaleString()}</span>
+                  </div>
+                ))}
+                <div className="border-t pt-2 mt-2 dark:border-gray-600 flex justify-between font-semibold text-sm">
+                  <span>Total</span>
+                  <span>₹{Number(data.invoices[0].grandTotal).toLocaleString()}</span>
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-gray-400">No items yet — <button onClick={() => data.invoices?.[0] && router.push(`/admin/invoices/${data.invoices[0].id}`)} className="text-blue-600 hover:underline">add on invoice</button></p>
+            )}
           </div>
 
           {/* Notes */}
@@ -393,13 +402,9 @@ export default function JobCardDetailPage() {
           </div>
 
           {/* Invoice */}
-          {data.invoices?.length > 0 ? (
+          {data.invoices?.length > 0 && (
             <button onClick={() => router.push(`/admin/invoices/${data.invoices[0].id}`)} className="w-full rounded-lg bg-blue-600 py-2 text-sm font-semibold text-white hover:bg-blue-700">
               View Invoice {data.invoices[0].invoiceNumber}
-            </button>
-          ) : canCreateInvoice(status) && (
-            <button onClick={goToInvoice} disabled={creatingInvoice} className="w-full rounded-lg bg-blue-600 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50">
-              {creatingInvoice ? 'Creating...' : '+ Create Invoice'}
             </button>
           )}
 

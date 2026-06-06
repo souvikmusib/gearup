@@ -4,7 +4,7 @@ import { paginate, paginationMeta } from '@/lib/pagination';
 import { requireAnyPermission, requirePermission } from '@/lib/auth';
 import { handleApiError } from '@/lib/errors';
 import { logActivity } from '@/lib/activity-logger';
-import { generateJobCardNumber } from '@/lib/id-generators';
+import { generateJobCardNumber, generateInvoiceNumber } from '@/lib/id-generators';
 import { PERMISSIONS } from '@gearup/types';
 import { z } from 'zod';
 
@@ -46,6 +46,9 @@ export async function POST(req: NextRequest) {
     const jc = await prisma.jobCard.create({ data: { jobCardNumber: generateJobCardNumber(), ...body, intakeDate: new Date(), estimatedDeliveryAt: body.estimatedDeliveryAt ? new Date(body.estimatedDeliveryAt) : undefined } as any });
     if (body.serviceRequestId) await prisma.serviceRequest.update({ where: { id: body.serviceRequestId }, data: { status: 'CONVERTED_TO_JOB' } });
     if (body.odometerAtIntake) await prisma.vehicle.update({ where: { id: body.vehicleId }, data: { odometerReading: body.odometerAtIntake } });
+    // Auto-create DRAFT invoice for this job card
+    const invData: any = { invoiceNumber: generateInvoiceNumber(), jobCard: { connect: { id: jc.id } }, customer: { connect: { id: body.customerId } }, vehicle: { connect: { id: body.vehicleId } }, createdBy: { connect: { id: user.sub } }, invoiceDate: new Date(), invoiceStatus: 'DRAFT', paymentStatus: 'UNPAID' };
+    await prisma.invoice.create({ data: invData });
     logActivity({ entityType: 'JobCard', entityId: jc.id, action: 'job-card.created', newValue: jc, actorType: 'ADMIN', actorId: user.sub });
     return NextResponse.json({ success: true, data: jc }, { status: 201 });
   } catch (e) { return handleApiError(e); }

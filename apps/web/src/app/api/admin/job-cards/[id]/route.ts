@@ -9,7 +9,7 @@ import { z } from 'zod';
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
   try {
     requireAnyPermission(PERMISSIONS.JOB_CARDS_CREATE, PERMISSIONS.JOB_CARDS_VIEW_OWN);
-    const jc = await prisma.jobCard.findUniqueOrThrow({ where: { id: params.id }, include: { customer: true, vehicle: true, appointment: true, serviceRequest: true, assignments: { include: { worker: true } }, tasks: { orderBy: { sortOrder: 'asc' } }, parts: { include: { inventoryItem: true } }, invoices: true } });
+    const jc = await prisma.jobCard.findUniqueOrThrow({ where: { id: params.id }, include: { customer: true, vehicle: true, appointment: true, serviceRequest: true, assignments: { include: { worker: true } }, tasks: { orderBy: { sortOrder: 'asc' } }, parts: { include: { inventoryItem: true } }, invoices: { include: { lineItems: { orderBy: { sortOrder: 'asc' } } } } } });
     return NextResponse.json({ success: true, data: jc });
   } catch (e) { return handleApiError(e); }
 }
