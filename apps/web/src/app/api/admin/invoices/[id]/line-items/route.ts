@@ -72,17 +72,21 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       lineTotal = subtotal + taxAmount;
     }
 
-    // Stock deduction for PART (parallel: update stock + create movement)
+    // Stock deduction for PART — skip if already reserved via job card
     if (body.lineType === 'PART') {
       const invItem = await prisma.inventoryItem.findFirst({ where: { itemName: body.description } });
       if (invItem) {
         referenceItemId = invItem.id;
-        const prevQty = Number(invItem.quantityInStock);
-        const newQty = prevQty - body.quantity;
-        await Promise.all([
-          prisma.inventoryItem.update({ where: { id: invItem.id }, data: { quantityInStock: { decrement: body.quantity } } }),
-          prisma.stockMovement.create({ data: { inventoryItemId: invItem.id, movementType: 'STOCK_OUT', quantity: body.quantity, previousQuantity: prevQty, newQuantity: newQty, reason: 'Invoice line item', relatedEntityType: 'Invoice', relatedEntityId: params.id } }),
-        ]);
+        // Check if this part is already reserved on the job card
+        const alreadyReserved = jobCardId ? await prisma.jobCardPart.findFirst({ where: { jobCardId, inventoryItemId: invItem.id } }) : null;
+        if (!alreadyReserved) {
+          const prevQty = Number(invItem.quantityInStock);
+          const newQty = prevQty - body.quantity;
+          await Promise.all([
+            prisma.inventoryItem.update({ where: { id: invItem.id }, data: { quantityInStock: { decrement: body.quantity } } }),
+            prisma.stockMovement.create({ data: { inventoryItemId: invItem.id, movementType: 'STOCK_OUT', quantity: body.quantity, previousQuantity: prevQty, newQuantity: newQty, reason: 'Invoice line item', relatedEntityType: 'Invoice', relatedEntityId: params.id } }),
+          ]);
+        }
       }
     }
 
