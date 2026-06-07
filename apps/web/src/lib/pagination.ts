@@ -1,5 +1,5 @@
 export function paginate({ page = 1, pageSize = 20 }: { page?: number; pageSize?: number }) {
-  const take = Math.min(Math.max(pageSize, 1), 100);
+  const take = Math.min(Math.max(pageSize, 1), 500);
   const skip = (Math.max(page, 1) - 1) * take;
   return { skip, take };
 }

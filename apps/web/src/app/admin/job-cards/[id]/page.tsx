@@ -4,6 +4,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';
 import { PageHeader, StatusBadge } from '@gearup/ui';
 import { WhatsAppButton } from '@/components/shared/whatsapp-button';
+import { Modal } from '@/components/shared/modal';
 
 // Simplified statuses (what the UI shows and allows)
 const SIMPLE_STATUSES = ['OPEN', 'ESTIMATE_READY', 'IN_PROGRESS', 'READY', 'DELIVERED', 'CANCELLED'] as const;
@@ -66,7 +67,9 @@ export default function JobCardDetailPage() {
   const [notes, setNotes] = useState({ diagnosisNotes: '', internalNotes: '' });
   const [savingNotes, setSavingNotes] = useState(false);
   const [inventoryItems, setInventoryItems] = useState<any[]>([]);
-  const [partForm, setPartForm] = useState({ inventoryItemId: '', requiredQty: '1', unitPrice: '' });
+  const [partForm, setPartForm] = useState<any>({ inventoryItemId: '', requiredQty: '1', unitPrice: '', search: '', _open: false });
+  const [showNewPart, setShowNewPart] = useState(false);
+  const [newPartForm, setNewPartForm] = useState({ sku: '', itemName: '', unit: 'PCS', costPrice: '', sellingPrice: '', quantityInStock: '' });
   const [addingPart, setAddingPart] = useState(false);
   const [workers, setWorkers] = useState<any[]>([]);
   const [workerForm, setWorkerForm] = useState({ workerId: '', assignmentRole: '' });
@@ -115,7 +118,7 @@ export default function JobCardDetailPage() {
 
   const onItemSelect = (itemId: string) => {
     const item = inventoryItems.find((i: any) => i.id === itemId);
-    setPartForm({ inventoryItemId: itemId, requiredQty: '1', unitPrice: item ? String(Number(item.sellingPrice)) : '' });
+    setPartForm({ inventoryItemId: itemId, requiredQty: '1', unitPrice: item ? String(Number(item.sellingPrice)) : '', search: item?.itemName || '' });
   };
 
   const addPart = async () => {
@@ -126,7 +129,7 @@ export default function JobCardDetailPage() {
       unitPrice: partForm.unitPrice ? Number(partForm.unitPrice) : undefined,
     });
     setAddingPart(false);
-    if (res.success) { setPartForm({ inventoryItemId: '', requiredQty: '1', unitPrice: '' }); load(); }
+    if (res.success) { setPartForm({ inventoryItemId: '', requiredQty: '1', unitPrice: '', search: '' }); load(); }
   };
 
   const removePart = async (partId: string) => {
@@ -177,7 +180,7 @@ export default function JobCardDetailPage() {
     }
     setCreatingInvoice(true);
     const lineItems: any[] = [];
-    data.parts?.forEach((p: any) => lineItems.push({ lineType: 'PART', description: p.inventoryItem?.itemName || 'Part', quantity: Number(p.requiredQty), unitPrice: Number(p.unitPrice), taxRate: 0 }));
+    data.parts?.forEach((p: any) => lineItems.push({ lineType: 'PART', description: p.inventoryItem?.itemName || 'Part', quantity: Number(p.requiredQty), unitPrice: Number(p.unitPrice), discountPercent: Number(p.inventoryItem?.discountPercent || 0), taxRate: 0 }));
     const laborCost = Number(data.estimatedLaborCost);
     if (laborCost > 0) {
       const workerNames = data.assignments?.map((a: any) => a.worker?.fullName).filter(Boolean).join(', ');
@@ -284,18 +287,27 @@ export default function JobCardDetailPage() {
 
           {/* Cost Summary */}
           <div className="rounded-lg border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-800 space-y-2">
-            <h3 className="font-semibold text-gray-900 dark:text-white">Cost Summary</h3>
-            <div className="grid grid-cols-2 gap-2 text-sm items-center">
-              <span className="text-gray-500">Parts:</span><span>₹{Number(data.estimatedPartsCost).toFixed(2)}</span>
-              <span className="text-gray-500">Labor:</span>
-              {canEditCosts(status) ? (
-                <input type="number" step="0.01" className="w-28 rounded border border-gray-300 px-1.5 py-0.5 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white" defaultValue={Number(data.estimatedLaborCost)} onBlur={(e) => saveCost('estimatedLaborCost', e.target.value)} />
-              ) : (
-                <span>₹{Number(data.estimatedLaborCost).toFixed(2)}</span>
-              )}
-              <span className="text-gray-500">Other:</span><span>₹{Number(data.estimatedOtherCost).toFixed(2)}</span>
-              <span className="text-gray-500 font-semibold">Total:</span><span className="font-bold">₹{Number(data.estimatedTotal).toFixed(2)}</span>
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-gray-900 dark:text-white">Billing</h3>
+              {data.invoices?.[0] && <button onClick={() => router.push(`/admin/invoices/${data.invoices[0].id}`)} className="text-xs text-blue-600 hover:underline">Edit on Invoice →</button>}
             </div>
+            {data.invoices?.[0]?.lineItems?.length > 0 ? (
+              <div className="space-y-1">
+                {data.invoices[0].lineItems.map((li: any, i: number) => (
+                  <div key={li.id || i} className="flex items-center justify-between text-sm">
+                    <span className="text-gray-600 dark:text-gray-400 truncate flex-1">{li.description}</span>
+                    <span className="text-xs text-gray-400 mx-2">{Number(li.quantity)} × ₹{Number(li.unitPrice)}</span>
+                    <span className="text-sm font-medium w-16 text-right">₹{Number(li.lineTotal).toLocaleString()}</span>
+                  </div>
+                ))}
+                <div className="border-t pt-2 mt-2 dark:border-gray-600 flex justify-between font-semibold text-sm">
+                  <span>Total</span>
+                  <span>₹{Number(data.invoices[0].grandTotal).toLocaleString()}</span>
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-gray-400">No items yet — <button onClick={() => data.invoices?.[0] && router.push(`/admin/invoices/${data.invoices[0].id}`)} className="text-blue-600 hover:underline">add on invoice</button></p>
+            )}
           </div>
 
           {/* Notes */}
@@ -375,10 +387,23 @@ export default function JobCardDetailPage() {
             )) : <p className="text-sm text-gray-400">No parts</p>}
             {canEditParts(status) && (
               <div className="mt-3 border-t pt-3 dark:border-gray-600 space-y-2">
-                <select className={inputCls} value={partForm.inventoryItemId} onFocus={loadInventory} onChange={(e) => onItemSelect(e.target.value)}>
-                  <option value="">Add a part...</option>
-                  {inventoryItems.map((i: any) => <option key={i.id} value={i.id}>{i.itemName} ({i.sku}) — ₹{Number(i.sellingPrice)}</option>)}
-                </select>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-[10px] text-gray-400">Search Part</span>
+                  <button type="button" onClick={() => setShowNewPart(true)} className="text-[10px] text-blue-600 hover:underline">+ New Part</button>
+                </div>
+                <div className="relative">
+                  <input className={inputCls} placeholder="Type to search parts..." value={partForm.search || ''} onFocus={() => { loadInventory(); setPartForm({ ...partForm, _open: true }); }} onChange={(e) => setPartForm({ ...partForm, search: e.target.value, inventoryItemId: '', _open: true })} onBlur={() => setTimeout(() => setPartForm((f: any) => ({ ...f, _open: false })), 150)} autoComplete="off" />
+                  {partForm._open && !partForm.inventoryItemId && (
+                    <div className="absolute z-50 top-full left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
+                      {inventoryItems.filter((i: any) => !partForm.search || i.itemName.toLowerCase().includes((partForm.search || '').toLowerCase()) || i.sku.toLowerCase().includes((partForm.search || '').toLowerCase())).map((i: any) => (
+                        <button key={i.id} type="button" onClick={() => { onItemSelect(i.id); setPartForm((f: any) => ({ ...f, search: i.itemName })); }} className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 border-b border-gray-50 dark:border-gray-700 last:border-0">
+                          <span className="font-medium">{i.itemName}</span> <span className="text-xs text-gray-400">({i.sku})</span> <span className="text-xs text-gray-500">₹{Number(i.sellingPrice)}</span>
+                        </button>
+                      ))}
+                      {inventoryItems.filter((i: any) => !partForm.search || i.itemName.toLowerCase().includes((partForm.search || '').toLowerCase()) || i.sku.toLowerCase().includes((partForm.search || '').toLowerCase())).length === 0 && <p className="px-3 py-2 text-xs text-gray-400">No matches</p>}
+                    </div>
+                  )}
+                </div>
                 {partForm.inventoryItemId && (
                   <div className="flex gap-2">
                     <input type="number" className={inputCls} placeholder="Qty" min="0.01" step="0.01" value={partForm.requiredQty} onChange={(e) => setPartForm({ ...partForm, requiredQty: e.target.value })} />
@@ -393,13 +418,9 @@ export default function JobCardDetailPage() {
           </div>
 
           {/* Invoice */}
-          {data.invoices?.length > 0 ? (
+          {data.invoices?.length > 0 && (
             <button onClick={() => router.push(`/admin/invoices/${data.invoices[0].id}`)} className="w-full rounded-lg bg-blue-600 py-2 text-sm font-semibold text-white hover:bg-blue-700">
               View Invoice {data.invoices[0].invoiceNumber}
-            </button>
-          ) : canCreateInvoice(status) && (
-            <button onClick={goToInvoice} disabled={creatingInvoice} className="w-full rounded-lg bg-blue-600 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50">
-              {creatingInvoice ? 'Creating...' : '+ Create Invoice'}
             </button>
           )}
 
@@ -410,6 +431,33 @@ export default function JobCardDetailPage() {
           </div>
         </div>
       </div>
+      {/* New Part Modal */}
+      <Modal open={showNewPart} onClose={() => setShowNewPart(false)} title="Add New Part to Inventory">
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div><label className="block text-xs font-medium mb-1">SKU <span className="text-red-500">*</span></label><input className={inputCls} value={newPartForm.sku} onChange={(e) => setNewPartForm({ ...newPartForm, sku: e.target.value })} placeholder="e.g. OIL-20W40" /></div>
+            <div><label className="block text-xs font-medium mb-1">Unit</label><input className={inputCls} value={newPartForm.unit} onChange={(e) => setNewPartForm({ ...newPartForm, unit: e.target.value })} placeholder="PCS / LTR / SET" /></div>
+          </div>
+          <div><label className="block text-xs font-medium mb-1">Item Name <span className="text-red-500">*</span></label><input className={inputCls} value={newPartForm.itemName} onChange={(e) => setNewPartForm({ ...newPartForm, itemName: e.target.value })} placeholder="e.g. Engine Oil 20W40 1L" /></div>
+          <div className="grid grid-cols-3 gap-3">
+            <div><label className="block text-xs font-medium mb-1">Cost Price</label><input type="number" step="0.01" className={inputCls} value={newPartForm.costPrice} onChange={(e) => setNewPartForm({ ...newPartForm, costPrice: e.target.value })} /></div>
+            <div><label className="block text-xs font-medium mb-1">Selling Price <span className="text-red-500">*</span></label><input type="number" step="0.01" className={inputCls} value={newPartForm.sellingPrice} onChange={(e) => setNewPartForm({ ...newPartForm, sellingPrice: e.target.value })} /></div>
+            <div><label className="block text-xs font-medium mb-1">Stock Qty</label><input type="number" className={inputCls} value={newPartForm.quantityInStock} onChange={(e) => setNewPartForm({ ...newPartForm, quantityInStock: e.target.value })} /></div>
+          </div>
+          <button type="button" disabled={!newPartForm.sku || !newPartForm.itemName || !newPartForm.sellingPrice} onClick={async () => {
+            const res = await api.post<any>('/admin/inventory/items', { ...newPartForm, costPrice: Number(newPartForm.costPrice) || 0, sellingPrice: Number(newPartForm.sellingPrice), quantityInStock: Number(newPartForm.quantityInStock) || 0 });
+            if (res.success) {
+              setInventoryItems((prev: any) => [res.data, ...prev]);
+              onItemSelect(res.data.id);
+              setPartForm((f: any) => ({ ...f, search: res.data.itemName }));
+              setShowNewPart(false);
+              setNewPartForm({ sku: '', itemName: '', unit: 'PCS', costPrice: '', sellingPrice: '', quantityInStock: '' });
+            } else { alert(res.error?.message || 'Failed to create part'); }
+          }} className="w-full rounded-lg bg-blue-600 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50">
+            Create & Select Part
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 }

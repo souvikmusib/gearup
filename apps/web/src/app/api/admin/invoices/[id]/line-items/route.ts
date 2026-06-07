@@ -18,7 +18,7 @@ async function recalcTotals(invoiceId: string, inv?: { discountAmount: unknown; 
   const taxTotal = lines.reduce((s, l) => s + Number(l.taxAmount), 0);
   const discountAmount = inv ? Number(inv.discountAmount) : Number((await prisma.invoice.findUniqueOrThrow({ where: { id: invoiceId }, select: { discountAmount: true, amountPaid: true } })).discountAmount);
   const amountPaid = inv ? Number(inv.amountPaid) : 0;
-  const grandTotal = subtotal + taxTotal - discountAmount;
+  const grandTotal = Math.round(subtotal + taxTotal - discountAmount);
   await prisma.invoice.update({ where: { id: invoiceId }, data: { subtotal, taxTotal, grandTotal, amountDue: grandTotal - amountPaid } });
 }
 
@@ -72,17 +72,21 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       lineTotal = subtotal + taxAmount;
     }
 
-    // Stock deduction for PART (parallel: update stock + create movement)
+    // Stock deduction for PART — skip if already reserved via job card
     if (body.lineType === 'PART') {
       const invItem = await prisma.inventoryItem.findFirst({ where: { itemName: body.description } });
       if (invItem) {
         referenceItemId = invItem.id;
-        const prevQty = Number(invItem.quantityInStock);
-        const newQty = prevQty - body.quantity;
-        await Promise.all([
-          prisma.inventoryItem.update({ where: { id: invItem.id }, data: { quantityInStock: { decrement: body.quantity } } }),
-          prisma.stockMovement.create({ data: { inventoryItemId: invItem.id, movementType: 'STOCK_OUT', quantity: body.quantity, previousQuantity: prevQty, newQuantity: newQty, reason: 'Invoice line item', relatedEntityType: 'Invoice', relatedEntityId: params.id } }),
-        ]);
+        // Check if this part is already reserved on the job card
+        const alreadyReserved = jobCardId ? await prisma.jobCardPart.findFirst({ where: { jobCardId, inventoryItemId: invItem.id } }) : null;
+        if (!alreadyReserved) {
+          const prevQty = Number(invItem.quantityInStock);
+          const newQty = prevQty - body.quantity;
+          await Promise.all([
+            prisma.inventoryItem.update({ where: { id: invItem.id }, data: { quantityInStock: { decrement: body.quantity } } }),
+            prisma.stockMovement.create({ data: { inventoryItemId: invItem.id, movementType: 'STOCK_OUT', quantity: body.quantity, previousQuantity: prevQty, newQuantity: newQty, reason: 'Invoice line item', relatedEntityType: 'Invoice', relatedEntityId: params.id } }),
+          ]);
+        }
       }
     }
 
@@ -96,24 +100,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         const exists = await prisma.jobCardPart.findFirst({ where: { jobCardId, inventoryItemId: referenceItemId } });
         if (!exists) {
           await prisma.jobCardPart.create({ data: { jobCardId, inventoryItemId: referenceItemId, requiredQty: body.quantity, reservedQty: body.quantity, unitPrice: body.unitPrice } });
-          const [parts, jc] = await Promise.all([
-            prisma.jobCardPart.findMany({ where: { jobCardId } }),
-            prisma.jobCard.findUniqueOrThrow({ where: { id: jobCardId }, select: { estimatedLaborCost: true, estimatedOtherCost: true } }),
-          ]);
-          const estimatedPartsCost = parts.reduce((sum: number, p: any) => sum + Number(p.requiredQty) * Number(p.unitPrice), 0);
-          await prisma.jobCard.update({ where: { id: jobCardId }, data: { estimatedPartsCost, estimatedTotal: estimatedPartsCost + Number(jc.estimatedLaborCost) + Number(jc.estimatedOtherCost) } });
         }
       } else if (body.lineType !== 'PART') {
         await prisma.jobCardTask.create({ data: { jobCardId, taskName: body.description, status: 'COMPLETED' } });
-        const jc = await prisma.jobCard.findUniqueOrThrow({ where: { id: jobCardId }, select: { estimatedLaborCost: true, estimatedOtherCost: true, estimatedPartsCost: true } });
-        const amount = isAmc ? Number(lineTotal) : body.unitPrice * body.quantity;
-        if (body.lineType === 'LABOR') {
-          const newLaborCost = Number(jc.estimatedLaborCost) + amount;
-          await prisma.jobCard.update({ where: { id: jobCardId }, data: { estimatedLaborCost: newLaborCost, estimatedTotal: Number(jc.estimatedPartsCost) + newLaborCost + Number(jc.estimatedOtherCost) } });
-        } else {
-          const newOtherCost = Number(jc.estimatedOtherCost) + amount;
-          await prisma.jobCard.update({ where: { id: jobCardId }, data: { estimatedOtherCost: newOtherCost, estimatedTotal: Number(jc.estimatedPartsCost) + Number(jc.estimatedLaborCost) + newOtherCost } });
-        }
       }
     };
 

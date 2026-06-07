@@ -5,6 +5,7 @@ import { api } from '@/lib/api/client';
 import { PageHeader, StatusBadge } from '@gearup/ui';
 import { WhatsAppButton } from '@/components/shared/whatsapp-button';
 import { FileText, CheckCircle, CreditCard, Download } from 'lucide-react';
+import { Modal } from '@/components/shared/modal';
 
 export default function InvoiceDetailPage() {
   const { id } = useParams();
@@ -26,11 +27,14 @@ export default function InvoiceDetailPage() {
 
   const [refreshing, setRefreshing] = useState(false);
   const [addStep, setAddStep] = useState<'type' | 'details'>('type');
+  const [editingLines, setEditingLines] = useState(false);
+  const [lineEdits, setLineEdits] = useState<Record<string, any>>({});
+  const [showNewPart, setShowNewPart] = useState(false);
+  const [newPartForm, setNewPartForm] = useState({ sku: '', itemName: '', unit: 'PCS', costPrice: '', sellingPrice: '', quantityInStock: '' });
   const [amcUpsell, setAmcUpsell] = useState<{ show: boolean; plan: any; savings: number; partsSavings: number; serviceSavings: number } | null>(null);
   const [applyingAmc, setApplyingAmc] = useState(false);
 
   const loadInventory = async () => {
-    if (inventoryItems.length) return;
     const res = await api.get<any>('/admin/inventory/items?pageSize=500');
     if (res.success) setInventoryItems(res.data?.items ?? res.data ?? []);
   };
@@ -171,12 +175,23 @@ export default function InvoiceDetailPage() {
     else { fetch(); alert(res.error?.message || 'Failed to add line item'); }
   };
 
-  const updateLine = async (lineItemId: string, field: string, value: string) => {
-    const num = Number(value);
-    if (isNaN(num)) return;
-    await api.patch<any>(`/admin/invoices/${id}/line-items`, { lineItemId, [field]: num });
+  const saveAllEdits = async () => {
+    const changed = Object.entries(lineEdits).filter(([_, v]) => Object.keys(v).length > 0);
+    if (changed.length === 0) return;
+    for (const [lineItemId, fields] of changed) {
+      const payload: any = { lineItemId };
+      if (fields.quantity !== undefined) payload.quantity = Number(fields.quantity);
+      if (fields.unitPrice !== undefined) payload.unitPrice = Number(fields.unitPrice);
+      if (fields.taxRate !== undefined) payload.taxRate = Number(fields.taxRate);
+      if (fields.discountPercent !== undefined) payload.discountPercent = Number(fields.discountPercent);
+      await api.patch<any>(`/admin/invoices/${id}/line-items`, payload);
+    }
+    setEditingLines(false);
+    setLineEdits({});
     fetch();
   };
+
+  const hasLineChanges = Object.values(lineEdits).some((v: any) => Object.keys(v).length > 0);
 
   const removeLine = async (lineItemId: string) => {
     // Optimistic: remove from table immediately
@@ -249,9 +264,7 @@ export default function InvoiceDetailPage() {
           {showPdfMenu && (
             <div className="absolute right-0 top-full mt-1 w-48 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-lg z-10">
               <button onClick={() => { openPdf(); setShowPdfMenu(false); }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 rounded-t-lg">Invoice</button>
-              <button onClick={() => { openPdf('combined'); setShowPdfMenu(false); }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800">Customer + Mechanic (1 page)</button>
-              <button onClick={() => { openPdf('customer-draft'); setShowPdfMenu(false); }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800">Customer Draft Copy</button>
-              <button onClick={() => { openPdf('mechanic'); setShowPdfMenu(false); }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 rounded-b-lg">Mechanic Copy</button>
+              <button onClick={() => { openPdf('combined'); setShowPdfMenu(false); }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 rounded-b-lg">Customer + Mechanic (1 page)</button>
             </div>
           )}
         </div>
@@ -340,10 +353,22 @@ export default function InvoiceDetailPage() {
       )}
 
       {/* Line Items */}
-      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
-        <div className="px-5 py-3 border-b border-gray-100 dark:border-gray-800">
-          <h3 className="font-semibold text-gray-900 dark:text-white">Line Items</h3>
-          {refreshing && <span className="text-xs text-blue-500 animate-pulse">Updating...</span>}
+      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+        <div className="px-5 py-3 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <h3 className="font-semibold text-gray-900 dark:text-white">Line Items</h3>
+            {refreshing && <span className="text-xs text-blue-500 animate-pulse">Updating...</span>}
+          </div>
+          {isDraft && (
+            editingLines ? (
+              <div className="flex gap-2">
+                <button onClick={saveAllEdits} disabled={!hasLineChanges} className="text-xs font-semibold text-green-600 hover:text-green-800 disabled:opacity-40 disabled:cursor-not-allowed">Save</button>
+                <button onClick={() => { setEditingLines(false); setLineEdits({}); }} className="text-xs text-gray-400 hover:text-gray-600">Cancel</button>
+              </div>
+            ) : (
+              <button onClick={() => setEditingLines(true)} className="text-xs text-blue-600 hover:text-blue-800">Edit</button>
+            )
+          )}
         </div>
         <table className="w-full text-sm">
           <thead>
@@ -366,12 +391,21 @@ export default function InvoiceDetailPage() {
                 <td className="px-5 py-2.5 font-medium">{li.description}</td>
                 <td className="px-5 py-2.5 text-center"><span className="rounded-full bg-gray-100 dark:bg-gray-800 px-2 py-0.5 text-xs">{li.lineType}</span></td>
                 {isDraft ? (
+                  editingLines ? (
                   <>
-                    <td className="px-2 py-1.5 text-right"><input type="number" className="w-16 rounded border border-gray-300 px-1.5 py-0.5 text-xs text-right dark:border-gray-600 dark:bg-gray-700 dark:text-white" defaultValue={Number(li.quantity)} onBlur={(e) => updateLine(li.id, 'quantity', e.target.value)} /></td>
-                    <td className="px-2 py-1.5 text-right"><input type="number" step="0.01" className="w-24 rounded border border-gray-300 px-1.5 py-0.5 text-xs text-right dark:border-gray-600 dark:bg-gray-700 dark:text-white" defaultValue={Number(li.unitPrice)} onBlur={(e) => updateLine(li.id, 'unitPrice', e.target.value)} /></td>
-                    <td className="px-2 py-1.5 text-right"><input type="number" step="0.01" className="w-16 rounded border border-gray-300 px-1.5 py-0.5 text-xs text-right dark:border-gray-600 dark:bg-gray-700 dark:text-white" defaultValue={Number(li.taxRate)} onBlur={(e) => updateLine(li.id, 'taxRate', e.target.value)} /></td>
-                    <td className="px-2 py-1.5 text-right"><input type="number" step="0.01" min="0" max="100" className="w-16 rounded border border-gray-300 px-1.5 py-0.5 text-xs text-right dark:border-gray-600 dark:bg-gray-700 dark:text-white" defaultValue={Number(li.discountPercent)} onBlur={(e) => updateLine(li.id, 'discountPercent', e.target.value)} /></td>
+                    <td className="px-2 py-1.5 text-right"><input type="number" className="w-16 rounded border border-gray-300 px-1.5 py-0.5 text-xs text-right dark:border-gray-600 dark:bg-gray-700 dark:text-white" defaultValue={Number(li.quantity)} onChange={(e) => setLineEdits((prev) => ({ ...prev, [li.id]: { ...prev[li.id], quantity: e.target.value } }))} /></td>
+                    <td className="px-2 py-1.5 text-right"><input type="number" step="0.01" className="w-24 rounded border border-gray-300 px-1.5 py-0.5 text-xs text-right dark:border-gray-600 dark:bg-gray-700 dark:text-white" defaultValue={Number(li.unitPrice)} onChange={(e) => setLineEdits((prev) => ({ ...prev, [li.id]: { ...prev[li.id], unitPrice: e.target.value } }))} /></td>
+                    <td className="px-2 py-1.5 text-right"><input type="number" step="0.01" className="w-16 rounded border border-gray-300 px-1.5 py-0.5 text-xs text-right dark:border-gray-600 dark:bg-gray-700 dark:text-white" defaultValue={Number(li.taxRate)} onChange={(e) => setLineEdits((prev) => ({ ...prev, [li.id]: { ...prev[li.id], taxRate: e.target.value } }))} /></td>
+                    <td className="px-2 py-1.5 text-right"><input type="number" step="0.01" min="0" max="100" className="w-16 rounded border border-gray-300 px-1.5 py-0.5 text-xs text-right dark:border-gray-600 dark:bg-gray-700 dark:text-white" defaultValue={Number(li.discountPercent)} onChange={(e) => setLineEdits((prev) => ({ ...prev, [li.id]: { ...prev[li.id], discountPercent: e.target.value } }))} /></td>
                   </>
+                  ) : (
+                  <>
+                    <td className="px-5 py-2.5 text-right">{Number(li.quantity)}</td>
+                    <td className="px-5 py-2.5 text-right">₹{Number(li.unitPrice).toLocaleString()}</td>
+                    <td className="px-5 py-2.5 text-right text-gray-500">{Number(li.taxRate)}%</td>
+                    <td className="px-5 py-2.5 text-right text-gray-500">{Number(li.discountPercent)}%</td>
+                  </>
+                  )
                 ) : (
                   <>
                     <td className="px-5 py-2.5 text-right">{Number(li.quantity)}</td>
@@ -408,14 +442,24 @@ export default function InvoiceDetailPage() {
                 <div className="grid grid-cols-12 gap-2 items-end">
                   <div className="col-span-5">
                     {newLine.lineType === 'PART' ? (
-                      <><label className="block text-[10px] text-gray-400 mb-0.5">Select Part <span className="text-red-500">*</span></label>
-                      <select className={inputCls} value={newLine.description} onChange={(e) => {
-                        const item = inventoryItems.find((i: any) => i.itemName === e.target.value);
-                        setNewLine({ ...newLine, description: e.target.value, unitPrice: item && !item.variablePrice ? String(Number(item.sellingPrice)) : '', discountPercent: item ? String(Number(item.discountPercent) || '0') : '0' });
-                      }}>
-                        <option value="">Select part...</option>
-                        {inventoryItems.map((i: any) => { const dp = Number(i.discountPercent) || 0; return <option key={i.id} value={i.itemName}>{i.itemName} ({i.sku}){i.variablePrice ? ' [Variable]' : ` — ₹${Number(i.sellingPrice)}`}{dp ? ` (${dp}% off)` : ''}</option>; })}
-                      </select></>
+                      <><label className="block text-[10px] text-gray-400 mb-0.5 flex items-center justify-between">
+                        <span>Select Part <span className="text-red-500">*</span></span>
+                        <button type="button" onClick={() => setShowNewPart(true)} className="text-blue-600 hover:underline">+ New Part</button>
+                      </label>
+                      <div className="relative">
+                        <input className={inputCls} placeholder="Type to search parts..." value={newLine.description} onChange={(e) => setNewLine({ ...newLine, description: e.target.value, unitPrice: '' })} onFocus={(e) => e.target.setAttribute('data-open', '1')} onBlur={(e) => setTimeout(() => e.target.removeAttribute('data-open'), 200)} autoComplete="off" />
+                        {!inventoryItems.some((i: any) => i.itemName === newLine.description) && (
+                          <div className="absolute z-50 top-full left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
+                            {inventoryItems.filter((i: any) => !newLine.description || i.itemName.toLowerCase().includes(newLine.description.toLowerCase()) || i.sku.toLowerCase().includes(newLine.description.toLowerCase())).map((i: any) => {
+                              const dp = Number(i.discountPercent) || 0;
+                              return <button key={i.id} type="button" onClick={() => setNewLine({ ...newLine, description: i.itemName, unitPrice: i.variablePrice ? '' : String(Number(i.sellingPrice)), discountPercent: String(dp) })} className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 border-b border-gray-50 dark:border-gray-700 last:border-0">
+                                <span className="font-medium">{i.itemName}</span> <span className="text-xs text-gray-400">({i.sku})</span>{i.variablePrice ? <span className="text-xs text-amber-500 ml-1">[Variable]</span> : <span className="text-xs text-gray-500 ml-1">₹{Number(i.sellingPrice)}</span>}{dp ? <span className="text-xs text-green-600 ml-1">{dp}% off</span> : ''}
+                              </button>;
+                            })}
+                            {inventoryItems.filter((i: any) => !newLine.description || i.itemName.toLowerCase().includes(newLine.description.toLowerCase()) || i.sku.toLowerCase().includes(newLine.description.toLowerCase())).length === 0 && <p className="px-3 py-2 text-xs text-gray-400">No matches</p>}
+                          </div>
+                        )}
+                      </div></>
                     ) : newLine.lineType === 'AMC' ? (
                       <><label className="block text-[10px] text-gray-400 mb-0.5">AMC Option</label>
                       <div className="space-y-1">
@@ -532,6 +576,33 @@ export default function InvoiceDetailPage() {
           {data.finalizedAt && <p className="text-gray-500">Finalized: {new Date(data.finalizedAt).toLocaleDateString('en-IN')}</p>}
         </div>
       </div>
+
+      {/* New Part Modal */}
+      <Modal open={showNewPart} onClose={() => setShowNewPart(false)} title="Add New Part to Inventory">
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div><label className="block text-xs font-medium mb-1">SKU <span className="text-red-500">*</span></label><input className={inputCls} value={newPartForm.sku} onChange={(e) => setNewPartForm({ ...newPartForm, sku: e.target.value })} placeholder="e.g. OIL-20W40" /></div>
+            <div><label className="block text-xs font-medium mb-1">Unit</label><input className={inputCls} value={newPartForm.unit} onChange={(e) => setNewPartForm({ ...newPartForm, unit: e.target.value })} placeholder="PCS / LTR / SET" /></div>
+          </div>
+          <div><label className="block text-xs font-medium mb-1">Item Name <span className="text-red-500">*</span></label><input className={inputCls} value={newPartForm.itemName} onChange={(e) => setNewPartForm({ ...newPartForm, itemName: e.target.value })} placeholder="e.g. Engine Oil 20W40 1L" /></div>
+          <div className="grid grid-cols-3 gap-3">
+            <div><label className="block text-xs font-medium mb-1">Cost Price</label><input type="number" step="0.01" className={inputCls} value={newPartForm.costPrice} onChange={(e) => setNewPartForm({ ...newPartForm, costPrice: e.target.value })} /></div>
+            <div><label className="block text-xs font-medium mb-1">Selling Price <span className="text-red-500">*</span></label><input type="number" step="0.01" className={inputCls} value={newPartForm.sellingPrice} onChange={(e) => setNewPartForm({ ...newPartForm, sellingPrice: e.target.value })} /></div>
+            <div><label className="block text-xs font-medium mb-1">Stock Qty</label><input type="number" className={inputCls} value={newPartForm.quantityInStock} onChange={(e) => setNewPartForm({ ...newPartForm, quantityInStock: e.target.value })} /></div>
+          </div>
+          <button type="button" disabled={!newPartForm.sku || !newPartForm.itemName || !newPartForm.sellingPrice} onClick={async () => {
+            const res = await api.post<any>('/admin/inventory/items', { ...newPartForm, costPrice: Number(newPartForm.costPrice) || 0, sellingPrice: Number(newPartForm.sellingPrice), quantityInStock: Number(newPartForm.quantityInStock) || 0 });
+            if (res.success) {
+              setInventoryItems((prev) => [res.data, ...prev]);
+              setNewLine({ ...newLine, description: res.data.itemName, unitPrice: String(Number(res.data.sellingPrice)), discountPercent: '0' });
+              setShowNewPart(false);
+              setNewPartForm({ sku: '', itemName: '', unit: 'PCS', costPrice: '', sellingPrice: '', quantityInStock: '' });
+            } else { alert(res.error?.message || 'Failed to create part'); }
+          }} className="w-full rounded-lg bg-blue-600 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50">
+            Create & Select Part
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 }
