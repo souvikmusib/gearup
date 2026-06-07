@@ -67,7 +67,7 @@ export default function JobCardDetailPage() {
   const [notes, setNotes] = useState({ diagnosisNotes: '', internalNotes: '' });
   const [savingNotes, setSavingNotes] = useState(false);
   const [inventoryItems, setInventoryItems] = useState<any[]>([]);
-  const [partForm, setPartForm] = useState({ inventoryItemId: '', requiredQty: '1', unitPrice: '', search: '' });
+  const [partForm, setPartForm] = useState<any>({ inventoryItemId: '', requiredQty: '1', unitPrice: '', search: '', _open: false });
   const [showNewPart, setShowNewPart] = useState(false);
   const [newPartForm, setNewPartForm] = useState({ sku: '', itemName: '', unit: 'PCS', costPrice: '', sellingPrice: '', quantityInStock: '' });
   const [addingPart, setAddingPart] = useState(false);

@@ -193,25 +193,6 @@ export default function InvoiceDetailPage() {
 
   const hasLineChanges = Object.values(lineEdits).some((v: any) => Object.keys(v).length > 0);
 
-  const updateLine = async (lineItemId: string, field: string, value: string) => {
-    const num = Number(value);
-    if (isNaN(num)) return;
-    await api.patch<any>(`/admin/invoices/${id}/line-items`, { lineItemId, [field]: num });
-    fetch();
-  };
-
-  const saveLineEdit = async () => {
-    if (!editingLineId) return;
-    const payload: any = { lineItemId: editingLineId };
-    if (editLineForm.quantity !== undefined) payload.quantity = Number(editLineForm.quantity);
-    if (editLineForm.unitPrice !== undefined) payload.unitPrice = Number(editLineForm.unitPrice);
-    if (editLineForm.taxRate !== undefined) payload.taxRate = Number(editLineForm.taxRate);
-    if (editLineForm.discountPercent !== undefined) payload.discountPercent = Number(editLineForm.discountPercent);
-    await api.patch<any>(`/admin/invoices/${id}/line-items`, payload);
-    setEditingLineId(null);
-    fetch();
-  };
-
   const removeLine = async (lineItemId: string) => {
     // Optimistic: remove from table immediately
     setData((d: any) => d ? { ...d, lineItems: d.lineItems?.filter((li: any) => li.id !== lineItemId) } : d);
