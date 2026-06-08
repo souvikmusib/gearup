@@ -1,11 +1,3 @@
-<claude-mem-context>
-# Memory Context
-
-# $CMEM gearup 2026-06-01 3:43am GMT+5:30
-
-No previous sessions found.
-</claude-mem-context>
-
 <!-- SGNK:BEGIN -->
 Before doing anything, read `.sgnk/LATEST-KEY.md` for prior-session context (it
 references the matching `.sgnk/snapshots/<id>/manifest.json`). Follow the REPLAY
