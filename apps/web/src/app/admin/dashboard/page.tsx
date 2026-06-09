@@ -83,7 +83,6 @@ export default function DashboardPage() {
     { label: "Today's Revenue", value: `₹${data.todayRevenue.toLocaleString()}`, icon: DollarSign, color: 'bg-green-50 text-green-600 dark:bg-green-950 dark:text-green-400', href: '/admin/reports/revenue' },
   ];
 
-  const quickActions = [
   const quickActions = isInventoryManager ? [
     { label: 'Add Item', icon: FileText, href: '/admin/inventory/items', color: 'text-green-600' },
     { label: 'Stock Movements', icon: ClipboardList, href: '/admin/inventory/movements', color: 'text-purple-600' },

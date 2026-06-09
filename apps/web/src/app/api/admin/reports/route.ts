@@ -6,10 +6,15 @@ import { PERMISSIONS } from '@gearup/types';
 
 export async function GET(req: NextRequest) {
   try {
-    requirePermission(PERMISSIONS.REPORTS_VIEW);
     const sp = req.nextUrl.searchParams;
     const type = sp.get('type') || 'dashboard';
     const from = sp.get('from'); const to = sp.get('to');
+
+    if (type === 'dashboard' || type === 'revenue') {
+      requirePermission(PERMISSIONS.DASHBOARD_VIEW);
+    } else {
+      requirePermission(PERMISSIONS.REPORTS_VIEW);
+    }
 
     if (type === 'dashboard') {
       // Use IST (UTC+5:30) for "today" boundaries
