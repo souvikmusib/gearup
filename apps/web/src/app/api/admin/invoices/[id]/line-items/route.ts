@@ -27,7 +27,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     const user = requirePermission(PERMISSIONS.INVOICES_CREATE);
     const inv = await ensureDraft(params.id);
     const body = z.object({
-      lineType: z.enum(['PART', 'LABOR', 'CUSTOM_CHARGE', 'DISCOUNT_ADJUSTMENT', 'AMC']),
+      lineType: z.enum(['PART', 'LABOR', 'SERVICE_CHARGE', 'CUSTOM_CHARGE', 'DISCOUNT_ADJUSTMENT', 'AMC']),
       description: z.string().min(1), quantity: z.number().default(1), unitPrice: z.number().default(0), taxRate: z.number().default(0), discountPercent: z.number().min(0).max(100).default(0),
       discountMode: z.enum(['flat', 'percent']).optional(),
       amcPlanId: z.string().optional(),
