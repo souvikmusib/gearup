@@ -84,6 +84,19 @@ export async function GET(req: NextRequest) {
         }
       });
 
+      // Worker job card total value
+      const assignments = paidInvoiceIds.length > 0 ? await prisma.workerAssignment.findMany({
+        where: { jobCard: { invoices: { some: { id: { in: paidInvoiceIds } } } } },
+        include: { worker: { select: { fullName: true } }, jobCard: { include: { invoices: { where: { id: { in: paidInvoiceIds } }, select: { grandTotal: true } } } } }
+      }) : [];
+      const workerJobValue: Record<string, { total: number; jobs: number }> = {};
+      assignments.forEach((a: any) => {
+        const name = a.worker.fullName;
+        if (!workerJobValue[name]) workerJobValue[name] = { total: 0, jobs: 0 };
+        a.jobCard.invoices.forEach((inv: any) => { workerJobValue[name].total += Number(inv.grandTotal); });
+        if (a.jobCard.invoices.length > 0) workerJobValue[name].jobs++;
+      });
+
       return NextResponse.json({
         success: true,
         data: {
@@ -92,6 +105,7 @@ export async function GET(req: NextRequest) {
           daily,
           byType: Object.entries(byType).map(([type, total]) => ({ type, total })),
           byWorker: Object.entries(byWorker).map(([name, total]) => ({ name, total })).sort((a, b) => b.total - a.total),
+          workerJobValue: Object.entries(workerJobValue).map(([name, d]) => ({ name, total: d.total, jobs: d.jobs })).sort((a, b) => b.total - a.total),
         },
       });
     }

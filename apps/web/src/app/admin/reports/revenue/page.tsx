@@ -161,6 +161,22 @@ export default function RevenueReportPage() {
           </div>
         )}
       </div>
+
+      {/* Worker Total Job Card Value */}
+      {data.workerJobValue?.length > 0 && (
+        <div className="rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 p-5">
+          <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Total Revenue per Worker (Full Job Card Value)</h3>
+          <div className="grid grid-cols-3 gap-4">
+            {data.workerJobValue.map((w: any) => (
+              <div key={w.name} className="rounded-lg border border-gray-100 dark:border-gray-800 p-4 text-center">
+                <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{w.name}</p>
+                <p className="text-xl font-bold text-gray-900 dark:text-white mt-1">₹{Math.round(w.total).toLocaleString()}</p>
+                <p className="text-xs text-gray-400 mt-1">{w.jobs} paid jobs</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
