@@ -122,6 +122,45 @@ export default function RevenueReportPage() {
           </div>
         </div>
       )}
+
+      {/* Revenue Breakdown by Type + Worker */}
+      <div className="grid grid-cols-2 gap-4">
+        {data.byType?.length > 0 && (
+          <div className="rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 p-5">
+            <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Revenue by Category</h3>
+            <div className="space-y-3">
+              {data.byType.map((t: any) => {
+                const total = Number(data.totalRevenue) || 1;
+                const pct = ((t.total / total) * 100).toFixed(0);
+                const color = t.type === 'LABOR' ? '#3b82f6' : t.type === 'PART' ? '#10b981' : '#f59e0b';
+                return (
+                  <div key={t.type}>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="font-medium text-gray-700 dark:text-gray-300">{t.type === 'LABOR' ? '👷 Labor' : t.type === 'PART' ? '🔩 Parts' : '📝 Custom/Service'}</span>
+                      <span className="font-semibold">₹{Math.round(t.total).toLocaleString()} <span className="text-xs text-gray-400">({pct}%)</span></span>
+                    </div>
+                    <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2"><div className="h-2 rounded-full" style={{ width: `${pct}%`, background: color }} /></div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {data.byWorker?.length > 0 && (
+          <div className="rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 p-5">
+            <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Labor Revenue by Worker</h3>
+            <div className="space-y-2">
+              {data.byWorker.map((w: any) => (
+                <div key={w.name} className="flex items-center justify-between py-2 border-b border-gray-50 dark:border-gray-800 last:border-0">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{w.name}</span>
+                  <span className="text-sm font-semibold text-blue-600">₹{Math.round(w.total).toLocaleString()}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
