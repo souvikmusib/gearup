@@ -69,3 +69,32 @@ export async function POST(req: NextRequest) {
     return handleApiError(e);
   }
 }
+
+export async function PATCH(req: NextRequest) {
+  try {
+    requirePermission(PERMISSIONS.ADMIN_USERS_MANAGE);
+    const body = z.object({
+      id: z.string(),
+      fullName: z.string().optional(),
+      password: z.string().min(6).optional(),
+      phone: z.string().optional(),
+      status: z.enum(['ACTIVE', 'INACTIVE']).optional(),
+      roleId: z.string().optional(),
+    }).parse(await req.json());
+
+    const { id, password, roleId, ...data } = body;
+    const updateData: any = { ...data };
+    if (password) updateData.passwordHash = await bcrypt.hash(password, 10);
+
+    const user = await prisma.adminUser.update({ where: { id }, data: updateData, select: { id: true, adminUserId: true, fullName: true } });
+
+    if (roleId) {
+      await prisma.adminUserRole.deleteMany({ where: { adminUserId: id } });
+      await prisma.adminUserRole.create({ data: { adminUserId: id, roleId } });
+    }
+
+    return NextResponse.json({ success: true, data: user });
+  } catch (e) {
+    return handleApiError(e);
+  }
+}
