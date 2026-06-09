@@ -375,10 +375,10 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 @media print { body { -webkit-print-color-adjust:exact; print-color-adjust:exact; } @page { margin:8mm; size:A4; } }
 table { width:100%; border-collapse:collapse; } th { background:#f3f4f6; padding:4px 6px; text-align:left; font-size:9px; text-transform:uppercase; color:#666; font-weight:600; }
 .page { width:100%; height:277mm; display:flex; flex-direction:column; }
-.section-top { padding:16px 24px; flex:3; display:flex; flex-direction:column; }
+.section-top { padding:16px 24px; min-height:58%; display:flex; flex-direction:column; }
 .cut { border-top:2px dashed #aaa; margin:0 24px; position:relative; }
 .cut::before { content:'✂ cut here'; position:absolute; top:-8px; left:0; background:#fff; padding:0 8px; color:#999; font-size:10px; }
-.section-bottom { padding:12px 24px; flex:2; }
+.section-bottom { padding:12px 24px; display:flex; flex-direction:column; }
 .header { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; padding-bottom:5px; border-bottom:1.5px solid #111; }
 .meta { display:flex; gap:8px; margin-bottom:6px; font-size:11px; }
 .meta-box { background:#f9fafb; padding:5px 8px; border-radius:4px; flex:1; }
@@ -387,25 +387,8 @@ table { width:100%; border-collapse:collapse; } th { background:#f3f4f6; padding
 
 <div class="section-top">
   <div class="header">
-    <div><img src="${logoUrl}" style="height:26px" alt="${biz.name}"><span style="font-size:8px;color:#999;margin-left:6px;letter-spacing:1px">SERVICE · SPARES · SAFETY</span></div>
-    <div style="text-align:right"><strong style="font-size:11px">CUSTOMER COPY</strong><br><span style="font-size:9px;color:#666">${invoice.invoiceNumber} · ${formatDateIST(invoice.invoiceDate)}</span></div>
-  </div>
-  <div class="meta">
-    <div class="meta-box"><div class="meta-label">Customer</div>${invoice.customer.fullName} · ${invoice.customer.phoneNumber}</div>
-    <div class="meta-box"><div class="meta-label">Vehicle</div>${vehicle}${odometer}${fuel}</div>
-  </div>
-  ${invoice.jobCard?.issueSummary ? `<div style="margin-bottom:4px;padding:3px 8px;background:#fffbeb;border-radius:4px;font-size:10px"><strong>Issue:</strong> ${invoice.jobCard.issueSummary}</div>` : ''}
-  <table><thead><tr><th>#</th><th>Item</th><th style="text-align:center">Qty</th><th style="text-align:right">Amount</th></tr></thead><tbody>${rows}</tbody></table>
-  <div style="margin-top:auto;padding:6px 10px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:4px;text-align:right;font-size:12px;font-weight:700">Estimate Total: ₹${Number(invoice.grandTotal).toLocaleString()} · ${invoice.paymentStatus}</div>
-  <div style="text-align:center;font-size:9px;color:#888;margin-top:6px">Thank you for choosing ${biz.name}! · ${biz.phone}</div>
-</div>
-
-<div class="cut"></div>
-
-<div class="section-bottom">
-  <div class="header">
-    <div><img src="${logoUrl}" style="height:24px" alt="${biz.name}"><span style="font-size:8px;color:#666;margin-left:6px">MECHANIC WORK ORDER</span></div>
-    <div style="text-align:right"><strong style="font-size:10px">${invoice.jobCard?.jobCardNumber || invoice.invoiceNumber}</strong><br><span style="font-size:9px;color:#666">${formatDateIST(invoice.invoiceDate)}</span></div>
+    <div><img src="${logoUrl}" style="height:26px" alt="${biz.name}"><span style="font-size:8px;color:#666;margin-left:6px">MECHANIC WORK ORDER</span></div>
+    <div style="text-align:right"><strong style="font-size:11px">${invoice.jobCard?.jobCardNumber || invoice.invoiceNumber}</strong><br><span style="font-size:9px;color:#666">${formatDateIST(invoice.invoiceDate)}</span></div>
   </div>
   <div class="meta">
     <div class="meta-box"><div class="meta-label">Vehicle</div>${vehicle}${odometer}${fuel}</div>
@@ -416,7 +399,25 @@ table { width:100%; border-collapse:collapse; } th { background:#f3f4f6; padding
     ${tasks ? `<div style="flex:1"><strong style="font-size:9px;text-transform:uppercase;color:#666">Tasks</strong><table><tbody>${tasks}</tbody></table></div>` : ''}
     ${parts ? `<div style="flex:1"><strong style="font-size:9px;text-transform:uppercase;color:#666">Parts</strong><table><tbody>${parts}</tbody></table></div>` : ''}
   </div>
-  <div style="margin-top:8px;display:flex;justify-content:space-between;font-size:9px;color:#666"><div>Mechanic: _______________</div><div>Date: _______________</div></div>
+  <div style="margin-top:auto;display:flex;justify-content:space-between;font-size:9px;color:#666"><div>Mechanic: _______________</div><div>Date: _______________</div></div>
+</div>
+
+<div class="cut"></div>
+
+<div class="section-bottom">
+  <div class="header">
+    <div><img src="${logoUrl}" style="height:24px" alt="${biz.name}"><span style="font-size:8px;color:#999;margin-left:6px;letter-spacing:1px">SERVICE · SPARES · SAFETY</span></div>
+    <div style="text-align:right"><strong style="font-size:10px">CUSTOMER COPY</strong><br><span style="font-size:9px;color:#666">${invoice.invoiceNumber} · ${formatDateIST(invoice.invoiceDate)}</span></div>
+  </div>
+  <div class="meta">
+    <div class="meta-box"><div class="meta-label">Customer</div>${invoice.customer.fullName} · ${invoice.customer.phoneNumber}</div>
+    <div class="meta-box"><div class="meta-label">Vehicle</div>${vehicle}${odometer}${fuel}</div>
+  </div>
+  <table><thead><tr><th>#</th><th>Item</th><th style="text-align:center">Qty</th><th style="text-align:right">Amount</th></tr></thead><tbody>${rows}</tbody></table>
+  <div style="margin-top:auto;padding-top:15px"><div style="padding:6px 10px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:4px;display:flex;justify-content:space-between;align-items:center">
+    <span style="font-size:12px;font-weight:700">Total: ₹${Number(invoice.grandTotal).toLocaleString()} · ${invoice.paymentStatus}</span>
+    <span style="font-size:9px;color:#666">Customer Signature: _______________</span>
+  </div></div>
 </div>
 
 </div></body></html>`;

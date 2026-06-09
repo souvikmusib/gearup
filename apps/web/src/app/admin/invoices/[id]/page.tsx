@@ -96,7 +96,7 @@ export default function InvoiceDetailPage() {
           });
           if (matched) plan = matched;
         }
-        const laborItems = data.lineItems?.filter((li: any) => li.lineType === 'LABOR') ?? [];
+        const laborItems = data.lineItems?.filter((li: any) => li.lineType === 'SERVICE_CHARGE') ?? [];
         const partItems = data.lineItems?.filter((li: any) => li.lineType === 'PART') ?? [];
         const serviceSavings = laborItems.reduce((s: number, li: any) => s + Number(li.lineTotal), 0);
         const partsSavings = partItems.reduce((s: number, li: any) => s + Number(li.lineTotal) * 0.01, 0);
@@ -428,6 +428,7 @@ export default function InvoiceDetailPage() {
                 <div className="flex flex-wrap gap-2">
                   <button onClick={() => { setNewLine({ ...newLine, lineType: 'PART', description: '', unitPrice: '', discountPercent: '0' }); setAddStep('details'); }} className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-medium hover:bg-white dark:hover:bg-gray-700 transition">🔩 Part</button>
                   <button onClick={() => { setNewLine({ ...newLine, lineType: 'LABOR', description: '', unitPrice: '' }); setAddStep('details'); }} className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-medium hover:bg-white dark:hover:bg-gray-700 transition">👷 Labor</button>
+                  <button onClick={() => { setNewLine({ ...newLine, lineType: 'SERVICE_CHARGE', description: 'General Service', unitPrice: '' }); setAddStep('details'); }} className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-medium hover:bg-white dark:hover:bg-gray-700 transition">🔧 Service Charge</button>
                   <button onClick={() => { setNewLine({ ...newLine, lineType: 'CUSTOM_CHARGE', description: '', unitPrice: '' }); setAddStep('details'); }} className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-medium hover:bg-white dark:hover:bg-gray-700 transition">📝 Custom Charge</button>
                   <button onClick={() => { setNewLine({ ...newLine, lineType: 'DISCOUNT_ADJUSTMENT', description: 'Discount', unitPrice: '', discountMode: 'flat' }); setAddStep('details'); }} className="rounded-lg border border-green-300 dark:border-green-700 px-4 py-2.5 text-sm font-medium text-green-700 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 transition">🏷️ Discount</button>
                   <button onClick={() => { setNewLine({ ...newLine, lineType: 'AMC', description: '', unitPrice: '0' }); loadAmcOptions(); setAddStep('details'); }} className="rounded-lg border border-amber-300 dark:border-amber-700 px-4 py-2.5 text-sm font-medium text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition">🛡️ AMC</button>
@@ -436,7 +437,7 @@ export default function InvoiceDetailPage() {
             ) : (
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <p className="text-xs font-medium text-gray-500">Add {newLine.lineType === 'PART' ? 'Part' : newLine.lineType === 'LABOR' ? 'Labor' : newLine.lineType === 'DISCOUNT_ADJUSTMENT' ? 'Discount' : newLine.lineType === 'AMC' ? 'AMC' : 'Custom Charge'}</p>
+                  <p className="text-xs font-medium text-gray-500">Add {newLine.lineType === 'PART' ? 'Part' : newLine.lineType === 'LABOR' ? 'Labor' : newLine.lineType === 'SERVICE_CHARGE' ? 'Service Charge' : newLine.lineType === 'DISCOUNT_ADJUSTMENT' ? 'Discount' : newLine.lineType === 'AMC' ? 'AMC' : 'Custom Charge'}</p>
                   <button onClick={() => setAddStep('type')} className="text-xs text-gray-400 hover:text-gray-600">← Back</button>
                 </div>
                 <div className="grid grid-cols-12 gap-2 items-end">

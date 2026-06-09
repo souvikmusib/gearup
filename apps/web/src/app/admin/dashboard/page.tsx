@@ -6,6 +6,7 @@ import { PageHeader } from '@gearup/ui';
 import { DashboardSkeleton } from '@/components/shared/skeletons';
 import { Calendar, FileText, Wrench, AlertTriangle, Receipt, DollarSign, Users, Bike, ClipboardList, Plus, ArrowRight, Clock } from 'lucide-react';
 import { AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { useAuth } from '@/lib/auth/auth-context';
 
 interface DashboardData {
   todayAppointments: number;
@@ -33,7 +34,13 @@ export default function DashboardPage() {
   const [revenueChart, setRevenueChart] = useState<any[]>([]);
   const [jobStats, setJobStats] = useState<any[]>([]);
   const [workerLoad, setWorkerLoad] = useState<any[]>([]);
+  const [lowStock, setLowStock] = useState<any[]>([]);
+  const { user } = useAuth();
   const router = useRouter();
+
+  const isInventoryManager = user?.roles?.includes('INVENTORY_MANAGER');
+  const isReceptionist = user?.roles?.includes('RECEPTIONIST');
+  const isAdmin = user?.roles?.includes('SUPER_ADMIN') || user?.roles?.includes('ADMIN');
 
   useEffect(() => {
     const dashboard = api.getSWR<DashboardData>('/admin/reports?type=dashboard');
@@ -57,6 +64,13 @@ export default function DashboardPage() {
     api.get<any>('/admin/reports?type=workers').then((r) => {
       if (r.success) setWorkerLoad(r.data ?? []);
     });
+    // Low stock items for inventory manager
+    api.get<any>('/admin/inventory/items?pageSize=500').then((r) => {
+      if (r.success) {
+        const items = r.data?.items ?? r.data ?? [];
+        setLowStock(items.filter((i: any) => Number(i.quantityInStock) <= (Number(i.reorderLevel) || 2) && Number(i.quantityInStock) >= 0).slice(0, 10));
+      }
+    });
   }, []);
 
   if (!data) return <DashboardSkeleton />;
@@ -69,7 +83,12 @@ export default function DashboardPage() {
     { label: "Today's Revenue", value: `₹${data.todayRevenue.toLocaleString()}`, icon: DollarSign, color: 'bg-green-50 text-green-600 dark:bg-green-950 dark:text-green-400', href: '/admin/reports/revenue' },
   ];
 
-  const quickActions = [
+  const quickActions = isInventoryManager ? [
+    { label: 'Add Item', icon: FileText, href: '/admin/inventory/items', color: 'text-green-600' },
+    { label: 'Stock Movements', icon: ClipboardList, href: '/admin/inventory/movements', color: 'text-purple-600' },
+    { label: 'Suppliers', icon: Users, href: '/admin/inventory/suppliers', color: 'text-blue-600' },
+    { label: 'Categories', icon: Wrench, href: '/admin/inventory/categories', color: 'text-amber-600' },
+  ] : [
     { label: 'New Customer', icon: Users, href: '/admin/customers', color: 'text-blue-600' },
     { label: 'New Appointment', icon: Calendar, href: '/admin/appointments', color: 'text-purple-600' },
     { label: 'New Job Card', icon: Wrench, href: '/admin/job-cards', color: 'text-amber-600' },
@@ -170,6 +189,24 @@ export default function DashboardPage() {
               </div>
             ))}
             {workerLoad.every((w: any) => w.totalAssignments === 0) && <p className="text-sm text-gray-500">No assignments yet</p>}
+          </div>
+        </div>
+      )}
+
+      {/* Low Stock Items — for Inventory Manager & Admin */}
+      {(isInventoryManager || isAdmin) && lowStock.length > 0 && (
+        <div className="rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 p-5">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-semibold text-gray-900 dark:text-white">⚠️ Low Stock Items</h3>
+            <button onClick={() => router.push('/admin/inventory/items')} className="text-sm text-blue-600 hover:text-blue-700 font-medium">View all →</button>
+          </div>
+          <div className="space-y-2">
+            {lowStock.map((item: any) => (
+              <div key={item.id} className="flex items-center justify-between text-sm">
+                <span className="text-gray-700 dark:text-gray-300">{item.itemName}</span>
+                <span className={`font-semibold ${Number(item.quantityInStock) === 0 ? 'text-red-600' : 'text-amber-600'}`}>{Number(item.quantityInStock)} left</span>
+              </div>
+            ))}
           </div>
         </div>
       )}

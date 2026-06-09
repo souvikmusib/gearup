@@ -120,6 +120,7 @@ enum PaymentStatus {
 enum InvoiceLineType {
   PART
   LABOR
+  SERVICE_CHARGE
   CUSTOM_CHARGE
   DISCOUNT_ADJUSTMENT
   AMC

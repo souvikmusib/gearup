@@ -6,10 +6,15 @@ import { PERMISSIONS } from '@gearup/types';
 
 export async function GET(req: NextRequest) {
   try {
-    requirePermission(PERMISSIONS.REPORTS_VIEW);
     const sp = req.nextUrl.searchParams;
     const type = sp.get('type') || 'dashboard';
     const from = sp.get('from'); const to = sp.get('to');
+
+    if (type === 'dashboard' || type === 'revenue') {
+      requirePermission(PERMISSIONS.DASHBOARD_VIEW);
+    } else {
+      requirePermission(PERMISSIONS.REPORTS_VIEW);
+    }
 
     if (type === 'dashboard') {
       // Use IST (UTC+5:30) for "today" boundaries
@@ -58,18 +63,49 @@ export async function GET(req: NextRequest) {
       const [payments, total, dailyRaw] = await Promise.all([
         prisma.payment.groupBy({ by: ['paymentMode'], where, _sum: { amount: true }, _count: true }),
         prisma.payment.aggregate({ where, _sum: { amount: true } }),
-        prisma.payment.findMany({ where, select: { amount: true, paymentDate: true }, orderBy: { paymentDate: 'asc' } }),
+        prisma.payment.findMany({ where, select: { amount: true, paymentDate: true, invoiceId: true }, orderBy: { paymentDate: 'asc' } }),
       ]);
       // Aggregate daily in IST
       const dailyMap: Record<string, number> = {};
       dailyRaw.forEach((p) => { const istDate = new Date(new Date(p.paymentDate).getTime() + 5.5 * 60 * 60 * 1000).toISOString().slice(0, 10); dailyMap[istDate] = (dailyMap[istDate] || 0) + Number(p.amount); });
       const daily = Object.entries(dailyMap).map(([date, amount]) => ({ date, amount }));
+
+      // Revenue breakdown by line type and worker (from PAID invoices in date range)
+      const paidInvoiceIds = dailyRaw.map((p) => p.invoiceId);
+      const lineItems = paidInvoiceIds.length > 0 ? await prisma.invoiceLineItem.findMany({ where: { invoiceId: { in: paidInvoiceIds } }, select: { lineType: true, description: true, lineTotal: true } }) : [];
+      const byType: Record<string, number> = {};
+      const byWorker: Record<string, number> = {};
+      lineItems.forEach((li) => {
+        const type = li.lineType as string;
+        byType[type] = (byType[type] || 0) + Number(li.lineTotal);
+        if (type === 'LABOR') {
+          const name = (li.description as string).replace('Labor — ', '').replace('Labor charges', 'Unassigned');
+          byWorker[name] = (byWorker[name] || 0) + Number(li.lineTotal);
+        }
+      });
+
+      // Worker job card total value
+      const assignments = paidInvoiceIds.length > 0 ? await prisma.workerAssignment.findMany({
+        where: { jobCard: { invoices: { some: { id: { in: paidInvoiceIds } } } } },
+        include: { worker: { select: { fullName: true } }, jobCard: { include: { invoices: { where: { id: { in: paidInvoiceIds } }, select: { grandTotal: true } } } } }
+      }) : [];
+      const workerJobValue: Record<string, { total: number; jobs: number }> = {};
+      assignments.forEach((a: any) => {
+        const name = a.worker.fullName;
+        if (!workerJobValue[name]) workerJobValue[name] = { total: 0, jobs: 0 };
+        a.jobCard.invoices.forEach((inv: any) => { workerJobValue[name].total += Number(inv.grandTotal); });
+        if (a.jobCard.invoices.length > 0) workerJobValue[name].jobs++;
+      });
+
       return NextResponse.json({
         success: true,
         data: {
           byMode: payments.map((p) => ({ mode: p.paymentMode, _count: p._count, _sum: Number(p._sum.amount ?? 0) })),
           totalRevenue: Number(total._sum.amount ?? 0),
           daily,
+          byType: Object.entries(byType).map(([type, total]) => ({ type, total })),
+          byWorker: Object.entries(byWorker).map(([name, total]) => ({ name, total })).sort((a, b) => b.total - a.total),
+          workerJobValue: Object.entries(workerJobValue).map(([name, d]) => ({ name, total: d.total, jobs: d.jobs })).sort((a, b) => b.total - a.total),
         },
       });
     }

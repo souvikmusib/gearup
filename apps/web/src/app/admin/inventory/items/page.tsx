@@ -17,9 +17,9 @@ export default function InventoryItemsPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [categories, setCategories] = useState<any[]>([]);
   const [suppliers, setSuppliers] = useState<any[]>([]);
-  const [form, setForm] = useState({ sku: '', itemName: '', categoryId: '', supplierId: '', unit: '', costPrice: '', mrp: '', sellingPrice: '', discountPercent: '', quantityInStock: '', variablePrice: false, isBranded: true });
+  const [form, setForm] = useState({ sku: '', itemName: '', categoryId: '', supplierId: '', unit: '', brand: '', costPrice: '', mrp: '', sellingPrice: '', discountPercent: '', quantityInStock: '', variablePrice: false, isBranded: true });
   const [editItem, setEditItem] = useState<any>(null);
-  const [editForm, setEditForm] = useState({ itemName: '', categoryId: '', supplierId: '', unit: '', costPrice: '', mrp: '', sellingPrice: '', discountPercent: '', reorderLevel: '', storageLocation: '', isActive: true, variablePrice: false, isBranded: true });
+  const [editForm, setEditForm] = useState({ itemName: '', categoryId: '', supplierId: '', unit: '', brand: '', costPrice: '', mrp: '', sellingPrice: '', discountPercent: '', reorderLevel: '', storageLocation: '', isActive: true, variablePrice: false, isBranded: true });
   const [editSaving, setEditSaving] = useState(false);
   const [stockItem, setStockItem] = useState<any>(null);
   const [stockForm, setStockForm] = useState({ type: 'STOCK_IN', quantity: '', reason: '' });
@@ -67,13 +67,13 @@ export default function InventoryItemsPage() {
     if (form.discountPercent) body.discountPercent = Number(form.discountPercent);
     if (!body.supplierId) delete body.supplierId;
     const res = await api.post('/admin/inventory/items', body);
-    if (res.success) { setShowCreate(false); setForm({ sku: '', itemName: '', categoryId: '', supplierId: '', unit: '', costPrice: '', mrp: '', sellingPrice: '', discountPercent: '', quantityInStock: '', variablePrice: false, isBranded: true }); load(); }
+    if (res.success) { setShowCreate(false); setForm({ sku: '', itemName: '', categoryId: '', supplierId: '', unit: '', brand: '', costPrice: '', mrp: '', sellingPrice: '', discountPercent: '', quantityInStock: '', variablePrice: false, isBranded: true }); load(); }
   };
 
   const openEdit = (item: any) => {
     setEditItem(item);
     setEditForm({
-      itemName: item.itemName || '', categoryId: item.categoryId || '', supplierId: item.supplierId || '', unit: item.unit || '',
+      itemName: item.itemName || '', categoryId: item.categoryId || '', supplierId: item.supplierId || '', unit: item.unit || '', brand: item.brand || '',
       costPrice: String(Number(item.costPrice) || ''), mrp: String(Number(item.mrp) || ''), sellingPrice: String(Number(item.sellingPrice) || ''), discountPercent: String(Number(item.discountPercent) || ''),
       reorderLevel: item.reorderLevel != null ? String(Number(item.reorderLevel)) : '', storageLocation: item.storageLocation || '', isActive: item.isActive ?? true, variablePrice: item.variablePrice ?? false, isBranded: item.isBranded ?? true,
     });
@@ -111,7 +111,7 @@ export default function InventoryItemsPage() {
   };
 
   const columns = [
-    { key: 'sku', header: 'SKU' }, { key: 'itemName', header: 'Item' }, { key: 'category', header: 'Category', render: (r: any) => r.category?.categoryName },
+    { key: 'sku', header: 'SKU' }, { key: 'itemName', header: 'Item' }, { key: 'brand', header: 'Company', render: (r: any) => r.brand || '—' }, { key: 'category', header: 'Category', render: (r: any) => r.category?.categoryName },
     { key: 'quantityInStock', header: 'Stock', render: (r: any) => Number(r.quantityInStock) }, { key: 'sellingPrice', header: 'MRP', render: (r: any) => `₹${Number(r.sellingPrice)}` },
     { key: 'discountedPrice', header: 'Discounted Price', render: (r: any) => { const dp = Number(r.discountPercent) || 0; const price = Number(r.sellingPrice) * (1 - dp / 100); return dp ? `₹${price.toFixed(0)} (${dp}% off)` : `₹${Number(r.sellingPrice)}`; } },
     { key: 'lowStock', header: 'Low?', render: (r: any) => r.reorderLevel && Number(r.quantityInStock) <= Number(r.reorderLevel) ? '⚠️' : '—' },
@@ -138,6 +138,7 @@ export default function InventoryItemsPage() {
         <form onSubmit={onSubmit} className="space-y-3">
           <div><label className="block text-xs font-medium mb-1">SKU <span className="text-red-500">*</span></label><input className={inputCls} placeholder="SKU" required value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} /></div>
           <div><label className="block text-xs font-medium mb-1">Item Name <span className="text-red-500">*</span></label><input className={inputCls} placeholder="Item Name" required value={form.itemName} onChange={(e) => setForm({ ...form, itemName: e.target.value })} /></div>
+          <div><label className="block text-xs font-medium mb-1">Company / Brand</label><input className={inputCls} placeholder="e.g. Hero, Honda, Bajaj" value={form.brand} onChange={(e) => setForm({ ...form, brand: e.target.value })} /></div>
           <div className="grid grid-cols-2 gap-3">
             <div><label className={labelCls}>Category <span className="text-red-500">*</span></label>
               <select className={inputCls} required value={form.categoryId} onFocus={loadLookups} onChange={(e) => setForm({ ...form, categoryId: e.target.value })}>
@@ -168,6 +169,7 @@ export default function InventoryItemsPage() {
       <Modal open={!!editItem} onClose={() => setEditItem(null)} title={`Edit: ${editItem?.sku ?? ''}`}>
         <form onSubmit={saveEdit} className="space-y-3">
           <div><label className={labelCls}>Item Name</label><input className={inputCls} required value={editForm.itemName} onChange={(e) => setEditForm({ ...editForm, itemName: e.target.value })} /></div>
+          <div><label className={labelCls}>Company / Brand</label><input className={inputCls} placeholder="e.g. Hero, Honda, Bajaj" value={editForm.brand} onChange={(e) => setEditForm({ ...editForm, brand: e.target.value })} /></div>
           <div className="grid grid-cols-2 gap-3">
             <div><label className={labelCls}>Category</label>
               <select className={inputCls} value={editForm.categoryId} onChange={(e) => setEditForm({ ...editForm, categoryId: e.target.value })}>

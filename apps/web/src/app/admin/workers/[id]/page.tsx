@@ -24,8 +24,8 @@ export default function WorkerDetailPage() {
 
   const save = async () => {
     setSaving(true);
-    const { fullName, phoneNumber, email, designation, specialization, shiftStart, shiftEnd, notes } = form;
-    const res = await api.patch<any>(`/admin/workers/${id}`, { fullName, phoneNumber: phoneNumber || null, email: email || null, designation: designation || null, specialization: specialization || null, shiftStart: shiftStart || null, shiftEnd: shiftEnd || null, notes: notes || null });
+    const { fullName, phoneNumber, email, designation, specialization, shiftStart, shiftEnd, notes, monthlySalary } = form;
+    const res = await api.patch<any>(`/admin/workers/${id}`, { fullName, phoneNumber: phoneNumber || null, email: email || null, designation: designation || null, specialization: specialization || null, shiftStart: shiftStart || null, shiftEnd: shiftEnd || null, notes: notes || null, monthlySalary: monthlySalary ? Number(monthlySalary) : null });
     setSaving(false);
     if (res.success) { setData(res.data); setShowEdit(false); }
   };
@@ -124,6 +124,7 @@ export default function WorkerDetailPage() {
             <div><label className="block text-xs font-medium mb-1">Shift Start</label><input type="time" className={inputCls} value={form.shiftStart || ''} onChange={(e) => setForm({ ...form, shiftStart: e.target.value })} /></div>
             <div><label className="block text-xs font-medium mb-1">Shift End</label><input type="time" className={inputCls} value={form.shiftEnd || ''} onChange={(e) => setForm({ ...form, shiftEnd: e.target.value })} /></div>
           </div>
+          <div><label className="block text-xs font-medium mb-1">Monthly Salary (₹)</label><input type="number" className={inputCls} value={form.monthlySalary || ''} onChange={(e) => setForm({ ...form, monthlySalary: e.target.value })} placeholder="e.g. 12000" /></div>
           <div><label className="block text-xs font-medium mb-1">Notes</label><textarea className={inputCls} rows={2} value={form.notes || ''} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></div>
           <button onClick={save} disabled={saving} className="w-full rounded-lg bg-blue-600 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50">{saving ? 'Saving...' : 'Save Changes'}</button>
         </div>

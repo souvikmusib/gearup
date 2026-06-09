@@ -59,6 +59,7 @@ export default function WorkersPage() {
   const columns = [
     { key: 'workerCode', header: 'Code' }, { key: 'fullName', header: 'Name' }, { key: 'designation', header: 'Designation' },
     { key: 'specialization', header: 'Specialization' }, { key: 'status', header: 'Status', render: (r: any) => <StatusBadge status={r.status} /> },
+    { key: 'monthlySalary', header: 'Salary', render: (r: any) => r.monthlySalary ? `₹${Number(r.monthlySalary).toLocaleString()}` : '—' },
     { key: 'jobs', header: 'Active Jobs', render: (r: any) => r._count?.assignments ?? 0 },
   ];
 
