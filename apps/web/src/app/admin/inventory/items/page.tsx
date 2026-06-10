@@ -25,6 +25,7 @@ export default function InventoryItemsPage() {
   const [stockForm, setStockForm] = useState({ type: 'STOCK_IN', quantity: '', reason: '' });
   const [stockSaving, setStockSaving] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
   const timer = useRef<NodeJS.Timeout>();
 
   const loadLookups = async () => {
@@ -69,9 +70,11 @@ export default function InventoryItemsPage() {
     if (!body.supplierId) delete body.supplierId;
     if (creating) return;
     setCreating(true);
+    setCreateError(null);
     const res = await api.post('/admin/inventory/items', body);
     setCreating(false);
     if (res.success) { setShowCreate(false); setForm({ sku: '', itemName: '', categoryId: '', supplierId: '', unit: '', brand: '', costPrice: '', mrp: '', sellingPrice: '', discountPercent: '', quantityInStock: '', variablePrice: false, isBranded: true }); load(); }
+    else { setCreateError(res.error?.message || 'Failed to create item'); }
   };
 
   const openEdit = (item: any) => {
@@ -138,8 +141,9 @@ export default function InventoryItemsPage() {
       {loading ? <ProcessLoader title="Loading inventory" steps={['Fetching items', 'Preparing list']} /> :
         <DataTable columns={columns} data={data} keyField="id" onRowClick={openEdit} />}
       <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
-      <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Create Item">
+      <Modal open={showCreate} onClose={() => { setShowCreate(false); setCreateError(null); }} title="Create Item">
         <form onSubmit={onSubmit} className="space-y-3">
+          {createError && <div className="rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-700 dark:bg-red-900/20 dark:text-red-300">{createError}</div>}
           <div><label className="block text-xs font-medium mb-1">SKU <span className="text-red-500">*</span></label><input className={inputCls} placeholder="SKU" required value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} /></div>
           <div><label className="block text-xs font-medium mb-1">Item Name <span className="text-red-500">*</span></label><input className={inputCls} placeholder="Item Name" required value={form.itemName} onChange={(e) => setForm({ ...form, itemName: e.target.value })} /></div>
           <div><label className="block text-xs font-medium mb-1">Company / Brand</label><input className={inputCls} placeholder="e.g. Hero, Honda, Bajaj" value={form.brand} onChange={(e) => setForm({ ...form, brand: e.target.value })} /></div>

@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';
 import { ProcessLoader } from '@/components/shared/process-loader';
@@ -44,6 +44,22 @@ export default function AppointmentsPage() {
     promise.then((r) => { if (r.success) { setData(r.data?.items ?? r.data ?? []); setTotalPages(r.meta?.totalPages ?? 1); } setLoading(false); });
   };
   useEffect(() => { load(); }, [page]);
+
+  // Debounced search: reset to page 1 and reload after user pauses typing.
+  const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const onSearchChange = (val: string) => {
+    setSearch(val);
+    if (searchTimer.current) clearTimeout(searchTimer.current);
+    searchTimer.current = setTimeout(() => {
+      setPage(1);
+      load(val, statusFilter, 1);
+    }, 300);
+  };
+  const onStatusChange = (val: string) => {
+    setStatusFilter(val);
+    setPage(1);
+    load(search, val, 1);
+  };
 
   const openCreate = async () => {
     setShowCreate(true);
@@ -93,8 +109,8 @@ export default function AppointmentsPage() {
         <button onClick={openCreate} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">+ New Appointment</button>
       </div>
       <div className="flex gap-2 mb-4">
-        <input className={inputCls + ' max-w-xs'} placeholder="Search appointments..." value={search} onChange={(e) => { setSearch(e.target.value); load(e.target.value, statusFilter); }} />
-        <select className={inputCls + ' w-48'} value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); load(search, e.target.value); }}>
+        <input className={inputCls + ' max-w-xs'} placeholder="Search appointments..." value={search} onChange={(e) => onSearchChange(e.target.value)} />
+        <select className={inputCls + ' w-48'} value={statusFilter} onChange={(e) => onStatusChange(e.target.value)}>
           <option value="">All Statuses</option>
           {['REQUESTED','PENDING_REVIEW','CONFIRMED','RESCHEDULED','CANCELLED','NO_SHOW','CHECKED_IN','COMPLETED'].map((s) => <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>)}
         </select>

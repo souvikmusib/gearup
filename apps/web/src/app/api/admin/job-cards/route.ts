@@ -51,7 +51,8 @@ export async function POST(req: NextRequest) {
       if (body.odometerAtIntake) await tx.vehicle.update({ where: { id: body.vehicleId }, data: { odometerReading: body.odometerAtIntake } });
       // Auto-create DRAFT invoice for this job card
       const invData: Prisma.InvoiceCreateInput = { invoiceNumber: generateInvoiceNumber(), jobCard: { connect: { id: created.id } }, customer: { connect: { id: body.customerId } }, vehicle: { connect: { id: body.vehicleId } }, createdBy: { connect: { id: user.sub } }, invoiceDate: new Date(), invoiceStatus: 'DRAFT', paymentStatus: 'UNPAID' };
-      await tx.invoice.create({ data: invData });
+      const inv = await tx.invoice.create({ data: invData });
+      await logActivity({ actorType: 'ADMIN', actorId: user.sub, action: 'invoice.created', entityType: 'Invoice', entityId: inv.id, newValue: { invoiceNumber: inv.invoiceNumber, jobCardId: created.id, invoiceStatus: 'DRAFT', paymentStatus: 'UNPAID' }, tx });
       return created;
     });
     logActivity({ entityType: 'JobCard', entityId: jc.id, action: 'job-card.created', newValue: jc, actorType: 'ADMIN', actorId: user.sub });

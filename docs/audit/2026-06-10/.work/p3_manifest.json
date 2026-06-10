@@ -1,0 +1,132 @@
+[
+  {
+    "batch": 1,
+    "prompt": "docs/audit/2026-06-10/.work/p3/batch_01.md",
+    "files": [
+      "apps/web/src/app/(public)/book-service/page.tsx",
+      "apps/web/src/app/admin/appointments/page.tsx",
+      "apps/web/src/app/admin/customers/[id]/page.tsx",
+      "apps/web/src/app/admin/dashboard/page.tsx",
+      "apps/web/src/app/admin/expenses/page.tsx"
+    ],
+    "total_findings": 6
+  },
+  {
+    "batch": 2,
+    "prompt": "docs/audit/2026-06-10/.work/p3/batch_02.md",
+    "files": [
+      "apps/web/src/app/admin/inventory/items/page.tsx",
+      "apps/web/src/app/admin/inventory/suppliers/page.tsx",
+      "apps/web/src/app/admin/invoices/[id]/page.tsx",
+      "apps/web/src/app/admin/invoices/page.tsx",
+      "apps/web/src/app/admin/job-cards/[id]/page.tsx"
+    ],
+    "total_findings": 6
+  },
+  {
+    "batch": 3,
+    "prompt": "docs/audit/2026-06-10/.work/p3/batch_03.md",
+    "files": [
+      "apps/web/src/app/admin/job-cards/page.tsx",
+      "apps/web/src/app/admin/layout.tsx",
+      "apps/web/src/app/admin/login/page.tsx",
+      "apps/web/src/app/admin/page.tsx",
+      "apps/web/src/app/admin/reports/revenue/page.tsx"
+    ],
+    "total_findings": 8
+  },
+  {
+    "batch": 4,
+    "prompt": "docs/audit/2026-06-10/.work/p3/batch_04.md",
+    "files": [
+      "apps/web/src/app/admin/settings/admins/page.tsx",
+      "apps/web/src/app/admin/vehicles/page.tsx",
+      "apps/web/src/app/api/admin/amc/contracts/[id]/route.ts",
+      "apps/web/src/app/api/admin/amc/contracts/route.ts",
+      "apps/web/src/app/api/admin/amc/plans/[id]/route.ts"
+    ],
+    "total_findings": 5
+  },
+  {
+    "batch": 5,
+    "prompt": "docs/audit/2026-06-10/.work/p3/batch_05.md",
+    "files": [
+      "apps/web/src/app/api/admin/amc/plans/route.ts",
+      "apps/web/src/app/api/admin/auth/change-password/route.ts",
+      "apps/web/src/app/api/admin/auth/login/route.ts",
+      "apps/web/src/app/api/admin/auth/me/route.ts",
+      "apps/web/src/app/api/admin/customers/[id]/history/route.ts"
+    ],
+    "total_findings": 6
+  },
+  {
+    "batch": 6,
+    "prompt": "docs/audit/2026-06-10/.work/p3/batch_06.md",
+    "files": [
+      "apps/web/src/app/api/admin/customers/route.ts",
+      "apps/web/src/app/api/admin/expenses/[id]/route.ts",
+      "apps/web/src/app/api/admin/expenses/route.ts",
+      "apps/web/src/app/api/admin/inventory/**/route.ts",
+      "apps/web/src/app/api/admin/inventory/items/[id]/stock/route.ts"
+    ],
+    "total_findings": 5
+  },
+  {
+    "batch": 7,
+    "prompt": "docs/audit/2026-06-10/.work/p3/batch_07.md",
+    "files": [
+      "apps/web/src/app/api/admin/inventory/items/route.ts",
+      "apps/web/src/app/api/admin/inventory/movements/route.ts",
+      "apps/web/src/app/api/admin/invoices/[id]/payments/route.ts",
+      "apps/web/src/app/api/admin/invoices/[id]/pdf/route.ts",
+      "apps/web/src/app/api/admin/invoices/route.ts"
+    ],
+    "total_findings": 9
+  },
+  {
+    "batch": 8,
+    "prompt": "docs/audit/2026-06-10/.work/p3/batch_08.md",
+    "files": [
+      "apps/web/src/app/api/admin/job-cards/route.ts",
+      "apps/web/src/app/api/admin/logs/route.ts",
+      "apps/web/src/app/api/admin/service-requests/[id]/route.ts",
+      "apps/web/src/app/api/admin/settings/admins/route.ts",
+      "apps/web/src/app/api/admin/settings/holidays/route.ts"
+    ],
+    "total_findings": 7
+  },
+  {
+    "batch": 9,
+    "prompt": "docs/audit/2026-06-10/.work/p3/batch_09.md",
+    "files": [
+      "apps/web/src/app/api/health/route.ts",
+      "apps/web/src/app/api/public/available-slots/route.ts",
+      "apps/web/src/app/api/public/estimate/[token]/route.ts",
+      "apps/web/src/app/api/public/service-requests/route.ts",
+      "apps/web/src/app/api/public/track/route.ts"
+    ],
+    "total_findings": 7
+  },
+  {
+    "batch": 10,
+    "prompt": "docs/audit/2026-06-10/.work/p3/batch_10.md",
+    "files": [
+      "apps/web/src/components/layout/admin-sidebar.tsx",
+      "apps/web/src/lib/auth.ts",
+      "apps/web/src/lib/auth/auth-context.tsx",
+      "apps/web/src/lib/errors.ts",
+      "apps/web/src/lib/format-reg.ts"
+    ],
+    "total_findings": 5
+  },
+  {
+    "batch": 11,
+    "prompt": "docs/audit/2026-06-10/.work/p3/batch_11.md",
+    "files": [
+      "apps/web/src/lib/id-generators.ts",
+      "apps/web/src/lib/prisma.ts",
+      "apps/web/src/middleware.ts"
+    ],
+    "total_findings": 3
+  }
+]

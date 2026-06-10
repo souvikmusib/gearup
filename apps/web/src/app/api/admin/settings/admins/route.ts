@@ -6,6 +6,7 @@ import { PERMISSIONS } from '@gearup/types';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
 import type { Prisma } from '@prisma/client';
+import { passwordPolicy } from '@/lib/validators/password';
 
 const BCRYPT_COST = 12;
 
@@ -24,13 +25,10 @@ const normalizePhone = (raw: string) => raw.replace(/[\s-]/g, '');
 // the caller's tenant or admins from one garage will be able to read and
 // modify admins from another.
 
-// Password policy: min 10 chars, at least one letter AND one digit.
-const strongPassword = z
-  .string()
-  .min(10, 'Password must be at least 10 characters')
-  .refine((p) => /[A-Za-z]/.test(p) && /\d/.test(p), {
-    message: 'Password must contain at least one letter and one digit',
-  });
+// Password policy is centralized in @/lib/validators/password so the floor is
+// identical across self-change and admin-create/update endpoints. Re-exported
+// here under the existing local name to keep call sites unchanged.
+const strongPassword = passwordPolicy;
 
 /**
  * Returns true if the given roleId carries the ADMIN_USERS_MANAGE permission.
@@ -83,6 +81,11 @@ export async function GET() {
     const [admins, roles] = await Promise.all([
       prisma.adminUser.findMany({
         orderBy: { createdAt: 'desc' },
+        // Single-tenant deployments have a small staff list (<20). The cap is a
+        // defense-in-depth bound, not real pagination — if you ever need
+        // pages, switch to the standard paginate() helper used in other list
+        // routes and add a search/filter UI at the same time.
+        take: 100,
         select: {
           id: true,
           adminUserId: true,

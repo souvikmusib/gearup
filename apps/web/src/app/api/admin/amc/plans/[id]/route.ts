@@ -26,7 +26,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       durationMonths: z.number().int().positive().optional(),
       totalServicesIncluded: z.number().int().positive().optional(),
       price: z.number().positive().optional(),
-      coveredItems: z.any().optional(),
+      coveredItems: z.array(z.string().min(1).max(200)).max(200).optional(),
       exclusions: z.string().optional(),
       isActive: z.boolean().optional(),
     }).parse(await req.json());
@@ -35,6 +35,10 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   } catch (e) { return handleApiError(e); }
 }
 
+// DELETE is restricted to plans that have NEVER had a contract. Once any
+// contract references a plan, it is permanently retained for historical/
+// audit integrity — use `isActive: false` (via PATCH) as the canonical
+// "archived" state to hide it from selection lists.
 export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
   try {
     requirePermission(PERMISSIONS.AMC_PLANS_MANAGE);

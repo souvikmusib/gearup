@@ -1,7 +1,8 @@
 'use client';
 import { useState, useRef } from 'react';
+import Link from 'next/link';
 import { api } from '@/lib/api/client';
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle, Copy } from 'lucide-react';
 
 type Step = 'form' | 'success';
 type FieldErrors = Partial<Record<string, string>>;
@@ -156,6 +157,21 @@ export default function BookServicePage() {
         <p className="mt-2 text-gray-600 dark:text-gray-400">Your reference ID is:</p>
         <p className="mt-2 text-3xl font-mono font-bold text-blue-600">{result.referenceId}</p>
         <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">Save this ID to track your service request. We&apos;ll notify you via WhatsApp/email.</p>
+        <div className="mt-6 flex items-center justify-center gap-3">
+          <Link
+            href={`/track?referenceId=${result.referenceId}`}
+            className="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          >
+            Track this request
+          </Link>
+          <button
+            type="button"
+            onClick={() => { if (result) navigator.clipboard?.writeText(result.referenceId); }}
+            className="inline-flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+          >
+            <Copy size={14} /> Copy ID
+          </button>
+        </div>
       </div>
     );
   }

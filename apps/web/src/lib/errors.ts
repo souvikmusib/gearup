@@ -112,6 +112,8 @@ export function handleApiError(error: unknown) {
           { status: 404 },
         );
       case 'P2003': {
+        const field = (error.meta?.field_name as string) || 'unknown';
+        console.error('[Prisma P2003] FK violation on field:', field);
         return NextResponse.json(
           {
             success: false,

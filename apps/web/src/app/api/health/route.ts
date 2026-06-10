@@ -5,7 +5,8 @@ export async function GET() {
   try {
     await prisma.$queryRaw`SELECT 1`;
     return NextResponse.json({ status: 'ok', db: 'connected', timestamp: new Date().toISOString() });
-  } catch {
+  } catch (e) {
+    console.error('health: db check failed', e);
     return NextResponse.json({ status: 'error', db: 'disconnected' }, { status: 503 });
   }
 }

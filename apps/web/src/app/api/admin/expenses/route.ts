@@ -5,7 +5,7 @@ import { requirePermission } from '@/lib/auth';
 import { handleApiError } from '@/lib/errors';
 import { logActivity } from '@/lib/activity-logger';
 import { PERMISSIONS } from '@gearup/types';
-import { PaymentMode } from '@prisma/client';
+import { PaymentMode, Prisma } from '@prisma/client';
 import { z } from 'zod';
 
 export async function GET(req: NextRequest) {
@@ -19,11 +19,11 @@ export async function GET(req: NextRequest) {
     const from = sp.get('from') || '';
     const to = sp.get('to') || '';
     const p = paginate({ page, pageSize });
-    const where: Record<string, unknown> = {};
+    const where: Prisma.ExpenseWhereInput = {};
     if (categoryId) where.categoryId = categoryId;
     if (search) where.OR = [{ title: { contains: search, mode: 'insensitive' } }, { vendorName: { contains: search, mode: 'insensitive' } }];
     if (from || to) {
-      const range: Record<string, Date> = {};
+      const range: Prisma.DateTimeFilter = {};
       if (from) range.gte = new Date(from);
       if (to) range.lte = new Date(to);
       where.expenseDate = range;

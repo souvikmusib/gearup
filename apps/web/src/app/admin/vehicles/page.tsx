@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';
 import { ProcessLoader } from '@/components/shared/process-loader';
@@ -22,6 +22,7 @@ export default function VehiclesPage() {
   const [showNewCust, setShowNewCust] = useState(false);
   const [custForm, setCustForm] = useState({ fullName: '', phoneNumber: '' });
   const router = useRouter();
+  const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const load = (s = search, pg = page) => {
     const p = new URLSearchParams();
@@ -70,7 +71,7 @@ export default function VehiclesPage() {
         <button onClick={openCreate} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">+ Add Vehicle</button>
       </div>
       <div className="mb-4">
-        <input className="w-full max-w-xs rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white" placeholder="Search by reg number, brand..." value={search} onChange={(e) => { setSearch(e.target.value); load(e.target.value); }} />
+        <input className="w-full max-w-xs rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white" placeholder="Search by reg number, brand..." value={search} onChange={(e) => { const v = e.target.value; setSearch(v); if (searchTimer.current) clearTimeout(searchTimer.current); searchTimer.current = setTimeout(() => load(v), 300); }} />
       </div>
       <DataTable columns={columns} data={data} keyField="id" onRowClick={(r: any) => router.push(`/admin/vehicles/${r.id}`)} />
       <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />

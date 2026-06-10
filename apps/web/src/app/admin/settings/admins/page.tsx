@@ -50,6 +50,7 @@ export default function AdminUsersPage() {
                   <th className="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">Role</th>
                   <th className="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">Status</th>
                   <th className="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">Last Login</th>
+                  <th className="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-300"><span className="sr-only">Actions</span></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-700">

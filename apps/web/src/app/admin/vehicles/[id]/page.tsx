@@ -11,6 +11,8 @@ export default function VehicleDetailPage() {
   const router = useRouter();
   const [data, setData] = useState<any>(null);
   const [showEdit, setShowEdit] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [form, setForm] = useState<any>({});
   const [saving, setSaving] = useState(false);
 
@@ -37,8 +39,10 @@ export default function VehicleDetailPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <PageHeader title={data.registrationNumber} description={`${data.brand} ${data.model}`} />
-        <button onClick={() => setShowEdit(true)} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">Edit Vehicle</button>
-        <button onClick={async () => { if (!confirm('Delete this vehicle?')) return; const res = await api.delete(`/admin/vehicles/${id}`); if (res.success) router.push('/admin/vehicles'); else alert(res.error?.message || 'Cannot delete'); }} className="rounded-lg px-4 py-2 text-sm font-medium text-red-600 border border-red-300 hover:bg-red-50 dark:border-red-700 dark:hover:bg-red-900/20">Delete</button>
+        <div className="flex gap-2">
+          <button onClick={() => setShowEdit(true)} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">Edit Vehicle</button>
+          <button onClick={() => setShowDelete(true)} className="rounded-lg px-4 py-2 text-sm font-medium text-red-600 border border-red-300 hover:bg-red-50 dark:border-red-700 dark:hover:bg-red-900/20">Delete</button>
+        </div>
       </div>
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="rounded-lg border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-800 space-y-2">
@@ -130,6 +134,28 @@ export default function VehicleDetailPage() {
           </div>
           <div><label className="block text-xs font-medium mb-1">Notes</label><textarea className={inputCls} rows={2} value={form.notes || ''} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></div>
           <button onClick={save} disabled={saving} className="w-full rounded-lg bg-blue-600 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50">{saving ? 'Saving...' : 'Save Changes'}</button>
+        </div>
+      </Modal>
+
+      <Modal open={showDelete} onClose={() => setShowDelete(false)} title="Delete Vehicle">
+        <div className="space-y-4">
+          <p className="text-sm text-gray-700 dark:text-gray-300">Are you sure you want to delete <span className="font-semibold">{data.registrationNumber}</span>? This action cannot be undone.</p>
+          <div className="flex justify-end gap-2">
+            <button onClick={() => setShowDelete(false)} className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700">Cancel</button>
+            <button
+              onClick={async () => {
+                setDeleting(true);
+                const res = await api.delete(`/admin/vehicles/${id}`);
+                setDeleting(false);
+                if (res.success) router.push('/admin/vehicles');
+                else { alert(res.error?.message || 'Cannot delete'); setShowDelete(false); }
+              }}
+              disabled={deleting}
+              className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50"
+            >
+              {deleting ? 'Deleting...' : 'Delete'}
+            </button>
+          </div>
         </div>
       </Modal>
     </div>

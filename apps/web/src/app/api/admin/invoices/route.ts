@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
       const existing = await prisma.invoice.findFirst({ where: { jobCardId: body.jobCardId } });
       return NextResponse.json({ success: false, error: { message: existing ? `Invoice ${existing.invoiceNumber} already exists for this job card` : 'Invoice already exists for this job card' } }, { status: 409 });
     }
-    logActivity({ entityType: 'Invoice', entityId: invoice.id, action: 'invoice.created', newValue: { invoiceNumber: invoice.invoiceNumber }, actorType: 'ADMIN', actorId: user.sub });
+    await logActivity({ entityType: 'Invoice', entityId: invoice.id, action: 'invoice.created', newValue: { invoiceNumber: invoice.invoiceNumber }, actorType: 'ADMIN', actorId: user.sub });
     return NextResponse.json({ success: true, data: invoice }, { status: 201 });
   } catch (e) { return handleApiError(e); }
 }

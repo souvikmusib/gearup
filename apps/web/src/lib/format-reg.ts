@@ -21,6 +21,14 @@ export function formatRegNumber(raw: string): string {
   return parts.filter(Boolean).join('-');
 }
 
+// Indian reg formats:
+//   Standard: SS DD L(1-3) NNNN     e.g. WB68K5489, KL01CA1234, DL5SAB1234
+//   BH-series: NN BH NNNN L(1-2)    e.g. 22BH1234AA
+const STANDARD_REG = /^[A-Z]{2}[0-9]{1,2}[A-Z]{1,3}[0-9]{1,4}$/;
+const BH_REG = /^[0-9]{2}BH[0-9]{4}[A-Z]{1,2}$/;
+
 export function isValidRegNumber(value: string): boolean {
-  return value.replace(/[^A-Z0-9]/gi, '').length >= 4;
+  const clean = value.replace(/[^A-Z0-9]/gi, '').toUpperCase();
+  if (clean.length < 4) return false;
+  return STANDARD_REG.test(clean) || BH_REG.test(clean);
 }

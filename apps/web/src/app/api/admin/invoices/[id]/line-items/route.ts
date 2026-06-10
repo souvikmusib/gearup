@@ -82,6 +82,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
           lineTotal = 0;
           referenceItemId = contract.id;
         } else if (body.amcPlanId) {
+          // AMC plan purchases create an AmcContract on payment; AmcContract.vehicleId is required.
+          if (!inv.vehicleId) throw new ValidationError('AMC plan purchase requires a vehicle on the invoice');
           const plan = await tx.amcPlan.findUniqueOrThrow({ where: { id: body.amcPlanId } });
           lineTotal = Number(plan.price);
           referenceItemId = body.amcPlanId;

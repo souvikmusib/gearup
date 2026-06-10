@@ -54,7 +54,7 @@ export async function GET(req: NextRequest) {
       apptCountBySlot.set(new Date(row.slotStart).getTime(), row._count._all);
     }
 
-    const slots = rules.flatMap((rule: any) => {
+    const slots = rules.flatMap((rule) => {
       const result: { label: string; start: string; end: string; available: boolean }[] = [];
       const [openH, openM] = rule.openTime.split(':').map(Number);
       const [closeH, closeM] = rule.closeTime.split(':').map(Number);
@@ -69,7 +69,7 @@ export async function GET(req: NextRequest) {
         // sides to UTC time-of-day on targetDate before comparing.
         const slotStartMin = sH * 60 + sM;
         const slotEndMin = eH * 60 + eMn;
-        const isBlocked = blocked.some((b: any) => {
+        const isBlocked = blocked.some((b) => {
           const bs = new Date(b.blockStartTime);
           const be = new Date(b.blockEndTime);
           const bStartMin = bs.getUTCHours() * 60 + bs.getUTCMinutes();

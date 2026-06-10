@@ -115,7 +115,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const result = await prisma.$transaction(async (tx: any) => {
+    const result = await prisma.$transaction(async (tx) => {
       // Customer.phoneNumber is NOT yet @unique (dedupe migration pending). Use findFirst.
       let customer = await tx.customer.findFirst({ where: { phoneNumber } });
       let nameMismatch = false;

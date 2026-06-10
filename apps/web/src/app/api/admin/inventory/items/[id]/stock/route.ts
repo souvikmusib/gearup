@@ -9,7 +9,7 @@ import { z } from 'zod';
 
 const schema = z.object({
   type: z.enum(['STOCK_IN', 'STOCK_OUT', 'ADJUSTMENT_INCREASE', 'ADJUSTMENT_DECREASE']),
-  quantity: z.number().positive(),
+  quantity: z.number().positive().multipleOf(0.01),
   reason: z.string().optional(),
 });
 

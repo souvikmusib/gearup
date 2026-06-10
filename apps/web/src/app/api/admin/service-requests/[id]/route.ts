@@ -31,10 +31,14 @@ const ALLOWED_TRANSITIONS: Record<ServiceRequestStatus, readonly ServiceRequestS
   CLOSED: [],
 };
 
+// Urgency values mirror the public booking form. Keep aligned with any UI
+// dropdown that writes to ServiceRequest.urgency.
+const URGENCY_VALUES = ['LOW', 'MEDIUM', 'HIGH', 'URGENT'] as const;
+
 const patchSchema = z.object({
   status: z.enum(SERVICE_REQUEST_STATUSES).optional(),
-  notes: z.string().optional(),
-  urgency: z.string().optional(),
+  notes: z.string().max(2000).optional(),
+  urgency: z.enum(URGENCY_VALUES).optional(),
 });
 
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {

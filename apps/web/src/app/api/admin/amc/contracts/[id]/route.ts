@@ -149,7 +149,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     requirePermission(PERMISSIONS.AMC_CONTRACTS_MANAGE);
     const body = z.object({
       jobCardId: z.string().min(1),
-      serviceDate: z.string().optional(),
+      serviceDate: z.string().datetime().optional(),
       notes: z.string().optional(),
     }).parse(await req.json());
 

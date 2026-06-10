@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requirePermission } from '@/lib/auth';
-import { handleApiError } from '@/lib/errors';
+import { handleApiError, AppError } from '@/lib/errors';
 import { logActivity } from '@/lib/activity-logger';
 import { PERMISSIONS } from '@gearup/types';
 import { z } from 'zod';
@@ -26,6 +26,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     const data: Record<string, unknown> = { ...body };
     if (body.expenseDate) data.expenseDate = new Date(body.expenseDate);
     if (body.paymentMode) data.paymentMode = body.paymentMode as any;
+    if (Object.keys(data).length === 0) throw new AppError(400, 'No changes provided.', 'NO_CHANGES');
     const expense = await prisma.expense.update({ where: { id: params.id }, data });
     logActivity({ entityType: 'Expense', entityId: expense.id, action: 'expense.updated', newValue: body, actorType: 'ADMIN', actorId: user.sub });
     return NextResponse.json({ success: true, data: expense });

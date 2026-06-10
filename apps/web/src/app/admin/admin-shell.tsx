@@ -54,7 +54,12 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   if (isLoginPage) return <>{children}</>;
   if (loading) return <LoadingSkeleton />;
-  if (!user) return null;
+  // When the server-side perimeter passed but the client `fetchMe` later
+  // returns 401 (e.g. token revoked in another tab), `user` flips to null
+  // while the `useEffect` above schedules `router.replace('/admin/login')`.
+  // Render the skeleton during that one-tick gap rather than `null` so the
+  // user never sees a blank white screen.
+  if (!user) return <LoadingSkeleton />;
 
   return (
     <div className="flex h-screen overflow-hidden">

@@ -8,7 +8,7 @@ import { generateAmcContractNumber } from '@/lib/id-generators';
 import { z } from 'zod';
 
 const schema = z.object({
-  amount: z.number().min(0),
+  amount: z.number().positive().finite(),
   paymentMode: z.string(),
   paymentDate: z.string(),
   referenceNumber: z.string().optional(),
@@ -121,7 +121,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       return payment;
     });
 
-    logActivity({ entityType: 'Payment', entityId: result.id, action: 'payment.recorded', newValue: body, actorType: 'ADMIN', actorId: user.sub });
+    await logActivity({ entityType: 'Payment', entityId: result.id, action: 'payment.recorded', newValue: body, actorType: 'ADMIN', actorId: user.sub });
     return NextResponse.json({ success: true, data: result }, { status: 201 });
   } catch (e) { return handleApiError(e); }
 }

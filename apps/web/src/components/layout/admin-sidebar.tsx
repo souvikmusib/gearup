@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth/auth-context';
 import { ThemeToggle } from '@/components/shared/theme-toggle';
@@ -83,7 +84,7 @@ export function AdminSidebar() {
     <div className="flex h-full flex-col">
       <div className="flex items-center justify-between px-4 py-4 border-b border-gray-200 dark:border-gray-800">
         <Link prefetch={false} href="/admin/dashboard" className="flex h-8 w-36 items-center" aria-label="GearUp dashboard">
-          <img src="/brand/gearup-logo.png" alt="GearUp" className="h-8 w-auto object-contain" />
+          <Image src="/brand/gearup-logo.png" alt="GearUp" width={144} height={32} priority className="h-8 w-auto object-contain" />
         </Link>
         <button onClick={() => setCollapsed(!collapsed)} className="hidden lg:block text-gray-400 hover:text-gray-600"><Menu size={18} /></button>
         <button onClick={() => setMobileOpen(false)} className="lg:hidden text-gray-400"><X size={18} /></button>

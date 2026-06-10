@@ -47,6 +47,7 @@ export default function SuppliersPage() {
     if (!confirm('Delete this supplier?')) return;
     const res = await api.delete<any>(`/admin/inventory/suppliers/${id}`);
     if (res.success) load();
+    else alert(res.error?.message || 'Cannot delete supplier');
   };
 
   const inputCls = 'w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white';

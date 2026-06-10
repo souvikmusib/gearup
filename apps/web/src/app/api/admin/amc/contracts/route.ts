@@ -25,8 +25,18 @@ export async function GET(req: NextRequest) {
     const page = Number(sp.get('page')) || 1;
     const pageSize = Number(sp.get('pageSize')) || 20;
     const status = sp.get('status') || undefined;
+    const search = sp.get('search')?.trim() || undefined;
     const p = paginate({ page, pageSize });
-    const where = status ? { status: status as any } : {};
+    const where: any = {};
+    if (status) where.status = status as any;
+    if (search) {
+      where.OR = [
+        { contractNumber: { contains: search, mode: 'insensitive' } },
+        { customer: { fullName: { contains: search, mode: 'insensitive' } } },
+        { customer: { phoneNumber: { contains: search, mode: 'insensitive' } } },
+        { vehicle: { registrationNumber: { contains: search, mode: 'insensitive' } } },
+      ];
+    }
     const [data, total] = await Promise.all([
       prisma.amcContract.findMany({
         where, ...p, orderBy: { createdAt: 'desc' },

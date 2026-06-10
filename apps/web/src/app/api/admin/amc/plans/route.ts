@@ -13,7 +13,7 @@ const createSchema = z.object({
   durationMonths: z.number().int().positive(),
   totalServicesIncluded: z.number().int().positive(),
   price: z.number().positive(),
-  coveredItems: z.any().optional(),
+  coveredItems: z.array(z.string().min(1).max(200)).max(200).optional(),
   exclusions: z.string().optional(),
 });
 

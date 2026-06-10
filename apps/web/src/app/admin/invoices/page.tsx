@@ -152,8 +152,10 @@ export default function InvoicesPage() {
     <div>
       <div className="flex items-center justify-between mb-4">
         <PageHeader title="Invoices" />
-        <button onClick={openCreate} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">+ New Invoice</button>
-        <button onClick={openCounterSale} className="rounded-lg border border-blue-600 px-4 py-2 text-sm font-semibold text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950">+ Counter Sale</button>
+        <div className="flex gap-2">
+          <button onClick={openCreate} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">+ New Invoice</button>
+          <button onClick={openCounterSale} className="rounded-lg border border-blue-600 px-4 py-2 text-sm font-semibold text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950">+ Counter Sale</button>
+        </div>
       </div>
       <ListToolbar searchPlaceholder="Search invoices..." onSearch={onSearch}
         filters={[{ label: 'Payment Status', value: 'paymentStatus', options: PAYMENT_STATUSES }, { label: 'Invoice Status', value: 'invoiceStatus', options: INVOICE_STATUSES }]}

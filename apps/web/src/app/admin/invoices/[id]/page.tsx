@@ -197,8 +197,9 @@ export default function InvoiceDetailPage() {
   const removeLine = async (lineItemId: string) => {
     // Optimistic: remove from table immediately
     setData((d: any) => d ? { ...d, lineItems: d.lineItems?.filter((li: any) => li.id !== lineItemId) } : d);
-    await api.delete<any>(`/admin/invoices/${id}/line-items?lineItemId=${lineItemId}`);
+    const res = await api.delete<any>(`/admin/invoices/${id}/line-items?lineItemId=${lineItemId}`);
     fetch();
+    if (!res.success) alert(res.error?.message || 'Failed to remove line item');
   };
 
   const openPdf = async (type = 'invoice') => {

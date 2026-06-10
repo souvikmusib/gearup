@@ -149,14 +149,31 @@ export default function JobCardsPage() {
         <input className={inputCls + ' max-w-xs'} placeholder="Search job cards..." value={search} onChange={(e) => { setSearch(e.target.value); load(e.target.value, statusFilter, workerFilter, priorityFilter); }} />
         <select className={inputCls + ' w-44'} value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); load(search, e.target.value, workerFilter, priorityFilter); }}>
           <option value="">All Statuses</option>
-          {['CREATED','ESTIMATE_PREPARED','WORK_IN_PROGRESS','READY_FOR_DELIVERY','DELIVERED','CANCELLED'].map((s) => <option key={s} value={s}>{s === 'CREATED' ? 'OPEN' : s === 'ESTIMATE_PREPARED' ? 'ESTIMATE READY' : s === 'WORK_IN_PROGRESS' ? 'IN PROGRESS' : s === 'READY_FOR_DELIVERY' ? 'READY' : s.replace(/_/g, ' ')}</option>)}
+          {[
+            { value: 'CREATED', label: 'OPEN' },
+            { value: 'ESTIMATE_PREPARED', label: 'ESTIMATE READY' },
+            // WORK_IN_PROGRESS is the canonical 'IN PROGRESS' filter; the API
+            // expands this to the full set of in-progress DB statuses
+            // (APPROVED, PARTS_PENDING, QUALITY_CHECK, …) so a card sitting in
+            // QUALITY_CHECK is still surfaced under 'IN PROGRESS' here.
+            { value: 'WORK_IN_PROGRESS', label: 'IN PROGRESS' },
+            { value: 'READY_FOR_DELIVERY', label: 'READY' },
+            { value: 'DELIVERED', label: 'DELIVERED' },
+            { value: 'CANCELLED', label: 'CANCELLED' },
+          ].map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
         </select>
         <select className={inputCls + ' w-48'} value={workerFilter} onChange={(e) => { setWorkerFilter(e.target.value); load(search, statusFilter, e.target.value, priorityFilter); }}>
           <option value="">All Workers</option>
-          {allWorkers.map((w: any) => {
-            const activeCount = data.filter((jc: any) => jc.assignments?.some((a: any) => a.worker?.fullName === w.fullName) && !['DELIVERED','CANCELLED'].includes(jc.status)).length;
-            return <option key={w.id} value={w.id}>{w.fullName} ({activeCount} active)</option>;
-          })}
+          {allWorkers.map((w: any) => (
+            // Show total assignment count from the workers aggregate
+            // (`_count.assignments`) rather than recomputing from the current
+            // paginated page, which was both wrong (only 20 rows visible) and
+            // name-matched instead of id-matched.
+            <option key={w.id} value={w.id}>
+              {w.fullName}
+              {typeof w._count?.assignments === 'number' ? ` (${w._count.assignments})` : ''}
+            </option>
+          ))}
         </select>
         <select className={inputCls + ' w-36'} value={priorityFilter} onChange={(e) => { setPriorityFilter(e.target.value); load(search, statusFilter, workerFilter, e.target.value); }}>
           <option value="">All Priorities</option>

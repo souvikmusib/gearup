@@ -41,6 +41,15 @@ const nextConfig = {
       },
     ];
   },
+  // Short-circuit /admin → /admin/dashboard at the edge so the client bundle
+  // for the (auth-gated) AdminShell is never loaded just to perform a
+  // redirect. Non-permanent so we can move the landing page later without
+  // poisoning browser caches.
+  async redirects() {
+    return [
+      { source: '/admin', destination: '/admin/dashboard', permanent: false },
+    ];
+  },
 };
 
 // withSentryConfig is a no-op when Sentry envs are not set; safe to always apply.

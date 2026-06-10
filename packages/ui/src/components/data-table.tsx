@@ -43,7 +43,19 @@ export function DataTable<T extends Record<string, unknown>>({
             <tr
               key={String(row[keyField])}
               onClick={() => onRowClick?.(row)}
-              className={onRowClick ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800' : ''}
+              {...(onRowClick
+                ? {
+                    role: 'button',
+                    tabIndex: 0,
+                    onKeyDown: (e: React.KeyboardEvent<HTMLTableRowElement>) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        onRowClick(row);
+                      }
+                    },
+                  }
+                : {})}
+              className={onRowClick ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500' : ''}
             >
               {columns.map((col) => (
                 <td key={col.key} className={`whitespace-nowrap px-4 py-3 text-sm text-gray-900 dark:text-gray-100 ${col.className ?? ''}`}>

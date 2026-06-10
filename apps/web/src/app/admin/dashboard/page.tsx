@@ -31,6 +31,8 @@ interface RecentLog {
 
 export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
   const [logs, setLogs] = useState<RecentLog[]>([]);
   const [revenueChart, setRevenueChart] = useState<any[]>([]);
   const [jobStats, setJobStats] = useState<any[]>([]);
@@ -44,10 +46,12 @@ export default function DashboardPage() {
   const isAdmin = user?.roles?.includes('SUPER_ADMIN') || user?.roles?.includes('ADMIN');
 
   useEffect(() => {
+    setError(null);
     const dashboard = api.getSWR<DashboardData>('/admin/reports?type=dashboard');
     if (dashboard.cached?.success && dashboard.cached.data) setData(dashboard.cached.data);
     dashboard.promise.then((res) => {
       if (res.success && res.data) setData(res.data);
+      else setError(res.error?.message || 'Failed to load dashboard');
     });
     const logsReq = api.getSWR<any>('/admin/logs?pageSize=8');
     if (logsReq.cached?.success) setLogs(logsReq.cached.data?.items ?? logsReq.cached.data ?? []);
@@ -72,9 +76,24 @@ export default function DashboardPage() {
         setLowStock(items.slice(0, 10));
       }
     });
-  }, []);
+  }, [reloadKey]);
 
-  if (!data) return <DashboardSkeleton />;
+  if (!data) {
+    if (error) {
+      return (
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <p className="text-sm font-medium text-red-600 dark:text-red-400">{error}</p>
+          <button
+            onClick={() => setReloadKey((k) => k + 1)}
+            className="mt-4 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+          >
+            Retry
+          </button>
+        </div>
+      );
+    }
+    return <DashboardSkeleton />;
+  }
 
   const kpis = [
     { label: "Today's Appointments", value: data.todayAppointments, icon: Calendar, color: 'bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400', href: '/admin/appointments' },
@@ -103,7 +122,7 @@ export default function DashboardPage() {
     if (diff < 1) return 'Just now';
     if (diff < 60) return `${diff}m ago`;
     if (diff < 1440) return `${Math.floor(diff / 60)}h ago`;
-    return d.toLocaleDateString();
+    return d.toLocaleDateString('en-IN');
   };
 
   const formatAction = (action: string) => action.replace(/\./g, ' ').replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());

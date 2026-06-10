@@ -74,6 +74,9 @@ export default function JobCardDetailPage() {
   const [workers, setWorkers] = useState<any[]>([]);
   const [workerForm, setWorkerForm] = useState({ workerId: '', assignmentRole: '' });
   const [taskForm, setTaskForm] = useState({ taskName: '', estimatedMinutes: '' });
+  const [assigningWorker, setAssigningWorker] = useState(false);
+  const [addingTask, setAddingTask] = useState(false);
+  const [updatingPartId, setUpdatingPartId] = useState<string | null>(null);
   const [creatingInvoice, setCreatingInvoice] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
@@ -140,10 +143,14 @@ export default function JobCardDetailPage() {
     if (res.success) load();
   };
 
-  const updatePart = async (partId: string, field: string, value: string) => {
+  const updatePart = async (partId: string, field: string, value: string, prevValue?: number) => {
     const num = Number(value);
     if (isNaN(num) || num < 0) return;
+    if (prevValue !== undefined && num === prevValue) return; // skip if unchanged
+    if (updatingPartId === partId) return;
+    setUpdatingPartId(partId);
     await api.patch<any>(`/admin/job-cards/${id}/parts`, { partId, [field]: num });
+    setUpdatingPartId(null);
     load();
   };
 
@@ -153,8 +160,10 @@ export default function JobCardDetailPage() {
     if (res.success) setWorkers(res.data?.items ?? res.data ?? []);
   };
   const assignWorker = async () => {
-    if (!workerForm.workerId) return;
+    if (!workerForm.workerId || assigningWorker) return;
+    setAssigningWorker(true);
     const res = await api.post<any>(`/admin/job-cards/${id}/workers`, workerForm);
+    setAssigningWorker(false);
     if (res.success) { setWorkerForm({ workerId: '', assignmentRole: '' }); load(); }
   };
   const unassignWorker = async (assignmentId: string) => {
@@ -163,8 +172,10 @@ export default function JobCardDetailPage() {
   };
 
   const addTask = async () => {
-    if (!taskForm.taskName) return;
+    if (!taskForm.taskName || addingTask) return;
+    setAddingTask(true);
     const res = await api.post<any>(`/admin/job-cards/${id}/tasks`, { taskName: taskForm.taskName, estimatedMinutes: taskForm.estimatedMinutes ? Number(taskForm.estimatedMinutes) : undefined });
+    setAddingTask(false);
     if (res.success) { setTaskForm({ taskName: '', estimatedMinutes: '' }); load(); }
   };
   const updateTaskStatus = async (taskId: string, status: string) => {
@@ -330,7 +341,7 @@ export default function JobCardDetailPage() {
                   <option value="">Assign worker...</option>
                   {workers.map((w: any) => <option key={w.id} value={w.id}>{w.fullName} ({w.designation || w.specialization || 'General'})</option>)}
                 </select>
-                {workerForm.workerId && <button onClick={assignWorker} className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-700 whitespace-nowrap">Assign</button>}
+                {workerForm.workerId && <button onClick={assignWorker} disabled={assigningWorker} className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-700 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed">{assigningWorker ? 'Assigning...' : 'Assign'}</button>}
               </div>
             )}
           </div>
@@ -356,7 +367,7 @@ export default function JobCardDetailPage() {
             {canEditTasks(status) && (
               <div className="mt-3 border-t pt-3 dark:border-gray-600 flex gap-2">
                 <input className={inputCls} placeholder="Task name..." value={taskForm.taskName} onChange={(e) => setTaskForm({ ...taskForm, taskName: e.target.value })} onKeyDown={(e) => e.key === 'Enter' && addTask()} />
-                {taskForm.taskName && <button onClick={addTask} className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-700 whitespace-nowrap">Add</button>}
+                {taskForm.taskName && <button onClick={addTask} disabled={addingTask} className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-700 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed">{addingTask ? 'Adding...' : 'Add'}</button>}
               </div>
             )}
           </div>
@@ -369,9 +380,9 @@ export default function JobCardDetailPage() {
                 <span className="flex-1 text-gray-600 dark:text-gray-400 truncate">{p.inventoryItem?.itemName}</span>
                 {canEditParts(status) ? (
                   <>
-                    <input type="number" className="w-16 rounded border border-gray-300 px-1.5 py-0.5 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-white" defaultValue={Number(p.requiredQty)} onBlur={(e) => updatePart(p.id, 'requiredQty', e.target.value)} title="Qty" />
+                    <input type="number" className="w-16 rounded border border-gray-300 px-1.5 py-0.5 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-white disabled:opacity-50" defaultValue={Number(p.requiredQty)} disabled={updatingPartId === p.id} onBlur={(e) => updatePart(p.id, 'requiredQty', e.target.value, Number(p.requiredQty))} title="Qty" />
                     <span className="text-xs text-gray-400">×</span>
-                    <input type="number" className="w-20 rounded border border-gray-300 px-1.5 py-0.5 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-white" defaultValue={Number(p.unitPrice)} step="0.01" onBlur={(e) => updatePart(p.id, 'unitPrice', e.target.value)} title="Price" />
+                    <input type="number" className="w-20 rounded border border-gray-300 px-1.5 py-0.5 text-xs dark:border-gray-600 dark:bg-gray-700 dark:text-white disabled:opacity-50" defaultValue={Number(p.unitPrice)} step="0.01" disabled={updatingPartId === p.id} onBlur={(e) => updatePart(p.id, 'unitPrice', e.target.value, Number(p.unitPrice))} title="Price" />
                   </>
                 ) : (
                   <span className="text-xs text-gray-500">{Number(p.requiredQty)} × ₹{Number(p.unitPrice)}</span>

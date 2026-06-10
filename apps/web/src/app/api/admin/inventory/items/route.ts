@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { paginate, paginationMeta } from '@/lib/pagination';
 import { requirePermission } from '@/lib/auth';
@@ -16,7 +17,7 @@ export async function GET(req: NextRequest) {
     const search = sp.get('search') || '';
     const categoryId = sp.get('categoryId') || '';
     const p = paginate({ page, pageSize });
-    const where: Record<string, unknown> = {};
+    const where: Prisma.InventoryItemWhereInput = {};
     if (categoryId) where.categoryId = categoryId;
     if (search) where.OR = [{ itemName: { contains: search, mode: 'insensitive' } }, { sku: { contains: search, mode: 'insensitive' } }];
     const [data, total] = await Promise.all([
@@ -31,7 +32,7 @@ export async function POST(req: NextRequest) {
   try {
     const user = requirePermission(PERMISSIONS.INVENTORY_EDIT);
     const body = z.object({
-      sku: z.string().min(1), itemName: z.string().min(1), categoryId: z.string(), supplierId: z.string().optional(),
+      sku: z.string().min(1), itemName: z.string().min(1), categoryId: z.string().min(1), supplierId: z.string().min(1).optional(),
       brand: z.string().optional(), description: z.string().optional(), unit: z.string().min(1),
       taxRate: z.number().nonnegative().optional(), costPrice: z.number().nonnegative().optional(), sellingPrice: z.number().nonnegative().optional(), discountPercent: z.number().min(0).max(100).optional(),
       quantityInStock: z.number().nonnegative().optional(), reorderLevel: z.number().nonnegative().optional(), reorderQuantity: z.number().nonnegative().optional(),
@@ -74,7 +75,7 @@ export async function POST(req: NextRequest) {
       }
       return created;
     });
-    logActivity({ entityType: 'InventoryItem', entityId: item.id, action: 'inventory.item.created', newValue: item, actorType: 'ADMIN', actorId: user.sub });
+    await logActivity({ entityType: 'InventoryItem', entityId: item.id, action: 'inventory.item.created', newValue: item, actorType: 'ADMIN', actorId: user.sub });
     return NextResponse.json({ success: true, data: item }, { status: 201 });
   } catch (e) { return handleApiError(e); }
 }

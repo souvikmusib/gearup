@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api/client';
 import { PageHeader } from '@gearup/ui';
+import { ProcessLoader } from '@/components/shared/process-loader';
 import { DollarSign, CreditCard, TrendingUp, Download } from 'lucide-react';
 import { AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
@@ -17,13 +18,24 @@ function getDate(daysAgo: number) { const d = new Date(); d.setDate(d.getDate() 
 
 export default function RevenueReportPage() {
   const [data, setData] = useState<any>(null);
+  const [error, setError] = useState<string>('');
   const [preset, setPreset] = useState(30);
   const [from, setFrom] = useState(getDate(30));
   const [to, setTo] = useState(getDate(0));
 
-  useEffect(() => {
+  const fetchReport = () => {
+    setError('');
+    setData(null);
     const endpoint = `/admin/reports?type=revenue&from=${from}&to=${to}`;
-    api.get<any>(endpoint).then((r) => { if (r.success) setData(r.data); });
+    api.get<any>(endpoint).then((r) => {
+      if (r.success) setData(r.data);
+      else setError(r.error?.message || 'Failed to load revenue report');
+    }).catch(() => setError('Unable to reach server. Please try again.'));
+  };
+
+  useEffect(() => {
+    fetchReport();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [from, to]);
 
   const selectPreset = (days: number) => { setPreset(days); if (days >= 0) { setFrom(getDate(days)); setTo(getDate(0)); } };
@@ -83,10 +95,27 @@ export default function RevenueReportPage() {
     URL.revokeObjectURL(url);
   };
 
-  if (!data) return <p className="py-8 text-center text-gray-500">Loading...</p>;
+  if (error) {
+    return (
+      <div className="rounded-xl border border-red-200 bg-red-50 dark:border-red-900/40 dark:bg-red-950/30 p-6 text-center">
+        <p className="text-sm font-medium text-red-700 dark:text-red-300">{error}</p>
+        <button
+          onClick={fetchReport}
+          className="mt-3 inline-flex items-center rounded-lg bg-red-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-red-700"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+  if (!data) return <ProcessLoader title="Loading revenue report" steps={['Aggregating payments', 'Computing breakdowns']} />;
 
-  const totalTxns = data.byMode?.reduce((s: number, m: any) => s + (m._count ?? 0), 0) || 1;
+  // Drop the `|| 1` denominator: in the empty-data case it lied about
+  // transaction count (shows '1' instead of '0') and made avg/txn look like ₹0
+  // instead of '—'. Render an em-dash for the average when there are no txns.
+  const totalTxns = (data.byMode ?? []).reduce((s: number, m: any) => s + (m._count ?? 0), 0);
   const totalRevenueNum = Number(data.totalRevenue ?? 0);
+  const avgPerTxn = totalTxns > 0 ? Math.round(totalRevenueNum / totalTxns) : null;
   const dailyNum = (data.daily ?? []).map((d: any) => ({ ...d, amount: Number(d.amount ?? 0) }));
   const byModeNum = (data.byMode ?? []).map((m: any) => ({ ...m, _sum: Number(m._sum ?? 0) }));
 
@@ -132,7 +161,7 @@ export default function RevenueReportPage() {
         <div className="rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 p-5">
           <div className="flex items-center gap-3">
             <div className="rounded-lg bg-purple-50 dark:bg-purple-950 p-2.5"><TrendingUp className="h-5 w-5 text-purple-600" /></div>
-            <div><p className="text-xs text-gray-500 uppercase font-medium">Avg / Transaction</p><p className="text-2xl font-bold text-gray-900 dark:text-white">₹{Math.round(totalRevenueNum / totalTxns).toLocaleString()}</p></div>
+            <div><p className="text-xs text-gray-500 uppercase font-medium">Avg / Transaction</p><p className="text-2xl font-bold text-gray-900 dark:text-white">{avgPerTxn === null ? '—' : `₹${avgPerTxn.toLocaleString()}`}</p></div>
           </div>
         </div>
       </div>

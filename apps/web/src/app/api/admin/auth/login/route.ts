@@ -12,12 +12,26 @@ import { AUTH_COOKIE_NAME } from '@/lib/auth';
 
 const loginSchema = z.object({ adminUserId: z.string().min(1), password: z.string().min(1) });
 
+// Fixed dummy bcrypt hash used to equalize timing on unknown-user / locked-out
+// paths so an attacker can't distinguish "no such adminUserId" from "wrong
+// password" by wall-clock time. The plaintext doesn't matter — the comparison
+// must always fail.
+const DUMMY_BCRYPT_HASH = '$2a$12$CwTycUXWue0Thq9StjUM0uJ8eVf3qB7n3qV3yQ8nQ6f2cTk3WkX/m';
+
 export async function POST(req: NextRequest) {
   try {
     const { adminUserId, password } = loginSchema.parse(await req.json());
     const user = await prisma.adminUser.findUnique({ where: { adminUserId }, include: { roles: { include: { role: true } } } });
-    if (!user || user.status === 'INACTIVE') throw new UnauthorizedError('Invalid credentials');
-    if (user.status === 'LOCKED' && user.lockedUntil && user.lockedUntil > new Date()) throw new UnauthorizedError('Account locked. Try again later.');
+
+    // Unified-timing path: if the user doesn't exist, is INACTIVE, or is
+    // currently LOCKED, we still run a bcrypt.compare against a dummy hash so
+    // the response time matches the real-password path. The error message is
+    // identical to a bad-password failure to avoid leaking which adminUserIds
+    // exist on the system.
+    if (!user || user.status === 'INACTIVE' || (user.status === 'LOCKED' && user.lockedUntil && user.lockedUntil > new Date())) {
+      await bcrypt.compare(password, DUMMY_BCRYPT_HASH);
+      throw new UnauthorizedError('Invalid credentials');
+    }
 
     const valid = await bcrypt.compare(password, user.passwordHash);
     if (!valid) {
@@ -29,7 +43,7 @@ export async function POST(req: NextRequest) {
     }
 
     await prisma.adminUser.update({ where: { id: user.id }, data: { failedLoginAttempts: 0, status: 'ACTIVE', lockedUntil: null, lastLoginAt: new Date() } });
-    const roleKeys = user.roles.map((r: any) => r.role.key as RoleKey);
+    const roleKeys = user.roles.map((r: (typeof user)['roles'][number]) => r.role.key as RoleKey);
     const permissions = [...new Set(roleKeys.flatMap((k: RoleKey) => ROLE_PERMISSIONS[k] ?? []))];
     const token = jwt.sign({ sub: user.id, adminUserId: user.adminUserId, roles: roleKeys, permissions }, getJwtSecret(), { expiresIn: JWT_EXPIRY });
     logActivity({ entityType: 'AdminUser', entityId: user.id, action: 'auth.login', actorType: 'ADMIN', actorId: user.id, ipAddress: req.headers.get('x-forwarded-for') ?? undefined, userAgent: req.headers.get('user-agent') ?? undefined });

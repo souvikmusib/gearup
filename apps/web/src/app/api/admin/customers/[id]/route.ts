@@ -8,7 +8,7 @@ import { z } from 'zod';
 
 const updateSchema = z.object({
   fullName: z.string().optional(), phoneNumber: z.string().optional(), alternatePhone: z.string().optional(),
-  email: z.string().optional().transform(v => v?.trim() || undefined).pipe(z.string().email().optional()), addressLine1: z.string().optional(), addressLine2: z.string().optional(),
+  email: z.preprocess((v) => (typeof v === 'string' ? v.trim() || undefined : v ?? undefined), z.string().email().optional()), addressLine1: z.string().optional(), addressLine2: z.string().optional(),
   city: z.string().optional(), state: z.string().optional(), postalCode: z.string().optional(),
   notes: z.string().optional(), source: z.string().optional(),
 });

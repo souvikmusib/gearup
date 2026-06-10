@@ -16,6 +16,11 @@ export default function AdminLoginPage() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Idempotency guard: a double-tap or slow network can otherwise fire two
+    // POST /login requests in flight at once. Both run bcrypt and both bump
+    // `failedLoginAttempts` on a wrong password, which could lock the account
+    // in fewer attempts than the configured threshold suggests.
+    if (loading) return;
     setError(''); setLoading(true);
 
     try {
@@ -51,7 +56,7 @@ export default function AdminLoginPage() {
               <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3 top-2.5 text-gray-400">{showPw ? <EyeOff size={16} /> : <Eye size={16} />}</button>
             </div>
           </div>
-          <button type="submit" disabled={loading} className="w-full rounded-lg bg-blue-600 py-2.5 text-sm font-semibold text-white shadow hover:bg-blue-700 disabled:opacity-50">
+          <button type="submit" disabled={loading} aria-busy={loading} className="w-full rounded-lg bg-blue-600 py-2.5 text-sm font-semibold text-white shadow hover:bg-blue-700 disabled:opacity-50">
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
