@@ -37,7 +37,43 @@ export async function POST(req: NextRequest) {
       quantityInStock: z.number().optional(), reorderLevel: z.number().optional(), reorderQuantity: z.number().optional(),
       storageLocation: z.string().optional(), barcode: z.string().optional(),
     }).parse(await req.json());
-    const item = await prisma.inventoryItem.create({ data: body as any });
+    const openingQty = body.quantityInStock ?? 0;
+    const item = await prisma.$transaction(async (tx) => {
+      const created = await tx.inventoryItem.create({
+        data: {
+          sku: body.sku,
+          itemName: body.itemName,
+          categoryId: body.categoryId,
+          supplierId: body.supplierId,
+          brand: body.brand,
+          description: body.description,
+          unit: body.unit,
+          taxRate: body.taxRate,
+          costPrice: body.costPrice,
+          sellingPrice: body.sellingPrice,
+          discountPercent: body.discountPercent,
+          quantityInStock: body.quantityInStock,
+          reorderLevel: body.reorderLevel,
+          reorderQuantity: body.reorderQuantity,
+          storageLocation: body.storageLocation,
+          barcode: body.barcode,
+        },
+      });
+      if (openingQty > 0) {
+        await tx.stockMovement.create({
+          data: {
+            inventoryItemId: created.id,
+            movementType: 'STOCK_IN',
+            quantity: openingQty,
+            previousQuantity: 0,
+            newQuantity: openingQty,
+            reason: 'Opening balance',
+            performedByAdminId: user.sub,
+          },
+        });
+      }
+      return created;
+    });
     logActivity({ entityType: 'InventoryItem', entityId: item.id, action: 'inventory.item.created', newValue: item, actorType: 'ADMIN', actorId: user.sub });
     return NextResponse.json({ success: true, data: item }, { status: 201 });
   } catch (e) { return handleApiError(e); }

@@ -92,14 +92,18 @@ export default function BookServicePage() {
   const onPhoneChange = (phone: string) => {
     set('phoneNumber', phone);
     clearTimeout(lookupTimer.current);
+    // Note: the /public/customer-lookup endpoint used to return PII
+    // (fullName/email) and the customer's vehicle list, which let anyone
+    // enumerate customers by phone number. It now returns only a boolean
+    // existence marker. We intentionally do NOT prefill name/email or show
+    // saved vehicles here; the user re-enters those fields, and the booking
+    // flow reconciles to the existing customer server-side via phone number.
     if (phone.replace(/\D/g, '').length >= 10) {
       lookupTimer.current = setTimeout(async () => {
-        const res = await api.get<any>(`/public/customer-lookup?phone=${encodeURIComponent(phone)}`);
-        if (res.success && res.data?.customer) {
-          if (!form.fullName) set('fullName', res.data.customer.fullName);
-          if (!form.email && res.data.customer.email) set('email', res.data.customer.email);
-          setSavedVehicles(res.data.vehicles ?? []);
-        } else { setSavedVehicles([]); }
+        // Fire-and-forget — kept so we can resurface a "we already have your
+        // details, sign in to autofill" prompt later without re-leaking PII.
+        await api.get<any>(`/public/customer-lookup?phone=${encodeURIComponent(phone)}`);
+        setSavedVehicles([]);
       }, 500);
     } else { setSavedVehicles([]); }
   };

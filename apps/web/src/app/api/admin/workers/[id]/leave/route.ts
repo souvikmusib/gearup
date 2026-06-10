@@ -25,7 +25,19 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     const user = requirePermission(PERMISSIONS.WORKERS_MANAGE);
     const body = z.object({ leaveId: z.string(), status: z.enum(['APPROVED', 'REJECTED']) }).parse(await req.json());
     const leave = await prisma.workerLeave.update({ where: { id: body.leaveId, workerId: params.id }, data: { status: body.status, approvedByAdminId: user.sub } });
-    if (body.status === 'APPROVED') await prisma.worker.update({ where: { id: params.id }, data: { status: 'ON_LEAVE' } });
+    if (body.status === 'APPROVED') {
+      // Only flip worker to ON_LEAVE if today falls within the approved leave window.
+      // Workers outside the window remain ACTIVE; a separate scheduled job (or dynamic
+      // computation) is responsible for flipping status when the window opens/closes.
+      const now = new Date();
+      const start = new Date(leave.startDate);
+      const end = new Date(leave.endDate);
+      // Normalize end to end-of-day so a same-day leave (start==end) still counts as active today.
+      end.setHours(23, 59, 59, 999);
+      if (now >= start && now <= end) {
+        await prisma.worker.update({ where: { id: params.id }, data: { status: 'ON_LEAVE' } });
+      }
+    }
     logActivity({ entityType: 'WorkerLeave', entityId: body.leaveId, action: `worker.leave.${body.status.toLowerCase()}`, newValue: body, actorType: 'ADMIN', actorId: user.sub });
     return NextResponse.json({ success: true, data: leave });
   } catch (e) { return handleApiError(e); }

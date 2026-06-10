@@ -16,46 +16,105 @@ const APPT_COLORS: Record<string, string> = {
 
 const calCls = "rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800 [&_.fc]:text-sm [&_.fc-toolbar-title]:text-lg [&_.fc-toolbar-title]:font-semibold [&_.fc-button]:!rounded-lg [&_.fc-button]:!text-xs [&_.fc-button]:!px-3 [&_.fc-button]:!py-1.5 [&_.fc-button-primary]:!bg-blue-600 [&_.fc-button-primary]:!border-blue-600 [&_.fc-button-primary.fc-button-active]:!bg-blue-700 [&_.fc-event]:!rounded [&_.fc-event]:!px-1 [&_.fc-event]:!text-xs [&_.fc-event]:cursor-pointer";
 
+type CalEvent = {
+  id: string;
+  title: string;
+  start?: string;
+  end?: string;
+  allDay?: boolean;
+  backgroundColor?: string;
+  borderColor?: string;
+  textColor?: string;
+  extendedProps?: { workerId?: string };
+};
+
+type AppointmentItem = {
+  id: string;
+  status: string;
+  slotStart?: string;
+  slotEnd?: string;
+  customer?: { fullName?: string } | null;
+  vehicle?: { registrationNumber?: string } | null;
+};
+
+type HolidayItem = { id: string; holidayName: string; holidayDate: string };
+
+type WorkerItem = { id: string; fullName: string };
+
+type LeaveItem = {
+  id: string;
+  workerId: string;
+  leaveType: string;
+  startDate: string;
+  endDate: string;
+  status: string;
+};
+
+type AssignmentItem = {
+  id: string;
+  workerId: string;
+  worker?: { fullName?: string } | null;
+  jobCard?: {
+    jobCardNumber: string;
+    status: string;
+    intakeDate: string;
+    estimatedDeliveryAt?: string | null;
+  } | null;
+};
+
+type WorkerCalendarResponse = {
+  workers: WorkerItem[];
+  leaves: LeaveItem[];
+  assignments: AssignmentItem[];
+};
+
 export default function FullCalendarPage() {
   const [tab, setTab] = useState<'shop' | 'worker'>('shop');
-  const [apptEvents, setApptEvents] = useState<any[]>([]);
-  const [workerEvents, setWorkerEvents] = useState<any[]>([]);
-  const [workers, setWorkers] = useState<any[]>([]);
+  const [apptEvents, setApptEvents] = useState<CalEvent[]>([]);
+  const [workerEvents, setWorkerEvents] = useState<CalEvent[]>([]);
+  const [workers, setWorkers] = useState<WorkerItem[]>([]);
   const [selectedWorker, setSelectedWorker] = useState('');
   const router = useRouter();
 
   useEffect(() => {
     Promise.all([
-      api.get<any>('/admin/appointments?pageSize=500'),
-      api.get<any>('/admin/settings/holidays'),
+      api.get<{ items?: AppointmentItem[] } | AppointmentItem[]>('/admin/appointments?pageSize=500'),
+      api.get<HolidayItem[]>('/admin/settings/holidays'),
     ]).then(([apptRes, holRes]) => {
-      const events: any[] = [];
+      const events: CalEvent[] = [];
       if (apptRes.success) {
-        (apptRes.data?.items ?? apptRes.data ?? []).forEach((a: any) => {
+        const data = apptRes.data;
+        const items: AppointmentItem[] = Array.isArray(data)
+          ? data
+          : ((data as { items?: AppointmentItem[] } | null | undefined)?.items ?? []);
+        items.forEach((a) => {
           events.push({ id: a.id, title: `${a.customer?.fullName || 'Customer'} — ${a.vehicle?.registrationNumber || ''}`, start: a.slotStart, end: a.slotEnd, backgroundColor: APPT_COLORS[a.status] || '#6b7280', borderColor: APPT_COLORS[a.status] || '#6b7280' });
         });
       }
       if (holRes.success) {
-        (holRes.data ?? []).forEach((h: any) => {
+        (holRes.data ?? []).forEach((h) => {
           events.push({ id: `hol-${h.id}`, title: `🚫 ${h.holidayName}`, start: h.holidayDate, allDay: true, backgroundColor: '#ef4444', borderColor: '#ef4444' });
         });
       }
       setApptEvents(events);
     });
 
-    api.get<any>('/admin/workers/calendar').then((res) => {
+    api.get<WorkerCalendarResponse>('/admin/workers/calendar').then((res) => {
       if (!res.success) return;
-      const { workers: w, leaves, assignments } = res.data;
+      const data = res.data ?? ({} as Partial<WorkerCalendarResponse>);
+      const w: WorkerItem[] = data.workers ?? [];
+      const leaves: LeaveItem[] = data.leaves ?? [];
+      const assignments: AssignmentItem[] = data.assignments ?? [];
       setWorkers(w);
-      const evts: any[] = [];
-      leaves.forEach((l: any) => {
-        const worker = w.find((wr: any) => wr.id === l.workerId);
+      const evts: CalEvent[] = [];
+      leaves.forEach((l) => {
+        const worker = w.find((wr) => wr.id === l.workerId);
         evts.push({ id: `leave-${l.id}`, title: `🏖 ${worker?.fullName || 'Worker'} — ${l.leaveType}`, start: l.startDate, end: l.endDate, allDay: true, backgroundColor: l.status === 'APPROVED' ? '#f59e0b' : '#d1d5db', borderColor: l.status === 'APPROVED' ? '#f59e0b' : '#d1d5db', textColor: '#1f2937', extendedProps: { workerId: l.workerId } });
       });
-      assignments.forEach((a: any) => {
+      assignments.forEach((a) => {
         const jc = a.jobCard; if (!jc) return;
         const color = jc.status === 'DELIVERED' || jc.status === 'CLOSED' ? '#6b7280' : jc.status === 'WORK_IN_PROGRESS' ? '#3b82f6' : '#10b981';
-        evts.push({ id: `assign-${a.id}`, title: `🔧 ${a.worker?.fullName} — ${jc.jobCardNumber}`, start: jc.intakeDate, end: jc.estimatedDeliveryAt || jc.intakeDate, allDay: true, backgroundColor: color, borderColor: color, extendedProps: { workerId: a.workerId } });
+        evts.push({ id: `assign-${a.id}`, title: `🔧 ${a.worker?.fullName || 'Worker'} — ${jc.jobCardNumber}`, start: jc.intakeDate, end: jc.estimatedDeliveryAt || jc.intakeDate, allDay: true, backgroundColor: color, borderColor: color, extendedProps: { workerId: a.workerId } });
       });
       setWorkerEvents(evts);
     });
@@ -73,7 +132,7 @@ export default function FullCalendarPage() {
         {tab === 'worker' && (
           <select className="ml-auto rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white" value={selectedWorker} onChange={(e) => setSelectedWorker(e.target.value)}>
             <option value="">All Workers</option>
-            {workers.map((w: any) => <option key={w.id} value={w.id}>{w.fullName}</option>)}
+            {workers.map((w) => <option key={w.id} value={w.id}>{w.fullName}</option>)}
           </select>
         )}
         <button onClick={() => router.push('/admin/calendar')} className="ml-auto rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-600 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-800">← Card View</button>

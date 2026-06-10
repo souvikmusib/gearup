@@ -1,14 +1,28 @@
 import jwt from 'jsonwebtoken';
-import { headers } from 'next/headers';
+import { headers, cookies } from 'next/headers';
 import type { AuthTokenPayload, PermissionKey } from '@gearup/types';
 import { UnauthorizedError, ForbiddenError } from './errors';
 import { getJwtSecret } from './jwt-secret';
 
+/**
+ * Cookie name used when the token is delivered as an httpOnly cookie.
+ * The Authorization: Bearer header takes precedence (client SPA flow);
+ * the cookie is parsed as a fallback so server components and same-origin
+ * fetches without explicit headers can still authenticate.
+ */
+export const AUTH_COOKIE_NAME = 'gearup_token';
+
 export function getAuthToken(): string {
   const h = headers();
   const auth = h.get('authorization');
-  if (!auth?.startsWith('Bearer ')) throw new UnauthorizedError('Missing token');
-  return auth.slice(7);
+  if (auth?.startsWith('Bearer ')) return auth.slice(7);
+
+  // Fallback: cookie-based session (httpOnly + Secure + SameSite=Lax/Strict
+  // should be set by the login route; this just reads it).
+  const cookieToken = cookies().get(AUTH_COOKIE_NAME)?.value;
+  if (cookieToken) return cookieToken;
+
+  throw new UnauthorizedError('Missing token');
 }
 
 export function verifyAuth(): AuthTokenPayload {

@@ -220,7 +220,7 @@ model RolePermission {
 model Customer {
   id             String    @id @default(cuid())
   fullName       String
-  phoneNumber    String
+  phoneNumber    String    // TODO(go-live+1): @unique - needs dedupe migration; app-level guard in api/public/service-requests
   alternatePhone String?
   email          String?
   addressLine1   String?
@@ -241,7 +241,6 @@ model Customer {
   invoices        Invoice[]
   amcContracts    AmcContract[]
 
-  @@index([phoneNumber])
   @@index([email])
 }
 
@@ -249,7 +248,7 @@ model Vehicle {
   id                 String      @id @default(cuid())
   customerId         String
   vehicleType        VehicleType
-  registrationNumber String
+  registrationNumber String      // TODO(go-live+1): @unique - needs dedupe migration
   brand              String
   model              String
   variant            String?
@@ -274,7 +273,6 @@ model Vehicle {
   amcContracts    AmcContract[]
 
   @@index([customerId])
-  @@index([registrationNumber])
 }
 
 model ServiceRequest {
@@ -460,6 +458,9 @@ model JobCard {
   finalTotal               Decimal        @default(0) @db.Decimal(12, 2)
   customerVisibleNotes     String?
   internalNotes            String?
+  estimateToken            String?        @unique
+  estimateTokenExpiresAt   DateTime?
+  estimateRevision         String?
   createdAt                DateTime       @default(now())
   updatedAt                DateTime       @updatedAt
 
@@ -531,6 +532,7 @@ model JobCardPart {
   jobCard       JobCard       @relation(fields: [jobCardId], references: [id], onDelete: Cascade)
   inventoryItem InventoryItem @relation(fields: [inventoryItemId], references: [id])
 
+  @@unique([jobCardId, inventoryItemId])
   @@index([jobCardId])
   @@index([inventoryItemId])
 }
@@ -614,7 +616,7 @@ model Invoice {
   invoiceNumber    String        @unique
   customerId       String
   vehicleId        String?
-  jobCardId        String?
+  jobCardId        String?       // TODO(go-live+1): @unique - needs dedupe migration
   appointmentId    String?
   invoiceDate      DateTime
   dueDate          DateTime?
@@ -643,7 +645,6 @@ model Invoice {
 
   @@index([customerId])
   @@index([vehicleId])
-  @@index([jobCardId])
   @@index([invoiceDate])
   @@index([paymentStatus])
 }
@@ -850,6 +851,7 @@ model AmcServiceUsage {
   contract AmcContract @relation(fields: [amcContractId], references: [id])
   jobCard  JobCard     @relation(fields: [jobCardId], references: [id])
 
+  @@unique([amcContractId, jobCardId])
   @@index([amcContractId])
   @@index([jobCardId])
 }

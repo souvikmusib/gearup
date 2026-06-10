@@ -5,109 +5,165 @@ import { handleApiError, ValidationError } from '@/lib/errors';
 import { logActivity } from '@/lib/activity-logger';
 import { PERMISSIONS } from '@gearup/types';
 import { z } from 'zod';
+import type { Prisma } from '@prisma/client';
 
-async function ensureDraft(invoiceId: string) {
-  const inv = await prisma.invoice.findUniqueOrThrow({ where: { id: invoiceId } });
+type Tx = Prisma.TransactionClient;
+
+async function ensureDraftTx(tx: Tx, invoiceId: string) {
+  const inv = await tx.invoice.findUniqueOrThrow({ where: { id: invoiceId } });
   if (inv.invoiceStatus !== 'DRAFT') throw new ValidationError('Line items can only be modified on DRAFT invoices');
   return inv;
 }
 
-async function recalcTotals(invoiceId: string, inv?: { discountAmount: unknown; amountPaid: unknown }) {
-  const lines = await prisma.invoiceLineItem.findMany({ where: { invoiceId } });
+async function recalcTotalsTx(tx: Tx, invoiceId: string, inv?: { discountAmount: unknown; amountPaid: unknown }) {
+  const lines = await tx.invoiceLineItem.findMany({ where: { invoiceId } });
   const subtotal = lines.reduce((s, l) => s + Number(l.lineTotal) - Number(l.taxAmount), 0);
   const taxTotal = lines.reduce((s, l) => s + Number(l.taxAmount), 0);
-  const discountAmount = inv ? Number(inv.discountAmount) : Number((await prisma.invoice.findUniqueOrThrow({ where: { id: invoiceId }, select: { discountAmount: true, amountPaid: true } })).discountAmount);
-  const amountPaid = inv ? Number(inv.amountPaid) : 0;
+  let discountAmount: number;
+  let amountPaid: number;
+  if (inv) {
+    discountAmount = Number(inv.discountAmount);
+    amountPaid = Number(inv.amountPaid);
+  } else {
+    const cur = await tx.invoice.findUniqueOrThrow({ where: { id: invoiceId }, select: { discountAmount: true, amountPaid: true } });
+    discountAmount = Number(cur.discountAmount);
+    amountPaid = Number(cur.amountPaid);
+  }
   const grandTotal = Math.round(subtotal + taxTotal - discountAmount);
-  await prisma.invoice.update({ where: { id: invoiceId }, data: { subtotal, taxTotal, grandTotal, amountDue: grandTotal - amountPaid } });
+  await tx.invoice.update({ where: { id: invoiceId }, data: { subtotal, taxTotal, grandTotal, amountDue: grandTotal - amountPaid } });
 }
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const user = requirePermission(PERMISSIONS.INVOICES_CREATE);
-    const inv = await ensureDraft(params.id);
     const body = z.object({
       lineType: z.enum(['PART', 'LABOR', 'SERVICE_CHARGE', 'CUSTOM_CHARGE', 'DISCOUNT_ADJUSTMENT', 'AMC']),
-      description: z.string().min(1), quantity: z.number().default(1), unitPrice: z.number().default(0), taxRate: z.number().default(0), discountPercent: z.number().min(0).max(100).default(0),
+      description: z.string().min(1),
+      quantity: z.number().default(1),
+      unitPrice: z.number().default(0),
+      taxRate: z.number().default(0),
+      discountPercent: z.number().min(0).max(100).default(0),
       discountMode: z.enum(['flat', 'percent']).optional(),
       amcPlanId: z.string().optional(),
       amcContractId: z.string().optional(),
+      inventoryItemId: z.string().optional(),
     }).parse(await req.json());
 
-    const isDiscount = body.lineType === 'DISCOUNT_ADJUSTMENT';
-    const isAmc = body.lineType === 'AMC';
-    const jobCardId = inv.jobCardId || undefined;
-    let lineTotal: number;
-    let taxAmount: number;
-    let referenceItemId: string | undefined;
+    const item = await prisma.$transaction(async (tx) => {
+      const inv = await ensureDraftTx(tx, params.id);
+      const isDiscount = body.lineType === 'DISCOUNT_ADJUSTMENT';
+      const isAmc = body.lineType === 'AMC';
+      const jobCardId = inv.jobCardId || undefined;
+      let lineTotal: number;
+      let taxAmount: number;
+      let referenceItemId: string | undefined;
 
-    // Calculate line total
-    if (isAmc) {
-      taxAmount = 0;
-      if (body.amcContractId) {
-        lineTotal = 0;
-        const contract = await prisma.amcContract.findUniqueOrThrow({ where: { id: body.amcContractId } });
-        if (contract.status !== 'ACTIVE') throw new ValidationError('AMC contract is not active');
-        if (contract.servicesRemaining <= 0) throw new ValidationError('No services remaining on AMC contract');
-        if (!jobCardId) throw new ValidationError('AMC service usage requires a job card');
-        await Promise.all([
-          prisma.amcServiceUsage.create({ data: { amcContractId: contract.id, jobCardId, serviceNumber: contract.servicesUsed + 1, serviceDate: new Date() } }),
-          prisma.amcContract.update({ where: { id: contract.id }, data: { servicesUsed: { increment: 1 }, servicesRemaining: { decrement: 1 } } }),
-        ]);
-      } else if (body.amcPlanId) {
-        const plan = await prisma.amcPlan.findUniqueOrThrow({ where: { id: body.amcPlanId } });
-        lineTotal = Number(plan.price);
-        referenceItemId = body.amcPlanId;
+      // Calculate line total
+      if (isAmc) {
+        taxAmount = 0;
+        if (body.amcContractId) {
+          // AMC service usage against existing contract.
+          // NOTE: We do NOT decrement servicesRemaining or create AmcServiceUsage here —
+          // that is deferred to invoice finalize so a DRAFT line that gets removed
+          // or never finalized doesn't permanently consume a prepaid service.
+          // We just validate availability and tag the line item with the contract id
+          // (stored in referenceItemId) so finalize can find it.
+          const contract = await tx.amcContract.findUniqueOrThrow({ where: { id: body.amcContractId } });
+          if (contract.status !== 'ACTIVE') throw new ValidationError('AMC contract is not active');
+          if (contract.servicesRemaining <= 0) throw new ValidationError('No services remaining on AMC contract');
+          if (!jobCardId) throw new ValidationError('AMC service usage requires a job card');
+          lineTotal = 0;
+          referenceItemId = contract.id;
+        } else if (body.amcPlanId) {
+          const plan = await tx.amcPlan.findUniqueOrThrow({ where: { id: body.amcPlanId } });
+          lineTotal = Number(plan.price);
+          referenceItemId = body.amcPlanId;
+        } else {
+          lineTotal = 0;
+        }
+      } else if (isDiscount) {
+        taxAmount = 0;
+        lineTotal = body.discountMode === 'percent'
+          ? -(Number(inv.subtotal) * (body.unitPrice / 100))
+          : -(Math.abs(body.quantity * body.unitPrice));
       } else {
-        lineTotal = 0;
+        const subtotal = body.quantity * body.unitPrice * (1 - body.discountPercent / 100);
+        taxAmount = subtotal * (body.taxRate / 100);
+        lineTotal = subtotal + taxAmount;
       }
-    } else if (isDiscount) {
-      taxAmount = 0;
-      lineTotal = body.discountMode === 'percent'
-        ? -(Number(inv.subtotal) * (body.unitPrice / 100))
-        : -(Math.abs(body.quantity * body.unitPrice));
-    } else {
-      const subtotal = body.quantity * body.unitPrice * (1 - body.discountPercent / 100);
-      taxAmount = subtotal * (body.taxRate / 100);
-      lineTotal = subtotal + taxAmount;
-    }
 
-    // Stock deduction for PART — skip if already reserved via job card
-    if (body.lineType === 'PART') {
-      const invItem = await prisma.inventoryItem.findFirst({ where: { itemName: body.description } });
-      if (invItem) {
+      // Stock deduction for PART — skip if already reserved via job card.
+      // Match by explicit inventoryItemId (NOT by free-text itemName).
+      if (body.lineType === 'PART' && body.inventoryItemId) {
+        const invItem = await tx.inventoryItem.findUnique({ where: { id: body.inventoryItemId } });
+        if (!invItem) throw new ValidationError('Inventory item not found');
         referenceItemId = invItem.id;
-        // Check if this part is already reserved on the job card
-        const alreadyReserved = jobCardId ? await prisma.jobCardPart.findFirst({ where: { jobCardId, inventoryItemId: invItem.id } }) : null;
+
+        const alreadyReserved = jobCardId
+          ? await tx.jobCardPart.findFirst({ where: { jobCardId, inventoryItemId: invItem.id } })
+          : null;
+
         if (!alreadyReserved) {
-          const prevQty = Number(invItem.quantityInStock);
-          const newQty = prevQty - body.quantity;
-          await Promise.all([
-            prisma.inventoryItem.update({ where: { id: invItem.id }, data: { quantityInStock: { decrement: body.quantity } } }),
-            prisma.stockMovement.create({ data: { inventoryItemId: invItem.id, movementType: 'STOCK_OUT', quantity: body.quantity, previousQuantity: prevQty, newQuantity: newQty, reason: 'Invoice line item', relatedEntityType: 'Invoice', relatedEntityId: params.id } }),
-          ]);
+          // Conditional decrement with stock guard to prevent overselling & races.
+          const decremented = await tx.inventoryItem.updateMany({
+            where: { id: invItem.id, quantityInStock: { gte: body.quantity } },
+            data: { quantityInStock: { decrement: body.quantity } },
+          });
+          if (decremented.count === 0) {
+            throw new ValidationError(`Insufficient stock for ${invItem.itemName}`);
+          }
+          const updated = await tx.inventoryItem.findUniqueOrThrow({ where: { id: invItem.id } });
+          const newQty = Number(updated.quantityInStock);
+          const prevQty = newQty + body.quantity;
+          await tx.stockMovement.create({
+            data: {
+              inventoryItemId: invItem.id,
+              movementType: 'STOCK_OUT',
+              quantity: body.quantity,
+              previousQuantity: prevQty,
+              newQuantity: newQty,
+              reason: 'Invoice line item',
+              relatedEntityType: 'Invoice',
+              relatedEntityId: params.id,
+            },
+          });
         }
       }
-    }
 
-    // Create line item
-    const item = await prisma.invoiceLineItem.create({ data: { invoiceId: params.id, lineType: body.lineType, description: body.description, quantity: body.quantity, unitPrice: body.unitPrice, discountPercent: body.discountPercent, taxRate: body.taxRate, taxAmount, lineTotal, sortOrder: 0, referenceItemId } });
+      // Create line item
+      const created = await tx.invoiceLineItem.create({
+        data: {
+          invoiceId: params.id,
+          lineType: body.lineType,
+          description: body.description,
+          quantity: body.quantity,
+          unitPrice: body.unitPrice,
+          discountPercent: body.discountPercent,
+          taxRate: body.taxRate,
+          taxAmount,
+          lineTotal,
+          sortOrder: 0,
+          referenceItemId,
+        },
+      });
 
-    // Sync to job card (all types except DISCOUNT_ADJUSTMENT) — fire in parallel with recalc
-    const syncJobCard = async () => {
-      if (!jobCardId || isDiscount) return;
-      if (body.lineType === 'PART' && referenceItemId) {
-        const exists = await prisma.jobCardPart.findFirst({ where: { jobCardId, inventoryItemId: referenceItemId } });
-        if (!exists) {
-          await prisma.jobCardPart.create({ data: { jobCardId, inventoryItemId: referenceItemId, requiredQty: body.quantity, reservedQty: body.quantity, unitPrice: body.unitPrice } });
+      // Sync to job card (all types except DISCOUNT_ADJUSTMENT)
+      if (jobCardId && !isDiscount) {
+        if (body.lineType === 'PART' && referenceItemId) {
+          const exists = await tx.jobCardPart.findFirst({ where: { jobCardId, inventoryItemId: referenceItemId } });
+          if (!exists) {
+            await tx.jobCardPart.create({
+              data: { jobCardId, inventoryItemId: referenceItemId, requiredQty: body.quantity, reservedQty: body.quantity, unitPrice: body.unitPrice },
+            });
+          }
+        } else if (body.lineType !== 'PART') {
+          await tx.jobCardTask.create({ data: { jobCardId, taskName: body.description, status: 'COMPLETED' } });
         }
-      } else if (body.lineType !== 'PART') {
-        await prisma.jobCardTask.create({ data: { jobCardId, taskName: body.description, status: 'COMPLETED' } });
       }
-    };
 
-    // Run recalc and job card sync in parallel
-    await Promise.all([recalcTotals(params.id, inv), syncJobCard()]);
+      await recalcTotalsTx(tx, params.id, inv);
+      return created;
+    });
 
     logActivity({ entityType: 'InvoiceLineItem', entityId: item.id, action: 'invoice.line.added', newValue: body, actorType: 'ADMIN', actorId: user.sub });
     return NextResponse.json({ success: true, data: item }, { status: 201 });
@@ -117,22 +173,32 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const user = requirePermission(PERMISSIONS.INVOICES_CREATE);
-    await ensureDraft(params.id);
     const body = z.object({
-      lineItemId: z.string(), description: z.string().optional(), quantity: z.number().optional(), unitPrice: z.number().optional(), taxRate: z.number().optional(), discountPercent: z.number().min(0).max(100).optional(),
+      lineItemId: z.string(),
+      description: z.string().optional(),
+      quantity: z.number().optional(),
+      unitPrice: z.number().optional(),
+      taxRate: z.number().optional(),
+      discountPercent: z.number().min(0).max(100).optional(),
     }).parse(await req.json());
-    const { lineItemId, ...data } = body;
-    const existing = await prisma.invoiceLineItem.findUniqueOrThrow({ where: { id: lineItemId, invoiceId: params.id } });
-    const qty = data.quantity ?? Number(existing.quantity);
-    const price = data.unitPrice ?? Number(existing.unitPrice);
-    const discount = data.discountPercent ?? Number(existing.discountPercent);
-    const rate = data.taxRate ?? Number(existing.taxRate);
-    const subtotal = qty * price * (1 - discount / 100);
-    const taxAmount = subtotal * (rate / 100);
-    const lineTotal = subtotal + taxAmount;
-    const item = await prisma.invoiceLineItem.update({ where: { id: lineItemId }, data: { ...data, taxAmount, lineTotal } });
-    await recalcTotals(params.id);
-    logActivity({ entityType: 'InvoiceLineItem', entityId: lineItemId, action: 'invoice.line.updated', newValue: body, actorType: 'ADMIN', actorId: user.sub });
+
+    const item = await prisma.$transaction(async (tx) => {
+      await ensureDraftTx(tx, params.id);
+      const { lineItemId, ...data } = body;
+      const existing = await tx.invoiceLineItem.findUniqueOrThrow({ where: { id: lineItemId, invoiceId: params.id } });
+      const qty = data.quantity ?? Number(existing.quantity);
+      const price = data.unitPrice ?? Number(existing.unitPrice);
+      const discount = data.discountPercent ?? Number(existing.discountPercent);
+      const rate = data.taxRate ?? Number(existing.taxRate);
+      const subtotal = qty * price * (1 - discount / 100);
+      const taxAmount = subtotal * (rate / 100);
+      const lineTotal = subtotal + taxAmount;
+      const updated = await tx.invoiceLineItem.update({ where: { id: lineItemId }, data: { ...data, taxAmount, lineTotal } });
+      await recalcTotalsTx(tx, params.id);
+      return updated;
+    });
+
+    logActivity({ entityType: 'InvoiceLineItem', entityId: body.lineItemId, action: 'invoice.line.updated', newValue: body, actorType: 'ADMIN', actorId: user.sub });
     return NextResponse.json({ success: true, data: item });
   } catch (e) { return handleApiError(e); }
 }
@@ -140,21 +206,62 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const user = requirePermission(PERMISSIONS.INVOICES_CREATE);
-    await ensureDraft(params.id);
     const lineItemId = req.nextUrl.searchParams.get('lineItemId');
     if (!lineItemId) return NextResponse.json({ success: false, error: { message: 'lineItemId required' } }, { status: 400 });
-    const lineItem = await prisma.invoiceLineItem.findUniqueOrThrow({ where: { id: lineItemId, invoiceId: params.id } });
 
-    // If PART with referenceItemId, restore stock
-    if (lineItem.lineType === 'PART' && lineItem.referenceItemId) {
-      const qty = Number(lineItem.quantity);
-      await prisma.inventoryItem.update({ where: { id: lineItem.referenceItemId }, data: { quantityInStock: { increment: qty } } });
-      const updated = await prisma.inventoryItem.findUniqueOrThrow({ where: { id: lineItem.referenceItemId } });
-      await prisma.stockMovement.create({ data: { inventoryItemId: lineItem.referenceItemId, movementType: 'STOCK_IN', quantity: qty, previousQuantity: Number(updated.quantityInStock) - qty, newQuantity: Number(updated.quantityInStock), reason: 'Invoice line item removed', relatedEntityType: 'Invoice', relatedEntityId: params.id } });
-    }
+    await prisma.$transaction(async (tx) => {
+      await ensureDraftTx(tx, params.id);
+      const lineItem = await tx.invoiceLineItem.findUniqueOrThrow({ where: { id: lineItemId, invoiceId: params.id } });
 
-    await prisma.invoiceLineItem.delete({ where: { id: lineItemId } });
-    await recalcTotals(params.id);
+      // If PART with referenceItemId, restore stock + ledger entry.
+      if (lineItem.lineType === 'PART' && lineItem.referenceItemId) {
+        const qty = Number(lineItem.quantity);
+        await tx.inventoryItem.update({
+          where: { id: lineItem.referenceItemId },
+          data: { quantityInStock: { increment: qty } },
+        });
+        const updated = await tx.inventoryItem.findUniqueOrThrow({ where: { id: lineItem.referenceItemId } });
+        const newQty = Number(updated.quantityInStock);
+        await tx.stockMovement.create({
+          data: {
+            inventoryItemId: lineItem.referenceItemId,
+            movementType: 'STOCK_IN',
+            quantity: qty,
+            previousQuantity: newQty - qty,
+            newQuantity: newQty,
+            reason: 'Invoice line item removed',
+            relatedEntityType: 'Invoice',
+            relatedEntityId: params.id,
+          },
+        });
+      }
+
+      // AMC rollback: undo any service usage created against this invoice's job card.
+      // DRAFT-time POST no longer decrements, so this is normally a no-op. It guards
+      // the edge case where finalize ran, then the invoice was reverted to DRAFT
+      // before the line item was deleted.
+      if (lineItem.lineType === 'AMC' && lineItem.referenceItemId) {
+        const inv = await tx.invoice.findUniqueOrThrow({ where: { id: params.id } });
+        const contract = await tx.amcContract.findUnique({ where: { id: lineItem.referenceItemId } });
+        if (contract && inv.jobCardId) {
+          const usage = await tx.amcServiceUsage.findFirst({
+            where: { amcContractId: contract.id, jobCardId: inv.jobCardId },
+            orderBy: { serviceNumber: 'desc' },
+          });
+          if (usage) {
+            await tx.amcServiceUsage.delete({ where: { id: usage.id } });
+            await tx.amcContract.update({
+              where: { id: contract.id },
+              data: { servicesUsed: { decrement: 1 }, servicesRemaining: { increment: 1 } },
+            });
+          }
+        }
+      }
+
+      await tx.invoiceLineItem.delete({ where: { id: lineItemId } });
+      await recalcTotalsTx(tx, params.id);
+    });
+
     logActivity({ entityType: 'InvoiceLineItem', entityId: lineItemId, action: 'invoice.line.removed', actorType: 'ADMIN', actorId: user.sub });
     return NextResponse.json({ success: true });
   } catch (e) { return handleApiError(e); }

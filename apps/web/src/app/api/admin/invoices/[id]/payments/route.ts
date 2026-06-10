@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requirePermission } from '@/lib/auth';
-import { handleApiError, ValidationError } from '@/lib/errors';
+import { handleApiError, ValidationError, AppError } from '@/lib/errors';
 import { logActivity } from '@/lib/activity-logger';
 import { PERMISSIONS } from '@gearup/types';
+import { generateAmcContractNumber } from '@/lib/id-generators';
 import { z } from 'zod';
 
 const schema = z.object({
@@ -39,6 +40,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         throw new ValidationError(`Payment amount (${body.amount}) exceeds balance due (${Number(invoice.amountDue)})`);
       }
 
+      // Re-read invoice AFTER the conditional updateMany so amountDue/amountPaid reflect this payment.
       const invoice = await tx.invoice.findUniqueOrThrow({ where: { id: params.id } });
       const payment = await tx.payment.create({
         data: {
@@ -50,10 +52,15 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
       const newDue = Number(invoice.amountDue);
       const paymentStatus = newDue <= 0 ? 'PAID' : 'PARTIALLY_PAID';
-      await tx.invoice.update({
-        where: { id: params.id },
-        data: { amountDue: Math.max(0, newDue), paymentStatus: paymentStatus as any },
+      // Only update paymentStatus; amountDue/amountPaid were already set atomically by the first updateMany.
+      // Guard on amountPaid (optimistic lock) so a concurrent payment cannot be clobbered.
+      const statusUpdate = await tx.invoice.updateMany({
+        where: { id: params.id, amountPaid: invoice.amountPaid },
+        data: { paymentStatus: paymentStatus as any },
       });
+      if (statusUpdate.count !== 1) {
+        throw new AppError( 409, 'Concurrent payment detected; please retry','CONFLICT');
+      }
 
       // If fully paid and job card exists, mark job card as DELIVERED
       if (paymentStatus === 'PAID' && invoice.jobCardId) {
@@ -71,10 +78,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
           if (!plan) continue;
           const startDate = new Date();
           const endDate = new Date(); endDate.setMonth(endDate.getMonth() + plan.durationMonths);
-          const count = await tx.amcContract.count();
           const contract = await tx.amcContract.create({
             data: {
-              contractNumber: `AMC-${String(count + 1).padStart(5, '0')}`,
+              contractNumber: generateAmcContractNumber(),
               customerId: invoice.customerId, vehicleId: invoice.vehicleId, amcPlanId: plan.id,
               startDate, endDate, totalServices: plan.totalServicesIncluded,
               servicesUsed: 1, servicesRemaining: plan.totalServicesIncluded - 1,

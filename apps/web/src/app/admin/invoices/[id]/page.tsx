@@ -17,7 +17,7 @@ export default function InvoiceDetailPage() {
   const [payRef, setPayRef] = useState('');
   const [payDate, setPayDate] = useState(new Date().toISOString().slice(0, 10));
   const [loading, setLoading] = useState('');
-  const [newLine, setNewLine] = useState({ lineType: 'CUSTOM_CHARGE', description: '', quantity: '1', unitPrice: '', taxRate: '0', discountPercent: '0', discountMode: 'flat', amcPlanId: '', amcContractId: '' });
+  const [newLine, setNewLine] = useState({ lineType: 'CUSTOM_CHARGE', description: '', quantity: '1', unitPrice: '', taxRate: '0', discountPercent: '0', discountMode: 'flat', amcPlanId: '', amcContractId: '', inventoryItemId: '' });
   const [addingLine, setAddingLine] = useState(false);
   const [showPdfMenu, setShowPdfMenu] = useState(false);
   const [inventoryItems, setInventoryItems] = useState<any[]>([]);
@@ -164,10 +164,11 @@ export default function InvoiceDetailPage() {
     if (newLine.lineType === 'DISCOUNT_ADJUSTMENT') payload.discountMode = newLine.discountMode;
     if (newLine.lineType === 'AMC' && newLine.amcContractId) payload.amcContractId = newLine.amcContractId;
     if (newLine.lineType === 'AMC' && newLine.amcPlanId && !newLine.amcContractId) payload.amcPlanId = newLine.amcPlanId;
+    if (newLine.lineType === 'PART' && newLine.inventoryItemId) payload.inventoryItemId = newLine.inventoryItemId;
     // Optimistic: add to table immediately
     const optimistic = { id: 'temp-' + Date.now(), ...payload, taxAmount: 0, lineTotal: payload.quantity * payload.unitPrice };
     setData((d: any) => d ? { ...d, lineItems: [...(d.lineItems || []), optimistic] } : d);
-    setNewLine({ lineType: 'CUSTOM_CHARGE', description: '', quantity: '1', unitPrice: '', taxRate: '0', discountPercent: '0', discountMode: 'flat', amcPlanId: '', amcContractId: '' });
+    setNewLine({ lineType: 'CUSTOM_CHARGE', description: '', quantity: '1', unitPrice: '', taxRate: '0', discountPercent: '0', discountMode: 'flat', amcPlanId: '', amcContractId: '', inventoryItemId: '' });
     setAddStep('type');
     const res = await api.post<any>(`/admin/invoices/${id}/line-items`, payload);
     setAddingLine(false);
@@ -426,7 +427,7 @@ export default function InvoiceDetailPage() {
               <div>
                 <p className="text-xs font-medium text-gray-500 mb-3">Add to Invoice</p>
                 <div className="flex flex-wrap gap-2">
-                  <button onClick={() => { setNewLine({ ...newLine, lineType: 'PART', description: '', unitPrice: '', discountPercent: '0' }); setAddStep('details'); }} className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-medium hover:bg-white dark:hover:bg-gray-700 transition">🔩 Part</button>
+                  <button onClick={() => { setNewLine({ ...newLine, lineType: 'PART', description: '', unitPrice: '', discountPercent: '0', inventoryItemId: '' }); setAddStep('details'); }} className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-medium hover:bg-white dark:hover:bg-gray-700 transition">🔩 Part</button>
                   <button onClick={() => { setNewLine({ ...newLine, lineType: 'LABOR', description: '', unitPrice: '' }); setAddStep('details'); }} className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-medium hover:bg-white dark:hover:bg-gray-700 transition">👷 Labor</button>
                   <button onClick={() => { setNewLine({ ...newLine, lineType: 'SERVICE_CHARGE', description: 'General Service', unitPrice: '' }); setAddStep('details'); }} className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-medium hover:bg-white dark:hover:bg-gray-700 transition">🔧 Service Charge</button>
                   <button onClick={() => { setNewLine({ ...newLine, lineType: 'CUSTOM_CHARGE', description: '', unitPrice: '' }); setAddStep('details'); }} className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-medium hover:bg-white dark:hover:bg-gray-700 transition">📝 Custom Charge</button>
@@ -448,12 +449,12 @@ export default function InvoiceDetailPage() {
                         <button type="button" onClick={() => setShowNewPart(true)} className="text-blue-600 hover:underline">+ New Part</button>
                       </label>
                       <div className="relative">
-                        <input className={inputCls} placeholder="Type to search parts..." value={newLine.description} onChange={(e) => setNewLine({ ...newLine, description: e.target.value, unitPrice: '' })} onFocus={(e) => e.target.setAttribute('data-open', '1')} onBlur={(e) => setTimeout(() => e.target.removeAttribute('data-open'), 200)} autoComplete="off" />
+                        <input className={inputCls} placeholder="Type to search parts..." value={newLine.description} onChange={(e) => setNewLine({ ...newLine, description: e.target.value, unitPrice: '', inventoryItemId: '' })} onFocus={(e) => e.target.setAttribute('data-open', '1')} onBlur={(e) => setTimeout(() => e.target.removeAttribute('data-open'), 200)} autoComplete="off" />
                         {!inventoryItems.some((i: any) => i.itemName === newLine.description) && (
                           <div className="absolute z-50 top-full left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
                             {inventoryItems.filter((i: any) => !newLine.description || i.itemName.toLowerCase().includes(newLine.description.toLowerCase()) || i.sku.toLowerCase().includes(newLine.description.toLowerCase())).map((i: any) => {
                               const dp = Number(i.discountPercent) || 0;
-                              return <button key={i.id} type="button" onClick={() => setNewLine({ ...newLine, description: i.itemName, unitPrice: i.variablePrice ? '' : String(Number(i.sellingPrice)), discountPercent: String(dp) })} className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 border-b border-gray-50 dark:border-gray-700 last:border-0">
+                              return <button key={i.id} type="button" onClick={() => setNewLine({ ...newLine, description: i.itemName, unitPrice: i.variablePrice ? '' : String(Number(i.sellingPrice)), discountPercent: String(dp), inventoryItemId: i.id })} className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 border-b border-gray-50 dark:border-gray-700 last:border-0">
                                 <span className="font-medium">{i.itemName}</span> <span className="text-xs text-gray-400">({i.sku})</span>{i.variablePrice ? <span className="text-xs text-amber-500 ml-1">[Variable]</span> : <span className="text-xs text-gray-500 ml-1">₹{Number(i.sellingPrice)}</span>}{dp ? <span className="text-xs text-green-600 ml-1">{dp}% off</span> : ''}
                               </button>;
                             })}
@@ -595,7 +596,7 @@ export default function InvoiceDetailPage() {
             const res = await api.post<any>('/admin/inventory/items', { ...newPartForm, costPrice: Number(newPartForm.costPrice) || 0, sellingPrice: Number(newPartForm.sellingPrice), quantityInStock: Number(newPartForm.quantityInStock) || 0 });
             if (res.success) {
               setInventoryItems((prev) => [res.data, ...prev]);
-              setNewLine({ ...newLine, description: res.data.itemName, unitPrice: String(Number(res.data.sellingPrice)), discountPercent: '0' });
+              setNewLine({ ...newLine, description: res.data.itemName, unitPrice: String(Number(res.data.sellingPrice)), discountPercent: '0', inventoryItemId: res.data.id });
               setShowNewPart(false);
               setNewPartForm({ sku: '', itemName: '', unit: 'PCS', costPrice: '', sellingPrice: '', quantityInStock: '' });
             } else { alert(res.error?.message || 'Failed to create part'); }

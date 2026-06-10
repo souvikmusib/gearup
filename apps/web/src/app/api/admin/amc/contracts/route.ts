@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { paginate, paginationMeta } from '@/lib/pagination';
 import { requirePermission } from '@/lib/auth';
-import { handleApiError } from '@/lib/errors';
+import { handleApiError, AppError } from '@/lib/errors';
 import { PERMISSIONS } from '@gearup/types';
+import { Prisma } from '@prisma/client';
 import { z } from 'zod';
 
 const createSchema = z.object({
@@ -51,26 +52,70 @@ export async function POST(req: NextRequest) {
     const endDate = new Date(startDate);
     endDate.setMonth(endDate.getMonth() + plan.durationMonths);
 
-    // Generate contract number
-    const count = await prisma.amcContract.count();
-    const contractNumber = `AMC-${String(count + 1).padStart(5, '0')}`;
-
-    const contract = await prisma.amcContract.create({
-      data: {
-        contractNumber,
-        customerId: body.customerId,
+    // Reject duplicate ACTIVE AMC contract on the same vehicle (still in coverage window).
+    const now = new Date();
+    const existingActive = await prisma.amcContract.findFirst({
+      where: {
         vehicleId: body.vehicleId,
-        amcPlanId: body.amcPlanId,
-        startDate,
-        endDate,
-        totalServices: plan.totalServicesIncluded,
-        servicesRemaining: plan.totalServicesIncluded,
-        amountPaid: body.amountPaid,
-        paymentMode: body.paymentMode as any,
-        paymentDate: body.paymentDate ? new Date(body.paymentDate) : new Date(),
-        notes: body.notes,
+        status: 'ACTIVE',
+        endDate: { gte: now },
       },
+      select: { id: true, contractNumber: true },
     });
+    if (existingActive) {
+      throw new AppError(
+        409,
+        `Vehicle already has an active AMC contract (${existingActive.contractNumber}).`,
+        'CONFLICT',
+      );
+    }
+
+    // Race-safe contract number generation: wrap count+create in a transaction
+    // and retry on unique-constraint collision (P2002 on contractNumber).
+    const MAX_ATTEMPTS = 5;
+    let contract: Awaited<ReturnType<typeof prisma.amcContract.create>> | null = null;
+    for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+      try {
+        contract = await prisma.$transaction(async (tx) => {
+          const count = await tx.amcContract.count();
+          const contractNumber = `AMC-${String(count + 1 + attempt).padStart(5, '0')}`;
+          return tx.amcContract.create({
+            data: {
+              contractNumber,
+              customerId: body.customerId,
+              vehicleId: body.vehicleId,
+              amcPlanId: body.amcPlanId,
+              startDate,
+              endDate,
+              totalServices: plan.totalServicesIncluded,
+              servicesRemaining: plan.totalServicesIncluded,
+              amountPaid: body.amountPaid,
+              paymentMode: body.paymentMode as any,
+              paymentDate: body.paymentDate ? new Date(body.paymentDate) : new Date(),
+              notes: body.notes,
+            },
+          });
+        });
+        break;
+      } catch (err) {
+        if (
+          err instanceof Prisma.PrismaClientKnownRequestError &&
+          err.code === 'P2002' &&
+          (err.meta?.target as string[] | undefined)?.includes('contractNumber')
+        ) {
+          // Collision on contractNumber under concurrency — retry with bumped counter.
+          continue;
+        }
+        throw err;
+      }
+    }
+    if (!contract) {
+      throw new AppError(
+        409,
+        'Failed to allocate unique AMC contract number after retries.',
+        'CONFLICT',
+      );
+    }
     return NextResponse.json({ success: true, data: contract }, { status: 201 });
   } catch (e) { return handleApiError(e); }
 }

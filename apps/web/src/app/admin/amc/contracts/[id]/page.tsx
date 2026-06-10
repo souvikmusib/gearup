@@ -15,11 +15,31 @@ export default function AmcContractDetailPage() {
   const [useForm, setUseForm] = useState({ jobCardId: '', notes: '' });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [jobCardOptions, setJobCardOptions] = useState<any[]>([]);
+  const [jobCardsLoading, setJobCardsLoading] = useState(false);
 
   const load = () => {
     api.get<any>(`/admin/amc/contracts/${id}`).then((r) => { if (r.success) setContract(r.data); setLoading(false); });
   };
   useEffect(() => { load(); }, [id]);
+
+  // Load eligible job cards (same customer + vehicle, active statuses) when opening the modal
+  useEffect(() => {
+    if (!showUse || !contract) return;
+    setJobCardsLoading(true);
+    api.get<any>(`/admin/job-cards?pageSize=100`).then((r) => {
+      if (r.success) {
+        const eligibleStatuses = new Set(['IN_PROGRESS', 'COMPLETED', 'INTAKE', 'DIAGNOSIS', 'AWAITING_APPROVAL', 'AWAITING_PARTS', 'READY_FOR_DELIVERY']);
+        const filtered = (r.data || []).filter((jc: any) =>
+          jc.customerId === contract.customerId &&
+          jc.vehicleId === contract.vehicleId &&
+          eligibleStatuses.has(jc.status),
+        );
+        setJobCardOptions(filtered);
+      }
+      setJobCardsLoading(false);
+    });
+  }, [showUse, contract]);
 
   const handleUseService = async () => {
     setSaving(true); setError('');
@@ -115,7 +135,31 @@ export default function AmcContractDetailPage() {
       <Modal open={showUse} onClose={() => setShowUse(false)} title="Use AMC Service">
         <div className="space-y-3">
           {error && <p className="text-red-600 text-sm">{error}</p>}
-          <input className="w-full border rounded px-3 py-2 dark:bg-gray-800 dark:border-gray-700" placeholder="Job Card ID" value={useForm.jobCardId} onChange={(e) => setUseForm({ ...useForm, jobCardId: e.target.value })} />
+          <div>
+            <label className="block text-xs text-gray-500 mb-1">Job Card</label>
+            <select
+              className="w-full border rounded px-3 py-2 dark:bg-gray-800 dark:border-gray-700"
+              value={useForm.jobCardId}
+              onChange={(e) => setUseForm({ ...useForm, jobCardId: e.target.value })}
+              disabled={jobCardsLoading}
+            >
+              <option value="">
+                {jobCardsLoading
+                  ? 'Loading job cards...'
+                  : jobCardOptions.length === 0
+                    ? 'No eligible job cards for this customer/vehicle'
+                    : 'Select a job card'}
+              </option>
+              {jobCardOptions.map((jc) => (
+                <option key={jc.id} value={jc.id}>
+                  {jc.jobCardNumber} — {jc.status} — {new Date(jc.intakeDate || jc.createdAt).toLocaleDateString('en-IN')}
+                </option>
+              ))}
+            </select>
+            {!jobCardsLoading && jobCardOptions.length === 0 && (
+              <p className="text-xs text-gray-500 mt-1">Create a job card for this vehicle first, then record AMC usage against it.</p>
+            )}
+          </div>
           <textarea className="w-full border rounded px-3 py-2 dark:bg-gray-800 dark:border-gray-700" placeholder="Notes (optional)" value={useForm.notes} onChange={(e) => setUseForm({ ...useForm, notes: e.target.value })} />
           <button disabled={saving || !useForm.jobCardId} onClick={handleUseService} className="w-full bg-blue-600 text-white rounded px-4 py-2 disabled:opacity-50">
             {saving ? 'Recording...' : 'Record Service Usage'}

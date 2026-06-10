@@ -2,7 +2,7 @@
 
 export type AdminUserStatus = 'ACTIVE' | 'INACTIVE' | 'LOCKED';
 export type ActorType = 'ADMIN' | 'WORKER' | 'SYSTEM' | 'PUBLIC';
-export type VehicleType = 'CAR' | 'BIKE' | 'OTHER';
+export type VehicleType = 'CAR' | 'BIKE' | 'SCOOTY' | 'OTHER';
 
 export type ServiceRequestStatus =
   | 'SUBMITTED'
@@ -23,13 +23,22 @@ export type AppointmentStatus =
   | 'CHECKED_IN'
   | 'COMPLETED';
 
+// Full DB-level JobCard status (matches schema.prisma `enum JobCardStatus`).
+// Some UI screens project this onto a simplified set via dbToSimple/simpleToDb mappers.
 export type JobCardStatus =
-  | 'OPEN'
-  | 'ESTIMATE_READY'
-  | 'IN_PROGRESS'
-  | 'READY'
+  | 'CREATED'
+  | 'UNDER_INSPECTION'
+  | 'ESTIMATE_PREPARED'
+  | 'AWAITING_CUSTOMER_APPROVAL'
+  | 'APPROVED'
+  | 'REJECTED'
+  | 'PARTS_PENDING'
+  | 'WORK_IN_PROGRESS'
+  | 'QUALITY_CHECK'
+  | 'READY_FOR_DELIVERY'
   | 'DELIVERED'
-  | 'CANCELLED';
+  | 'CANCELLED'
+  | 'CLOSED';
 
 export type ApprovalStatus = 'NOT_REQUIRED' | 'PENDING' | 'APPROVED' | 'REJECTED';
 export type WorkerStatus = 'ACTIVE' | 'INACTIVE' | 'ON_LEAVE';
@@ -53,7 +62,13 @@ export type InventoryMovementType =
 
 export type InvoiceStatus = 'DRAFT' | 'FINALIZED' | 'CANCELLED';
 export type PaymentStatus = 'UNPAID' | 'PARTIALLY_PAID' | 'PAID' | 'REFUNDED' | 'WAIVED';
-export type InvoiceLineType = 'PART' | 'LABOR' | 'CUSTOM_CHARGE' | 'DISCOUNT_ADJUSTMENT';
+export type InvoiceLineType =
+  | 'PART'
+  | 'LABOR'
+  | 'SERVICE_CHARGE'
+  | 'CUSTOM_CHARGE'
+  | 'DISCOUNT_ADJUSTMENT'
+  | 'AMC';
 export type NotificationChannel = 'WHATSAPP' | 'EMAIL';
 export type NotificationStatus =
   | 'QUEUED'
@@ -92,6 +107,7 @@ export const PERMISSIONS = {
   JOB_CARDS_UPDATE_STATUS: 'job-cards.update-status',
   JOB_CARDS_ASSIGN_WORKERS: 'job-cards.assign-workers',
   JOB_CARDS_VIEW_OWN: 'job-cards.view-own',
+  JOB_CARDS_DELETE: 'job-cards.delete',
   WORKERS_MANAGE: 'workers.manage',
   WORKERS_LEAVES_MANAGE: 'workers.leaves-manage',
   INVENTORY_VIEW: 'inventory.view',
@@ -112,14 +128,23 @@ export const PERMISSIONS = {
   AMC_PLANS_MANAGE: 'amc.plans-manage',
   AMC_CONTRACTS_VIEW: 'amc.contracts-view',
   AMC_CONTRACTS_MANAGE: 'amc.contracts-manage',
+  DATA_EXPORT: 'data.export',
 } as const;
 
 export type PermissionKey = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
 
 // Role → Permission mapping (matches GearUp Role Access Matrix)
+// Permissions reserved for SUPER_ADMIN only (destructive / irreversible).
+const SUPER_ADMIN_ONLY_PERMISSIONS: PermissionKey[] = [
+  PERMISSIONS.JOB_CARDS_DELETE,
+  PERMISSIONS.DATA_EXPORT,
+];
+
 export const ROLE_PERMISSIONS: Record<RoleKey, PermissionKey[]> = {
   SUPER_ADMIN: Object.values(PERMISSIONS),
-  ADMIN: Object.values(PERMISSIONS),
+  ADMIN: Object.values(PERMISSIONS).filter(
+    (p) => !SUPER_ADMIN_ONLY_PERMISSIONS.includes(p),
+  ),
   RECEPTIONIST: [
     PERMISSIONS.DASHBOARD_VIEW,
     PERMISSIONS.CUSTOMERS_VIEW,

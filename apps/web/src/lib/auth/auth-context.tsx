@@ -1,4 +1,16 @@
 'use client';
+// SECURITY NOTE (audit 2026-06-10, finding `token-in-localstorage-xss`):
+// JWT is stored in localStorage so XSS anywhere in the SPA can exfiltrate
+// the token (24h lifetime, no server-side revocation). The lib/auth.ts on
+// the server now reads an `gearup_token` httpOnly cookie as a fallback, so
+// the migration path is:
+//   1. Update /api/admin/auth/login to also Set-Cookie: gearup_token=...
+//      with httpOnly + Secure + SameSite=Strict (+ explicit Max-Age).
+//   2. Add a /api/admin/auth/logout that clears the cookie.
+//   3. Stop sending Authorization: Bearer from the api client and drop the
+//      localStorage reads/writes below.
+//   4. Add a CSRF token (or Origin check) on cookie-authed mutations.
+// This is tracked as a cascading change and must land before public launch.
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { api } from '@/lib/api/client';
 import type { MeResponse } from '@gearup/types';
@@ -86,6 +98,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     writeCachedUser(null);
     api.clearCache();
     setUser(null);
+    // Fire-and-forget: clear the httpOnly cookie that the server-side
+    // admin guard reads. Without this, a refresh of /admin/* after logout
+    // would still be considered authenticated by the server layout.
+    try { void fetch('/api/admin/auth/logout', { method: 'POST', credentials: 'same-origin' }); } catch { /* noop */ }
   };
   const hasPermission = (p: string) => !!user?.permissions.includes(p);
 

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requirePermission } from '@/lib/auth';
-import { handleApiError } from '@/lib/errors';
+import { handleApiError, AppError } from '@/lib/errors';
 import { logActivity } from '@/lib/activity-logger';
 import { PERMISSIONS } from '@gearup/types';
 import { z } from 'zod';
@@ -33,12 +33,14 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const user = requirePermission(PERMISSIONS.INVENTORY_EDIT);
-    const usedInJobCards = await prisma.jobCardPart.count({ where: { inventoryItemId: params.id } });
-    if (usedInJobCards > 0) {
-      return NextResponse.json({ success: false, error: { message: `Cannot delete — item is used in ${usedInJobCards} job card(s)` } }, { status: 409 });
-    }
-    await prisma.stockMovement.deleteMany({ where: { inventoryItemId: params.id } });
-    await prisma.inventoryItem.delete({ where: { id: params.id } });
+    await prisma.$transaction(async (tx) => {
+      const usedInJobCards = await tx.jobCardPart.count({ where: { inventoryItemId: params.id } });
+      if (usedInJobCards > 0) {
+        throw new AppError( 409, `Cannot delete — item is used in ${usedInJobCards} job card(s)`,'CONFLICT');
+      }
+      await tx.stockMovement.deleteMany({ where: { inventoryItemId: params.id } });
+      await tx.inventoryItem.delete({ where: { id: params.id } });
+    });
     logActivity({ entityType: 'InventoryItem', entityId: params.id, action: 'inventory.item.deleted', actorType: 'ADMIN', actorId: user.sub });
     return NextResponse.json({ success: true });
   } catch (e) { return handleApiError(e); }

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requirePermission } from '@/lib/auth';
-import { handleApiError } from '@/lib/errors';
+import { handleApiError, AppError } from '@/lib/errors';
 import { logActivity } from '@/lib/activity-logger';
 import { PERMISSIONS } from '@gearup/types';
 import { z } from 'zod';
@@ -14,30 +14,81 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   } catch (e) { return handleApiError(e); }
 }
 
+const patchSchema = z.object({
+  registrationNumber: z.string().optional(),
+  brand: z.string().optional(),
+  model: z.string().optional(),
+  variant: z.string().optional(),
+  engineCC: z.number().optional(),
+  odometerReading: z.number().optional(),
+  notes: z.string().optional(),
+});
+
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const user = requirePermission(PERMISSIONS.VEHICLES_EDIT);
-    const body = z.object({ registrationNumber: z.string().optional(), brand: z.string().optional(), model: z.string().optional(), variant: z.string().optional(), engineCC: z.number().optional(), odometerReading: z.number().optional(), notes: z.string().optional() }).parse(await req.json());
-    const vehicle = await prisma.vehicle.update({ where: { id: params.id }, data: body as any });
-    logActivity({ entityType: 'Vehicle', entityId: vehicle.id, action: 'vehicle.updated', newValue: vehicle, actorType: 'ADMIN', actorId: user.sub });
-    return NextResponse.json({ success: true, data: vehicle });
+    const body = patchSchema.parse(await req.json());
+    const data: Record<string, unknown> = {};
+    if (body.registrationNumber !== undefined) data.registrationNumber = body.registrationNumber;
+    if (body.brand !== undefined) data.brand = body.brand;
+    if (body.model !== undefined) data.model = body.model;
+    if (body.variant !== undefined) data.variant = body.variant;
+    if (body.engineCC !== undefined) data.engineCC = body.engineCC;
+    if (body.odometerReading !== undefined) data.odometerReading = body.odometerReading;
+    if (body.notes !== undefined) data.notes = body.notes;
+
+    const { previous, updated } = await prisma.$transaction(async (tx) => {
+      const previous = await tx.vehicle.findUniqueOrThrow({ where: { id: params.id } });
+      const updated = await tx.vehicle.update({ where: { id: params.id }, data });
+      await logActivity({
+        entityType: 'Vehicle',
+        entityId: updated.id,
+        action: 'vehicle.updated',
+        previousValue: previous,
+        newValue: updated,
+        actorType: 'ADMIN',
+        actorId: user.sub,
+        tx,
+      });
+      return { previous, updated };
+    });
+    void previous;
+    return NextResponse.json({ success: true, data: updated });
   } catch (e) { return handleApiError(e); }
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const user = requirePermission(PERMISSIONS.VEHICLES_EDIT);
-    const [jobCards, invoices, serviceRequests] = await Promise.all([
-      prisma.jobCard.count({ where: { vehicleId: params.id } }),
-      prisma.invoice.count({ where: { vehicleId: params.id } }),
-      prisma.serviceRequest.count({ where: { vehicleId: params.id } }),
-    ]);
-    if (jobCards > 0 || invoices > 0 || serviceRequests > 0) {
-      return NextResponse.json({ success: false, error: { message: `Cannot delete — vehicle has ${jobCards} job card(s), ${invoices} invoice(s), ${serviceRequests} service request(s)` } }, { status: 409 });
-    }
-    await prisma.appointment.deleteMany({ where: { vehicleId: params.id } });
-    await prisma.vehicle.delete({ where: { id: params.id } });
-    logActivity({ entityType: 'Vehicle', entityId: params.id, action: 'vehicle.deleted', actorType: 'ADMIN', actorId: user.sub });
+    const deleted = await prisma.$transaction(async (tx) => {
+      const [jobCards, invoices, serviceRequests, amcContracts] = await Promise.all([
+        tx.jobCard.count({ where: { vehicleId: params.id } }),
+        tx.invoice.count({ where: { vehicleId: params.id } }),
+        tx.serviceRequest.count({ where: { vehicleId: params.id } }),
+        tx.amcContract.count({ where: { vehicleId: params.id } }),
+      ]);
+      if (jobCards > 0 || invoices > 0 || serviceRequests > 0 || amcContracts > 0) {
+        throw new AppError(
+          409,
+          `Cannot delete — vehicle has ${jobCards} job card(s), ${invoices} invoice(s), ${serviceRequests} service request(s), ${amcContracts} AMC contract(s)`,
+          'CONFLICT',
+        );
+      }
+      const previous = await tx.vehicle.findUniqueOrThrow({ where: { id: params.id } });
+      await tx.appointment.deleteMany({ where: { vehicleId: params.id } });
+      await tx.vehicle.delete({ where: { id: params.id } });
+      await logActivity({
+        entityType: 'Vehicle',
+        entityId: params.id,
+        action: 'vehicle.deleted',
+        previousValue: previous,
+        actorType: 'ADMIN',
+        actorId: user.sub,
+        tx,
+      });
+      return previous;
+    });
+    void deleted;
     return NextResponse.json({ success: true });
   } catch (e) { return handleApiError(e); }
 }

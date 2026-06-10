@@ -8,6 +8,7 @@ import { logActivity } from '@/lib/activity-logger';
 import { ROLE_PERMISSIONS, type RoleKey } from '@gearup/types';
 import { z } from 'zod';
 import { getJwtSecret } from '@/lib/jwt-secret';
+import { AUTH_COOKIE_NAME } from '@/lib/auth';
 
 const loginSchema = z.object({ adminUserId: z.string().min(1), password: z.string().min(1) });
 
@@ -33,7 +34,27 @@ export async function POST(req: NextRequest) {
     const token = jwt.sign({ sub: user.id, adminUserId: user.adminUserId, roles: roleKeys, permissions }, getJwtSecret(), { expiresIn: JWT_EXPIRY });
     logActivity({ entityType: 'AdminUser', entityId: user.id, action: 'auth.login', actorType: 'ADMIN', actorId: user.id, ipAddress: req.headers.get('x-forwarded-for') ?? undefined, userAgent: req.headers.get('user-agent') ?? undefined });
 
-    return NextResponse.json({ success: true, data: { token, adminUser: { id: user.id, adminUserId: user.adminUserId, fullName: user.fullName, roles: roleKeys } } });
+    const res = NextResponse.json({ success: true, data: { token, adminUser: { id: user.id, adminUserId: user.adminUserId, fullName: user.fullName, roles: roleKeys } } });
+    // Also set the token as an httpOnly cookie so the server-side guard in
+    // app/admin/layout.tsx can verify the session before any client component
+    // renders. The client SPA continues to send Authorization: Bearer for API
+    // calls — the cookie is purely for server-component auth.
+    // JWT_EXPIRY is a string like '24h' / '7d'; resolve to seconds for maxAge.
+    const expiryMs = (() => {
+      const m = /^(\d+)([smhd])$/.exec(String(JWT_EXPIRY));
+      if (!m) return 24 * 60 * 60; // 1 day fallback
+      const n = Number(m[1]);
+      const unit = m[2];
+      return unit === 's' ? n : unit === 'm' ? n * 60 : unit === 'h' ? n * 3600 : n * 86400;
+    })();
+    res.cookies.set(AUTH_COOKIE_NAME, token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: expiryMs,
+    });
+    return res;
   } catch (e: any) {
     console.error('Login error:', e?.message, e?.stack);
     return handleApiError(e);

@@ -40,7 +40,14 @@ export default function CalendarPage() {
   const [loadingWorkers, setLoadingWorkers] = useState(true);
 
   useEffect(() => {
-    const apptReq = api.getSWR<any>('/admin/appointments?pageSize=500');
+    // Window the fetch to the visible card range (next 21 days) so growth is bounded.
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const end = new Date(today);
+    end.setDate(end.getDate() + 21);
+    const from = today.toISOString().slice(0, 10);
+    const to = end.toISOString().slice(0, 10);
+    const apptReq = api.getSWR<any>(`/admin/appointments?pageSize=100&from=${from}&to=${to}`);
     const holReq = api.getSWR<any>('/admin/settings/holidays');
     const applyShop = (apptRes: any, holRes: any) => {
       if (apptRes.success) setAppointments(apptRes.data?.items ?? apptRes.data ?? []);

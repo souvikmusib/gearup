@@ -9,20 +9,17 @@ import { Copy } from 'lucide-react';
 type LookupType = 'reference' | 'vehicle';
 
 type TrackRequest = {
-  id: string;
   referenceId: string;
   serviceCategory: string;
-  issueDescription: string;
   serviceRequestStatus: string;
   bookingDate: string;
   updatedAt: string;
   preferredDate: string | null;
   preferredSlotLabel: string | null;
-  customer: { fullName: string; phoneNumber: string };
   vehicle: { registrationNumber: string; vehicleType: string; brand: string; model: string };
-  appointment: { referenceId: string; status: string; appointmentDate: string; slotStart: string; slotEnd: string } | null;
-  jobCard: { jobCardNumber: string; status: string; intakeDate: string; estimatedDeliveryAt: string | null; actualDeliveryAt: string | null } | null;
-  invoice: { invoiceNumber: string; invoiceStatus: string; paymentStatus: string; grandTotal: string | number; amountDue: string | number } | null;
+  appointment: { status: string; appointmentDate: string; slotStart: string; slotEnd: string } | null;
+  jobCard: { status: string; intakeDate: string; estimatedDeliveryAt: string | null; actualDeliveryAt: string | null } | null;
+  invoice: { invoiceStatus: string; paymentStatus: string } | null;
 };
 
 type TrackPayload = { lookupType: 'reference'; request: TrackRequest } | { lookupType: 'vehicle'; requests: TrackRequest[] };
@@ -134,7 +131,7 @@ export default function TrackPage() {
           <h2 className="text-sm font-semibold text-gray-900 dark:text-white">References for this vehicle, latest first</h2>
           <div className="mt-3 flex gap-3 overflow-x-auto pb-2">
             {matches.map((request) => (
-              <button key={request.id} onClick={() => setSelected(request)} className={`min-w-[220px] rounded-xl border p-4 text-left ${selected?.id === request.id ? 'border-blue-600 bg-blue-50 dark:bg-blue-950/40' : 'border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800'}`}>
+              <button key={request.referenceId} onClick={() => setSelected(request)} className={`min-w-[220px] rounded-xl border p-4 text-left ${selected?.referenceId === request.referenceId ? 'border-blue-600 bg-blue-50 dark:bg-blue-950/40' : 'border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800'}`}>
                 <span className="block font-mono text-sm font-bold text-blue-600">{request.referenceId}</span>
                 <span className="mt-1 block text-xs text-gray-500">Booked {fmtDate(request.bookingDate)}</span>
                 <span className="mt-2 inline-block"><StatusBadge status={request.serviceRequestStatus} /></span>
@@ -166,10 +163,9 @@ export default function TrackPage() {
           <div className="grid gap-4 sm:grid-cols-2">
             <InfoCard title="Vehicle" rows={[['Number', selected.vehicle.registrationNumber], ['Vehicle', `${selected.vehicle.brand} ${selected.vehicle.model}`], ['Type', selected.vehicle.vehicleType]]} />
             <InfoCard title="Booking" rows={[['Booked on', fmtDateTime(selected.bookingDate)], ['Preferred date', fmtDate(selected.preferredDate)], ['Service', selected.serviceCategory]]} />
-            <InfoCard title="Appointment" rows={[['Status', selected.appointment?.status ?? 'Not confirmed yet'], ['Service date', fmtDateTime(selected.appointment?.slotStart)], ['Appointment ref', selected.appointment?.referenceId ?? 'Not assigned yet']]} />
-            <InfoCard title="Workshop progress" rows={[['Job card', selected.jobCard?.jobCardNumber ?? 'Not created yet'], ['Job status', selected.jobCard?.status ?? 'Waiting for inspection'], ['Delivery ETA', fmtDateTime(selected.jobCard?.estimatedDeliveryAt)]]} />
-            <InfoCard title="Invoice" rows={[['Invoice', selected.invoice?.invoiceNumber ?? 'Not generated yet'], ['Invoice status', selected.invoice?.invoiceStatus ?? 'Pending'], ['Payment', selected.invoice?.paymentStatus ?? 'Pending']]} />
-            <InfoCard title="Issue" rows={[['Description', selected.issueDescription]]} />
+            <InfoCard title="Appointment" rows={[['Status', selected.appointment?.status ?? 'Not confirmed yet'], ['Service date', fmtDateTime(selected.appointment?.slotStart)]]} />
+            <InfoCard title="Workshop progress" rows={[['Job status', selected.jobCard?.status ?? 'Waiting for inspection'], ['Delivery ETA', fmtDateTime(selected.jobCard?.estimatedDeliveryAt)]]} />
+            <InfoCard title="Invoice" rows={[['Invoice status', selected.invoice?.invoiceStatus ?? 'Pending'], ['Payment', selected.invoice?.paymentStatus ?? 'Pending']]} />
           </div>
 
           <p className="text-center text-sm text-gray-500 dark:text-gray-400">

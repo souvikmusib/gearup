@@ -17,27 +17,88 @@ async function recalcEstimates(tx: any, jobCardId: string) {
   await tx.jobCard.update({ where: { id: jobCardId }, data: { estimatedPartsCost, estimatedTotal } });
 }
 
-async function adjustStock(tx: any, inventoryItemId: string, qty: number, type: 'RESERVED' | 'RELEASED', jobCardId: string) {
+async function adjustStock(tx: any, inventoryItemId: string, qty: number, type: 'RESERVED' | 'RELEASED' | 'CONSUMED', jobCardId: string) {
   if (qty <= 0) return;
-  const stockDelta = type === 'RESERVED' ? -qty : qty;
+  // RESERVED: stock -qty, reserved +qty
+  // RELEASED: stock +qty, reserved -qty
+  // CONSUMED: stock unchanged (already decremented at RESERVED time), reserved -qty (permanently committed)
+  const stockDelta = type === 'RESERVED' ? -qty : type === 'RELEASED' ? qty : 0;
   const reservedDelta = type === 'RESERVED' ? qty : -qty;
+  const guard =
+    type === 'RESERVED'
+      ? { quantityInStock: { gte: qty } }
+      : { reservedQuantity: { gte: qty } };
   const updated = await tx.inventoryItem.updateMany({
-    where: {
-      id: inventoryItemId,
-      ...(type === 'RESERVED' ? { quantityInStock: { gte: qty } } : { reservedQuantity: { gte: qty } }),
-    },
+    where: { id: inventoryItemId, ...guard },
     data: {
       quantityInStock: { increment: stockDelta },
       reservedQuantity: { increment: reservedDelta },
     },
   });
   if (updated.count === 0) {
-    throw new ValidationError(type === 'RESERVED' ? 'Insufficient stock to reserve this part.' : 'Reserved stock is lower than the quantity being released.');
+    const msg =
+      type === 'RESERVED'
+        ? 'Insufficient stock to reserve this part.'
+        : type === 'RELEASED'
+          ? 'Reserved stock is lower than the quantity being released.'
+          : 'Reserved stock is lower than the quantity being consumed.';
+    throw new ValidationError(msg);
   }
 
   const item = await tx.inventoryItem.findUniqueOrThrow({ where: { id: inventoryItemId } });
   const newQty = Number(item.quantityInStock);
   await tx.stockMovement.create({ data: { inventoryItemId, movementType: type, quantity: qty, previousQuantity: newQty - stockDelta, newQuantity: newQty, relatedEntityType: 'JobCard', relatedEntityId: jobCardId } });
+}
+
+// Shared line-total math, matching invoices/[id]/line-items/route.ts
+function computeLineMath(quantity: number, unitPrice: number, taxRate: number, discountPercent: number) {
+  const subtotal = quantity * unitPrice * (1 - discountPercent / 100);
+  const taxAmount = subtotal * (taxRate / 100);
+  const lineTotal = subtotal + taxAmount;
+  return { subtotal, taxAmount, lineTotal };
+}
+
+// Sync this part into a DRAFT invoice if one exists. MUST run inside the caller's transaction.
+async function syncPartToInvoiceInTx(
+  tx: any,
+  jobCardId: string,
+  inventoryItemId: string,
+  quantity: number,
+  unitPrice: number,
+) {
+  const invoice = await tx.invoice.findFirst({ where: { jobCardId, invoiceStatus: 'DRAFT' } });
+  if (!invoice) return;
+  const item = await tx.inventoryItem.findUniqueOrThrow({ where: { id: inventoryItemId } });
+  const exists = await tx.invoiceLineItem.findFirst({ where: { invoiceId: invoice.id, referenceItemId: inventoryItemId } });
+  if (exists) return;
+  const taxRate = Number(item.taxRate);
+  const discountPercent = Number(item.discountPercent) || 0;
+  const { taxAmount, lineTotal } = computeLineMath(quantity, unitPrice, taxRate, discountPercent);
+  const count = await tx.invoiceLineItem.count({ where: { invoiceId: invoice.id } });
+  await tx.invoiceLineItem.create({
+    data: {
+      invoiceId: invoice.id,
+      lineType: 'PART',
+      description: item.itemName,
+      quantity,
+      unitPrice,
+      discountPercent,
+      taxRate,
+      taxAmount,
+      lineTotal,
+      sortOrder: count,
+      referenceItemId: item.id,
+    },
+  });
+  // Recalc totals from tx-queried lines (same shape as invoices line-items recalcTotals)
+  const lines = await tx.invoiceLineItem.findMany({ where: { invoiceId: invoice.id } });
+  const invSubtotal = lines.reduce((s: number, l: { lineTotal: unknown; taxAmount: unknown }) => s + Number(l.lineTotal) - Number(l.taxAmount), 0);
+  const invTaxTotal = lines.reduce((s: number, l: { taxAmount: unknown }) => s + Number(l.taxAmount), 0);
+  const grandTotal = Math.round(invSubtotal + invTaxTotal - Number(invoice.discountAmount));
+  await tx.invoice.update({
+    where: { id: invoice.id },
+    data: { subtotal: invSubtotal, taxTotal: invTaxTotal, grandTotal, amountDue: Math.round(grandTotal - Number(invoice.amountPaid)) },
+  });
 }
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
@@ -50,35 +111,19 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     const part = await prisma.$transaction(async (tx) => {
       const item = await tx.inventoryItem.findUniqueOrThrow({ where: { id: body.inventoryItemId } });
       await adjustStock(tx, body.inventoryItemId, body.requiredQty, 'RESERVED', params.id);
+      const unitPrice = body.unitPrice ?? Number(item.sellingPrice) * (1 - (Number(item.discountPercent) || 0) / 100);
       const created = await tx.jobCardPart.create({
-        data: { jobCardId: params.id, inventoryItemId: body.inventoryItemId, requiredQty: body.requiredQty, reservedQty: body.requiredQty, unitPrice: body.unitPrice ?? Number(item.sellingPrice) * (1 - (Number(item.discountPercent) || 0) / 100), notes: body.notes },
+        data: { jobCardId: params.id, inventoryItemId: body.inventoryItemId, requiredQty: body.requiredQty, reservedQty: body.requiredQty, unitPrice, notes: body.notes },
         include: { inventoryItem: true },
       });
       await recalcEstimates(tx, params.id);
+      // P0: invoice sync MUST live in the same transaction. Otherwise stock can be reserved
+      // while the invoice line/totals write fails, producing permanent drift; and concurrent
+      // POSTs race on grandTotal/amountDue (read-modify-write with no row lock).
+      await syncPartToInvoiceInTx(tx, params.id, body.inventoryItemId, body.requiredQty, Number(created.unitPrice));
       return created;
     });
     logActivity({ entityType: 'JobCardPart', entityId: part.id, action: 'job-card.part.added', newValue: { jobCardId: params.id, ...body }, actorType: 'ADMIN', actorId: user.sub });
-
-    // Sync to invoice if one exists (draft only)
-    const invoice = await prisma.invoice.findFirst({ where: { jobCardId: params.id, invoiceStatus: 'DRAFT' } });
-    if (invoice) {
-      const item = await prisma.inventoryItem.findUniqueOrThrow({ where: { id: body.inventoryItemId } });
-      const exists = await prisma.invoiceLineItem.findFirst({ where: { invoiceId: invoice.id, referenceItemId: body.inventoryItemId } });
-      if (!exists) {
-        const unitPrice = Number(part.unitPrice);
-        const taxRate = Number(item.taxRate);
-        const subtotal = body.requiredQty * unitPrice;
-        const taxAmount = subtotal * (taxRate / 100);
-        const count = await prisma.invoiceLineItem.count({ where: { invoiceId: invoice.id } });
-        await prisma.invoiceLineItem.create({ data: { invoiceId: invoice.id, lineType: 'PART', description: item.itemName, quantity: body.requiredQty, unitPrice, taxRate, taxAmount, lineTotal: subtotal + taxAmount, sortOrder: count, referenceItemId: item.id } });
-        // Recalc invoice totals
-        const lines = await prisma.invoiceLineItem.findMany({ where: { invoiceId: invoice.id } });
-        const invSubtotal = lines.reduce((s, l) => s + Number(l.lineTotal) - Number(l.taxAmount), 0);
-        const invTaxTotal = lines.reduce((s, l) => s + Number(l.taxAmount), 0);
-        const grandTotal = invSubtotal + invTaxTotal - Number(invoice.discountAmount);
-        await prisma.invoice.update({ where: { id: invoice.id }, data: { subtotal: invSubtotal, taxTotal: invTaxTotal, grandTotal, amountDue: grandTotal - Number(invoice.amountPaid) } });
-      }
-    }
 
     return NextResponse.json({ success: true, data: part }, { status: 201 });
   } catch (e) { return handleApiError(e); }
@@ -89,18 +134,47 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     const user = requirePermission(PERMISSIONS.JOB_CARDS_CREATE);
     const body = z.object({
       partId: z.string(),
-      requiredQty: z.number().min(0.01).optional(), consumedQty: z.number().optional(),
+      requiredQty: z.number().min(0.01).optional(), consumedQty: z.number().min(0).optional(),
       unitPrice: z.number().optional(), notes: z.string().nullable().optional(),
     }).parse(await req.json());
     const { partId, ...data } = body;
     const part = await prisma.$transaction(async (tx) => {
       const existing = await tx.jobCardPart.findUniqueOrThrow({ where: { id: partId, jobCardId: params.id } });
       const nextData: Record<string, unknown> = { ...data };
+      // requiredQty delta -> adjust the reservation pool first so the consumedQty
+      // ceiling check below sees the new requiredQty.
+      const newRequiredQty = typeof body.requiredQty === 'number' ? body.requiredQty : Number(existing.requiredQty);
+      const newConsumedQty = typeof body.consumedQty === 'number' ? body.consumedQty : Number(existing.consumedQty);
+      if (newConsumedQty > newRequiredQty) {
+        throw new ValidationError('consumedQty cannot exceed requiredQty');
+      }
       if (typeof body.requiredQty === 'number') {
         const delta = body.requiredQty - Number(existing.requiredQty);
         if (delta > 0) await adjustStock(tx, existing.inventoryItemId, delta, 'RESERVED', params.id);
-        if (delta < 0) await adjustStock(tx, existing.inventoryItemId, Math.abs(delta), 'RELEASED', params.id);
-        nextData.reservedQty = body.requiredQty;
+        if (delta < 0) {
+          // Don't release more than what's still in the reserved bucket
+          // (reservedQty = requiredQty - consumedQty after prior consumes).
+          const stillReserved = Math.max(0, Number(existing.reservedQty));
+          const releaseQty = Math.min(Math.abs(delta), stillReserved);
+          if (releaseQty > 0) await adjustStock(tx, existing.inventoryItemId, releaseQty, 'RELEASED', params.id);
+        }
+        // reservedQty mirrors the not-yet-consumed portion of requiredQty.
+        nextData.reservedQty = Math.max(0, newRequiredQty - Number(existing.consumedQty));
+      }
+      // consumedQty delta -> permanent commit: decrement reservedQuantity, do NOT touch
+      // quantityInStock (already decremented at RESERVED time), write CONSUMED movement.
+      if (typeof body.consumedQty === 'number') {
+        const consumedDelta = body.consumedQty - Number(existing.consumedQty);
+        if (consumedDelta > 0) {
+          await adjustStock(tx, existing.inventoryItemId, consumedDelta, 'CONSUMED', params.id);
+          const baseReserved = typeof nextData.reservedQty === 'number'
+            ? (nextData.reservedQty as number)
+            : Number(existing.reservedQty);
+          nextData.reservedQty = Math.max(0, baseReserved - consumedDelta);
+        }
+        // consumedDelta < 0 (un-consume) is not modeled — would require a reverse
+        // stock movement and is outside scope. Reject to avoid silent drift.
+        if (consumedDelta < 0) throw new ValidationError('consumedQty cannot be decreased');
       }
       const updated = await tx.jobCardPart.update({ where: { id: partId, jobCardId: params.id }, data: nextData, include: { inventoryItem: true } });
       await recalcEstimates(tx, params.id);
@@ -118,9 +192,16 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     if (!partId) return NextResponse.json({ success: false, error: { message: 'partId is required' } }, { status: 400 });
     await prisma.$transaction(async (tx) => {
       const part = await tx.jobCardPart.findUniqueOrThrow({ where: { id: partId, jobCardId: params.id } });
-      const releaseQty = Number(part.reservedQty) > 0 ? Number(part.reservedQty) : Number(part.requiredQty);
+      // Only release the still-reserved (uncommitted) portion. Anything already
+      // CONSUMED has been permanently deducted from stock and must NOT be returned.
+      const reserved = Number(part.reservedQty);
+      const consumed = Number(part.consumedQty);
+      const required = Number(part.requiredQty);
+      // Prefer reservedQty if it has been maintained; fall back to required-consumed
+      // for legacy rows where reservedQty was never decremented.
+      const releaseQty = Math.max(0, reserved > 0 ? Math.min(reserved, required - consumed) : required - consumed);
       await tx.jobCardPart.delete({ where: { id: partId } });
-      await adjustStock(tx, part.inventoryItemId, releaseQty, 'RELEASED', params.id);
+      if (releaseQty > 0) await adjustStock(tx, part.inventoryItemId, releaseQty, 'RELEASED', params.id);
       await recalcEstimates(tx, params.id);
     });
     logActivity({ entityType: 'JobCardPart', entityId: partId, action: 'job-card.part.removed', newValue: { jobCardId: params.id, partId }, actorType: 'ADMIN', actorId: user.sub });

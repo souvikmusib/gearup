@@ -19,20 +19,46 @@ function normalizePath(path: string) {
   return path.endsWith('?') ? path.slice(0, -1) : path;
 }
 
-function cacheKey(path: string, token: string | null) {
-  return `GET:${token ?? 'public'}:${path}`;
+function cacheKey(path: string) {
+  // Auth identity now lives in an httpOnly cookie the browser cannot read, so
+  // the cache key is scoped per-path. The cache is cleared on login/logout and
+  // on any 401 response, which prevents cross-session bleed.
+  return `GET:${path}`;
 }
 
 function clearGetCache() {
   responseCache.clear();
 }
 
+function isAdminSurface() {
+  if (typeof window === 'undefined') return false;
+  return window.location.pathname.startsWith('/admin');
+}
+
+function handleUnauthorized() {
+  if (typeof window === 'undefined') return;
+  // Best-effort cleanup of legacy localStorage entries; the real session lives
+  // in an httpOnly cookie that only the server can clear via Set-Cookie.
+  try {
+    localStorage.removeItem('gearup_token');
+    localStorage.removeItem('gearup_demo');
+  } catch {
+    // ignore storage access errors (private mode, etc.)
+  }
+  clearGetCache();
+  // Only hijack navigation when the caller is actually on an admin page.
+  // Public booking surfaces that hit a protected endpoint should receive the
+  // 401 inline rather than being redirected to admin login.
+  if (isAdminSurface()) {
+    window.location.href = '/admin/login';
+  }
+}
+
 async function request<T>(rawPath: string, opts: RequestInit = {}): Promise<ApiResponse<T>> {
   const path = normalizePath(rawPath);
   const method = (opts.method ?? 'GET').toUpperCase();
   const isGet = method === 'GET';
-  const token = typeof window !== 'undefined' ? localStorage.getItem('gearup_token') : null;
-  const key = cacheKey(path, token);
+  const key = cacheKey(path);
 
   if (isGet) {
     const cached = responseCache.get(key);
@@ -46,17 +72,14 @@ async function request<T>(rawPath: string, opts: RequestInit = {}): Promise<ApiR
   const run = async (): Promise<ApiResponse<T>> => {
     const res = await fetch(`${BASE}${path}`, {
       ...opts,
+      credentials: 'same-origin',
       headers: {
         'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...opts.headers,
       },
     });
-    if (res.status === 401 && typeof window !== 'undefined') {
-      localStorage.removeItem('gearup_token');
-      localStorage.removeItem('gearup_demo');
-      clearGetCache();
-      window.location.href = '/admin/login';
+    if (res.status === 401) {
+      handleUnauthorized();
       return { success: false, error: { code: 'UNAUTHORIZED', message: 'Session expired' } };
     }
     const payload = (await res.json()) as ApiResponse<T>;
@@ -88,8 +111,7 @@ async function request<T>(rawPath: string, opts: RequestInit = {}): Promise<ApiR
 
 function peek<T>(rawPath: string): { data: ApiResponse<T>; stale: boolean } | null {
   const path = normalizePath(rawPath);
-  const token = typeof window !== 'undefined' ? localStorage.getItem('gearup_token') : null;
-  const entry = responseCache.get(cacheKey(path, token));
+  const entry = responseCache.get(cacheKey(path));
   if (!entry) return null;
   return {
     data: entry.data as ApiResponse<T>,
@@ -113,23 +135,19 @@ export const api = {
 
 async function fetchAndStore<T>(rawPath: string): Promise<ApiResponse<T>> {
   const path = normalizePath(rawPath);
-  const token = typeof window !== 'undefined' ? localStorage.getItem('gearup_token') : null;
-  const key = cacheKey(path, token);
+  const key = cacheKey(path);
   const pending = inFlight.get(key);
   if (pending) return (await pending) as ApiResponse<T>;
 
   const run = async (): Promise<ApiResponse<T>> => {
     const res = await fetch(`${BASE}${path}`, {
+      credentials: 'same-origin',
       headers: {
         'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
     });
-    if (res.status === 401 && typeof window !== 'undefined') {
-      localStorage.removeItem('gearup_token');
-      localStorage.removeItem('gearup_demo');
-      clearGetCache();
-      window.location.href = '/admin/login';
+    if (res.status === 401) {
+      handleUnauthorized();
       return { success: false, error: { code: 'UNAUTHORIZED', message: 'Session expired' } };
     }
     const payload = (await res.json()) as ApiResponse<T>;

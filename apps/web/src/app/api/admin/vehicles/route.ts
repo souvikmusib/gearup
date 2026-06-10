@@ -8,7 +8,7 @@ import { PERMISSIONS } from '@gearup/types';
 import { z } from 'zod';
 
 const vehicleSchema = z.object({
-  customerId: z.string(), vehicleType: z.enum(['CAR', 'BIKE', 'OTHER']), registrationNumber: z.string().min(1),
+  customerId: z.string(), vehicleType: z.enum(['CAR', 'BIKE', 'SCOOTY', 'OTHER']), registrationNumber: z.string().min(1),
   brand: z.string().min(1), model: z.string().min(1), variant: z.string().optional(),
   yearOfManufacture: z.number().optional(), fuelType: z.string().optional(), transmission: z.string().optional(),
   color: z.string().optional(), vin: z.string().optional(), chassisNumber: z.string().optional(),

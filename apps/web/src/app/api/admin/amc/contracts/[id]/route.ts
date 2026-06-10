@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requirePermission } from '@/lib/auth';
-import { handleApiError, ValidationError } from '@/lib/errors';
+import { handleApiError, ValidationError, AppError } from '@/lib/errors';
 import { PERMISSIONS } from '@gearup/types';
 import { z } from 'zod';
 
@@ -55,25 +55,42 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     }).parse(await req.json());
 
     const result = await prisma.$transaction(async (tx: any) => {
+      const now = new Date();
+
+      // Conditional update with WHERE-guard — race-safe decrement.
+      const updateRes = await tx.amcContract.updateMany({
+        where: {
+          id: params.id,
+          status: 'ACTIVE',
+          servicesRemaining: { gt: 0 },
+          endDate: { gte: now },
+        },
+        data: {
+          servicesUsed: { increment: 1 },
+          servicesRemaining: { decrement: 1 },
+        },
+      });
+      if (updateRes.count !== 1) {
+        throw new AppError(409, 'AMC contract is not active, has no remaining services, or has expired', 'CONFLICT');
+      }
+
+      // Re-read contract for accurate serviceNumber and ownership comparison.
       const contract = await tx.amcContract.findUniqueOrThrow({ where: { id: params.id } });
 
-      if (contract.status !== 'ACTIVE') throw new ValidationError('Contract is not active');
-      if (contract.servicesRemaining <= 0) throw new ValidationError('No services remaining on this contract');
-      if (new Date() > contract.endDate) throw new ValidationError('Contract has expired');
+      // Verify the job card belongs to the contract's customer + vehicle.
+      const jobCard = await tx.jobCard.findUniqueOrThrow({ where: { id: body.jobCardId } });
+      if (jobCard.customerId !== contract.customerId || jobCard.vehicleId !== contract.vehicleId) {
+        throw new AppError(400, 'Job card does not belong to this AMC contract\'s customer/vehicle', 'VALIDATION_ERROR');
+      }
 
       const usage = await tx.amcServiceUsage.create({
         data: {
           amcContractId: params.id,
           jobCardId: body.jobCardId,
-          serviceNumber: contract.servicesUsed + 1,
+          serviceNumber: contract.servicesUsed, // already incremented above
           serviceDate: body.serviceDate ? new Date(body.serviceDate) : new Date(),
           notes: body.notes,
         },
-      });
-
-      await tx.amcContract.update({
-        where: { id: params.id },
-        data: { servicesUsed: { increment: 1 }, servicesRemaining: { decrement: 1 } },
       });
 
       return usage;

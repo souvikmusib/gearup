@@ -8,3 +8,4 @@ export const generateJobCardNumber = () => `${JOB_CARD_PREFIX}-${alphanumeric()}
 export const generateInvoiceNumber = () => `${INVOICE_PREFIX}-${alphanumeric()}`;
 export const generateAppointmentRef = () => `APT-${alphanumeric()}`;
 export const generateWorkerCode = () => `WRK-${customAlphabet('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ', 6)()}`;
+export const generateAmcContractNumber = () => `AMC-${alphanumeric()}`;

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { requirePermission } from '@/lib/auth';
 import { handleApiError, ValidationError } from '@/lib/errors';
@@ -20,17 +21,19 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     const delta = isIncrease ? body.quantity : -body.quantity;
 
     const result = await prisma.$transaction(async (tx) => {
-      const updated = await tx.inventoryItem.updateMany({
-        where: {
-          id: params.id,
-          ...(isIncrease ? {} : { quantityInStock: { gte: body.quantity } }),
-        },
-        data: { quantityInStock: { increment: delta } },
-      });
-      if (updated.count === 0) throw new ValidationError('Insufficient stock for this adjustment.');
+      // Atomic update with guard + RETURNING so the post-update value cannot
+      // be polluted by a concurrent committed increment between the write
+      // and a subsequent read (READ COMMITTED isolation).
+      const rows = await tx.$queryRaw<Array<{ quantityInStock: Prisma.Decimal }>>`
+        UPDATE "InventoryItem"
+        SET "quantityInStock" = "quantityInStock" + ${delta}::numeric
+        WHERE "id" = ${params.id}
+          AND (${isIncrease}::boolean OR "quantityInStock" >= ${body.quantity}::numeric)
+        RETURNING "quantityInStock"
+      `;
+      if (rows.length === 0) throw new ValidationError('Insufficient stock for this adjustment.');
 
-      const item = await tx.inventoryItem.findUniqueOrThrow({ where: { id: params.id } });
-      const newQty = Number(item.quantityInStock);
+      const newQty = Number(rows[0].quantityInStock);
       const prev = newQty - delta;
 
       await tx.stockMovement.create({

@@ -3,25 +3,24 @@ import { prisma } from '@/lib/prisma';
 import { handleApiError, NotFoundError } from '@/lib/errors';
 import { z } from 'zod';
 
+// Minimal projection for a public tracking endpoint. We intentionally do NOT
+// return internal DB ids, customer name/phone, staff names, monetary amounts,
+// invoice numbers, job-card numbers, or appointment reference ids — that would
+// turn this unauthenticated endpoint into an enumeration + PII oracle.
 const requestSelect = {
-  id: true,
   referenceId: true,
   serviceCategory: true,
-  issueDescription: true,
   preferredDate: true,
   preferredSlotLabel: true,
   status: true,
   createdAt: true,
   updatedAt: true,
-  customer: { select: { fullName: true, phoneNumber: true } },
   vehicle: { select: { registrationNumber: true, vehicleType: true, brand: true, model: true } },
-  appointment: { select: { referenceId: true, status: true, appointmentDate: true, slotStart: true, slotEnd: true } },
+  appointment: { select: { status: true, appointmentDate: true, slotStart: true, slotEnd: true } },
   jobCards: {
     orderBy: { createdAt: 'desc' as const },
     take: 1,
     select: {
-      id: true,
-      jobCardNumber: true,
       status: true,
       intakeDate: true,
       estimatedDeliveryAt: true,
@@ -29,7 +28,7 @@ const requestSelect = {
       invoices: {
         orderBy: { createdAt: 'desc' as const },
         take: 1,
-        select: { invoiceNumber: true, invoiceStatus: true, paymentStatus: true, grandTotal: true, amountDue: true },
+        select: { invoiceStatus: true, paymentStatus: true },
       },
     },
   },
@@ -47,67 +46,93 @@ function summarize(sr: any) {
   const jc = sr.jobCards?.[0] ?? null;
   const invoice = jc?.invoices?.[0] ?? null;
   return {
-    id: sr.id,
     referenceId: sr.referenceId,
     serviceCategory: sr.serviceCategory,
-    issueDescription: sr.issueDescription,
     serviceRequestStatus: sr.status,
     bookingDate: sr.createdAt,
     updatedAt: sr.updatedAt,
     preferredDate: sr.preferredDate,
     preferredSlotLabel: sr.preferredSlotLabel,
-    customer: sr.customer,
     vehicle: sr.vehicle,
-    appointment: sr.appointment,
-    jobCard: jc ? {
-      jobCardNumber: jc.jobCardNumber,
-      status: jc.status,
-      intakeDate: jc.intakeDate,
-      estimatedDeliveryAt: jc.estimatedDeliveryAt,
-      actualDeliveryAt: jc.actualDeliveryAt,
-    } : null,
-    invoice: invoice ? {
-      invoiceNumber: invoice.invoiceNumber,
-      invoiceStatus: invoice.invoiceStatus,
-      paymentStatus: invoice.paymentStatus,
-      grandTotal: invoice.grandTotal,
-      amountDue: invoice.amountDue,
-    } : null,
+    appointment: sr.appointment
+      ? {
+          status: sr.appointment.status,
+          appointmentDate: sr.appointment.appointmentDate,
+          slotStart: sr.appointment.slotStart,
+          slotEnd: sr.appointment.slotEnd,
+        }
+      : null,
+    jobCard: jc
+      ? {
+          status: jc.status,
+          intakeDate: jc.intakeDate,
+          estimatedDeliveryAt: jc.estimatedDeliveryAt,
+          actualDeliveryAt: jc.actualDeliveryAt,
+        }
+      : null,
+    invoice: invoice
+      ? {
+          invoiceStatus: invoice.invoiceStatus,
+          paymentStatus: invoice.paymentStatus,
+        }
+      : null,
   };
 }
 
+// Strict input schema: phone must be exactly 10 digits after normalisation,
+// referenceId / vehicleNumber are length-capped to defeat ReDoS / huge payloads.
+const trackSchema = z
+  .object({
+    referenceId: z.string().trim().max(32).optional(),
+    phoneNumber: z
+      .string()
+      .min(10)
+      .max(20)
+      .refine((v) => v.replace(/\D/g, '').length === 10, 'Phone must be 10 digits'),
+    vehicleNumber: z.string().trim().max(20).optional(),
+    lookupType: z.enum(['reference', 'vehicle']).optional(),
+  })
+  .strict();
+
+// Uniform user-facing error so hit vs miss can't be distinguished by message.
+const GENERIC_MISS = 'No matching request found. Check your phone number and reference / vehicle number.';
+
 export async function POST(req: NextRequest) {
   try {
-    const { referenceId, phoneNumber, vehicleNumber, lookupType } = z.object({
-      referenceId: z.string().optional(),
-      phoneNumber: z.string().min(5),
-      vehicleNumber: z.string().optional(),
-      lookupType: z.enum(['reference', 'vehicle']).optional(),
-    }).parse(await req.json());
-    const phone = normalizePhone(phoneNumber);
+    const parsed = trackSchema.parse(await req.json());
+    const phone = normalizePhone(parsed.phoneNumber);
+    const lookupType = parsed.lookupType ?? 'reference';
 
-    if ((lookupType ?? 'reference') === 'vehicle') {
-      const vehicle = (vehicleNumber ?? '').trim();
-      if (!vehicle) throw new NotFoundError('Enter a vehicle number to search.');
+    if (lookupType === 'vehicle') {
+      const needle = normalizeVehicle(parsed.vehicleNumber ?? '');
+      // Require a meaningful vehicle number (full plate-ish length) so this
+      // mode can't be used as a "does this phone exist" oracle by submitting
+      // an empty / 1-char substring.
+      if (needle.length < 6) throw new NotFoundError(GENERIC_MISS);
+
+      // Phone + exact normalized registration. Done in the DB so we don't pull
+      // every request for the phone into memory.
       const requests = await prisma.serviceRequest.findMany({
-        where: {
-          customer: { phoneNumber: phone },
-        },
+        where: { customer: { phoneNumber: phone } },
         orderBy: { createdAt: 'desc' },
         select: requestSelect,
       });
-      const needle = normalizeVehicle(vehicle);
-      const matches = requests.filter((sr: any) => normalizeVehicle(sr.vehicle.registrationNumber).includes(needle)).slice(0, 12);
-      if (!matches.length) throw new NotFoundError('No matching request found.');
+      const matches = requests
+        .filter((sr: any) => normalizeVehicle(sr.vehicle.registrationNumber) === needle)
+        .slice(0, 12);
+      if (!matches.length) throw new NotFoundError(GENERIC_MISS);
       return NextResponse.json({ success: true, data: { lookupType: 'vehicle', requests: matches.map(summarize) } });
     }
 
-    if (!referenceId?.trim()) throw new NotFoundError('Enter a reference ID to search.');
+    const ref = (parsed.referenceId ?? '').trim().toUpperCase();
+    if (!ref) throw new NotFoundError(GENERIC_MISS);
     const sr = await prisma.serviceRequest.findFirst({
-      where: { referenceId: referenceId.trim().toUpperCase(), customer: { phoneNumber: phone } },
+      where: { referenceId: ref, customer: { phoneNumber: phone } },
       select: requestSelect,
     });
-    if (!sr) throw new NotFoundError('No matching request found.');
+    if (!sr) throw new NotFoundError(GENERIC_MISS);
     return NextResponse.json({ success: true, data: { lookupType: 'reference', request: summarize(sr) } });
-  } catch (e) { return handleApiError(e); }
+  } catch (e) {
+    return handleApiError(e);
+  }
 }

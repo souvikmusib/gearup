@@ -15,7 +15,14 @@ export async function GET(req: NextRequest) {
     const where: Record<string, unknown> = {};
     const entityType = sp.get('entityType'); if (entityType) where.entityType = entityType;
     const actorType = sp.get('actorType'); if (actorType) where.actorType = actorType;
-    const action = sp.get('action'); if (action) where.action = { contains: action };
+    const action = sp.get('action'); if (action && action.length >= 2) where.action = { contains: action };
+    const from = sp.get('from'); const to = sp.get('to');
+    if (from || to) {
+      const createdAt: Record<string, Date> = {};
+      if (from) createdAt.gte = new Date(from);
+      if (to) { const d = new Date(to); d.setHours(23, 59, 59, 999); createdAt.lte = d; }
+      where.createdAt = createdAt;
+    }
     const [data, total] = await Promise.all([
       prisma.activityLog.findMany({ where, ...p, orderBy: { createdAt: 'desc' }, include: { adminUser: { select: { fullName: true, adminUserId: true } } } }),
       prisma.activityLog.count({ where }),

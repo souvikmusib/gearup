@@ -5,6 +5,7 @@ import { requirePermission } from '@/lib/auth';
 import { handleApiError } from '@/lib/errors';
 import { logActivity } from '@/lib/activity-logger';
 import { generateInvoiceNumber } from '@/lib/id-generators';
+import { computeLineTotal, nonDiscountPreSubtotal } from '@/lib/invoice-calc';
 import { PERMISSIONS } from '@gearup/types';
 import { z } from 'zod';
 
@@ -58,31 +59,20 @@ export async function POST(req: NextRequest) {
   try {
     const user = requirePermission(PERMISSIONS.INVOICES_CREATE);
     const body = createSchema.parse(await req.json());
-    // Enforce 1 invoice per job card (only for service invoices)
-    if (body.jobCardId) {
-      const existing = await prisma.invoice.findFirst({ where: { jobCardId: body.jobCardId } });
-      if (existing) return NextResponse.json({ success: false, error: { message: `Invoice ${existing.invoiceNumber} already exists for this job card` } }, { status: 409 });
-    }
+    // Uniqueness on jobCardId is enforced at the DB level (Invoice.jobCardId @unique);
+    // any conflict surfaces as P2002 and is handled below.
     let invoice;
     try {
       invoice = await prisma.$transaction(async (tx: any) => {
         let subtotal = 0, taxTotal = 0;
-        // First pass: calculate subtotal from non-discount items
-        const nonDiscountItems = body.lineItems.filter((li) => li.lineType !== 'DISCOUNT_ADJUSTMENT');
-        const preSubtotal = nonDiscountItems.reduce((sum, li) => sum + li.quantity * li.unitPrice, 0);
+        // Canonical percent-discount base: sum of (qty*price) across non-discount lines.
+        const preSubtotal = nonDiscountPreSubtotal(body.lineItems);
 
         const lines = body.lineItems.map((li) => {
-          const isDiscount = li.lineType === 'DISCOUNT_ADJUSTMENT';
-          let lineTotal: number;
-          if (isDiscount) {
-            const mode = (li as any).discountMode || 'flat';
-            lineTotal = mode === 'percent' ? -(preSubtotal * (li.unitPrice / 100)) : -(Math.abs(li.quantity * li.unitPrice));
-          } else {
-            lineTotal = li.quantity * li.unitPrice;
-          }
-          const taxAmount = isDiscount ? 0 : lineTotal * (li.taxRate / 100);
-          subtotal += lineTotal; taxTotal += taxAmount;
-          return { lineType: li.lineType, description: li.description, quantity: li.quantity, unitPrice: li.unitPrice, taxRate: li.taxRate, sortOrder: li.sortOrder, taxAmount, lineTotal: lineTotal + taxAmount };
+          const { lineTotal, taxAmount, netLineTotal } = computeLineTotal(li, preSubtotal);
+          subtotal += netLineTotal;
+          taxTotal += taxAmount;
+          return { lineType: li.lineType, description: li.description, quantity: li.quantity, unitPrice: li.unitPrice, taxRate: li.taxRate, sortOrder: li.sortOrder, taxAmount, lineTotal };
         });
         const discountAmount = body.discountType === 'PERCENTAGE' ? subtotal * ((body.discountValue ?? 0) / 100) : (body.discountValue ?? 0);
         const grandTotal = Math.round(subtotal + taxTotal - discountAmount);

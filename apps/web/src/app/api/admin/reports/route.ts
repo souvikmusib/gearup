@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { requirePermission } from '@/lib/auth';
-import { handleApiError } from '@/lib/errors';
+import { AppError, handleApiError } from '@/lib/errors';
 import { PERMISSIONS } from '@gearup/types';
+
+const MAX_REVENUE_RANGE_DAYS = 366; // cap reporting window at ~12 months
+const D = (v: unknown) => new Prisma.Decimal((v as Prisma.Decimal | number | string | null | undefined) ?? 0);
 
 export async function GET(req: NextRequest) {
   try {
@@ -10,7 +14,7 @@ export async function GET(req: NextRequest) {
     const type = sp.get('type') || 'dashboard';
     const from = sp.get('from'); const to = sp.get('to');
 
-    if (type === 'dashboard' || type === 'revenue') {
+    if (type === 'dashboard') {
       requirePermission(PERMISSIONS.DASHBOARD_VIEW);
     } else {
       requirePermission(PERMISSIONS.REPORTS_VIEW);
@@ -49,7 +53,7 @@ export async function GET(req: NextRequest) {
           pendingRequests,
           activeJobs,
           unpaidInvoices,
-          todayRevenue: Number(todayRevenue._sum.amount ?? 0),
+          todayRevenue: D(todayRevenue._sum.amount).toFixed(2),
           totalCustomers,
           totalVehicles,
           activeWorkers,
@@ -58,54 +62,221 @@ export async function GET(req: NextRequest) {
     }
 
     if (type === 'revenue') {
-      const where: Record<string, unknown> = {};
-      if (from && to) where.paymentDate = { gte: new Date(from + 'T00:00:00+05:30'), lte: new Date(to + 'T23:59:59+05:30') };
-      const [payments, total, dailyRaw] = await Promise.all([
+      // Resolve & validate range. Cap at MAX_REVENUE_RANGE_DAYS to keep this endpoint
+      // bounded; callers needing larger windows must paginate by sub-range.
+      let rangeFrom: Date | null = null;
+      let rangeTo: Date | null = null;
+      if (from && to) {
+        rangeFrom = new Date(from + 'T00:00:00+05:30');
+        rangeTo = new Date(to + 'T23:59:59+05:30');
+        if (Number.isNaN(rangeFrom.getTime()) || Number.isNaN(rangeTo.getTime()) || rangeFrom > rangeTo) {
+          throw new AppError( 400, 'Invalid from/to date range','VALIDATION_ERROR');
+        }
+        const spanDays = Math.ceil((rangeTo.getTime() - rangeFrom.getTime()) / (24 * 60 * 60 * 1000));
+        if (spanDays > MAX_REVENUE_RANGE_DAYS) {
+          throw new AppError(400, `Revenue range cannot exceed ${MAX_REVENUE_RANGE_DAYS} days`, 'VALIDATION_ERROR');
+        }
+      }
+      const where: Prisma.PaymentWhereInput = {};
+      if (rangeFrom && rangeTo) where.paymentDate = { gte: rangeFrom, lte: rangeTo };
+
+      // byMode + total via Prisma aggregations (small result sets).
+      const [payments, total] = await Promise.all([
         prisma.payment.groupBy({ by: ['paymentMode'], where, _sum: { amount: true }, _count: true }),
         prisma.payment.aggregate({ where, _sum: { amount: true } }),
-        prisma.payment.findMany({ where, select: { amount: true, paymentDate: true, invoiceId: true }, orderBy: { paymentDate: 'asc' } }),
       ]);
-      // Aggregate daily in IST
-      const dailyMap: Record<string, number> = {};
-      dailyRaw.forEach((p) => { const istDate = new Date(new Date(p.paymentDate).getTime() + 5.5 * 60 * 60 * 1000).toISOString().slice(0, 10); dailyMap[istDate] = (dailyMap[istDate] || 0) + Number(p.amount); });
-      const daily = Object.entries(dailyMap).map(([date, amount]) => ({ date, amount }));
 
-      // Revenue breakdown by line type and worker (from PAID invoices in date range)
-      const paidInvoiceIds = dailyRaw.map((p) => p.invoiceId);
-      const lineItems = paidInvoiceIds.length > 0 ? await prisma.invoiceLineItem.findMany({ where: { invoiceId: { in: paidInvoiceIds } }, select: { lineType: true, description: true, lineTotal: true } }) : [];
-      const byType: Record<string, number> = {};
-      const byWorker: Record<string, number> = {};
-      lineItems.forEach((li) => {
-        const type = li.lineType as string;
-        byType[type] = (byType[type] || 0) + Number(li.lineTotal);
-        if (type === 'LABOR') {
-          const name = (li.description as string).replace('Labor — ', '').replace('Labor charges', 'Unassigned');
-          byWorker[name] = (byWorker[name] || 0) + Number(li.lineTotal);
-        }
-      });
+      // Daily roll-up in IST — push GROUP BY to Postgres so we don't stream every payment.
+      // date_trunc with the 'Asia/Kolkata' zone gives the local-day bucket; casting to date
+      // then to text yields the YYYY-MM-DD label we serialised before.
+      const dailyRows = rangeFrom && rangeTo
+        ? await prisma.$queryRaw<Array<{ date: string; amount: Prisma.Decimal }>>(
+            Prisma.sql`
+              SELECT to_char(date_trunc('day', "paymentDate" AT TIME ZONE 'Asia/Kolkata'), 'YYYY-MM-DD') AS date,
+                     COALESCE(SUM(amount), 0)::numeric AS amount
+              FROM "Payment"
+              WHERE "paymentDate" >= ${rangeFrom} AND "paymentDate" <= ${rangeTo}
+              GROUP BY 1
+              ORDER BY 1 ASC
+            `,
+          )
+        : await prisma.$queryRaw<Array<{ date: string; amount: Prisma.Decimal }>>(
+            Prisma.sql`
+              SELECT to_char(date_trunc('day', "paymentDate" AT TIME ZONE 'Asia/Kolkata'), 'YYYY-MM-DD') AS date,
+                     COALESCE(SUM(amount), 0)::numeric AS amount
+              FROM "Payment"
+              GROUP BY 1
+              ORDER BY 1 ASC
+            `,
+          );
+      const daily = dailyRows.map((r) => ({ date: r.date, amount: D(r.amount).toFixed(2) }));
 
-      // Worker job card total value
-      const assignments = paidInvoiceIds.length > 0 ? await prisma.workerAssignment.findMany({
-        where: { jobCard: { invoices: { some: { id: { in: paidInvoiceIds } } } } },
-        include: { worker: { select: { fullName: true } }, jobCard: { include: { invoices: { where: { id: { in: paidInvoiceIds } }, select: { grandTotal: true } } } } }
-      }) : [];
-      const workerJobValue: Record<string, { total: number; jobs: number }> = {};
-      assignments.forEach((a: any) => {
-        const name = a.worker.fullName;
-        if (!workerJobValue[name]) workerJobValue[name] = { total: 0, jobs: 0 };
-        a.jobCard.invoices.forEach((inv: any) => { workerJobValue[name].total += Number(inv.grandTotal); });
-        if (a.jobCard.invoices.length > 0) workerJobValue[name].jobs++;
-      });
+      // Revenue by line type — SUM the LineItem totals for invoices that received a
+      // payment in the window. JOIN done in SQL so we never materialise the row set.
+      const byTypeRows = await prisma.$queryRaw<Array<{ lineType: string; total: Prisma.Decimal }>>(
+        rangeFrom && rangeTo
+          ? Prisma.sql`
+              SELECT li."lineType"::text AS "lineType",
+                     COALESCE(SUM(li."lineTotal"), 0)::numeric AS total
+              FROM "InvoiceLineItem" li
+              WHERE li."invoiceId" IN (
+                SELECT DISTINCT p."invoiceId" FROM "Payment" p
+                WHERE p."paymentDate" >= ${rangeFrom} AND p."paymentDate" <= ${rangeTo}
+              )
+              GROUP BY li."lineType"
+            `
+          : Prisma.sql`
+              SELECT li."lineType"::text AS "lineType",
+                     COALESCE(SUM(li."lineTotal"), 0)::numeric AS total
+              FROM "InvoiceLineItem" li
+              WHERE li."invoiceId" IN (SELECT DISTINCT p."invoiceId" FROM "Payment" p)
+              GROUP BY li."lineType"
+            `,
+      );
+
+      // byWorker — labor revenue attributed by joining
+      // InvoiceLineItem(LABOR) -> Invoice -> JobCard -> WorkerAssignment -> Worker.
+      // Each invoice's LABOR total is split equally across the assigned workers on its
+      // job card (active or historical). Invoices with no assignment fall into 'Unassigned'.
+      // This replaces the prior string-parse on li.description which silently broke on
+      // any phrasing change.
+      const byWorkerRows = await prisma.$queryRaw<Array<{ name: string; total: Prisma.Decimal }>>(
+        rangeFrom && rangeTo
+          ? Prisma.sql`
+              WITH paid_invoices AS (
+                SELECT DISTINCT p."invoiceId" AS id
+                FROM "Payment" p
+                WHERE p."paymentDate" >= ${rangeFrom} AND p."paymentDate" <= ${rangeTo}
+              ),
+              labor_per_invoice AS (
+                SELECT li."invoiceId", COALESCE(SUM(li."lineTotal"), 0)::numeric AS labor_total
+                FROM "InvoiceLineItem" li
+                WHERE li."lineType" = 'LABOR'
+                  AND li."invoiceId" IN (SELECT id FROM paid_invoices)
+                GROUP BY li."invoiceId"
+              ),
+              invoice_workers AS (
+                SELECT i.id AS invoice_id, w.id AS worker_id, w."fullName" AS name
+                FROM "Invoice" i
+                JOIN "WorkerAssignment" wa ON wa."jobCardId" = i."jobCardId"
+                JOIN "Worker" w ON w.id = wa."workerId"
+                WHERE i.id IN (SELECT id FROM paid_invoices)
+              ),
+              worker_counts AS (
+                SELECT invoice_id, COUNT(*)::numeric AS n
+                FROM invoice_workers
+                GROUP BY invoice_id
+              )
+              SELECT name, SUM(share)::numeric AS total
+              FROM (
+                SELECT iw.name, (lpi.labor_total / wc.n) AS share
+                FROM labor_per_invoice lpi
+                JOIN invoice_workers iw ON iw.invoice_id = lpi."invoiceId"
+                JOIN worker_counts wc ON wc.invoice_id = lpi."invoiceId"
+                UNION ALL
+                SELECT 'Unassigned' AS name, lpi.labor_total AS share
+                FROM labor_per_invoice lpi
+                WHERE NOT EXISTS (SELECT 1 FROM invoice_workers iw WHERE iw.invoice_id = lpi."invoiceId")
+              ) t
+              GROUP BY name
+              ORDER BY total DESC
+            `
+          : Prisma.sql`
+              WITH paid_invoices AS (
+                SELECT DISTINCT p."invoiceId" AS id FROM "Payment" p
+              ),
+              labor_per_invoice AS (
+                SELECT li."invoiceId", COALESCE(SUM(li."lineTotal"), 0)::numeric AS labor_total
+                FROM "InvoiceLineItem" li
+                WHERE li."lineType" = 'LABOR'
+                  AND li."invoiceId" IN (SELECT id FROM paid_invoices)
+                GROUP BY li."invoiceId"
+              ),
+              invoice_workers AS (
+                SELECT i.id AS invoice_id, w.id AS worker_id, w."fullName" AS name
+                FROM "Invoice" i
+                JOIN "WorkerAssignment" wa ON wa."jobCardId" = i."jobCardId"
+                JOIN "Worker" w ON w.id = wa."workerId"
+                WHERE i.id IN (SELECT id FROM paid_invoices)
+              ),
+              worker_counts AS (
+                SELECT invoice_id, COUNT(*)::numeric AS n
+                FROM invoice_workers
+                GROUP BY invoice_id
+              )
+              SELECT name, SUM(share)::numeric AS total
+              FROM (
+                SELECT iw.name, (lpi.labor_total / wc.n) AS share
+                FROM labor_per_invoice lpi
+                JOIN invoice_workers iw ON iw.invoice_id = lpi."invoiceId"
+                JOIN worker_counts wc ON wc.invoice_id = lpi."invoiceId"
+                UNION ALL
+                SELECT 'Unassigned' AS name, lpi.labor_total AS share
+                FROM labor_per_invoice lpi
+                WHERE NOT EXISTS (SELECT 1 FROM invoice_workers iw WHERE iw.invoice_id = lpi."invoiceId")
+              ) t
+              GROUP BY name
+              ORDER BY total DESC
+            `,
+      );
+
+      // workerJobValue — per-worker totals across the grandTotal of paid invoices
+      // they were assigned to. DISTINCT join so multi-line invoices aren't double-counted.
+      const workerJobRows = await prisma.$queryRaw<Array<{ name: string; total: Prisma.Decimal; jobs: bigint }>>(
+        rangeFrom && rangeTo
+          ? Prisma.sql`
+              WITH paid_invoices AS (
+                SELECT DISTINCT p."invoiceId" AS id
+                FROM "Payment" p
+                WHERE p."paymentDate" >= ${rangeFrom} AND p."paymentDate" <= ${rangeTo}
+              ),
+              worker_invoices AS (
+                SELECT DISTINCT w.id AS worker_id, w."fullName" AS name, i.id AS invoice_id, i."grandTotal" AS grand_total
+                FROM "Invoice" i
+                JOIN "WorkerAssignment" wa ON wa."jobCardId" = i."jobCardId"
+                JOIN "Worker" w ON w.id = wa."workerId"
+                WHERE i.id IN (SELECT id FROM paid_invoices)
+              )
+              SELECT name, COALESCE(SUM(grand_total), 0)::numeric AS total, COUNT(*)::bigint AS jobs
+              FROM worker_invoices
+              GROUP BY name
+              ORDER BY total DESC
+            `
+          : Prisma.sql`
+              WITH paid_invoices AS (
+                SELECT DISTINCT p."invoiceId" AS id FROM "Payment" p
+              ),
+              worker_invoices AS (
+                SELECT DISTINCT w.id AS worker_id, w."fullName" AS name, i.id AS invoice_id, i."grandTotal" AS grand_total
+                FROM "Invoice" i
+                JOIN "WorkerAssignment" wa ON wa."jobCardId" = i."jobCardId"
+                JOIN "Worker" w ON w.id = wa."workerId"
+                WHERE i.id IN (SELECT id FROM paid_invoices)
+              )
+              SELECT name, COALESCE(SUM(grand_total), 0)::numeric AS total, COUNT(*)::bigint AS jobs
+              FROM worker_invoices
+              GROUP BY name
+              ORDER BY total DESC
+            `,
+      );
 
       return NextResponse.json({
         success: true,
         data: {
-          byMode: payments.map((p) => ({ mode: p.paymentMode, _count: p._count, _sum: Number(p._sum.amount ?? 0) })),
-          totalRevenue: Number(total._sum.amount ?? 0),
+          byMode: payments.map((p) => ({
+            mode: p.paymentMode,
+            _count: p._count,
+            _sum: D(p._sum.amount).toFixed(2),
+          })),
+          totalRevenue: D(total._sum.amount).toFixed(2),
           daily,
-          byType: Object.entries(byType).map(([type, total]) => ({ type, total })),
-          byWorker: Object.entries(byWorker).map(([name, total]) => ({ name, total })).sort((a, b) => b.total - a.total),
-          workerJobValue: Object.entries(workerJobValue).map(([name, d]) => ({ name, total: d.total, jobs: d.jobs })).sort((a, b) => b.total - a.total),
+          byType: byTypeRows.map((r) => ({ type: r.lineType, total: D(r.total).toFixed(2) })),
+          byWorker: byWorkerRows.map((r) => ({ name: r.name, total: D(r.total).toFixed(2) })),
+          workerJobValue: workerJobRows.map((r) => ({
+            name: r.name,
+            total: D(r.total).toFixed(2),
+            jobs: Number(r.jobs),
+          })),
         },
       });
     }

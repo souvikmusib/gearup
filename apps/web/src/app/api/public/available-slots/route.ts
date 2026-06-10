@@ -17,7 +17,18 @@ export async function GET(req: NextRequest) {
     if (holidays.length) return NextResponse.json({ success: true, data: { date, slots: [], message: 'Closed \u2013 ' + holidays[0].holidayName } });
 
     const blocked = await prisma.blockedSlot.findMany({ where: { blockDate: targetDate, appliesToAll: true } });
-    const existingAppts = await prisma.appointment.count({ where: { appointmentDate: targetDate, status: { notIn: ['CANCELLED', 'NO_SHOW'] } } });
+    // Per-slot capacity: group by slotStart, not by day.
+    const dayStart = new Date(Date.UTC(year, month - 1, day, 0, 0));
+    const dayEnd = new Date(Date.UTC(year, month - 1, day + 1, 0, 0));
+    const apptRows = await prisma.appointment.groupBy({
+      by: ['slotStart'],
+      where: { slotStart: { gte: dayStart, lt: dayEnd }, status: { notIn: ['CANCELLED', 'NO_SHOW'] } },
+      _count: { _all: true },
+    });
+    const apptCountBySlot = new Map<number, number>();
+    for (const row of apptRows as Array<{ slotStart: Date; _count: { _all: number } }>) {
+      apptCountBySlot.set(new Date(row.slotStart).getTime(), row._count._all);
+    }
 
     const slots = rules.flatMap((rule: any) => {
       const result: { label: string; start: string; end: string; available: boolean }[] = [];
@@ -30,11 +41,12 @@ export async function GET(req: NextRequest) {
         const start = new Date(Date.UTC(year, month - 1, day, sH, sM));
         const end = new Date(Date.UTC(year, month - 1, day, eH, eMn));
         const isBlocked = blocked.some((b: any) => start >= new Date(b.blockStartTime) && end <= new Date(b.blockEndTime));
+        const slotCount = apptCountBySlot.get(start.getTime()) ?? 0;
         result.push({
           label: `${fmt(sH, sM)} - ${fmt(eH, eMn)}`,
           start: start.toISOString(),
           end: end.toISOString(),
-          available: !isBlocked && existingAppts < rule.maxCapacity,
+          available: !isBlocked && slotCount < rule.maxCapacity,
         });
       }
       return result;

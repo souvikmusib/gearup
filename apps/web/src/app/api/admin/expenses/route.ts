@@ -5,6 +5,7 @@ import { requirePermission } from '@/lib/auth';
 import { handleApiError } from '@/lib/errors';
 import { logActivity } from '@/lib/activity-logger';
 import { PERMISSIONS } from '@gearup/types';
+import { PaymentMode } from '@prisma/client';
 import { z } from 'zod';
 
 export async function GET(req: NextRequest) {
@@ -31,11 +32,24 @@ export async function POST(req: NextRequest) {
   try {
     const user = requirePermission(PERMISSIONS.EXPENSES_MANAGE);
     const body = z.object({
-      expenseDate: z.string(), categoryId: z.string(), title: z.string(), amount: z.number(),
-      vendorName: z.string().optional(), paymentMode: z.string().optional(), referenceNumber: z.string().optional(),
+      expenseDate: z.string(), categoryId: z.string(), title: z.string(),
+      amount: z.number().nonnegative().multipleOf(0.01).max(99999999.99),
+      vendorName: z.string().optional(), paymentMode: z.nativeEnum(PaymentMode).optional(), referenceNumber: z.string().optional(),
       notes: z.string().optional(),
     }).parse(await req.json());
-    const expense = await prisma.expense.create({ data: { ...body, expenseDate: new Date(body.expenseDate), paymentMode: body.paymentMode as any, createdByAdminId: user.sub } as any });
+    const expense = await prisma.expense.create({
+      data: {
+        expenseDate: new Date(body.expenseDate),
+        categoryId: body.categoryId,
+        title: body.title,
+        amount: body.amount,
+        vendorName: body.vendorName,
+        paymentMode: body.paymentMode,
+        referenceNumber: body.referenceNumber,
+        notes: body.notes,
+        createdByAdminId: user.sub,
+      },
+    });
     logActivity({ entityType: 'Expense', entityId: expense.id, action: 'expense.created', newValue: expense, actorType: 'ADMIN', actorId: user.sub });
     return NextResponse.json({ success: true, data: expense }, { status: 201 });
   } catch (e) { return handleApiError(e); }

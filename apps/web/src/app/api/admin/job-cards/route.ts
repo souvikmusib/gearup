@@ -43,12 +43,15 @@ export async function POST(req: NextRequest) {
   try {
     const user = requirePermission(PERMISSIONS.JOB_CARDS_CREATE);
     const body = createSchema.parse(await req.json());
-    const jc = await prisma.jobCard.create({ data: { jobCardNumber: generateJobCardNumber(), ...body, intakeDate: new Date(), estimatedDeliveryAt: body.estimatedDeliveryAt ? new Date(body.estimatedDeliveryAt) : undefined } as any });
-    if (body.serviceRequestId) await prisma.serviceRequest.update({ where: { id: body.serviceRequestId }, data: { status: 'CONVERTED_TO_JOB' } });
-    if (body.odometerAtIntake) await prisma.vehicle.update({ where: { id: body.vehicleId }, data: { odometerReading: body.odometerAtIntake } });
-    // Auto-create DRAFT invoice for this job card
-    const invData: any = { invoiceNumber: generateInvoiceNumber(), jobCard: { connect: { id: jc.id } }, customer: { connect: { id: body.customerId } }, vehicle: { connect: { id: body.vehicleId } }, createdBy: { connect: { id: user.sub } }, invoiceDate: new Date(), invoiceStatus: 'DRAFT', paymentStatus: 'UNPAID' };
-    await prisma.invoice.create({ data: invData });
+    const jc = await prisma.$transaction(async (tx) => {
+      const created = await tx.jobCard.create({ data: { jobCardNumber: generateJobCardNumber(), ...body, intakeDate: new Date(), estimatedDeliveryAt: body.estimatedDeliveryAt ? new Date(body.estimatedDeliveryAt) : undefined } as any });
+      if (body.serviceRequestId) await tx.serviceRequest.update({ where: { id: body.serviceRequestId }, data: { status: 'CONVERTED_TO_JOB' } });
+      if (body.odometerAtIntake) await tx.vehicle.update({ where: { id: body.vehicleId }, data: { odometerReading: body.odometerAtIntake } });
+      // Auto-create DRAFT invoice for this job card
+      const invData: any = { invoiceNumber: generateInvoiceNumber(), jobCard: { connect: { id: created.id } }, customer: { connect: { id: body.customerId } }, vehicle: { connect: { id: body.vehicleId } }, createdBy: { connect: { id: user.sub } }, invoiceDate: new Date(), invoiceStatus: 'DRAFT', paymentStatus: 'UNPAID' };
+      await tx.invoice.create({ data: invData });
+      return created;
+    });
     logActivity({ entityType: 'JobCard', entityId: jc.id, action: 'job-card.created', newValue: jc, actorType: 'ADMIN', actorId: user.sub });
     return NextResponse.json({ success: true, data: jc }, { status: 201 });
   } catch (e) { return handleApiError(e); }
