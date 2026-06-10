@@ -24,6 +24,7 @@ export default function InventoryItemsPage() {
   const [stockItem, setStockItem] = useState<any>(null);
   const [stockForm, setStockForm] = useState({ type: 'STOCK_IN', quantity: '', reason: '' });
   const [stockSaving, setStockSaving] = useState(false);
+  const [creating, setCreating] = useState(false);
   const timer = useRef<NodeJS.Timeout>();
 
   const loadLookups = async () => {
@@ -66,7 +67,10 @@ export default function InventoryItemsPage() {
     const body: Record<string, unknown> = { ...form, costPrice: Number(form.costPrice), mrp: form.mrp ? Number(form.mrp) : undefined, sellingPrice: Number(form.sellingPrice), quantityInStock: Number(form.quantityInStock) };
     if (form.discountPercent) body.discountPercent = Number(form.discountPercent);
     if (!body.supplierId) delete body.supplierId;
+    if (creating) return;
+    setCreating(true);
     const res = await api.post('/admin/inventory/items', body);
+    setCreating(false);
     if (res.success) { setShowCreate(false); setForm({ sku: '', itemName: '', categoryId: '', supplierId: '', unit: '', brand: '', costPrice: '', mrp: '', sellingPrice: '', discountPercent: '', quantityInStock: '', variablePrice: false, isBranded: true }); load(); }
   };
 
@@ -163,7 +167,7 @@ export default function InventoryItemsPage() {
           <input className={inputCls} placeholder="Initial Stock Quantity" type="number" required value={form.quantityInStock} onChange={(e) => setForm({ ...form, quantityInStock: e.target.value })} />
           <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.variablePrice} onChange={(e) => setForm({ ...form, variablePrice: e.target.checked })} className="rounded" /><span>Variable price (enter price at sale time)</span></label>
           <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.isBranded} onChange={(e) => setForm({ ...form, isBranded: e.target.checked })} className="rounded" /><span>Branded product</span></label>
-          <button type="submit" className="w-full rounded-lg bg-blue-600 py-2 text-sm font-medium text-white hover:bg-blue-700">Create</button>
+          <button type="submit" disabled={creating} className="w-full rounded-lg bg-blue-600 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">{creating ? 'Creating...' : 'Create'}</button>
         </form>
       </Modal>
       <Modal open={!!editItem} onClose={() => setEditItem(null)} title={`Edit: ${editItem?.sku ?? ''}`}>

@@ -124,19 +124,28 @@ export default function BookServicePage() {
     setFieldErrors((prev) => ({ ...prev, [k]: errs[k] }));
   };
 
+  const submittingRef = useRef(false);
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Guard against rapid double-clicks: setLoading is async, so without this
+    // ref two submits can fire before the disabled state is committed.
+    if (submittingRef.current) return;
     const errs = validate(form);
     setFieldErrors(errs);
     setTouched(Object.fromEntries(Object.keys(form).map((k) => [k, true])));
     if (Object.keys(errs).length > 0) return;
 
+    submittingRef.current = true;
     setError('');
     setLoading(true);
-    const res = await api.post<{ referenceId: string }>('/public/service-requests', form);
-    setLoading(false);
-    if (res.success && res.data) { setResult(res.data); setStep('success'); }
-    else setError(res.error?.message || 'Something went wrong');
+    try {
+      const res = await api.post<{ referenceId: string }>('/public/service-requests', form);
+      if (res.success && res.data) { setResult(res.data); setStep('success'); }
+      else setError(res.error?.message || 'Something went wrong');
+    } finally {
+      setLoading(false);
+      submittingRef.current = false;
+    }
   };
 
   if (step === 'success' && result) {

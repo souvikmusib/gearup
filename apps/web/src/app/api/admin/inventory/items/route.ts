@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
     requirePermission(PERMISSIONS.INVENTORY_VIEW);
     const sp = req.nextUrl.searchParams;
     const page = Number(sp.get('page')) || 1;
-    const pageSize = Number(sp.get('pageSize')) || 20;
+    const pageSize = Math.min(Number(sp.get('pageSize')) || 20, 100);
     const search = sp.get('search') || '';
     const categoryId = sp.get('categoryId') || '';
     const p = paginate({ page, pageSize });
@@ -33,8 +33,8 @@ export async function POST(req: NextRequest) {
     const body = z.object({
       sku: z.string().min(1), itemName: z.string().min(1), categoryId: z.string(), supplierId: z.string().optional(),
       brand: z.string().optional(), description: z.string().optional(), unit: z.string().min(1),
-      taxRate: z.number().optional(), costPrice: z.number().optional(), sellingPrice: z.number().optional(), discountPercent: z.number().min(0).max(100).optional(),
-      quantityInStock: z.number().optional(), reorderLevel: z.number().optional(), reorderQuantity: z.number().optional(),
+      taxRate: z.number().nonnegative().optional(), costPrice: z.number().nonnegative().optional(), sellingPrice: z.number().nonnegative().optional(), discountPercent: z.number().min(0).max(100).optional(),
+      quantityInStock: z.number().nonnegative().optional(), reorderLevel: z.number().nonnegative().optional(), reorderQuantity: z.number().nonnegative().optional(),
       storageLocation: z.string().optional(), barcode: z.string().optional(),
     }).parse(await req.json());
     const openingQty = body.quantityInStock ?? 0;

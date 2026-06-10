@@ -2,13 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { paginate, paginationMeta } from '@/lib/pagination';
 import { requirePermission } from '@/lib/auth';
-import { handleApiError } from '@/lib/errors';
+import { AppError, handleApiError } from '@/lib/errors';
 import { logActivity } from '@/lib/activity-logger';
 import { PERMISSIONS } from '@gearup/types';
 import { z } from 'zod';
 
 const vehicleSchema = z.object({
-  customerId: z.string(), vehicleType: z.enum(['CAR', 'BIKE', 'SCOOTY', 'OTHER']), registrationNumber: z.string().min(1),
+  customerId: z.string().min(1), vehicleType: z.enum(['CAR', 'BIKE', 'SCOOTY', 'OTHER']), registrationNumber: z.string().min(1),
   brand: z.string().min(1), model: z.string().min(1), variant: z.string().optional(),
   yearOfManufacture: z.number().optional(), fuelType: z.string().optional(), transmission: z.string().optional(),
   color: z.string().optional(), vin: z.string().optional(), chassisNumber: z.string().optional(),
@@ -39,6 +39,8 @@ export async function POST(req: NextRequest) {
   try {
     const user = requirePermission(PERMISSIONS.VEHICLES_EDIT);
     const body = vehicleSchema.parse(await req.json());
+    const customer = await prisma.customer.findUnique({ where: { id: body.customerId }, select: { id: true } });
+    if (!customer) throw new AppError(404, 'Customer not found', 'CUSTOMER_NOT_FOUND');
     const vehicle = await prisma.vehicle.create({ data: body as any });
     logActivity({ entityType: 'Vehicle', entityId: vehicle.id, action: 'vehicle.created', newValue: vehicle, actorType: 'ADMIN', actorId: user.sub });
     return NextResponse.json({ success: true, data: vehicle }, { status: 201 });

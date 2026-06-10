@@ -1,3 +1,21 @@
+// ── Schema policy ───────────────────────────────────────────────────────────
+// onDelete policy:
+//   - Cascade: ownership relations where the child has no meaning without the parent
+//     (e.g. AdminUserRole, RolePermission, Vehicle→Customer, WorkerLeave→Worker,
+//      WorkerAssignment, JobCardTask, JobCardPart, InvoiceLineItem, Payment).
+//   - Restrict (explicit): financial / regulatory relations where deleting the parent
+//     would orphan accounting state. All Invoice, Payment, AmcContract, and
+//     AmcServiceUsage FKs to Customer/Vehicle/JobCard/AmcPlan use Restrict so the
+//     migration generator never silently downgrades to SetNull or Cascade.
+//   - SetNull / no action: optional informational links (e.g. Appointment.confirmedBy,
+//     JobCardTask.assignedWorker, Notification.createdBy) — left implicit because the
+//     column is nullable and SetNull is Prisma's default for optional relations.
+//
+// Invoice numbering: see apps/web/src/lib/id-generators.ts. The `INV-${nanoid(8)}` scheme
+// is fine for single-garage scale but should be migrated to a yearly sequential
+// (`INV-YYYY-NNNNNN`) for GST compliance + collision safety past ~100k invoices.
+// Tracked separately; schema-level uniqueness is preserved either way.
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -334,6 +352,8 @@ model Appointment {
   @@index([vehicleId])
   @@index([appointmentDate])
   @@index([status])
+  @@index([confirmedByAdminId])
+  @@index([assignedWorkerId])
 }
 
 model AppointmentSlotRule {
@@ -479,6 +499,8 @@ model JobCard {
   @@index([customerId])
   @@index([vehicleId])
   @@index([status])
+  @@index([customerId, status])
+  @@index([vehicleId, status])
 }
 
 model WorkerAssignment {
@@ -493,6 +515,7 @@ model WorkerAssignment {
   jobCard JobCard @relation(fields: [jobCardId], references: [id], onDelete: Cascade)
   worker  Worker  @relation(fields: [workerId], references: [id], onDelete: Cascade)
 
+  @@unique([jobCardId, workerId])
   @@index([jobCardId])
   @@index([workerId])
 }
@@ -515,6 +538,7 @@ model JobCardTask {
   assignedWorker Worker? @relation(fields: [assignedWorkerId], references: [id])
 
   @@index([jobCardId])
+  @@index([assignedWorkerId])
 }
 
 model JobCardPart {
@@ -636,10 +660,10 @@ model Invoice {
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
 
-  customer  Customer          @relation(fields: [customerId], references: [id])
-  vehicle   Vehicle?          @relation(fields: [vehicleId], references: [id])
-  jobCard   JobCard?          @relation(fields: [jobCardId], references: [id])
-  createdBy AdminUser         @relation(fields: [createdByAdminId], references: [id])
+  customer  Customer          @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  vehicle   Vehicle?          @relation(fields: [vehicleId], references: [id], onDelete: Restrict)
+  jobCard   JobCard?          @relation(fields: [jobCardId], references: [id], onDelete: Restrict)
+  createdBy AdminUser         @relation(fields: [createdByAdminId], references: [id], onDelete: Restrict)
   lineItems InvoiceLineItem[]
   payments  Payment[]
 
@@ -647,6 +671,11 @@ model Invoice {
   @@index([vehicleId])
   @@index([invoiceDate])
   @@index([paymentStatus])
+  @@index([jobCardId])
+  @@index([appointmentId])
+  @@index([createdByAdminId])
+  @@index([customerId, paymentStatus])
+  @@index([invoiceDate, paymentStatus])
 }
 
 model InvoiceLineItem {
@@ -683,6 +712,7 @@ model Payment {
 
   @@index([invoiceId])
   @@index([paymentDate])
+  @@index([receivedByAdminId])
 }
 
 model ExpenseCategory {
@@ -711,6 +741,7 @@ model Expense {
 
   @@index([expenseDate])
   @@index([categoryId])
+  @@index([createdByAdminId])
 }
 
 model NotificationTemplate {
@@ -829,14 +860,15 @@ model AmcContract {
   createdAt         DateTime          @default(now())
   updatedAt         DateTime          @updatedAt
 
-  customer Customer          @relation(fields: [customerId], references: [id])
-  vehicle  Vehicle           @relation(fields: [vehicleId], references: [id])
-  plan     AmcPlan           @relation(fields: [amcPlanId], references: [id])
+  customer Customer          @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  vehicle  Vehicle           @relation(fields: [vehicleId], references: [id], onDelete: Restrict)
+  plan     AmcPlan           @relation(fields: [amcPlanId], references: [id], onDelete: Restrict)
   usages   AmcServiceUsage[]
 
   @@index([customerId])
   @@index([vehicleId])
   @@index([status])
+  @@index([amcPlanId])
 }
 
 model AmcServiceUsage {
@@ -848,8 +880,8 @@ model AmcServiceUsage {
   notes         String?
   createdAt     DateTime @default(now())
 
-  contract AmcContract @relation(fields: [amcContractId], references: [id])
-  jobCard  JobCard     @relation(fields: [jobCardId], references: [id])
+  contract AmcContract @relation(fields: [amcContractId], references: [id], onDelete: Restrict)
+  jobCard  JobCard     @relation(fields: [jobCardId], references: [id], onDelete: Restrict)
 
   @@unique([amcContractId, jobCardId])
   @@index([amcContractId])

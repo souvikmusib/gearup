@@ -5,7 +5,13 @@ import { requirePermission } from '@/lib/auth';
 import { handleApiError } from '@/lib/errors';
 import { logActivity } from '@/lib/activity-logger';
 import { PERMISSIONS } from '@gearup/types';
+import { ServiceRequestStatus } from '@prisma/client';
 import { z } from 'zod';
+
+const querySchema = z.object({
+  status: z.nativeEnum(ServiceRequestStatus).optional(),
+  search: z.string().max(64).optional(),
+});
 
 export async function GET(req: NextRequest) {
   try {
@@ -13,8 +19,14 @@ export async function GET(req: NextRequest) {
     const sp = req.nextUrl.searchParams;
     const page = Number(sp.get('page')) || 1;
     const pageSize = Number(sp.get('pageSize')) || 20;
-    const status = sp.get('status') || '';
-    const search = sp.get('search') || '';
+    const parsed = querySchema.safeParse({
+      status: sp.get('status') || undefined,
+      search: sp.get('search') || undefined,
+    });
+    if (!parsed.success) {
+      return NextResponse.json({ success: false, error: 'Invalid query parameters' }, { status: 400 });
+    }
+    const { status, search } = parsed.data;
     const p = paginate({ page, pageSize });
     const where: Record<string, unknown> = {};
     if (status) where.status = status;

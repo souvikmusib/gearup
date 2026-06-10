@@ -16,10 +16,18 @@ export async function GET(req: NextRequest) {
     const pageSize = Number(sp.get('pageSize')) || 20;
     const categoryId = sp.get('categoryId') || '';
     const search = sp.get('search') || '';
+    const from = sp.get('from') || '';
+    const to = sp.get('to') || '';
     const p = paginate({ page, pageSize });
     const where: Record<string, unknown> = {};
     if (categoryId) where.categoryId = categoryId;
     if (search) where.OR = [{ title: { contains: search, mode: 'insensitive' } }, { vendorName: { contains: search, mode: 'insensitive' } }];
+    if (from || to) {
+      const range: Record<string, Date> = {};
+      if (from) range.gte = new Date(from);
+      if (to) range.lte = new Date(to);
+      where.expenseDate = range;
+    }
     const [data, total] = await Promise.all([
       prisma.expense.findMany({ where, ...p, orderBy: { expenseDate: 'desc' }, include: { category: { select: { categoryName: true } }, createdBy: { select: { fullName: true } } } }),
       prisma.expense.count({ where }),

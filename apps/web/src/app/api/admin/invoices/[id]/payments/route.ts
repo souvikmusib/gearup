@@ -73,21 +73,48 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       // If fully paid, activate AMC contracts for any AMC line items
       if (paymentStatus === 'PAID') {
         const amcLines = await tx.invoiceLineItem.findMany({ where: { invoiceId: params.id, lineType: 'AMC', referenceItemId: { not: null } } });
-        for (const line of amcLines) {
-          const plan = await tx.amcPlan.findUnique({ where: { id: line.referenceItemId! } });
-          if (!plan) continue;
-          const startDate = new Date();
-          const endDate = new Date(); endDate.setMonth(endDate.getMonth() + plan.durationMonths);
-          const contract = await tx.amcContract.create({
-            data: {
-              contractNumber: generateAmcContractNumber(),
-              customerId: invoice.customerId, vehicleId: invoice.vehicleId, amcPlanId: plan.id,
-              startDate, endDate, totalServices: plan.totalServicesIncluded,
-              servicesUsed: 1, servicesRemaining: plan.totalServicesIncluded - 1,
-              amountPaid: line.lineTotal, paymentDate: new Date(),
-            },
-          });
-          await tx.amcServiceUsage.create({ data: { amcContractId: contract.id, jobCardId: invoice.jobCardId, serviceNumber: 1, serviceDate: new Date() } });
+        if (amcLines.length > 0) {
+          const planIds = Array.from(new Set(amcLines.map((l: any) => l.referenceItemId as string)));
+          const plans = await tx.amcPlan.findMany({ where: { id: { in: planIds } } });
+          const planById = new Map<string, any>(plans.map((p: any) => [p.id, p]));
+
+          const now = new Date();
+          const contractsData = amcLines
+            .map((line: any) => {
+              const plan = planById.get(line.referenceItemId as string);
+              if (!plan) return null;
+              const endDate = new Date(now);
+              endDate.setMonth(endDate.getMonth() + plan.durationMonths);
+              return {
+                contractNumber: generateAmcContractNumber(),
+                customerId: invoice.customerId,
+                vehicleId: invoice.vehicleId,
+                amcPlanId: plan.id,
+                startDate: now,
+                endDate,
+                totalServices: plan.totalServicesIncluded,
+                servicesUsed: 1,
+                servicesRemaining: plan.totalServicesIncluded - 1,
+                amountPaid: line.lineTotal,
+                paymentDate: now,
+              };
+            })
+            .filter((c: any): c is NonNullable<typeof c> => c !== null);
+
+          if (contractsData.length > 0) {
+            const createdContracts = await tx.amcContract.createManyAndReturn({
+              data: contractsData,
+              select: { id: true },
+            });
+            await tx.amcServiceUsage.createMany({
+              data: createdContracts.map((c: { id: string }) => ({
+                amcContractId: c.id,
+                jobCardId: invoice.jobCardId,
+                serviceNumber: 1,
+                serviceDate: now,
+              })),
+            });
+          }
         }
       }
 

@@ -16,16 +16,21 @@ const statusTone: Record<string, string> = {
   NO_SHOW: 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-200',
 };
 
+const SHOP_TZ = 'Asia/Kolkata';
+
 function dayKey(value: string) {
-  return new Date(value).toISOString().slice(0, 10);
+  // TZ-aware YYYY-MM-DD in the shop's locale so early-morning appointments don't misfile.
+  return new Date(value).toLocaleDateString('en-CA', { timeZone: SHOP_TZ });
 }
 
 function fmtDate(value: string) {
-  return new Date(value).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+  // value may be a YYYY-MM-DD day key; parse as a shop-TZ date to avoid UTC drift.
+  const d = /^\d{4}-\d{2}-\d{2}$/.test(value) ? new Date(`${value}T00:00:00+05:30`) : new Date(value);
+  return d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', timeZone: SHOP_TZ });
 }
 
 function fmtTime(value: string) {
-  return new Date(value).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+  return new Date(value).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', timeZone: SHOP_TZ });
 }
 
 export default function CalendarPage() {
@@ -45,8 +50,8 @@ export default function CalendarPage() {
     today.setHours(0, 0, 0, 0);
     const end = new Date(today);
     end.setDate(end.getDate() + 21);
-    const from = today.toISOString().slice(0, 10);
-    const to = end.toISOString().slice(0, 10);
+    const from = today.toLocaleDateString('en-CA', { timeZone: SHOP_TZ });
+    const to = end.toLocaleDateString('en-CA', { timeZone: SHOP_TZ });
     const apptReq = api.getSWR<any>(`/admin/appointments?pageSize=100&from=${from}&to=${to}`);
     const holReq = api.getSWR<any>('/admin/settings/holidays');
     const applyShop = (apptRes: any, holRes: any) => {

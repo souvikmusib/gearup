@@ -21,6 +21,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       expenseDate: z.string().optional(), categoryId: z.string().optional(), title: z.string().optional(),
       amount: z.number().optional(), vendorName: z.string().nullable().optional(),
       paymentMode: z.string().optional(), notes: z.string().nullable().optional(),
+      referenceNumber: z.string().nullable().optional(),
     }).parse(await req.json());
     const data: Record<string, unknown> = { ...body };
     if (body.expenseDate) data.expenseDate = new Date(body.expenseDate);

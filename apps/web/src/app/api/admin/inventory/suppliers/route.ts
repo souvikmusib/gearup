@@ -18,7 +18,9 @@ export async function POST(req: NextRequest) {
   try {
     const user = requirePermission(PERMISSIONS.INVENTORY_EDIT);
     const body = z.object({
-      supplierName: z.string().min(1), phone: z.string().optional(), email: z.string().optional(),
+      supplierName: z.string().min(1),
+      phone: z.string().regex(/^\+?\d[\d\s-]{7,15}$/, 'Invalid phone number').optional(),
+      email: z.string().email().optional(),
       address: z.string().optional(), contactPerson: z.string().optional(), notes: z.string().optional(),
     }).parse(await req.json());
     const sup = await prisma.supplier.create({ data: body });

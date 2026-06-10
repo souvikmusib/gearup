@@ -110,17 +110,19 @@ export async function POST(req: NextRequest) {
       // an empty / 1-char substring.
       if (needle.length < 6) throw new NotFoundError(GENERIC_MISS);
 
-      // Phone + exact normalized registration. Done in the DB so we don't pull
-      // every request for the phone into memory.
+      // Phone + registration filter pushed into the DB so we never materialize
+      // the customer's entire SR history in Node just to filter it.
       const requests = await prisma.serviceRequest.findMany({
-        where: { customer: { phoneNumber: phone } },
+        where: {
+          customer: { phoneNumber: phone },
+          vehicle: { registrationNumber: { contains: needle, mode: 'insensitive' } },
+        },
         orderBy: { createdAt: 'desc' },
+        take: 12,
         select: requestSelect,
       });
-      const matches = requests
-        .filter((sr: any) => normalizeVehicle(sr.vehicle.registrationNumber) === needle)
-        .slice(0, 12);
-      if (!matches.length) throw new NotFoundError(GENERIC_MISS);
+      if (!requests.length) throw new NotFoundError(GENERIC_MISS);
+      const matches = requests;
       return NextResponse.json({ success: true, data: { lookupType: 'vehicle', requests: matches.map(summarize) } });
     }
 

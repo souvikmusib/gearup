@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requirePermission } from '@/lib/auth';
-import { handleApiError } from '@/lib/errors';
+import { AppError, handleApiError } from '@/lib/errors';
 import { logActivity } from '@/lib/activity-logger';
 import { PERMISSIONS } from '@gearup/types';
 import { z } from 'zod';
@@ -27,6 +27,13 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     const body = updateSchema.parse(await req.json());
     const data: Record<string, unknown> = { ...body };
     if (body.dueDate) data.dueDate = new Date(body.dueDate);
+    const touchesDiscount = body.discountType !== undefined || body.discountValue !== undefined;
+    if (touchesDiscount) {
+      const existing = await prisma.invoice.findUniqueOrThrow({ where: { id: params.id }, select: { invoiceStatus: true } });
+      if (existing.invoiceStatus !== 'DRAFT') {
+        throw new AppError(409, 'Discount can only be modified on DRAFT invoices', 'INVOICE_NOT_DRAFT');
+      }
+    }
     const invoice = await prisma.invoice.update({ where: { id: params.id }, data });
     logActivity({ entityType: 'Invoice', entityId: invoice.id, action: 'invoice.updated', newValue: body, actorType: 'ADMIN', actorId: user.sub });
     return NextResponse.json({ success: true, data: invoice });

@@ -8,10 +8,17 @@ import { generateAppointmentRef } from '@/lib/id-generators';
 import { PERMISSIONS } from '@gearup/types';
 import { z } from 'zod';
 
+const isoDate = z.string().refine((v) => !Number.isNaN(new Date(v).getTime()), {
+  message: 'Invalid date string',
+});
+
 const createSchema = z.object({
   serviceRequestId: z.string().optional(), customerId: z.string(), vehicleId: z.string(),
-  appointmentDate: z.string(), slotStart: z.string(), slotEnd: z.string(),
+  appointmentDate: isoDate, slotStart: isoDate, slotEnd: isoDate,
   bookingSource: z.string().default('ADMIN'), assignedWorkerId: z.string().optional(), bayId: z.string().optional(),
+}).refine((d) => new Date(d.slotEnd).getTime() > new Date(d.slotStart).getTime(), {
+  message: 'slotEnd must be after slotStart',
+  path: ['slotEnd'],
 });
 
 function startOfDay(d: Date): Date {

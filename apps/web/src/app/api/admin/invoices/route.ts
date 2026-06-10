@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { paginate, paginationMeta } from '@/lib/pagination';
 import { requirePermission } from '@/lib/auth';
@@ -11,9 +12,9 @@ import { z } from 'zod';
 
 const lineItemSchema = z.object({
   lineType: z.enum(['PART', 'LABOR', 'CUSTOM_CHARGE', 'DISCOUNT_ADJUSTMENT']),
-  referenceItemId: z.string().optional(), description: z.string(),
-  quantity: z.number().default(1), unitPrice: z.number().default(0),
-  taxRate: z.number().default(0), sortOrder: z.number().default(0),
+  referenceItemId: z.string().optional(), description: z.string().trim().min(1),
+  quantity: z.number().positive().default(1), unitPrice: z.number().nonnegative().default(0),
+  taxRate: z.number().min(0).max(100).default(0), sortOrder: z.number().default(0),
   discountMode: z.enum(['flat', 'percent']).optional(),
 });
 const createSchema = z.object({
@@ -35,8 +36,10 @@ export async function GET(req: NextRequest) {
   try {
     requirePermission(PERMISSIONS.INVOICES_VIEW);
     const sp = req.nextUrl.searchParams;
-    const page = Number(sp.get('page')) || 1;
-    const pageSize = Number(sp.get('pageSize')) || 20;
+    const pageQuery = z.coerce.number().int().min(1).default(1);
+    const pageSizeQuery = z.coerce.number().int().min(1).max(100).default(20);
+    const page = pageQuery.parse(sp.get('page') ?? undefined);
+    const pageSize = pageSizeQuery.parse(sp.get('pageSize') ?? undefined);
     const p = paginate({ page, pageSize });
     const where: Record<string, unknown> = {};
     const ps = sp.get('paymentStatus'); if (ps) where.paymentStatus = ps;
@@ -63,7 +66,7 @@ export async function POST(req: NextRequest) {
     // any conflict surfaces as P2002 and is handled below.
     let invoice;
     try {
-      invoice = await prisma.$transaction(async (tx: any) => {
+      invoice = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
         let subtotal = 0, taxTotal = 0;
         // Canonical percent-discount base: sum of (qty*price) across non-discount lines.
         const preSubtotal = nonDiscountPreSubtotal(body.lineItems);
@@ -77,7 +80,7 @@ export async function POST(req: NextRequest) {
         const discountAmount = body.discountType === 'PERCENTAGE' ? subtotal * ((body.discountValue ?? 0) / 100) : (body.discountValue ?? 0);
         const grandTotal = Math.round(subtotal + taxTotal - discountAmount);
         return tx.invoice.create({
-          data: { invoiceNumber: generateInvoiceNumber(), customerId: body.customerId, vehicleId: body.vehicleId, jobCardId: body.jobCardId, appointmentId: body.appointmentId, invoiceDate: new Date(body.invoiceDate), dueDate: body.dueDate ? new Date(body.dueDate) : undefined, subtotal, taxTotal, discountType: body.discountType, discountValue: body.discountValue, discountAmount, grandTotal, amountDue: grandTotal, notes: body.notes, createdByAdminId: user.sub, lineItems: { create: lines } } as any,
+          data: { invoiceNumber: generateInvoiceNumber(), customerId: body.customerId, vehicleId: body.vehicleId, jobCardId: body.jobCardId, appointmentId: body.appointmentId, invoiceDate: new Date(body.invoiceDate), dueDate: body.dueDate ? new Date(body.dueDate) : undefined, subtotal, taxTotal, discountType: body.discountType, discountValue: body.discountValue, discountAmount, grandTotal, amountDue: grandTotal, notes: body.notes, createdByAdminId: user.sub, lineItems: { create: lines } },
           include: { lineItems: true },
         });
       });

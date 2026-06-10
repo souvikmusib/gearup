@@ -30,8 +30,9 @@ export default function WorkerCalendarPage() {
 
   const byWorker = useMemo(() => {
     return appointments.reduce<Record<string, any[]>>((acc, appointment) => {
-      if (!appointment.assignedWorkerId) return acc;
-      acc[appointment.assignedWorkerId] = [...(acc[appointment.assignedWorkerId] ?? []), appointment];
+      const workerId = appointment.assignedWorkerId ?? appointment.worker?.id ?? null;
+      if (!workerId) return acc;
+      acc[workerId] = [...(acc[workerId] ?? []), appointment];
       return acc;
     }, {});
   }, [appointments]);

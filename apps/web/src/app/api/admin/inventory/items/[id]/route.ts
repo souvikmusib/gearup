@@ -20,11 +20,11 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     const body = z.object({
       itemName: z.string().min(1).optional(), categoryId: z.string().optional(), supplierId: z.string().nullable().optional(),
       brand: z.string().nullable().optional(), description: z.string().nullable().optional(), unit: z.string().min(1).optional(),
-      taxRate: z.number().optional(), costPrice: z.number().optional(), sellingPrice: z.number().optional(), discountPercent: z.number().min(0).max(100).nullable().optional(),
-      reorderLevel: z.number().nullable().optional(), reorderQuantity: z.number().nullable().optional(),
+      taxRate: z.number().nonnegative().optional(), costPrice: z.number().nonnegative().optional(), sellingPrice: z.number().nonnegative().optional(), discountPercent: z.number().min(0).max(100).nullable().optional(),
+      reorderLevel: z.number().nonnegative().nullable().optional(), reorderQuantity: z.number().nonnegative().nullable().optional(),
       storageLocation: z.string().nullable().optional(), barcode: z.string().nullable().optional(), isActive: z.boolean().optional(),
     }).parse(await req.json());
-    const item = await prisma.inventoryItem.update({ where: { id: params.id }, data: body as any });
+    const item = await prisma.inventoryItem.update({ where: { id: params.id }, data: body });
     logActivity({ entityType: 'InventoryItem', entityId: item.id, action: 'inventory.item.updated', newValue: body, actorType: 'ADMIN', actorId: user.sub });
     return NextResponse.json({ success: true, data: item });
   } catch (e) { return handleApiError(e); }
@@ -34,9 +34,19 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
   try {
     const user = requirePermission(PERMISSIONS.INVENTORY_EDIT);
     await prisma.$transaction(async (tx) => {
+      const existing = await tx.inventoryItem.findUniqueOrThrow({ where: { id: params.id }, select: { reservedQuantity: true } });
+      if (Number(existing.reservedQuantity) > 0) {
+        throw new AppError(409, `Cannot delete — item has ${existing.reservedQuantity} unit(s) reserved`, 'CONFLICT');
+      }
       const usedInJobCards = await tx.jobCardPart.count({ where: { inventoryItemId: params.id } });
       if (usedInJobCards > 0) {
-        throw new AppError( 409, `Cannot delete — item is used in ${usedInJobCards} job card(s)`,'CONFLICT');
+        throw new AppError(409, `Cannot delete — item is used in ${usedInJobCards} job card(s). Deactivate instead.`, 'CONFLICT');
+      }
+      const movementCount = await tx.stockMovement.count({ where: { inventoryItemId: params.id } });
+      if (movementCount > 0) {
+        // Soft-delete: item has historical stock movements; preserve audit trail.
+        await tx.inventoryItem.update({ where: { id: params.id }, data: { isActive: false } });
+        return;
       }
       await tx.stockMovement.deleteMany({ where: { inventoryItemId: params.id } });
       await tx.inventoryItem.delete({ where: { id: params.id } });

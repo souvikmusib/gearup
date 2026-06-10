@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { api } from '@/lib/api/client';
 import { ProcessLoader } from '@/components/shared/process-loader';
 import { PageHeader, DataTable } from '@gearup/ui';
@@ -21,6 +21,7 @@ export default function ExpensesPage() {
   const [editItem, setEditItem] = useState<any>(null);
   const [editForm, setEditForm] = useState({ expenseDate: '', categoryId: '', title: '', amount: '', vendorName: '', paymentMode: 'CASH', notes: '' });
   const [editSaving, setEditSaving] = useState(false);
+  const [editError, setEditError] = useState('');
 
   const load = (s = search, cat = catFilter, pg = page) => {
     const p = new URLSearchParams();
@@ -45,6 +46,14 @@ export default function ExpensesPage() {
     if (cached?.success) setCategories(cached.data ?? []);
     promise.then((r) => { if (r.success) setCategories(r.data ?? []); });
   }, [page]);
+
+  const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const onSearchChange = (v: string) => {
+    setSearch(v);
+    if (searchTimer.current) clearTimeout(searchTimer.current);
+    searchTimer.current = setTimeout(() => load(v, catFilter), 300);
+  };
+  useEffect(() => () => { if (searchTimer.current) clearTimeout(searchTimer.current); }, []);
 
   const openCreate = async () => {
     setShowCreate(true); setError('');
@@ -71,6 +80,7 @@ export default function ExpensesPage() {
 
   const openEdit = (item: any) => {
     setEditItem(item);
+    setEditError('');
     setEditForm({
       expenseDate: item.expenseDate ? new Date(item.expenseDate).toISOString().split('T')[0] : '',
       categoryId: item.categoryId || '', title: item.title || '', amount: String(Number(item.amount) || ''),
@@ -88,10 +98,14 @@ export default function ExpensesPage() {
 
   const saveEdit = async () => {
     if (!editItem) return;
-    setEditSaving(true);
-    const res = await api.patch(`/admin/expenses/${editItem.id}`, { ...editForm, amount: Number(editForm.amount) });
+    if (!editForm.expenseDate || !editForm.categoryId || !editForm.title || !editForm.amount) { setEditError('Fill required fields'); return; }
+    const amt = Number(editForm.amount);
+    if (!Number.isFinite(amt) || amt <= 0) { setEditError('Amount must be greater than 0'); return; }
+    setEditSaving(true); setEditError('');
+    const res = await api.patch<any>(`/admin/expenses/${editItem.id}`, { ...editForm, amount: amt });
     setEditSaving(false);
     if (res.success) { setEditItem(null); load(); }
+    else setEditError(res.error?.message || 'Failed to save');
   };
 
   const inputCls = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white';
@@ -107,7 +121,7 @@ export default function ExpensesPage() {
         </div>
       </div>
       <div className="flex gap-2 mb-4">
-        <input className={inputCls + ' max-w-xs'} placeholder="Search expenses..." value={search} onChange={(e) => { setSearch(e.target.value); load(e.target.value, catFilter); }} />
+        <input className={inputCls + ' max-w-xs'} placeholder="Search expenses..." value={search} onChange={(e) => onSearchChange(e.target.value)} />
         <select className={inputCls + ' w-48'} value={catFilter} onChange={(e) => { setCatFilter(e.target.value); load(search, e.target.value); }}>
           <option value="">All Categories</option>
           {categories.map((c: any) => <option key={c.id} value={c.id}>{c.categoryName}</option>)}
@@ -152,12 +166,13 @@ export default function ExpensesPage() {
       </Modal>
       <Modal open={!!editItem} onClose={() => setEditItem(null)} title="Edit Expense">
         <div className="space-y-3">
+          {editError && <p className="text-sm text-red-600">{editError}</p>}
           <div className="grid grid-cols-2 gap-3">
-            <div><label className="block text-xs font-medium mb-1">Date</label><input type="date" className={inputCls} value={editForm.expenseDate} onChange={(e) => setEditForm({ ...editForm, expenseDate: e.target.value })} /></div>
-            <div><label className="block text-xs font-medium mb-1">Amount</label><input type="number" className={inputCls} value={editForm.amount} onChange={(e) => setEditForm({ ...editForm, amount: e.target.value })} /></div>
+            <div><label className="block text-xs font-medium mb-1">Date <span className="text-red-500">*</span></label><input type="date" className={inputCls} value={editForm.expenseDate} onChange={(e) => setEditForm({ ...editForm, expenseDate: e.target.value })} /></div>
+            <div><label className="block text-xs font-medium mb-1">Amount <span className="text-red-500">*</span></label><input type="number" min="0.01" step="0.01" className={inputCls} value={editForm.amount} onChange={(e) => setEditForm({ ...editForm, amount: e.target.value })} /></div>
           </div>
-          <div><label className="block text-xs font-medium mb-1">Title</label><input className={inputCls} value={editForm.title} onChange={(e) => setEditForm({ ...editForm, title: e.target.value })} /></div>
-          <div><label className="block text-xs font-medium mb-1">Category</label>
+          <div><label className="block text-xs font-medium mb-1">Title <span className="text-red-500">*</span></label><input className={inputCls} value={editForm.title} onChange={(e) => setEditForm({ ...editForm, title: e.target.value })} /></div>
+          <div><label className="block text-xs font-medium mb-1">Category <span className="text-red-500">*</span></label>
             <select className={inputCls} value={editForm.categoryId} onChange={(e) => setEditForm({ ...editForm, categoryId: e.target.value })}>
               <option value="">Select...</option>
               {categories.map((c: any) => <option key={c.id} value={c.id}>{c.categoryName}</option>)}

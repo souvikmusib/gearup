@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requirePermission } from '@/lib/auth';
-import { handleApiError } from '@/lib/errors';
+import { handleApiError, AppError } from '@/lib/errors';
 import { logActivity } from '@/lib/activity-logger';
 import { PERMISSIONS } from '@gearup/types';
 import { z } from 'zod';
@@ -19,7 +19,13 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const user = requirePermission(PERMISSIONS.INVENTORY_EDIT);
-    await prisma.inventoryCategory.delete({ where: { id: params.id } });
+    await prisma.$transaction(async (tx) => {
+      const usedByItems = await tx.inventoryItem.count({ where: { categoryId: params.id } });
+      if (usedByItems > 0) {
+        throw new AppError(409, `Cannot delete — category in use by ${usedByItems} item(s)`, 'CONFLICT');
+      }
+      await tx.inventoryCategory.delete({ where: { id: params.id } });
+    });
     logActivity({ entityType: 'InventoryCategory', entityId: params.id, action: 'inventory.category.deleted', actorType: 'ADMIN', actorId: user.sub });
     return NextResponse.json({ success: true });
   } catch (e) { return handleApiError(e); }

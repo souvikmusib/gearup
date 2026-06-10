@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
     const where: Record<string, unknown> = {};
     const entityType = sp.get('entityType'); if (entityType) where.entityType = entityType;
     const actorType = sp.get('actorType'); if (actorType) where.actorType = actorType;
-    const action = sp.get('action'); if (action && action.length >= 2) where.action = { contains: action };
+    const action = sp.get('action'); if (action && action.length >= 2 && action.length <= 64) where.action = { contains: action };
     const from = sp.get('from'); const to = sp.get('to');
     if (from || to) {
       const createdAt: Record<string, Date> = {};

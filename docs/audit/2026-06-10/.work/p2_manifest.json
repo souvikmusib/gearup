@@ -1,0 +1,337 @@
+[
+  {
+    "file": "apps/web/src/app/api/admin/settings/admins/route.ts",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__app__api__admin__settings__admins__route.ts.md",
+    "n": 5
+  },
+  {
+    "file": "apps/web/src/app/api/admin/auth/login/route.ts",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__app__api__admin__auth__login__route.ts.md",
+    "n": 2
+  },
+  {
+    "file": "apps/web/src/lib/auth.ts",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__lib__auth.ts.md",
+    "n": 3
+  },
+  {
+    "file": "apps/web/src/lib/activity-logger.ts",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__lib__activity-logger.ts.md",
+    "n": 4
+  },
+  {
+    "file": "apps/web/src/middleware.ts",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__middleware.ts.md",
+    "n": 2
+  },
+  {
+    "file": "apps/web/src/lib/auth/auth-context.tsx",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__lib__auth__auth-context.tsx.md",
+    "n": 1
+  },
+  {
+    "file": "apps/web/src/app/api/admin/auth/change-password/route.ts",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__app__api__admin__auth__change-password__route.ts.md",
+    "n": 1
+  },
+  {
+    "file": "apps/web/src/app/api/admin/amc/contracts/route.ts",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__app__api__admin__amc__contracts__route.ts.md",
+    "n": 2
+  },
+  {
+    "file": "apps/web/src/app/api/admin/amc/contracts/[id]/route.ts",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__app__api__admin__amc__contracts___id___route.ts.md",
+    "n": 2
+  },
+  {
+    "file": "apps/web/src/app/api/admin/customers/route.ts",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__app__api__admin__customers__route.ts.md",
+    "n": 1
+  },
+  {
+    "file": "apps/web/src/app/api/admin/vehicles/route.ts",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__app__api__admin__vehicles__route.ts.md",
+    "n": 1
+  },
+  {
+    "file": "apps/web/src/app/api/admin/vehicles/[id]/route.ts",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__app__api__admin__vehicles___id___route.ts.md",
+    "n": 1
+  },
+  {
+    "file": "apps/web/src/app/admin/amc/contracts/[id]/page.tsx",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__app__admin__amc__contracts___id___page.tsx.md",
+    "n": 1
+  },
+  {
+    "file": "apps/web/src/app/api/admin/amc/contracts/[id]/usages/[usageId]/route.ts",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__app__api__admin__amc__contracts___id___usages___usageId___route.ts.md",
+    "n": 1
+  },
+  {
+    "file": "apps/web/src/app/api/admin/job-cards/route.ts",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__app__api__admin__job-cards__route.ts.md",
+    "n": 3
+  },
+  {
+    "file": "apps/web/src/app/api/admin/appointments/[id]/route.ts",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__app__api__admin__appointments___id___route.ts.md",
+    "n": 2
+  },
+  {
+    "file": "apps/web/src/app/api/admin/appointments/route.ts",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__app__api__admin__appointments__route.ts.md",
+    "n": 1
+  },
+  {
+    "file": "apps/web/src/app/api/admin/workers/[id]/leave/route.ts",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__app__api__admin__workers___id___leave__route.ts.md",
+    "n": 1
+  },
+  {
+    "file": "apps/web/src/app/api/admin/workers/calendar/route.ts",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__app__api__admin__workers__calendar__route.ts.md",
+    "n": 1
+  },
+  {
+    "file": "apps/web/src/app/api/admin/job-cards/[id]/tasks/route.ts",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__app__api__admin__job-cards___id___tasks__route.ts.md",
+    "n": 1
+  },
+  {
+    "file": "apps/web/src/app/api/admin/job-cards/[id]/workers/route.ts",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__app__api__admin__job-cards___id___workers__route.ts.md",
+    "n": 1
+  },
+  {
+    "file": "apps/web/src/app/admin/job-cards/[id]/page.tsx",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__app__admin__job-cards___id___page.tsx.md",
+    "n": 1
+  },
+  {
+    "file": "apps/web/src/app/api/admin/job-cards/[id]/route.ts",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__app__api__admin__job-cards___id___route.ts.md",
+    "n": 1
+  },
+  {
+    "file": "apps/web/src/app/api/admin/inventory/items/[id]/stock/route.ts",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__app__api__admin__inventory__items___id___stock__route.ts.md",
+    "n": 1
+  },
+  {
+    "file": "apps/web/src/app/api/admin/inventory/items/route.ts",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__app__api__admin__inventory__items__route.ts.md",
+    "n": 3
+  },
+  {
+    "file": "apps/web/src/app/api/admin/inventory/suppliers/route.ts",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__app__api__admin__inventory__suppliers__route.ts.md",
+    "n": 1
+  },
+  {
+    "file": "apps/web/src/app/api/admin/inventory/low-stock/route.ts",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__app__api__admin__inventory__low-stock__route.ts.md",
+    "n": 1
+  },
+  {
+    "file": "apps/web/src/app/admin/inventory/items/page.tsx",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__app__admin__inventory__items__page.tsx.md",
+    "n": 1
+  },
+  {
+    "file": "apps/web/src/lib/sentry/",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__lib__sentry__.md",
+    "n": 1
+  },
+  {
+    "file": "apps/web/src/app/api/admin/inventory/categories/[id]/route.ts",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__app__api__admin__inventory__categories___id___route.ts.md",
+    "n": 1
+  },
+  {
+    "file": "apps/web/src/app/api/admin/inventory/items/[id]/route.ts",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__app__api__admin__inventory__items___id___route.ts.md",
+    "n": 1
+  },
+  {
+    "file": "apps/web/src/app/admin/inventory/movements/page.tsx",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__app__admin__inventory__movements__page.tsx.md",
+    "n": 1
+  },
+  {
+    "file": "apps/web/src/app/api/admin/invoices/[id]/line-items/route.ts",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__app__api__admin__invoices___id___line-items__route.ts.md",
+    "n": 3
+  },
+  {
+    "file": "apps/web/src/app/api/admin/invoices/route.ts",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__app__api__admin__invoices__route.ts.md",
+    "n": 3
+  },
+  {
+    "file": "apps/web/src/app/api/admin/invoices/[id]/payments/route.ts",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__app__api__admin__invoices___id___payments__route.ts.md",
+    "n": 1
+  },
+  {
+    "file": "apps/web/src/app/api/admin/invoices/[id]/route.ts",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__app__api__admin__invoices___id___route.ts.md",
+    "n": 1
+  },
+  {
+    "file": "apps/web/src/app/api/admin/expenses/[id]/route.ts",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__app__api__admin__expenses___id___route.ts.md",
+    "n": 1
+  },
+  {
+    "file": "apps/web/src/app/api/admin/expenses/route.ts",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__app__api__admin__expenses__route.ts.md",
+    "n": 1
+  },
+  {
+    "file": "apps/web/src/app/api/admin/reports/route.ts",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__app__api__admin__reports__route.ts.md",
+    "n": 2
+  },
+  {
+    "file": "apps/web/src/app/api/admin/reports/inventory/route.ts",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__app__api__admin__reports__inventory__route.ts.md",
+    "n": 1
+  },
+  {
+    "file": "apps/web/src/app/admin/expenses/page.tsx",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__app__admin__expenses__page.tsx.md",
+    "n": 2
+  },
+  {
+    "file": "apps/web/src/app/admin/reports/revenue/page.tsx",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__app__admin__reports__revenue__page.tsx.md",
+    "n": 1
+  },
+  {
+    "file": "apps/web/src/app/api/admin/settings/holidays/route.ts",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__app__api__admin__settings__holidays__route.ts.md",
+    "n": 2
+  },
+  {
+    "file": "apps/web/src/app/admin/settings/holidays/page.tsx",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__app__admin__settings__holidays__page.tsx.md",
+    "n": 1
+  },
+  {
+    "file": "apps/web/src/app/api/admin/notifications/route.ts",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__app__api__admin__notifications__route.ts.md",
+    "n": 1
+  },
+  {
+    "file": "apps/web/src/app/api/admin/service-requests/route.ts",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__app__api__admin__service-requests__route.ts.md",
+    "n": 1
+  },
+  {
+    "file": "apps/web/src/app/admin/service-requests/page.tsx",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__app__admin__service-requests__page.tsx.md",
+    "n": 1
+  },
+  {
+    "file": "apps/web/src/app/admin/service-requests/[id]/page.tsx",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__app__admin__service-requests___id___page.tsx.md",
+    "n": 1
+  },
+  {
+    "file": "apps/web/src/app/api/admin/logs/route.ts",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__app__api__admin__logs__route.ts.md",
+    "n": 1
+  },
+  {
+    "file": "apps/web/src/app/api/admin/settings/route.ts",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__app__api__admin__settings__route.ts.md",
+    "n": 2
+  },
+  {
+    "file": "apps/web/src/app/api/public/available-slots/route.ts",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__app__api__public__available-slots__route.ts.md",
+    "n": 2
+  },
+  {
+    "file": "apps/web/src/app/api/public/service-requests/route.ts",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__app__api__public__service-requests__route.ts.md",
+    "n": 2
+  },
+  {
+    "file": "apps/web/src/app/api/public/*",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__app__api__public__*.md",
+    "n": 1
+  },
+  {
+    "file": "apps/web/src/app/(public)/book-service/page.tsx",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__app__(public)__book-service__page.tsx.md",
+    "n": 1
+  },
+  {
+    "file": "apps/web/src/lib/id-generators.ts",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__lib__id-generators.ts.md",
+    "n": 2
+  },
+  {
+    "file": "apps/web/src/app/api/public/track/route.ts",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__app__api__public__track__route.ts.md",
+    "n": 1
+  },
+  {
+    "file": "apps/web/src/app/admin/dashboard/page.tsx",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__app__admin__dashboard__page.tsx.md",
+    "n": 3
+  },
+  {
+    "file": "apps/web/src/lib/api/client.ts",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__lib__api__client.ts.md",
+    "n": 2
+  },
+  {
+    "file": "apps/web/src/components/layout/admin-sidebar.tsx",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__components__layout__admin-sidebar.tsx.md",
+    "n": 1
+  },
+  {
+    "file": "apps/web/src/app/admin/calendar/page.tsx",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__app__admin__calendar__page.tsx.md",
+    "n": 2
+  },
+  {
+    "file": "apps/web/src/app/admin/workers/calendar/page.tsx",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__app__admin__workers__calendar__page.tsx.md",
+    "n": 1
+  },
+  {
+    "file": "apps/web/prisma/schema.prisma",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__prisma__schema.prisma.md",
+    "n": 4
+  },
+  {
+    "file": "apps/web/src/lib/prisma.ts",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__lib__prisma.ts.md",
+    "n": 1
+  },
+  {
+    "file": "apps/web/src/lib/errors.ts",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__lib__errors.ts.md",
+    "n": 1
+  },
+  {
+    "file": "apps/web/src/lib/pagination.ts",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__src__lib__pagination.ts.md",
+    "n": 1
+  },
+  {
+    "file": "turbo.json",
+    "prompt": "docs/audit/2026-06-10/.work/p2/turbo.json.md",
+    "n": 1
+  },
+  {
+    "file": "apps/web/scripts/with-root-env.mjs",
+    "prompt": "docs/audit/2026-06-10/.work/p2/apps__web__scripts__with-root-env.mjs.md",
+    "n": 1
+  }
+]

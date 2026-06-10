@@ -9,7 +9,7 @@ export async function GET() {
     requirePermission(PERMISSIONS.REPORTS_VIEW);
     const [totalItems, lowStock, totalValue, categories] = await Promise.all([
       prisma.inventoryItem.count({ where: { isActive: true } }),
-      prisma.$queryRawUnsafe<[{count: bigint}]>('SELECT COUNT(*) as count FROM "InventoryItem" WHERE "isActive" = true AND "reorderLevel" IS NOT NULL AND "quantityInStock" <= "reorderLevel"').then((r) => Number(r[0]?.count ?? 0)),
+      prisma.$queryRaw<[{count: bigint}]>`SELECT COUNT(*) as count FROM "InventoryItem" WHERE "isActive" = true AND "reorderLevel" IS NOT NULL AND "quantityInStock" <= "reorderLevel"`.then((r) => Number(r[0]?.count ?? 0)),
       prisma.inventoryItem.aggregate({ where: { isActive: true }, _sum: { quantityInStock: true } }),
       prisma.inventoryCategory.findMany({ select: { categoryName: true, _count: { select: { items: true } } }, orderBy: { categoryName: 'asc' } }),
     ]);

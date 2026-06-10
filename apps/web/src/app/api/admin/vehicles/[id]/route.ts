@@ -9,7 +9,67 @@ import { z } from 'zod';
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
   try {
     requirePermission(PERMISSIONS.VEHICLES_VIEW);
-    const vehicle = await prisma.vehicle.findUniqueOrThrow({ where: { id: params.id }, include: { customer: true, serviceRequests: { orderBy: { createdAt: 'desc' }, take: 10 }, jobCards: { orderBy: { createdAt: 'desc' }, take: 20, include: { parts: { include: { inventoryItem: { select: { itemName: true } } } }, assignments: { include: { worker: { select: { fullName: true } } } }, invoices: { select: { id: true, invoiceNumber: true, grandTotal: true, paymentStatus: true } } } }, invoices: { orderBy: { createdAt: 'desc' }, take: 10, select: { id: true, invoiceNumber: true, invoiceStatus: true, paymentStatus: true, grandTotal: true, createdAt: true } } } });
+    const vehicle = await prisma.vehicle.findUniqueOrThrow({
+      where: { id: params.id },
+      select: {
+        id: true,
+        customerId: true,
+        vehicleType: true,
+        registrationNumber: true,
+        brand: true,
+        model: true,
+        variant: true,
+        yearOfManufacture: true,
+        fuelType: true,
+        engineCC: true,
+        odometerReading: true,
+        notes: true,
+        createdAt: true,
+        updatedAt: true,
+        customer: {
+          select: { id: true, fullName: true, phoneNumber: true, email: true },
+        },
+        serviceRequests: {
+          orderBy: { createdAt: 'desc' },
+          take: 10,
+          select: { id: true, referenceId: true, status: true, createdAt: true, issueDescription: true },
+        },
+        jobCards: {
+          orderBy: { createdAt: 'desc' },
+          take: 20,
+          select: {
+            id: true,
+            jobCardNumber: true,
+            status: true,
+            intakeDate: true,
+            odometerAtIntake: true,
+            actualDeliveryAt: true,
+            issueSummary: true,
+            finalTotal: true,
+            parts: {
+              select: {
+                id: true,
+                requiredQty: true,
+                unitPrice: true,
+                inventoryItem: { select: { itemName: true } },
+              },
+            },
+            assignments: {
+              select: {
+                id: true,
+                worker: { select: { fullName: true } },
+              },
+            },
+            invoices: { select: { id: true, invoiceNumber: true, grandTotal: true, paymentStatus: true } },
+          },
+        },
+        invoices: {
+          orderBy: { createdAt: 'desc' },
+          take: 10,
+          select: { id: true, invoiceNumber: true, invoiceStatus: true, paymentStatus: true, grandTotal: true, createdAt: true },
+        },
+      },
+    });
     return NextResponse.json({ success: true, data: vehicle });
   } catch (e) { return handleApiError(e); }
 }

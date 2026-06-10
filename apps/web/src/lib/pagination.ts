@@ -1,5 +1,10 @@
-export function paginate({ page = 1, pageSize = 20 }: { page?: number; pageSize?: number }) {
-  const take = Math.min(Math.max(pageSize, 1), 500);
+import { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE } from './constants';
+
+export function paginate(
+  { page = 1, pageSize = DEFAULT_PAGE_SIZE }: { page?: number; pageSize?: number },
+  { maxPageSize = MAX_PAGE_SIZE }: { maxPageSize?: number } = {},
+) {
+  const take = Math.min(Math.max(pageSize, 1), maxPageSize);
   const skip = (Math.max(page, 1) - 1) * take;
   return { skip, take };
 }

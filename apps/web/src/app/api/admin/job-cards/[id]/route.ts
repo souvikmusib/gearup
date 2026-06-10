@@ -8,8 +8,15 @@ import { z } from 'zod';
 
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    requireAnyPermission(PERMISSIONS.JOB_CARDS_CREATE, PERMISSIONS.JOB_CARDS_VIEW_OWN);
-    const jc = await prisma.jobCard.findUniqueOrThrow({ where: { id: params.id }, include: { customer: true, vehicle: true, appointment: true, serviceRequest: true, assignments: { include: { worker: true } }, tasks: { orderBy: { sortOrder: 'asc' } }, parts: { include: { inventoryItem: true } }, invoices: { include: { lineItems: { orderBy: { sortOrder: 'asc' } } } } } });
+    const user = requireAnyPermission(PERMISSIONS.JOB_CARDS_CREATE, PERMISSIONS.JOB_CARDS_VIEW_OWN);
+    // Tenant/scope guard: callers who only hold JOB_CARDS_VIEW_OWN (no broad
+    // JOB_CARDS_CREATE) must be the assigned service manager on this job card.
+    // Without this clause VIEW_OWN degenerates to "view any" given the id.
+    const hasBroad = user.permissions.includes(PERMISSIONS.JOB_CARDS_CREATE);
+    const where = hasBroad
+      ? { id: params.id }
+      : { id: params.id, assignedServiceManagerId: user.sub };
+    const jc = await prisma.jobCard.findFirstOrThrow({ where, include: { customer: true, vehicle: true, appointment: true, serviceRequest: true, assignments: { include: { worker: true } }, tasks: { orderBy: { sortOrder: 'asc' } }, parts: { include: { inventoryItem: true } }, invoices: { include: { lineItems: { orderBy: { sortOrder: 'asc' } } } } } });
     return NextResponse.json({ success: true, data: jc });
   } catch (e) { return handleApiError(e); }
 }

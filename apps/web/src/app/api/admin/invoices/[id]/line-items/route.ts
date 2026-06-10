@@ -17,19 +17,26 @@ async function ensureDraftTx(tx: Tx, invoiceId: string) {
 
 async function recalcTotalsTx(tx: Tx, invoiceId: string, inv?: { discountAmount: unknown; amountPaid: unknown }) {
   const lines = await tx.invoiceLineItem.findMany({ where: { invoiceId } });
-  const subtotal = lines.reduce((s, l) => s + Number(l.lineTotal) - Number(l.taxAmount), 0);
-  const taxTotal = lines.reduce((s, l) => s + Number(l.taxAmount), 0);
-  let discountAmount: number;
+  // Split discount lines from regular lines so we don't double-count discounts:
+  // subtotal = sum of non-discount line subtotals (lineTotal - taxAmount)
+  // discountFromLines = sum of negative discount line totals (already negative)
+  // grandTotal = subtotal + taxTotal + discountFromLines - headerDiscountAmount
+  const nonDiscountLines = lines.filter((l) => l.lineType !== 'DISCOUNT_ADJUSTMENT');
+  const discountLines = lines.filter((l) => l.lineType === 'DISCOUNT_ADJUSTMENT');
+  const subtotal = nonDiscountLines.reduce((s, l) => s + Number(l.lineTotal) - Number(l.taxAmount), 0);
+  const taxTotal = nonDiscountLines.reduce((s, l) => s + Number(l.taxAmount), 0);
+  const discountFromLines = discountLines.reduce((s, l) => s + Number(l.lineTotal), 0);
+  let headerDiscountAmount: number;
   let amountPaid: number;
   if (inv) {
-    discountAmount = Number(inv.discountAmount);
+    headerDiscountAmount = Number(inv.discountAmount);
     amountPaid = Number(inv.amountPaid);
   } else {
     const cur = await tx.invoice.findUniqueOrThrow({ where: { id: invoiceId }, select: { discountAmount: true, amountPaid: true } });
-    discountAmount = Number(cur.discountAmount);
+    headerDiscountAmount = Number(cur.discountAmount);
     amountPaid = Number(cur.amountPaid);
   }
-  const grandTotal = Math.round(subtotal + taxTotal - discountAmount);
+  const grandTotal = Math.round(subtotal + taxTotal + discountFromLines - headerDiscountAmount);
   await tx.invoice.update({ where: { id: invoiceId }, data: { subtotal, taxTotal, grandTotal, amountDue: grandTotal - amountPaid } });
 }
 
@@ -185,7 +192,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     const item = await prisma.$transaction(async (tx) => {
       await ensureDraftTx(tx, params.id);
       const { lineItemId, ...data } = body;
-      const existing = await tx.invoiceLineItem.findUniqueOrThrow({ where: { id: lineItemId, invoiceId: params.id } });
+      const existing = await tx.invoiceLineItem.findFirstOrThrow({ where: { id: lineItemId, invoiceId: params.id } });
       const qty = data.quantity ?? Number(existing.quantity);
       const price = data.unitPrice ?? Number(existing.unitPrice);
       const discount = data.discountPercent ?? Number(existing.discountPercent);
@@ -211,10 +218,18 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
 
     await prisma.$transaction(async (tx) => {
       await ensureDraftTx(tx, params.id);
-      const lineItem = await tx.invoiceLineItem.findUniqueOrThrow({ where: { id: lineItemId, invoiceId: params.id } });
+      const lineItem = await tx.invoiceLineItem.findFirstOrThrow({ where: { id: lineItemId, invoiceId: params.id } });
 
       // If PART with referenceItemId, restore stock + ledger entry.
+      // NOTE: referenceItemId is overloaded — for PART lines it points at InventoryItem,
+      // for AMC lines it points at AmcPlan/AmcContract. Defensively verify the FK resolves
+      // to an InventoryItem before touching stock so a misclassified line can never
+      // increment some unrelated record's stock.
       if (lineItem.lineType === 'PART' && lineItem.referenceItemId) {
+        const invItem = await tx.inventoryItem.findUnique({ where: { id: lineItem.referenceItemId } });
+        if (!invItem) {
+          throw new ValidationError('PART line item references a non-existent inventory item');
+        }
         const qty = Number(lineItem.quantity);
         await tx.inventoryItem.update({
           where: { id: lineItem.referenceItemId },

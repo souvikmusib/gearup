@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { prisma } from '@/lib/prisma';
-import { handleApiError, UnauthorizedError } from '@/lib/errors';
+import { handleApiError, UnauthorizedError, AppError } from '@/lib/errors';
 import { MAX_LOGIN_ATTEMPTS, LOCKOUT_DURATION_MINUTES, JWT_EXPIRY } from '@/lib/constants';
 import { logActivity } from '@/lib/activity-logger';
 import { ROLE_PERMISSIONS, type RoleKey } from '@gearup/types';
@@ -55,8 +55,10 @@ export async function POST(req: NextRequest) {
       maxAge: expiryMs,
     });
     return res;
-  } catch (e: any) {
-    console.error('Login error:', e?.message, e?.stack);
+  } catch (e) {
+    if (!(e instanceof AppError)) {
+      console.error('Login error:', e);
+    }
     return handleApiError(e);
   }
 }

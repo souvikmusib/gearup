@@ -37,9 +37,9 @@ export default function HolidaysPage() {
   };
 
   const inputCls = 'w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white';
-  const today = new Date().toISOString().split('T')[0];
-  const upcoming = data.filter((h) => h.holidayDate >= today);
-  const past = data.filter((h) => h.holidayDate < today);
+  const todayMs = new Date().setHours(0, 0, 0, 0);
+  const upcoming = data.filter((h) => new Date(h.holidayDate).setHours(0, 0, 0, 0) >= todayMs);
+  const past = data.filter((h) => new Date(h.holidayDate).setHours(0, 0, 0, 0) < todayMs);
 
   if (loading) return <p className="py-8 text-center text-gray-500">Loading...</p>;
   return (

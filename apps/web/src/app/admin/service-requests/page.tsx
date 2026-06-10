@@ -7,7 +7,7 @@ import { PageHeader, DataTable, StatusBadge } from '@gearup/ui';
 import { ListToolbar } from '@/components/shared/list-toolbar';
 import { Pagination } from '@/components/shared/pagination';
 
-const STATUSES = ['SUBMITTED','UNDER_REVIEW','APPOINTMENT_PENDING','APPOINTMENT_SCHEDULED','IN_PROGRESS','COMPLETED','CANCELLED'].map(s => ({ label: s.replace(/_/g, ' '), value: s }));
+const STATUSES = ['SUBMITTED','UNDER_REVIEW','APPOINTMENT_PENDING','APPOINTMENT_CONFIRMED','CONVERTED_TO_JOB','CANCELLED','CLOSED'].map(s => ({ label: s.replace(/_/g, ' '), value: s }));
 
 export default function ServiceRequestsPage() {
   const [data, setData] = useState<any[]>([]);

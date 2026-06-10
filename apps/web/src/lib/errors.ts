@@ -38,6 +38,29 @@ export class ForbiddenError extends AppError {
   }
 }
 
+const UNIQUE_TARGET_LABELS: Record<string, string> = {
+  email: 'email',
+  phone: 'phone number',
+  username: 'username',
+  slug: 'slug',
+  code: 'code',
+  sku: 'SKU',
+  registration: 'registration number',
+  vehicle_number: 'vehicle number',
+  vehicleNumber: 'vehicle number',
+  invoice_number: 'invoice number',
+  invoiceNumber: 'invoice number',
+};
+
+function humanizeUniqueTarget(targets: string[]): string | null {
+  if (!targets.length) return null;
+  const mapped = targets
+    .map((t) => UNIQUE_TARGET_LABELS[t])
+    .filter((v): v is string => Boolean(v));
+  if (mapped.length === targets.length) return mapped.join(' and ');
+  return null;
+}
+
 export function handleApiError(error: unknown) {
   if (
     typeof error === 'object' &&
@@ -68,9 +91,18 @@ export function handleApiError(error: unknown) {
   if (error instanceof Prisma.PrismaClientKnownRequestError) {
     switch (error.code) {
       case 'P2002': {
-        const fields = (error.meta?.target as string[])?.join(', ') || 'field';
+        const rawTargets = Array.isArray(error.meta?.target) ? (error.meta!.target as string[]) : [];
+        const label = humanizeUniqueTarget(rawTargets);
         return NextResponse.json(
-          { success: false, error: { code: 'CONFLICT', message: `A record with this ${fields} already exists` } },
+          {
+            success: false,
+            error: {
+              code: 'CONFLICT',
+              message: label
+                ? `A record with this ${label} already exists`
+                : 'A record with these values already exists',
+            },
+          },
           { status: 409 },
         );
       }
@@ -80,9 +112,14 @@ export function handleApiError(error: unknown) {
           { status: 404 },
         );
       case 'P2003': {
-        const field = (error.meta?.field_name as string) || 'reference';
         return NextResponse.json(
-          { success: false, error: { code: 'VALIDATION_ERROR', message: `Invalid ${field}: referenced record does not exist` } },
+          {
+            success: false,
+            error: {
+              code: 'VALIDATION_ERROR',
+              message: 'Invalid reference: related record does not exist',
+            },
+          },
           { status: 400 },
         );
       }

@@ -11,10 +11,10 @@ const createSchema = z.object({
   customerId: z.string().min(1),
   vehicleId: z.string().min(1),
   amcPlanId: z.string().min(1),
-  startDate: z.string(),
+  startDate: z.coerce.date().refine((d) => Number.isFinite(d.getTime()), { message: 'Invalid startDate' }),
   amountPaid: z.number().positive(),
   paymentMode: z.string().optional(),
-  paymentDate: z.string().optional(),
+  paymentDate: z.coerce.date().refine((d) => Number.isFinite(d.getTime()), { message: 'Invalid paymentDate' }).optional(),
   notes: z.string().optional(),
 });
 
@@ -48,9 +48,16 @@ export async function POST(req: NextRequest) {
     const body = createSchema.parse(await req.json());
 
     const plan = await prisma.amcPlan.findUniqueOrThrow({ where: { id: body.amcPlanId } });
-    const startDate = new Date(body.startDate);
+    const startDate = body.startDate;
+    // Add months with month-end clamping to avoid JS overflow
+    // (e.g. Jan 31 + 1 month must be Feb 28/29, not Mar 3).
     const endDate = new Date(startDate);
-    endDate.setMonth(endDate.getMonth() + plan.durationMonths);
+    const targetMonth = endDate.getMonth() + plan.durationMonths;
+    const originalDay = endDate.getDate();
+    endDate.setDate(1);
+    endDate.setMonth(targetMonth);
+    const lastDayOfTargetMonth = new Date(endDate.getFullYear(), endDate.getMonth() + 1, 0).getDate();
+    endDate.setDate(Math.min(originalDay, lastDayOfTargetMonth));
 
     // Reject duplicate ACTIVE AMC contract on the same vehicle (still in coverage window).
     const now = new Date();
@@ -91,7 +98,7 @@ export async function POST(req: NextRequest) {
               servicesRemaining: plan.totalServicesIncluded,
               amountPaid: body.amountPaid,
               paymentMode: body.paymentMode as any,
-              paymentDate: body.paymentDate ? new Date(body.paymentDate) : new Date(),
+              paymentDate: body.paymentDate ?? new Date(),
               notes: body.notes,
             },
           });

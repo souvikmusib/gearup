@@ -31,11 +31,21 @@ export default function ServiceRequestDetailPage() {
   const router = useRouter();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
   const load = () => {
+    setError(null);
     const { cached, promise } = api.getSWR<any>(`/admin/service-requests/${id}`);
     if (cached?.success) setData(cached.data);
-    promise.then((r) => r.success && setData(r.data));
+    promise.then((r) => {
+      if (r.success) {
+        setData(r.data);
+      } else if (!cached?.success) {
+        setError(r.error?.message || 'Failed to load service request.');
+      }
+    }).catch((e) => {
+      if (!cached?.success) setError(e?.message || 'Network error. Please try again.');
+    });
   };
   useEffect(() => { load(); }, [id]);
 
@@ -59,6 +69,22 @@ export default function ServiceRequestDetailPage() {
     if (res.success) setData(res.data);
   };
 
+  if (!data && error) {
+    return (
+      <div className="py-8">
+        <div className="mx-auto max-w-md rounded-lg border border-red-200 bg-red-50 p-5 text-center dark:border-red-800 dark:bg-red-900/20">
+          <h3 className="font-semibold text-red-900 dark:text-red-200">Failed to load service request</h3>
+          <p className="mt-2 text-sm text-red-700 dark:text-red-300">{error}</p>
+          <button
+            onClick={load}
+            className="mt-4 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-red-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
   if (!data) return <p className="py-8 text-center text-gray-500">Loading...</p>;
 
   const actions = STATUS_ACTIONS[data.status] || [];

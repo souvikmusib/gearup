@@ -1,15 +1,39 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { handleApiError, ValidationError } from '@/lib/errors';
 
+const querySchema = z.object({
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'date must be YYYY-MM-DD'),
+});
+
 export async function GET(req: NextRequest) {
   try {
-    const date = req.nextUrl.searchParams.get('date');
-    if (!date) throw new ValidationError('date query parameter required');
+    const rawDate = req.nextUrl.searchParams.get('date');
+    if (!rawDate) throw new ValidationError('date query parameter required');
+    const parsed = querySchema.safeParse({ date: rawDate });
+    if (!parsed.success) throw new ValidationError(parsed.error.issues[0]?.message ?? 'invalid date');
+    const { date } = parsed.data;
 
     // Parse as UTC date to avoid timezone issues
     const [year, month, day] = date.split('-').map(Number);
     const targetDate = new Date(Date.UTC(year, month - 1, day));
+    if (Number.isNaN(targetDate.getTime())) throw new ValidationError('invalid calendar date');
+    // Verify the parsed components round-trip (rejects 2026-02-31 etc.)
+    if (
+      targetDate.getUTCFullYear() !== year ||
+      targetDate.getUTCMonth() !== month - 1 ||
+      targetDate.getUTCDate() !== day
+    ) {
+      throw new ValidationError('invalid calendar date');
+    }
+    // Bound to today..+90 days (UTC) to prevent abuse and stale lookups
+    const now = new Date();
+    const todayUtc = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+    const maxUtc = new Date(todayUtc.getTime() + 90 * 24 * 60 * 60 * 1000);
+    if (targetDate < todayUtc || targetDate > maxUtc) {
+      throw new ValidationError('date must be within the next 90 days');
+    }
     const dayOfWeek = targetDate.getUTCDay();
 
     const rules = await prisma.appointmentSlotRule.findMany({ where: { dayOfWeek, isActive: true } });
@@ -40,7 +64,18 @@ export async function GET(req: NextRequest) {
         const fmt = (h: number, mn: number) => `${String(h).padStart(2, '0')}:${String(mn).padStart(2, '0')}`;
         const start = new Date(Date.UTC(year, month - 1, day, sH, sM));
         const end = new Date(Date.UTC(year, month - 1, day, eH, eMn));
-        const isBlocked = blocked.some((b: any) => start >= new Date(b.blockStartTime) && end <= new Date(b.blockEndTime));
+        // Compare time-of-day only: blockStartTime/blockEndTime are stored as full DateTimes,
+        // but the meaningful axis on a given blockDate is the wall-clock window. Normalize both
+        // sides to UTC time-of-day on targetDate before comparing.
+        const slotStartMin = sH * 60 + sM;
+        const slotEndMin = eH * 60 + eMn;
+        const isBlocked = blocked.some((b: any) => {
+          const bs = new Date(b.blockStartTime);
+          const be = new Date(b.blockEndTime);
+          const bStartMin = bs.getUTCHours() * 60 + bs.getUTCMinutes();
+          const bEndMin = be.getUTCHours() * 60 + be.getUTCMinutes();
+          return slotStartMin >= bStartMin && slotEndMin <= bEndMin;
+        });
         const slotCount = apptCountBySlot.get(start.getTime()) ?? 0;
         result.push({
           label: `${fmt(sH, sM)} - ${fmt(eH, eMn)}`,

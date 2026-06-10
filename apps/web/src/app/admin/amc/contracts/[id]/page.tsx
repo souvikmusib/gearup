@@ -50,8 +50,20 @@ export default function AmcContractDetailPage() {
   };
 
   const handleCancel = async () => {
-    if (!confirm('Cancel this contract?')) return;
-    await api.patch(`/admin/amc/contracts/${id}`, { status: 'CANCELLED' });
+    if (contract?.status !== 'ACTIVE') {
+      alert(`Cannot cancel a contract in ${contract?.status} state.`);
+      return;
+    }
+    const remaining = contract?.servicesRemaining ?? 0;
+    const msg = remaining > 0
+      ? `Cancel this contract? ${remaining} service${remaining === 1 ? '' : 's'} remaining will be forfeited.`
+      : 'Cancel this contract?';
+    if (!confirm(msg)) return;
+    const res = await api.patch<any>(`/admin/amc/contracts/${id}`, { status: 'CANCELLED' });
+    if (!res.success) {
+      alert(res.error?.message || 'Failed to cancel contract');
+      return;
+    }
     load();
   };
 

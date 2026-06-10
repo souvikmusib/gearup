@@ -86,6 +86,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     void fetchMe();
   }, []);
 
+  // Re-validate cached user on tab focus so a stale-but-valid token can't keep
+  // a revoked permission visible in the sidebar (cached `permissions` is a UX
+  // hint — real authz is on the API, but we still want quick reconciliation).
+  useEffect(() => {
+    const onVisibility = () => {
+      if (typeof document === 'undefined') return;
+      if (document.visibilityState !== 'visible') return;
+      if (!localStorage.getItem('gearup_token')) return;
+      void fetchMe({ keepCurrent: true });
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('focus', onVisibility);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('focus', onVisibility);
+    };
+  }, []);
+
   const login = async (token: string) => {
     api.clearCache();
     writeCachedUser(null);

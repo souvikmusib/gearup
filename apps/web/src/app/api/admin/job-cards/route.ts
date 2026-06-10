@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
 import { paginate, paginationMeta } from '@/lib/pagination';
 import { requireAnyPermission, requirePermission } from '@/lib/auth';
 import { handleApiError } from '@/lib/errors';
@@ -11,7 +12,7 @@ import { z } from 'zod';
 const createSchema = z.object({
   appointmentId: z.string().optional(), serviceRequestId: z.string().optional(),
   customerId: z.string(), vehicleId: z.string(), issueSummary: z.string().min(1),
-  customerComplaints: z.string().optional(), priority: z.string().optional(), estimatedDeliveryAt: z.string().optional(),
+  customerComplaints: z.string().optional(), priority: z.enum(['HIGH', 'MEDIUM', 'LOW', 'URGENT']).optional(), estimatedDeliveryAt: z.string().optional(),
   odometerAtIntake: z.number().optional(), fuelIndicator: z.string().optional(),
 });
 
@@ -44,11 +45,12 @@ export async function POST(req: NextRequest) {
     const user = requirePermission(PERMISSIONS.JOB_CARDS_CREATE);
     const body = createSchema.parse(await req.json());
     const jc = await prisma.$transaction(async (tx) => {
-      const created = await tx.jobCard.create({ data: { jobCardNumber: generateJobCardNumber(), ...body, intakeDate: new Date(), estimatedDeliveryAt: body.estimatedDeliveryAt ? new Date(body.estimatedDeliveryAt) : undefined } as any });
+      const jcData: Prisma.JobCardUncheckedCreateInput = { jobCardNumber: generateJobCardNumber(), ...body, intakeDate: new Date(), estimatedDeliveryAt: body.estimatedDeliveryAt ? new Date(body.estimatedDeliveryAt) : undefined };
+      const created = await tx.jobCard.create({ data: jcData });
       if (body.serviceRequestId) await tx.serviceRequest.update({ where: { id: body.serviceRequestId }, data: { status: 'CONVERTED_TO_JOB' } });
       if (body.odometerAtIntake) await tx.vehicle.update({ where: { id: body.vehicleId }, data: { odometerReading: body.odometerAtIntake } });
       // Auto-create DRAFT invoice for this job card
-      const invData: any = { invoiceNumber: generateInvoiceNumber(), jobCard: { connect: { id: created.id } }, customer: { connect: { id: body.customerId } }, vehicle: { connect: { id: body.vehicleId } }, createdBy: { connect: { id: user.sub } }, invoiceDate: new Date(), invoiceStatus: 'DRAFT', paymentStatus: 'UNPAID' };
+      const invData: Prisma.InvoiceCreateInput = { invoiceNumber: generateInvoiceNumber(), jobCard: { connect: { id: created.id } }, customer: { connect: { id: body.customerId } }, vehicle: { connect: { id: body.vehicleId } }, createdBy: { connect: { id: user.sub } }, invoiceDate: new Date(), invoiceStatus: 'DRAFT', paymentStatus: 'UNPAID' };
       await tx.invoice.create({ data: invData });
       return created;
     });

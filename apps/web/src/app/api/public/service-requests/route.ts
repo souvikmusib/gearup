@@ -6,9 +6,15 @@ import { generateReferenceId, generateAppointmentRef } from '@/lib/id-generators
 import { createHash } from 'crypto';
 import { z } from 'zod';
 
-// Strict zod schema with length caps to prevent abuse / oversized payloads.
+// Hard cap on request execution time as a defense-in-depth against payload abuse
+// (Next.js default body limit is the other guardrail; we keep handler work cheap).
+export const maxDuration = 10;
+
+// Strict zod schema with length caps + format regexes to prevent abuse / oversized payloads.
 const schema = z.object({
   fullName: z.string().trim().min(1).max(120),
+  // Accept user-entered digits/spaces/dashes up to 20 chars; we strip to digits
+  // and re-validate `^\d{10}$` after normalization in the handler.
   phoneNumber: z.string().trim().min(5).max(20),
   alternatePhone: z.string().trim().max(20).optional(),
   email: z
@@ -21,8 +27,13 @@ const schema = z.object({
   brand: z.string().trim().min(1).max(80),
   model: z.string().trim().min(1).max(80),
   variant: z.string().trim().max(80).optional(),
-  vehicleId: z.string().trim().max(40).optional(),
-  registrationNumber: z.string().trim().min(1).max(20),
+  vehicleId: z.string().trim().cuid().optional(),
+  registrationNumber: z
+    .string()
+    .trim()
+    .min(1)
+    .max(20)
+    .regex(/^[A-Za-z0-9- ]{4,20}$/, 'Invalid registration number'),
   serviceCategory: z.string().trim().min(1).max(80),
   issueDescription: z.string().trim().min(1).max(2000),
   preferredDate: z.string().trim().max(40).optional(),
@@ -64,9 +75,10 @@ export async function POST(req: NextRequest) {
   try {
     const raw = await req.json();
     const body = schema.parse(raw);
-    const phoneNumber = body.phoneNumber.replace(/\D/g, '');
-    if (phoneNumber.length < 5) {
-      throw new AppError( 400, 'Invalid phone number.','VALIDATION_ERROR');
+    // Strip non-digits and require a 10-digit local number post-normalization.
+    const phoneNumber = body.phoneNumber.replace(/\D/g, '').replace(/^(?:0|91)(?=\d{10}$)/, '');
+    if (!/^\d{10}$/.test(phoneNumber)) {
+      throw new AppError(400, 'Invalid phone number.', 'VALIDATION_ERROR');
     }
     const registrationNumber = body.registrationNumber.toUpperCase().trim();
 

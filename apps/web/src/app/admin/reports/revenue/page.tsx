@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api/client';
 import { PageHeader } from '@gearup/ui';
-import { DollarSign, CreditCard, TrendingUp } from 'lucide-react';
+import { DollarSign, CreditCard, TrendingUp, Download } from 'lucide-react';
 import { AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 const PRESETS = [
@@ -28,9 +28,67 @@ export default function RevenueReportPage() {
 
   const selectPreset = (days: number) => { setPreset(days); if (days >= 0) { setFrom(getDate(days)); setTo(getDate(0)); } };
 
+  const exportCsv = () => {
+    if (!data) return;
+    const esc = (v: unknown) => {
+      const s = String(v ?? '');
+      return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    const lines: string[] = [];
+    lines.push(`Revenue Report,${from} to ${to}`);
+    lines.push('');
+    lines.push('Summary');
+    lines.push('Metric,Value');
+    lines.push(`Total Revenue,${Number(data.totalRevenue ?? 0)}`);
+    const txns = (data.byMode ?? []).reduce((s: number, m: any) => s + (m._count ?? 0), 0);
+    lines.push(`Transactions,${txns}`);
+    if (data.daily?.length) {
+      lines.push('');
+      lines.push('Daily Revenue');
+      lines.push('Date,Amount');
+      data.daily.forEach((d: any) => lines.push(`${esc(d.date)},${Number(d.amount ?? 0)}`));
+    }
+    if (data.byMode?.length) {
+      lines.push('');
+      lines.push('By Payment Mode');
+      lines.push('Mode,Count,Amount');
+      data.byMode.forEach((m: any) => lines.push(`${esc(m.mode)},${m._count ?? 0},${Number(m._sum ?? 0)}`));
+    }
+    if (data.byType?.length) {
+      lines.push('');
+      lines.push('By Category');
+      lines.push('Type,Total');
+      data.byType.forEach((t: any) => lines.push(`${esc(t.type)},${Number(t.total ?? 0)}`));
+    }
+    if (data.byWorker?.length) {
+      lines.push('');
+      lines.push('Labor Revenue by Worker');
+      lines.push('Worker,Total');
+      data.byWorker.forEach((w: any) => lines.push(`${esc(w.name)},${Number(w.total ?? 0)}`));
+    }
+    if (data.workerJobValue?.length) {
+      lines.push('');
+      lines.push('Total Job Card Value per Worker');
+      lines.push('Worker,Total,Paid Jobs');
+      data.workerJobValue.forEach((w: any) => lines.push(`${esc(w.name)},${Number(w.total ?? 0)},${w.jobs ?? 0}`));
+    }
+    const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `revenue-report_${from}_to_${to}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   if (!data) return <p className="py-8 text-center text-gray-500">Loading...</p>;
 
   const totalTxns = data.byMode?.reduce((s: number, m: any) => s + (m._count ?? 0), 0) || 1;
+  const totalRevenueNum = Number(data.totalRevenue ?? 0);
+  const dailyNum = (data.daily ?? []).map((d: any) => ({ ...d, amount: Number(d.amount ?? 0) }));
+  const byModeNum = (data.byMode ?? []).map((m: any) => ({ ...m, _sum: Number(m._sum ?? 0) }));
 
   return (
     <div className="space-y-6">
@@ -51,6 +109,10 @@ export default function RevenueReportPage() {
             <input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="rounded-lg border px-3 py-1.5 text-sm dark:border-gray-600 dark:bg-gray-800" />
           </div>
         )}
+        <button onClick={exportCsv}
+          className="ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-gray-900 text-white hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-200 transition-colors">
+          <Download className="h-4 w-4" /> Export CSV
+        </button>
       </div>
 
       {/* Summary Cards */}
@@ -58,7 +120,7 @@ export default function RevenueReportPage() {
         <div className="rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 p-5">
           <div className="flex items-center gap-3">
             <div className="rounded-lg bg-green-50 dark:bg-green-950 p-2.5"><DollarSign className="h-5 w-5 text-green-600" /></div>
-            <div><p className="text-xs text-gray-500 uppercase font-medium">Total Revenue</p><p className="text-2xl font-bold text-gray-900 dark:text-white">₹{Number(data.totalRevenue ?? 0).toLocaleString()}</p></div>
+            <div><p className="text-xs text-gray-500 uppercase font-medium">Total Revenue</p><p className="text-2xl font-bold text-gray-900 dark:text-white">₹{totalRevenueNum.toLocaleString()}</p></div>
           </div>
         </div>
         <div className="rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 p-5">
@@ -70,17 +132,17 @@ export default function RevenueReportPage() {
         <div className="rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 p-5">
           <div className="flex items-center gap-3">
             <div className="rounded-lg bg-purple-50 dark:bg-purple-950 p-2.5"><TrendingUp className="h-5 w-5 text-purple-600" /></div>
-            <div><p className="text-xs text-gray-500 uppercase font-medium">Avg / Transaction</p><p className="text-2xl font-bold text-gray-900 dark:text-white">₹{Math.round(Number(data.totalRevenue ?? 0) / totalTxns).toLocaleString()}</p></div>
+            <div><p className="text-xs text-gray-500 uppercase font-medium">Avg / Transaction</p><p className="text-2xl font-bold text-gray-900 dark:text-white">₹{Math.round(totalRevenueNum / totalTxns).toLocaleString()}</p></div>
           </div>
         </div>
       </div>
 
       {/* Revenue Trend Chart */}
-      {data.daily?.length > 0 && (
+      {dailyNum.length > 0 && (
         <div className="rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 p-5">
           <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Revenue Trend</h3>
           <ResponsiveContainer width="100%" height={280}>
-            <AreaChart data={data.daily}>
+            <AreaChart data={dailyNum}>
               <defs><linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/><stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/></linearGradient></defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
               <XAxis dataKey="date" tick={{ fontSize: 11 }} tickFormatter={(d) => new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })} />
@@ -93,18 +155,18 @@ export default function RevenueReportPage() {
       )}
 
       {/* Payment Mode — Bar + Pie side by side */}
-      {data.byMode?.length > 0 && (
+      {byModeNum.length > 0 && (
         <div className="grid grid-cols-2 gap-4">
           <div className="rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 p-5">
             <h3 className="font-semibold text-gray-900 dark:text-white mb-4">By Payment Mode</h3>
             <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={data.byMode} layout="vertical">
+              <BarChart data={byModeNum} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis type="number" tick={{ fontSize: 11 }} tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`} />
                 <YAxis type="category" dataKey="mode" tick={{ fontSize: 12 }} width={100} />
                 <Tooltip formatter={(v: any) => [`₹${Number(v).toLocaleString()}`, 'Amount']} />
                 <Bar dataKey="_sum" radius={[0, 4, 4, 0]}>
-                  {data.byMode.map((_: any, i: number) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                  {byModeNum.map((_: any, i: number) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
@@ -113,8 +175,8 @@ export default function RevenueReportPage() {
             <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Distribution</h3>
             <ResponsiveContainer width="100%" height={220}>
               <PieChart>
-                <Pie data={data.byMode} dataKey="_sum" nameKey="mode" cx="50%" cy="50%" outerRadius={80} label={({ mode, percent }) => `${mode} (${(percent * 100).toFixed(0)}%)`} labelLine={false}>
-                  {data.byMode.map((_: any, i: number) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                <Pie data={byModeNum} dataKey="_sum" nameKey="mode" cx="50%" cy="50%" outerRadius={80} label={({ mode, percent }) => `${mode} (${(percent * 100).toFixed(0)}%)`} labelLine={false}>
+                  {byModeNum.map((_: any, i: number) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                 </Pie>
                 <Tooltip formatter={(v: any) => [`₹${Number(v).toLocaleString()}`, 'Amount']} />
               </PieChart>
@@ -130,14 +192,15 @@ export default function RevenueReportPage() {
             <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Revenue by Category</h3>
             <div className="space-y-3">
               {data.byType.map((t: any) => {
-                const total = Number(data.totalRevenue) || 1;
-                const pct = ((t.total / total) * 100).toFixed(0);
+                const total = totalRevenueNum || 1;
+                const tTotal = Number(t.total ?? 0);
+                const pct = ((tTotal / total) * 100).toFixed(0);
                 const color = t.type === 'LABOR' ? '#3b82f6' : t.type === 'PART' ? '#10b981' : '#f59e0b';
                 return (
                   <div key={t.type}>
                     <div className="flex justify-between text-sm mb-1">
                       <span className="font-medium text-gray-700 dark:text-gray-300">{t.type === 'LABOR' ? '👷 Labor' : t.type === 'PART' ? '🔩 Parts' : '📝 Custom/Service'}</span>
-                      <span className="font-semibold">₹{Math.round(t.total).toLocaleString()} <span className="text-xs text-gray-400">({pct}%)</span></span>
+                      <span className="font-semibold">₹{Math.round(tTotal).toLocaleString()} <span className="text-xs text-gray-400">({pct}%)</span></span>
                     </div>
                     <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2"><div className="h-2 rounded-full" style={{ width: `${pct}%`, background: color }} /></div>
                   </div>
@@ -154,7 +217,7 @@ export default function RevenueReportPage() {
               {data.byWorker.map((w: any) => (
                 <div key={w.name} className="flex items-center justify-between py-2 border-b border-gray-50 dark:border-gray-800 last:border-0">
                   <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{w.name}</span>
-                  <span className="text-sm font-semibold text-blue-600">₹{Math.round(w.total).toLocaleString()}</span>
+                  <span className="text-sm font-semibold text-blue-600">₹{Math.round(Number(w.total ?? 0)).toLocaleString()}</span>
                 </div>
               ))}
             </div>
@@ -170,7 +233,7 @@ export default function RevenueReportPage() {
             {data.workerJobValue.map((w: any) => (
               <div key={w.name} className="rounded-lg border border-gray-100 dark:border-gray-800 p-4 text-center">
                 <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{w.name}</p>
-                <p className="text-xl font-bold text-gray-900 dark:text-white mt-1">₹{Math.round(w.total).toLocaleString()}</p>
+                <p className="text-xl font-bold text-gray-900 dark:text-white mt-1">₹{Math.round(Number(w.total ?? 0)).toLocaleString()}</p>
                 <p className="text-xs text-gray-400 mt-1">{w.jobs} paid jobs</p>
               </div>
             ))}

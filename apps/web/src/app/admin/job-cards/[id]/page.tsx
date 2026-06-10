@@ -75,6 +75,9 @@ export default function JobCardDetailPage() {
   const [workerForm, setWorkerForm] = useState({ workerId: '', assignmentRole: '' });
   const [taskForm, setTaskForm] = useState({ taskName: '', estimatedMinutes: '' });
   const [creatingInvoice, setCreatingInvoice] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [deleting, setDeleting] = useState(false);
 
   const load = () => {
     const apply = (r: any) => {
@@ -233,15 +236,7 @@ export default function JobCardDetailPage() {
           </button>
         )}
         {!locked && (
-          <button onClick={async () => {
-            const hasInvoice = data.invoices?.length > 0;
-            const msg = hasInvoice
-              ? `This job card has invoice ${data.invoices[0].invoiceNumber}. Deleting will remove the invoice and all payments too. Proceed?`
-              : 'Delete this job card permanently?';
-            if (!confirm(msg)) return;
-            const res = await api.delete(`/admin/job-cards/${id}`);
-            if (res.success) router.push('/admin/job-cards');
-          }} className="rounded-lg px-4 py-2 text-sm font-medium text-red-600 border border-red-300 hover:bg-red-50 dark:border-red-700 dark:hover:bg-red-900/20">
+          <button onClick={() => { setDeleteConfirmText(''); setShowDeleteModal(true); }} className="rounded-lg px-4 py-2 text-sm font-medium text-red-600 border border-red-300 hover:bg-red-50 dark:border-red-700 dark:hover:bg-red-900/20">
             Delete
           </button>
         )}
@@ -431,6 +426,75 @@ export default function JobCardDetailPage() {
           </div>
         </div>
       </div>
+      {/* Delete Confirmation Modal */}
+      <Modal open={showDeleteModal} onClose={() => { if (!deleting) setShowDeleteModal(false); }} title="Delete Job Card">
+        {(() => {
+          const invoice = data.invoices?.[0];
+          const totalPayments = (invoice?.payments || []).reduce((sum: number, p: any) => sum + Number(p.amount || 0), 0);
+          const requiresTyped = totalPayments > 0;
+          const canDelete = !requiresTyped || deleteConfirmText === 'DELETE';
+          return (
+            <div className="space-y-4">
+              <div className="rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-800 dark:border-red-700 dark:bg-red-900/20 dark:text-red-300">
+                <p className="font-semibold">This action is permanent and cannot be undone.</p>
+                <ul className="mt-2 list-disc list-inside space-y-1 text-xs">
+                  <li>Job Card <span className="font-mono">{data.jobCardNumber}</span> will be deleted.</li>
+                  {invoice && (
+                    <li>
+                      Invoice <span className="font-mono">{invoice.invoiceNumber}</span> will be deleted
+                      {invoice.payments?.length ? ` along with ${invoice.payments.length} payment(s) totaling ₹${totalPayments.toLocaleString()}` : ''}.
+                    </li>
+                  )}
+                  {data.parts?.length > 0 && <li>{data.parts.length} part allocation(s) will be removed.</li>}
+                  {data.assignments?.length > 0 && <li>{data.assignments.length} worker assignment(s) will be removed.</li>}
+                  {data.tasks?.length > 0 && <li>{data.tasks.length} task(s) will be removed.</li>}
+                </ul>
+              </div>
+              {requiresTyped && (
+                <div>
+                  <label className="block text-xs font-medium mb-1 text-gray-700 dark:text-gray-300">
+                    Type <span className="font-mono font-bold">DELETE</span> to confirm
+                  </label>
+                  <input
+                    autoFocus
+                    className={inputCls}
+                    value={deleteConfirmText}
+                    onChange={(e) => setDeleteConfirmText(e.target.value)}
+                    placeholder="DELETE"
+                  />
+                </div>
+              )}
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  disabled={deleting}
+                  onClick={() => setShowDeleteModal(false)}
+                  className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={!canDelete || deleting}
+                  onClick={async () => {
+                    setDeleting(true);
+                    const res = await api.delete(`/admin/job-cards/${id}`);
+                    setDeleting(false);
+                    if (res.success) {
+                      setShowDeleteModal(false);
+                      router.push('/admin/job-cards');
+                    }
+                  }}
+                  className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50"
+                >
+                  {deleting ? 'Deleting...' : 'Delete Permanently'}
+                </button>
+              </div>
+            </div>
+          );
+        })()}
+      </Modal>
+
       {/* New Part Modal */}
       <Modal open={showNewPart} onClose={() => setShowNewPart(false)} title="Add New Part to Inventory">
         <div className="space-y-3">

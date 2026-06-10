@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { api } from '@/lib/api/client';
 import { PageHeader } from '@gearup/ui';
 import { DashboardSkeleton } from '@/components/shared/skeletons';
@@ -49,9 +50,9 @@ export default function DashboardPage() {
       if (res.success && res.data) setData(res.data);
     });
     const logsReq = api.getSWR<any>('/admin/logs?pageSize=8');
-    if (logsReq.cached?.success) setLogs(logsReq.cached.data ?? []);
+    if (logsReq.cached?.success) setLogs(logsReq.cached.data?.items ?? logsReq.cached.data ?? []);
     logsReq.promise.then((res) => {
-      if (res.success && res.data) setLogs(res.data);
+      if (res.success && res.data) setLogs(res.data?.items ?? res.data ?? []);
     });
     // Charts
     const from = new Date(); from.setDate(from.getDate() - 7);
@@ -65,10 +66,10 @@ export default function DashboardPage() {
       if (r.success) setWorkerLoad(r.data ?? []);
     });
     // Low stock items for inventory manager
-    api.get<any>('/admin/inventory/items?pageSize=500').then((r) => {
+    api.get<any>('/admin/inventory/low-stock').then((r) => {
       if (r.success) {
         const items = r.data?.items ?? r.data ?? [];
-        setLowStock(items.filter((i: any) => Number(i.quantityInStock) <= (Number(i.reorderLevel) || 2) && Number(i.quantityInStock) >= 0).slice(0, 10));
+        setLowStock(items.slice(0, 10));
       }
     });
   }, []);
@@ -114,10 +115,11 @@ export default function DashboardPage() {
       {/* KPI Cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         {kpis.map((kpi) => (
-          <div
+          <Link
             key={kpi.label}
-            onClick={() => router.push(kpi.href)}
-            className="cursor-pointer rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 transition-all hover:shadow-md hover:border-gray-300 dark:hover:border-gray-700 hover:-translate-y-0.5"
+            href={kpi.href}
+            prefetch={false}
+            className="block cursor-pointer rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5 transition-all hover:shadow-md hover:border-gray-300 dark:hover:border-gray-700 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <div className="flex items-center justify-between">
               <div className={`rounded-lg p-2.5 ${kpi.color}`}>
@@ -129,7 +131,7 @@ export default function DashboardPage() {
               <p className="text-2xl font-bold text-gray-900 dark:text-white">{kpi.value}</p>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{kpi.label}</p>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
 
@@ -232,27 +234,27 @@ export default function DashboardPage() {
 
           {/* Summary Stats */}
           <div className="mt-5 pt-4 border-t border-gray-100 dark:border-gray-800 space-y-3">
-            <div className="flex items-center justify-between cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 -mx-2 px-2 py-1 rounded" onClick={() => router.push('/admin/customers')}>
+            <Link href="/admin/customers" prefetch={false} className="flex items-center justify-between cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 -mx-2 px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4 text-gray-400" />
                 <span className="text-sm text-gray-600 dark:text-gray-400">Total Customers</span>
               </div>
               <span className="text-sm font-semibold">{data.totalCustomers}</span>
-            </div>
-            <div className="flex items-center justify-between cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 -mx-2 px-2 py-1 rounded" onClick={() => router.push('/admin/vehicles')}>
+            </Link>
+            <Link href="/admin/vehicles" prefetch={false} className="flex items-center justify-between cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 -mx-2 px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
               <div className="flex items-center gap-2">
                 <Bike className="h-4 w-4 text-gray-400" />
                 <span className="text-sm text-gray-600 dark:text-gray-400">Total Vehicles</span>
               </div>
               <span className="text-sm font-semibold">{data.totalVehicles}</span>
-            </div>
-            <div className="flex items-center justify-between cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 -mx-2 px-2 py-1 rounded" onClick={() => router.push('/admin/workers')}>
+            </Link>
+            <Link href="/admin/workers" prefetch={false} className="flex items-center justify-between cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 -mx-2 px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
               <div className="flex items-center gap-2">
                 <Wrench className="h-4 w-4 text-gray-400" />
                 <span className="text-sm text-gray-600 dark:text-gray-400">Active Workers</span>
               </div>
               <span className="text-sm font-semibold">{data.activeWorkers}</span>
-            </div>
+            </Link>
           </div>
         </div>
 
@@ -268,30 +270,32 @@ export default function DashboardPage() {
             {logs.length === 0 ? (
               <p className="text-sm text-gray-500 py-4 text-center">No recent activity</p>
             ) : (
-              logs.map((log) => (
-                <div
-                  key={log.id}
-                  className="flex items-center gap-3 py-2.5 px-2 -mx-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors"
-                  onClick={() => {
-                    const routes: Record<string, string> = { Customer: '/admin/customers', Vehicle: '/admin/vehicles', Worker: '/admin/workers', JobCard: '/admin/job-cards', Invoice: '/admin/invoices', Appointment: '/admin/appointments', Expense: '/admin/expenses', ServiceRequest: '/admin/service-requests' };
-                    const base = routes[log.entityType] || '/admin/logs';
-                    router.push(log.entityId ? `${base}/${log.entityId}` : base);
-                  }}
-                >
-                  <div className="flex-shrink-0 rounded-full bg-gray-100 dark:bg-gray-800 p-1.5">
-                    <Clock className="h-3.5 w-3.5 text-gray-500" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-gray-900 dark:text-gray-100 truncate">
-                      <span className="font-medium">{formatAction(log.action)}</span>
-                    </p>
-                    <p className="text-xs text-gray-500 truncate">
-                      {log.entityType}{log.entityId ? ` • ${log.entityId.slice(0, 8)}...` : ''} • {log.adminUser?.fullName || 'System'}
-                    </p>
-                  </div>
-                  <span className="text-xs text-gray-400 flex-shrink-0">{formatTime(log.createdAt)}</span>
-                </div>
-              ))
+              logs.map((log) => {
+                const routes: Record<string, string> = { Customer: '/admin/customers', Vehicle: '/admin/vehicles', Worker: '/admin/workers', JobCard: '/admin/job-cards', Invoice: '/admin/invoices', Appointment: '/admin/appointments', Expense: '/admin/expenses', ServiceRequest: '/admin/service-requests' };
+                const base = routes[log.entityType] || '/admin/logs';
+                const href = log.entityId ? `${base}/${log.entityId}` : base;
+                return (
+                  <Link
+                    key={log.id}
+                    href={href}
+                    prefetch={false}
+                    className="flex items-center gap-3 py-2.5 px-2 -mx-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <div className="flex-shrink-0 rounded-full bg-gray-100 dark:bg-gray-800 p-1.5">
+                      <Clock className="h-3.5 w-3.5 text-gray-500" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-gray-900 dark:text-gray-100 truncate">
+                        <span className="font-medium">{formatAction(log.action)}</span>
+                      </p>
+                      <p className="text-xs text-gray-500 truncate">
+                        {log.entityType}{log.entityId ? ` • ${log.entityId.slice(0, 8)}...` : ''} • {log.adminUser?.fullName || 'System'}
+                      </p>
+                    </div>
+                    <span className="text-xs text-gray-400 flex-shrink-0">{formatTime(log.createdAt)}</span>
+                  </Link>
+                );
+              })
             )}
           </div>
         </div>

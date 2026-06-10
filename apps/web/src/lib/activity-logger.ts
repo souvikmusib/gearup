@@ -20,6 +20,37 @@ interface LogActivityParams {
    * write is fire-and-forget.
    */
   tx?: Prisma.TransactionClient;
+  /**
+   * Optional `waitUntil` (e.g. from `next/server`'s `after()` or a Vercel/edge
+   * runtime `ctx.waitUntil`). When provided and `tx` is not, the fire-and-forget
+   * write is registered with the runtime so the serverless lambda does not
+   * freeze before the audit row is committed.
+   */
+  waitUntil?: (promise: Promise<unknown>) => void;
+}
+
+/**
+ * Report an audit-log write failure. Tries Sentry first (if installed and
+ * initialized) and always falls back to console.error so local dev still sees
+ * the failure. Never throws — reporting must not crash the caller.
+ */
+function reportLogFailure(err: unknown, context: Record<string, unknown>): void {
+  const msg = err instanceof Error ? err.message : String(err);
+  console.error('[activity-logger] activity log failed:', msg, context);
+  try {
+    // Dynamic require so this module doesn't hard-depend on Sentry being
+    // initialized; if @sentry/nextjs isn't wired up the catch swallows it.
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const Sentry = require('@sentry/nextjs') as {
+      captureException?: (e: unknown, hint?: unknown) => void;
+    };
+    Sentry.captureException?.(err, {
+      tags: { component: 'activity-logger' },
+      extra: context,
+    });
+  } catch {
+    // Sentry not available — console.error above is the only signal.
+  }
 }
 
 /**
@@ -56,13 +87,21 @@ function safeJson(value: unknown): Prisma.InputJsonValue | undefined {
 /**
  * Activity logger.
  *
- * - When `params.tx` is provided, the write is awaited inside the caller's
- *   transaction so it commits/rolls back atomically.
- * - When `params.tx` is omitted, the write is fire-and-forget on the root
- *   prisma client. Errors are caught and logged so a logging failure never
- *   crashes a route handler. On serverless (Vercel) the lambda may freeze
- *   before the promise resolves; callers that need durability should pass
- *   `tx` or await the returned promise.
+ * Durability rules:
+ * - **Strongest** — pass `params.tx`. The write runs inside the caller's
+ *   transaction and rolls back atomically with the primary mutation. Errors
+ *   propagate so the whole tx fails (and the business write is never
+ *   committed without its audit row).
+ * - **Strong** — `await logActivity(...)` without a tx. The route waits for
+ *   the audit row before returning; failures are reported to Sentry but the
+ *   route still responds 2xx (logging never crashes the handler).
+ * - **Best-effort** — pass `params.waitUntil` (from `next/server`'s `after`
+ *   or the runtime's `ctx.waitUntil`) without awaiting. The serverless
+ *   runtime keeps the lambda alive until the write resolves; failures go to
+ *   Sentry.
+ * - **Weakest** — don't await and don't pass `waitUntil`. On serverless the
+ *   lambda can freeze before the write commits and the audit row is lost.
+ *   Only use for low-value entries; high-value mutations should use `tx`.
  *
  * Returns the underlying promise so callers can await if they want
  * delivery guarantees.
@@ -83,7 +122,12 @@ export function logActivity(params: LogActivityParams): Promise<unknown> {
       userAgent: params.userAgent,
     };
   } catch (err) {
-    console.error('[activity-logger] failed to build payload:', err);
+    reportLogFailure(err, {
+      stage: 'serialize',
+      entityType: params.entityType,
+      entityId: params.entityId,
+      action: params.action,
+    });
     return Promise.resolve();
   }
 
@@ -96,9 +140,27 @@ export function logActivity(params: LogActivityParams): Promise<unknown> {
     return promise;
   }
 
-  // Fire-and-forget: never crash the route on a logging failure.
-  return promise.catch((e: unknown) => {
-    const msg = e instanceof Error ? e.message : String(e);
-    console.error('[activity-logger] activity log failed:', msg);
+  // Outside a transaction: never crash the route on a logging failure.
+  const safePromise = promise.catch((e: unknown) => {
+    reportLogFailure(e, {
+      stage: 'write',
+      entityType: params.entityType,
+      entityId: params.entityId,
+      action: params.action,
+      actorType: params.actorType,
+    });
   });
+
+  // If the caller passed a runtime waitUntil, register the promise so the
+  // serverless lambda doesn't freeze before the row commits.
+  if (params.waitUntil) {
+    try {
+      params.waitUntil(safePromise);
+    } catch (err) {
+      // waitUntil itself can throw if called outside a request scope.
+      reportLogFailure(err, { stage: 'waitUntil' });
+    }
+  }
+
+  return safePromise;
 }

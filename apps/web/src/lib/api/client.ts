@@ -35,13 +35,38 @@ function isAdminSurface() {
   return window.location.pathname.startsWith('/admin');
 }
 
+function reportNetworkError(path: string, method: string, err: unknown) {
+  // Don't silently drop the underlying error: previously the catch-all
+  // returned a generic NETWORK_ERROR shape and consumers (dashboard/calendar)
+  // would render empty state as if the API had legitimately returned nothing.
+  // We log to the console for dev visibility and dispatch a window event so
+  // a global toast/banner layer can surface it to the user. When a real
+  // observability sink (Sentry) is wired up, hook it here.
+  // eslint-disable-next-line no-console
+  console.error(`[api] ${method} ${path} failed:`, err);
+  if (typeof window !== 'undefined') {
+    try {
+      window.dispatchEvent(
+        new CustomEvent('gearup:network-error', { detail: { path, method, error: err } }),
+      );
+    } catch {
+      // ignore environments without CustomEvent
+    }
+  }
+}
+
 function handleUnauthorized() {
   if (typeof window === 'undefined') return;
   // Best-effort cleanup of legacy localStorage entries; the real session lives
   // in an httpOnly cookie that only the server can clear via Set-Cookie.
+  // Also clear the cached user payload — otherwise the post-redirect login
+  // screen (or any consumer that reads `gearup_user` before fetchMe resolves)
+  // would briefly show the stale identity, roles, and permissions of the
+  // expired session.
   try {
     localStorage.removeItem('gearup_token');
     localStorage.removeItem('gearup_demo');
+    localStorage.removeItem('gearup_user');
   } catch {
     // ignore storage access errors (private mode, etc.)
   }
@@ -93,7 +118,10 @@ async function request<T>(rawPath: string, opts: RequestInit = {}): Promise<ApiR
   };
 
   if (isGet) {
-    const pending = run().catch(() => ({ success: false, error: { code: 'NETWORK_ERROR', message: 'Unable to reach server' } } as ApiResponse<T>));
+    const pending = run().catch((err) => {
+      reportNetworkError(path, method, err);
+      return { success: false, error: { code: 'NETWORK_ERROR', message: 'Unable to reach server' } } as ApiResponse<T>;
+    });
     inFlight.set(key, pending as Promise<ApiResponse<unknown>>);
     try {
       return await pending;
@@ -104,7 +132,8 @@ async function request<T>(rawPath: string, opts: RequestInit = {}): Promise<ApiR
 
   try {
     return await run();
-  } catch {
+  } catch (err) {
+    reportNetworkError(path, method, err);
     return { success: false, error: { code: 'NETWORK_ERROR', message: 'Unable to reach server' } };
   }
 }
@@ -157,9 +186,10 @@ async function fetchAndStore<T>(rawPath: string): Promise<ApiResponse<T>> {
     return payload;
   };
 
-  const req = run().catch(
-    () => ({ success: false, error: { code: 'NETWORK_ERROR', message: 'Unable to reach server' } } as ApiResponse<T>),
-  );
+  const req = run().catch((err) => {
+    reportNetworkError(path, 'GET', err);
+    return { success: false, error: { code: 'NETWORK_ERROR', message: 'Unable to reach server' } } as ApiResponse<T>;
+  });
   inFlight.set(key, req as Promise<ApiResponse<unknown>>);
   try {
     return await req;

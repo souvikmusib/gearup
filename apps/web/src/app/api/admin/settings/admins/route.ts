@@ -5,8 +5,24 @@ import { handleApiError, AppError } from '@/lib/errors';
 import { PERMISSIONS } from '@gearup/types';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
+import type { Prisma } from '@prisma/client';
 
 const BCRYPT_COST = 12;
+
+// E.164-ish phone: optional leading +, 10–15 digits. Whitespace stripped before validation.
+const phoneRegex = /^\+?[0-9]{10,15}$/;
+const normalizePhone = (raw: string) => raw.replace(/[\s-]/g, '');
+
+// NOTE: Deletion policy — this endpoint exposes no DELETE handler by design.
+// Admins are soft-deactivated via PATCH { status: 'INACTIVE' } so audit trails,
+// activity logs, and historical FKs remain intact. Do not add a DELETE without
+// first deciding what to do with referenced job cards / invoices / activity rows.
+//
+// Tenancy — this app is currently single-tenant per deployment (one garage per
+// install). None of the queries below filter by a garageId/tenantId. If
+// multi-tenancy is ever introduced, every query in this file MUST be scoped by
+// the caller's tenant or admins from one garage will be able to read and
+// modify admins from another.
 
 // Password policy: min 10 chars, at least one letter AND one digit.
 const strongPassword = z
@@ -101,8 +117,12 @@ export async function POST(req: NextRequest) {
       adminUserId: z.string().min(3),
       fullName: z.string().min(1),
       password: strongPassword,
-      email: z.string().optional(),
-      phone: z.string().optional(),
+      email: z.string().email('Invalid email address').optional(),
+      phone: z
+        .string()
+        .transform(normalizePhone)
+        .refine((v) => phoneRegex.test(v), 'Invalid phone number')
+        .optional(),
       roleId: z.string(),
     }).parse(await req.json());
 
@@ -132,12 +152,16 @@ export async function PATCH(req: NextRequest) {
       id: z.string(),
       fullName: z.string().optional(),
       password: strongPassword.optional(),
-      phone: z.string().optional(),
+      phone: z
+        .string()
+        .transform(normalizePhone)
+        .refine((v) => phoneRegex.test(v), 'Invalid phone number')
+        .optional(),
       status: z.enum(['ACTIVE', 'INACTIVE']).optional(),
       roleId: z.string().optional(),
     }).parse(await req.json());
 
-    const { id, password, roleId, status, ...rest } = body;
+    const { id, password, roleId, status, fullName, phone } = body;
     const isSelf = auth.sub === id;
 
     // Self-lockout guards: an admin must not be able to disable themselves
@@ -153,12 +177,12 @@ export async function PATCH(req: NextRequest) {
       );
     }
 
-    const updateData: {
-      fullName?: string;
-      phone?: string;
-      status?: 'ACTIVE' | 'INACTIVE';
-      passwordHash?: string;
-    } = { ...rest };
+    // Build the update payload with explicit per-field assignments so that
+    // adding a new field to the zod schema does NOT silently flow into
+    // Prisma.update — every writable field has to be wired here intentionally.
+    const updateData: Prisma.AdminUserUpdateInput = {};
+    if (fullName !== undefined) updateData.fullName = fullName;
+    if (phone !== undefined) updateData.phone = phone;
     if (status !== undefined) updateData.status = status;
     if (password) updateData.passwordHash = await bcrypt.hash(password, BCRYPT_COST);
 
