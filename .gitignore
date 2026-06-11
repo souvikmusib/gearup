@@ -25,3 +25,8 @@ docs/SESSION_CONTEXT.md
 
 # SGNK continuity snapshots (local working memory)
 .sgnk/
+backups/
+backups/.launchd.log
+backups/.launchd.err
+scripts/db-backup-launchd-wrapper.sh
+docs/audit/2026-06-10/.work/
