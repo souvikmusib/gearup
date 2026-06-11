@@ -34,7 +34,26 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     }).parse(await req.json());
     const data: Record<string, unknown> = { ...body };
     if (body.status === 'DELIVERED') data.actualDeliveryAt = new Date();
-    const jc = await prisma.jobCard.update({ where: { id: params.id }, data });
+    // Cancelling a job card must release its reserved parts back to stock —
+    // previously only DELETE did this, so a status-cancel leaked reservations
+    // (phantom reservedQuantity) forever.
+    const jc = await prisma.$transaction(async (tx) => {
+      if (body.status === 'CANCELLED') {
+        const prev = await tx.jobCard.findUniqueOrThrow({ where: { id: params.id }, select: { status: true } });
+        if (prev.status !== 'CANCELLED') {
+          const parts = await tx.jobCardPart.findMany({
+            where: { jobCardId: params.id },
+            select: { id: true, inventoryItemId: true, reservedQty: true, requiredQty: true },
+          });
+          for (const part of parts) {
+            const releaseQty = Number(part.reservedQty) > 0 ? Number(part.reservedQty) : Number(part.requiredQty);
+            await adjustStock(tx, part.inventoryItemId, releaseQty, 'RELEASED', params.id);
+            await tx.jobCardPart.update({ where: { id: part.id }, data: { reservedQty: 0 } });
+          }
+        }
+      }
+      return tx.jobCard.update({ where: { id: params.id }, data });
+    });
     logActivity({ entityType: 'JobCard', entityId: jc.id, action: 'job-card.updated', newValue: body, actorType: 'ADMIN', actorId: user.sub });
     return NextResponse.json({ success: true, data: jc });
   } catch (e) { return handleApiError(e); }
