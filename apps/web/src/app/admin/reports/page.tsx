@@ -29,7 +29,7 @@ export default function ReportsPage() {
       {stats && (
         <div className="grid grid-cols-4 gap-4">
           <div className="rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 p-4">
-            <p className="text-xs text-gray-500 uppercase font-medium">Today's Revenue</p>
+            <p className="text-xs text-gray-500 uppercase font-medium">Today&apos;s Revenue</p>
             <p className="text-2xl font-bold text-green-600 mt-1">₹{(stats.todayRevenue ?? 0).toLocaleString()}</p>
           </div>
           <div className="rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 p-4">
@@ -41,7 +41,7 @@ export default function ReportsPage() {
             <p className="text-2xl font-bold text-red-600 mt-1">{stats.unpaidInvoices ?? 0}</p>
           </div>
           <div className="rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 p-4">
-            <p className="text-xs text-gray-500 uppercase font-medium">Today's Appointments</p>
+            <p className="text-xs text-gray-500 uppercase font-medium">Today&apos;s Appointments</p>
             <p className="text-2xl font-bold text-blue-600 mt-1">{stats.todayAppointments ?? 0}</p>
           </div>
         </div>

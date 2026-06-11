@@ -40,7 +40,7 @@ function reportLogFailure(err: unknown, context: Record<string, unknown>): void 
   try {
     // Dynamic require so this module doesn't hard-depend on Sentry being
     // initialized; if @sentry/nextjs isn't wired up the catch swallows it.
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    // eslint-disable-next-line -- dynamic require: Sentry optional at runtime
     const Sentry = require('@sentry/nextjs') as {
       captureException?: (e: unknown, hint?: unknown) => void;
     };
