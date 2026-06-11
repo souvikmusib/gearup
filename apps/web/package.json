@@ -16,7 +16,8 @@
     "test:watch": "vitest",
     "test:int": "vitest run --config vitest.integration.config.ts",
     "test:cov": "vitest run --coverage",
-    "test:int:cov": "vitest run --config vitest.integration.config.ts --coverage"
+    "test:int:cov": "vitest run --config vitest.integration.config.ts --coverage",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@fullcalendar/core": "6.1.15",

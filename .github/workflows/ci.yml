@@ -47,3 +47,37 @@ jobs:
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/gearup_test
           DIRECT_URL: postgresql://postgres:postgres@localhost:5432/gearup_test
+
+  e2e:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: gearup_e2e
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      E2E_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/gearup_e2e
+      JWT_SECRET: ci-e2e-placeholder-secret-0123456789
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Prisma generate
+        run: pnpm --filter @gearup/web exec prisma generate
+      - name: Install Playwright Chromium
+        run: pnpm --filter @gearup/web exec playwright install --with-deps chromium
+      - name: E2E (Playwright UI smoke)
+        run: pnpm --filter @gearup/web test:e2e

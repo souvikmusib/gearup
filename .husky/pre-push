@@ -1,8 +1,9 @@
 # Block a push unless the full local gate passes. A complete business depends
 # on this software — no red push reaches main.
-echo "▶ pre-push gate: unit → integration → typecheck → lint"
+echo "▶ pre-push gate: unit → integration → typecheck → lint → e2e"
 pnpm --filter @gearup/web test || { echo "✖ unit tests failed — push blocked"; exit 1; }
 pnpm --filter @gearup/web test:int || { echo "✖ integration tests failed — push blocked"; exit 1; }
 pnpm --filter @gearup/web exec tsc --noEmit || { echo "✖ typecheck failed — push blocked"; exit 1; }
 pnpm lint || { echo "✖ lint failed — push blocked"; exit 1; }
+pnpm --filter @gearup/web test:e2e || { echo "✖ e2e (UI) tests failed — push blocked"; exit 1; }
 echo "✔ all gates green — pushing"
