@@ -7,6 +7,23 @@ on:
 jobs:
   check:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: gearup_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/gearup_test
+      JWT_SECRET: ci-placeholder-secret
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4  # version comes from package.json packageManager field
@@ -19,6 +36,8 @@ jobs:
         run: pnpm --filter @gearup/web exec prisma generate
       - name: Unit tests (vitest)
         run: pnpm --filter @gearup/web test
+      - name: Integration tests (vitest + Postgres)
+        run: pnpm --filter @gearup/web test:int
       - name: Typecheck
         run: pnpm --filter @gearup/web exec tsc --noEmit
       - name: Lint
@@ -26,7 +45,5 @@ jobs:
       - name: Build
         run: pnpm build
         env:
-          # Build-time only; runtime values come from Vercel env.
-          DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/placeholder
-          DIRECT_URL: postgresql://placeholder:placeholder@localhost:5432/placeholder
-          JWT_SECRET: ci-placeholder-secret
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/gearup_test
+          DIRECT_URL: postgresql://postgres:postgres@localhost:5432/gearup_test

@@ -130,3 +130,39 @@ Current automated coverage: **unit ~5% of lib code, integration 0%, E2E 0% in CI
 3. Admin dupe guards (phone/reg); `archivedAt` semantics decision
 4. Worker ON_LEAVE auto-flip (needs cron); AMC finalize N+1 batch; timezone centralization; `saleType` dead code removal
 5. Playwright-in-CI (phase 2 of test plan)
+
+---
+
+## 8. TEST COVERAGE — built this session (update)
+
+Went from **0 runnable tests** to a real, CI-gated suite.
+
+### Numbers
+| Suite | Tests | Runtime | What it exercises |
+|---|---|---|---|
+| Unit (`pnpm test`) | **74** | ~0.3s | invoice-calc (discount/tax math), estimate-token (hash/pinning), pagination, id-collision-retry, **errors→SESSION_STALE mapping**, format/words/IST |
+| Integration (`pnpm test:int`) | **44** | ~6s | Real ephemeral Postgres; route handlers invoked directly with minted JWT |
+| **Total** | **118** | | |
+
+Backend coverage (admin API routes + business libs) measured via the integration run: **~25% lines / 26% functions** — concentrated on the **critical paths**: money (invoice line math, discount %/flat, payments partial→full→overpay, AMC decrement/refund), auth (login, lockout, change-password, /me), job-cards (auto-invoice, **cancel-releases-reservation P1 regression**, delete guards), inventory (stock in/out, SKU dupe, low-stock), workers (leave overlap, INACTIVE guard), appointments (slot validation). Pure business libs are near-100% via unit tests.
+
+### The harness (so anyone can add tests)
+- `test/integration/global-setup.ts` — spins a throwaway PG17 (or uses CI's `TEST_DATABASE_URL`), runs `prisma db push` for the exact live schema. **Real DB, never mocked Prisma** — raw SQL, transactions, Decimal, P2002 all genuinely exercised.
+- `test/integration/setup.ts` — mocks `next/headers` so handlers read a test-injected JWT.
+- `test/integration/helpers.ts` — `asRole()/asPermissions()`, `req()/invoke()`, `seed.*`, `resetDb()`.
+- Adding a route test is now ~10 lines.
+
+### CI gate (was: none)
+`.github/workflows/ci.yml` runs on every push/PR: install → prisma generate → **unit → integration (Postgres service) → typecheck → lint → build**. A regression in any covered path now fails CI. **No push goes in blind anymore.**
+
+### Regression tests locking in this week's fixes
+- empty-string priority enum (b9925e3) — job-cards accepts `priority:''`
+- SESSION_STALE 401 mapping (6d16d36) — errors unit test
+- reservation leak on cancel (31a831d) — job-cards integration test, asserts reserved→0 + RELEASED movement
+- discount math 600−10%=540 — both unit and integration
+- payment overpay/draft guards, AMC decrement/refund symmetry
+
+### Remaining to 100% (honest)
+~25% backend today → the gap is the **breadth** of CRUD list/detail/patch/delete on every module + settings/reports/notifications/expenses-categories + the public booking pipeline + frontend pages (Playwright, phase 2). The roadmap in §5 still holds; each module now needs its remaining ~6–10 cases written against the existing harness, plus the 1,184-line Playwright suite wired into CI with a seeded DB. Estimated ~90 more cases to reach ~90%+ line coverage on the backend; frontend needs the Playwright-in-CI phase.
+
+**Add a coverage ratchet** once we cross 80%: `vitest --coverage --coverage.thresholds.lines=<current>` in CI so the number can only go up.
