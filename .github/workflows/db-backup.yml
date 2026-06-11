@@ -1,27 +1,20 @@
 name: db-backup
 
-# Daily Postgres backup of the gearup Supabase project.
-#
-# Storage tiers (defense-in-depth — every backup lives in 3 places):
-#   1. GitHub Actions artifact (90-day retention, downloadable from Actions UI)
-#   2. `db-backups` orphan branch committed in repo (forever, pruned to 90 days
-#      by a separate keep-N step so the branch stays small)
-#   3. Local backups/ dir (via launchd plist — separate from this workflow)
-#
-# Required repository secret:
-#   DATABASE_URL  — pooler or direct Postgres URL with read access
-#                   (DIRECT_URL works too; either is accepted)
-#
-# Manual trigger:  Actions tab → db-backup → Run workflow
+# Auto-installed by ~/.config/sgnk-backup/install.sh
+# Project: gearup
+# Required repo secret: DATABASE_URL (or DIRECT_URL)
+# Three storage tiers:
+#   1. GitHub Actions artifact (90d)
+#   2. db-backups orphan branch (last 90 dailies)
+#   3. Local launchd job on Sagnik's Mac (separate from this workflow)
 
 on:
   schedule:
-    # 02:00 UTC daily = 07:30 IST. Off-peak for the workshop.
-    - cron: '0 2 * * *'
+    - cron: '0 2 * * *'   # 02:00 UTC daily = 07:30 IST (off-peak)
   workflow_dispatch:
 
 permissions:
-  contents: write   # to push to db-backups branch
+  contents: write
 
 concurrency:
   group: db-backup
@@ -31,16 +24,26 @@ jobs:
   backup:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-
     steps:
-      - name: Checkout repo (for scripts)
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 1 }
 
-      - name: Install postgresql-client-17
+      - name: Detect Postgres server version
+        id: pgver
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DIRECT_URL: ${{ secrets.DIRECT_URL }}
         run: |
-          # Ubuntu 24.04 ships pg 16; we need 17 to match Supabase server.
+          if [ -z "$DATABASE_URL" ] && [ -z "$DIRECT_URL" ]; then
+            echo "::error::Set DATABASE_URL or DIRECT_URL secret in repo Settings → Secrets → Actions"
+            exit 1
+          fi
+          # Default to PG17 (Supabase). Override via vars.PG_MAJOR if needed.
+          echo "major=${{ vars.PG_MAJOR || '17' }}" >> $GITHUB_OUTPUT
+
+      - name: Install postgresql-client-${{ steps.pgver.outputs.major }}
+        run: |
+          MAJOR='${{ steps.pgver.outputs.major }}'
           sudo install -d /usr/share/postgresql-common/pgdg
           sudo curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc \
             https://www.postgresql.org/media/keys/ACCC4CF8.asc
@@ -48,25 +51,33 @@ jobs:
           echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $VERSION_CODENAME-pgdg main" \
             | sudo tee /etc/apt/sources.list.d/pgdg.list
           sudo apt-get update -qq
-          sudo apt-get install -y postgresql-client-17
-          /usr/lib/postgresql/17/bin/pg_dump --version
+          sudo apt-get install -y "postgresql-client-${MAJOR}"
+          "/usr/lib/postgresql/${MAJOR}/bin/pg_dump" --version
 
       - name: Run backup
-        id: dump
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           DIRECT_URL: ${{ secrets.DIRECT_URL }}
-          BACKUP_OUT: backups/gearup-${{ github.run_id }}.sql.gz
+          PG_MAJOR: ${{ steps.pgver.outputs.major }}
         run: |
-          if [ -z "$DATABASE_URL" ] && [ -z "$DIRECT_URL" ]; then
-            echo "::error::Neither DATABASE_URL nor DIRECT_URL secret is set. Add one in repo Settings → Secrets and variables → Actions."
+          set -euo pipefail
+          STAMP=$(date -u +%Y%m%dT%H%M%SZ)
+          OUT="backups/gearup-${STAMP}.sql.gz"
+          mkdir -p backups
+          DB_URL="${DIRECT_URL:-$DATABASE_URL}"
+          PG_DUMP="/usr/lib/postgresql/${PG_MAJOR}/bin/pg_dump"
+          "$PG_DUMP" "$DB_URL" \
+            --clean --if-exists --no-owner --no-acl --no-comments --schema=public \
+            | gzip -9 > "$OUT"
+          SIZE=$(stat -c%s "$OUT")
+          if [ "$SIZE" -lt 1024 ]; then
+            echo "::error::Backup too small ($SIZE bytes) — likely failed dump"
             exit 1
           fi
-          bash scripts/db-backup.sh
-          ls -la backups/
+          echo "backup_file=$OUT" >> $GITHUB_OUTPUT
+          ls -lah "$OUT"
 
-      - name: Upload artifact (90-day retention)
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: gearup-db-backup-${{ github.run_id }}
           path: backups/*.sql.gz
@@ -82,22 +93,18 @@ jobs:
           STAMP=$(date -u +%Y%m%dT%H%M%SZ)
           DEST="backups/gearup-${STAMP}.sql.gz"
 
-          # Worktree on db-backups (create orphan if it doesn't exist remote-side)
           git fetch origin db-backups || true
           if git ls-remote --exit-code origin db-backups >/dev/null 2>&1; then
             git worktree add /tmp/db-backups-wt db-backups
           else
-            # Create the orphan branch worktree, then clear its contents
-            # (newer GNU rm refuses `rm -rf .`, so we use find -delete).
             git worktree add --orphan -b db-backups /tmp/db-backups-wt
-            find /tmp/db-backups-wt -mindepth 1 -maxdepth 1 \
-              ! -name '.git' -exec rm -rf {} +
+            find /tmp/db-backups-wt -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
           fi
 
           mkdir -p /tmp/db-backups-wt/backups
           cp "$BACKUP_FILE" "/tmp/db-backups-wt/$DEST"
 
-          # Keep at most 90 backups (90 days of dailies). Prune oldest.
+          # Keep at most 90 backups per project.
           (cd /tmp/db-backups-wt && \
              ls -1t backups/gearup-*.sql.gz 2>/dev/null | tail -n +91 | xargs -r rm -f)
 
@@ -108,15 +115,12 @@ jobs:
           if git diff --cached --quiet; then
             echo "No changes to commit."
           else
-            git commit -m "db-backup: ${STAMP}"
+            git commit -m "db-backup(gearup): ${STAMP}"
             git push origin db-backups
           fi
 
-      - name: Summary
-        run: |
-          echo "### db-backup OK :white_check_mark:" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- Artifact: \`gearup-db-backup-${{ github.run_id }}\` (90-day retention)" >> $GITHUB_STEP_SUMMARY
-          echo "- Branch: \`db-backups\` (pruned to last 90 dailies)" >> $GITHUB_STEP_SUMMARY
+      - run: |
+          echo "### db-backup ✅" >> $GITHUB_STEP_SUMMARY
+          echo "- Project: gearup" >> $GITHUB_STEP_SUMMARY
           echo "- File: $(ls backups/*.sql.gz | head -1)" >> $GITHUB_STEP_SUMMARY
           echo "- Size: $(du -h backups/*.sql.gz | head -1 | cut -f1)" >> $GITHUB_STEP_SUMMARY
