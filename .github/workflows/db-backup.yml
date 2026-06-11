@@ -87,8 +87,11 @@ jobs:
           if git ls-remote --exit-code origin db-backups >/dev/null 2>&1; then
             git worktree add /tmp/db-backups-wt db-backups
           else
+            # Create the orphan branch worktree, then clear its contents
+            # (newer GNU rm refuses `rm -rf .`, so we use find -delete).
             git worktree add --orphan -b db-backups /tmp/db-backups-wt
-            (cd /tmp/db-backups-wt && rm -rf .)
+            find /tmp/db-backups-wt -mindepth 1 -maxdepth 1 \
+              ! -name '.git' -exec rm -rf {} +
           fi
 
           mkdir -p /tmp/db-backups-wt/backups
