@@ -160,7 +160,7 @@ export async function PATCH(req: NextRequest) {
         .transform(normalizePhone)
         .refine((v) => phoneRegex.test(v), 'Invalid phone number')
         .optional(),
-      status: z.enum(['ACTIVE', 'INACTIVE']).optional(),
+      status: z.preprocess(v => v === '' ? undefined : v, z.enum(['ACTIVE', 'INACTIVE']).optional()),
       roleId: z.string().optional(),
     }).parse(await req.json());
 

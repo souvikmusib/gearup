@@ -23,7 +23,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       employmentType: z.string().nullable().optional(), shiftStart: z.string().nullable().optional(), shiftEnd: z.string().nullable().optional(),
       dailyCapacity: z.number().nullable().optional(), emergencyContactName: z.string().nullable().optional(),
       emergencyContactPhone: z.string().nullable().optional(), address: z.string().nullable().optional(),
-      status: z.enum(['ACTIVE', 'INACTIVE', 'ON_LEAVE']).optional(), notes: z.string().nullable().optional(), monthlySalary: z.number().nullable().optional(),
+      status: z.preprocess(v => v === '' ? undefined : v, z.enum(['ACTIVE', 'INACTIVE', 'ON_LEAVE']).optional()), notes: z.string().nullable().optional(), monthlySalary: z.number().nullable().optional(),
     }).parse(await req.json());
 
     if (body.status === 'INACTIVE') {

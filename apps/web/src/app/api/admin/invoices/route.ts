@@ -15,7 +15,7 @@ const lineItemSchema = z.object({
   referenceItemId: z.string().optional(), description: z.string().trim().min(1),
   quantity: z.number().positive().default(1), unitPrice: z.number().nonnegative().default(0),
   taxRate: z.number().min(0).max(100).default(0), sortOrder: z.number().default(0),
-  discountMode: z.enum(['flat', 'percent']).optional(),
+  discountMode: z.preprocess(v => v === '' ? undefined : v, z.enum(['flat', 'percent']).optional()),
 });
 const createSchema = z.object({
   customerId: z.string(), vehicleId: z.string().optional(), jobCardId: z.string().optional(), appointmentId: z.string().optional(),

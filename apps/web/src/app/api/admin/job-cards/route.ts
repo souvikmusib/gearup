@@ -12,7 +12,7 @@ import { z } from 'zod';
 const createSchema = z.object({
   appointmentId: z.string().optional(), serviceRequestId: z.string().optional(),
   customerId: z.string(), vehicleId: z.string(), issueSummary: z.string().min(1),
-  customerComplaints: z.string().optional(), priority: z.enum(['HIGH', 'MEDIUM', 'LOW', 'URGENT']).optional(), estimatedDeliveryAt: z.string().optional(),
+  customerComplaints: z.string().optional(), priority: z.preprocess(v => v === '' ? undefined : v, z.enum(['HIGH', 'MEDIUM', 'LOW', 'URGENT']).optional()), estimatedDeliveryAt: z.string().optional(),
   odometerAtIntake: z.number().optional(), fuelIndicator: z.string().optional(),
 });
 

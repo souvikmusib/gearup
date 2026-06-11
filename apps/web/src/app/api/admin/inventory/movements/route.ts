@@ -8,7 +8,7 @@ import { PERMISSIONS } from '@gearup/types';
 import { z } from 'zod';
 
 const querySchema = z.object({
-  movementType: z.enum(['STOCK_IN', 'STOCK_OUT', 'ADJUSTMENT_INCREASE', 'ADJUSTMENT_DECREASE', 'RESERVED', 'CONSUMED']).optional(),
+  movementType: z.preprocess(v => v === '' ? undefined : v, z.enum(['STOCK_IN', 'STOCK_OUT', 'ADJUSTMENT_INCREASE', 'ADJUSTMENT_DECREASE', 'RESERVED', 'CONSUMED']).optional()),
   inventoryItemId: z.string().optional(),
   page: z.coerce.number().int().positive().optional(),
   pageSize: z.coerce.number().int().min(1).max(200).optional(),

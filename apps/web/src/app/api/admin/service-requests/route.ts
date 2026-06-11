@@ -9,7 +9,7 @@ import { ServiceRequestStatus } from '@prisma/client';
 import { z } from 'zod';
 
 const querySchema = z.object({
-  status: z.nativeEnum(ServiceRequestStatus).optional(),
+  status: z.preprocess(v => v === '' ? undefined : v, z.nativeEnum(ServiceRequestStatus).optional()),
   search: z.string().max(64).optional(),
 });
 

@@ -27,7 +27,7 @@ const ALLOWED_TRANSITIONS: Record<AppointmentStatus, AppointmentStatus[]> = {
 };
 
 const patchSchema = z.object({
-  status: z.nativeEnum(AppointmentStatus).optional(),
+  status: z.preprocess(v => v === '' ? undefined : v, z.nativeEnum(AppointmentStatus).optional()),
   appointmentDate: z.string().optional(),
   slotStart: z.string().optional(),
   slotEnd: z.string().optional(),

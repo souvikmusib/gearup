@@ -50,7 +50,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       unitPrice: z.number().default(0),
       taxRate: z.number().default(0),
       discountPercent: z.number().min(0).max(100).default(0),
-      discountMode: z.enum(['flat', 'percent']).optional(),
+      discountMode: z.preprocess(v => v === '' ? undefined : v, z.enum(['flat', 'percent']).optional()),
       amcPlanId: z.string().optional(),
       amcContractId: z.string().optional(),
       inventoryItemId: z.string().optional(),

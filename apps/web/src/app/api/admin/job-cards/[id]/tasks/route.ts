@@ -27,7 +27,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   try {
     const user = requirePermission(PERMISSIONS.JOB_CARDS_CREATE);
     const body = z.object({
-      taskId: z.string(), status: z.enum(['PENDING','IN_PROGRESS','DONE','BLOCKED','SKIPPED']).optional(), taskName: z.string().optional(),
+      taskId: z.string(), status: z.preprocess(v => v === '' ? undefined : v, z.enum(['PENDING','IN_PROGRESS','DONE','BLOCKED','SKIPPED']).optional()), taskName: z.string().optional(),
       assignedWorkerId: z.string().nullable().optional(), actualMinutes: z.number().optional(),
     }).parse(await req.json());
     const { taskId, ...data } = body;

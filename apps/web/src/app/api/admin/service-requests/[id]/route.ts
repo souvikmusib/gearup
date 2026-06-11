@@ -36,9 +36,9 @@ const ALLOWED_TRANSITIONS: Record<ServiceRequestStatus, readonly ServiceRequestS
 const URGENCY_VALUES = ['LOW', 'MEDIUM', 'HIGH', 'URGENT'] as const;
 
 const patchSchema = z.object({
-  status: z.enum(SERVICE_REQUEST_STATUSES).optional(),
+  status: z.preprocess(v => v === '' ? undefined : v, z.enum(SERVICE_REQUEST_STATUSES).optional()),
   notes: z.string().max(2000).optional(),
-  urgency: z.enum(URGENCY_VALUES).optional(),
+  urgency: z.preprocess(v => v === '' ? undefined : v, z.enum(URGENCY_VALUES).optional()),
 });
 
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {

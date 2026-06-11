@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
     const body = z.object({
       expenseDate: z.string(), categoryId: z.string(), title: z.string(),
       amount: z.number().nonnegative().multipleOf(0.01).max(99999999.99),
-      vendorName: z.string().optional(), paymentMode: z.nativeEnum(PaymentMode).optional(), referenceNumber: z.string().optional(),
+      vendorName: z.string().optional(), paymentMode: z.preprocess(v => v === '' ? undefined : v, z.nativeEnum(PaymentMode).optional()), referenceNumber: z.string().optional(),
       notes: z.string().optional(),
     }).parse(await req.json());
     const expense = await prisma.expense.create({

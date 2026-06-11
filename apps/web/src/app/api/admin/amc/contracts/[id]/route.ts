@@ -36,7 +36,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   try {
     const user = requirePermission(PERMISSIONS.AMC_CONTRACTS_MANAGE);
     const body = z.object({
-      status: z.enum(['ACTIVE', 'EXPIRED', 'CANCELLED']).optional(),
+      status: z.preprocess(v => v === '' ? undefined : v, z.enum(['ACTIVE', 'EXPIRED', 'CANCELLED']).optional()),
       notes: z.string().optional(),
     }).parse(await req.json());
 
