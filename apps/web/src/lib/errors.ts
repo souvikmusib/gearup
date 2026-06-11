@@ -106,14 +106,33 @@ export function handleApiError(error: unknown) {
           { status: 409 },
         );
       }
-      case 'P2025':
+      case 'P2025': {
+        // A JWT can outlive its AdminUser row (e.g. after a DB restore the
+        // token's `sub` no longer exists). Writes that `connect` the session
+        // admin then fail here — surface that as a session problem, not a 404.
+        const cause = String(error.meta?.cause ?? error.message ?? '');
+        if (/AdminUser/i.test(cause)) {
+          return NextResponse.json(
+            { success: false, error: { code: 'SESSION_STALE', message: 'Your session refers to an admin account that no longer exists. Please log out and log in again.' } },
+            { status: 401 },
+          );
+        }
         return NextResponse.json(
           { success: false, error: { code: 'NOT_FOUND', message: 'Record not found' } },
           { status: 404 },
         );
+      }
       case 'P2003': {
         const field = (error.meta?.field_name as string) || 'unknown';
         console.error('[Prisma P2003] FK violation on field:', field);
+        // Same stale-session shape via raw FK columns (actorId, createdByAdminId,
+        // receivedByAdminId, performedByAdminId, confirmedByAdminId, ...).
+        if (/admin|actor/i.test(field)) {
+          return NextResponse.json(
+            { success: false, error: { code: 'SESSION_STALE', message: 'Your session refers to an admin account that no longer exists. Please log out and log in again.' } },
+            { status: 401 },
+          );
+        }
         return NextResponse.json(
           {
             success: false,
