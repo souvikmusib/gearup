@@ -1,11 +1,15 @@
 {
+  "/Users/sagnikmitra/Desktop/GitHub/gearup/docs/audit/2026-06-10/db-backups/current-state-20260611T080315Z.sql": {
+    "mtime": 1781168098.1509883,
+    "hash": "69e0b4f58d8c2eac22329ef167353178"
+  },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/packages/ui/src/index.ts": {
     "mtime": 1776584844.7400897,
     "hash": "2b65fc5c26899784729df1928eb99b3e"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/packages/ui/src/components/data-table.tsx": {
-    "mtime": 1776584844.7397172,
-    "hash": "a6a41a857ff5c05ab97bc92dd7cfcd51"
+    "mtime": 1781117890.5921962,
+    "hash": "1ca3c3dac9c64c3511345b18f94d6152"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/packages/ui/src/components/empty-state.tsx": {
     "mtime": 1776584844.739789,
@@ -32,8 +36,8 @@
     "hash": "80d009bfdeced8d9f05bf840e7f0a7ce"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/packages/types/src/domain.ts": {
-    "mtime": 1780262996.6429029,
-    "hash": "cfc90e38261409afad425d43b5b86943"
+    "mtime": 1781093365.1617348,
+    "hash": "774c9e9ada9f76f3bece5328173f33d4"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/packages/types/src/auth.ts": {
     "mtime": 1776584844.7392387,
@@ -44,8 +48,8 @@
     "hash": "6e58d754a5d187a6e5ffb19d0f1d0ecf"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/next.config.mjs": {
-    "mtime": 1776610840.7593539,
-    "hash": "be70958b4c1f1ec4b4c45d7d6d722553"
+    "mtime": 1781117803.6673007,
+    "hash": "3d9f327b1c94d18609130a159ca9dc24"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/sentry.server.config.ts": {
     "mtime": 1776587830.6760788,
@@ -71,13 +75,21 @@
     "mtime": 1776584844.7264132,
     "hash": "8640f9b2e6475cc3f5b1ff4548925765"
   },
+  "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/instrumentation.ts": {
+    "mtime": 1781093077.7023633,
+    "hash": "a741d0ae61511e30f673ed934380f147"
+  },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/prisma/seed.ts": {
     "mtime": 1780262996.6325915,
     "hash": "c876f22fc530502ffe94236a321345a9"
   },
+  "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/scripts/create-missing-invoices.ts": {
+    "mtime": 1780878065.0549057,
+    "hash": "cf9333bd66d7000133deb614a2c06e65"
+  },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/scripts/with-root-env.mjs": {
-    "mtime": 1777759718.832344,
-    "hash": "a48525ea8012e8c35d7c2c19cff35a23"
+    "mtime": 1781115675.0551503,
+    "hash": "1f169cd55c870b7ece55db2a10896957"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/e2e/admin-e2e.spec.ts": {
     "mtime": 1776610196.0152721,
@@ -92,44 +104,48 @@
     "hash": "ff9f7065d37850a2e58731f864978b70"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/middleware.ts": {
-    "mtime": 1777140916.1570547,
-    "hash": "1e03d55550c7c5e22fd4648fe65280c7"
+    "mtime": 1781115214.178256,
+    "hash": "ccc6a35be3965f1271dc8f17514ef781"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/layout.tsx": {
     "mtime": 1780264510.2687333,
     "hash": "fc0746ef4a1b2569025e4ef7fd97390b"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/admin/layout.tsx": {
-    "mtime": 1777146794.148843,
-    "hash": "a874bb1a89e9597c6001395405e83633"
+    "mtime": 1781093516.1059372,
+    "hash": "ad8ddc3323fb106531e3977d7a37c25a"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/admin/page.tsx": {
     "mtime": 1776584844.7308533,
     "hash": "4b78beff3a9a47887c3504f467baae08"
+  },
+  "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/admin/admin-shell.tsx": {
+    "mtime": 1781117780.0108926,
+    "hash": "aceac3aa41a01d991266e9df289ae68c"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/admin/customers/page.tsx": {
     "mtime": 1780262996.6346145,
     "hash": "f165f6a84cf8f666899846836a139068"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/admin/customers/[id]/page.tsx": {
-    "mtime": 1780262996.6341681,
-    "hash": "c694beb14c94ccb2ed24816dd386f438"
+    "mtime": 1781117793.3934321,
+    "hash": "38d80a605f5b4ff3d36349850789ddf7"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/admin/settings/page.tsx": {
     "mtime": 1780262996.638356,
     "hash": "7df506d9a1f79144a5d80254797243aa"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/admin/settings/holidays/page.tsx": {
-    "mtime": 1780262996.637958,
-    "hash": "6bce2129445b6529c12a5b86a9a19372"
+    "mtime": 1781115443.5623016,
+    "hash": "2a7fb1a0a0260283cc544345e5240dad"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/admin/settings/business-hours/page.tsx": {
     "mtime": 1776612351.8355448,
     "hash": "35179f53efd0d4c10e8f620cc3138364"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/admin/settings/admins/page.tsx": {
-    "mtime": 1777146253.359282,
-    "hash": "fb250f4e5a21110b766be4a0224da6a7"
+    "mtime": 1781117735.1312428,
+    "hash": "209c5e715d6e93d9b6895075f2279a90"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/admin/settings/integrations/page.tsx": {
     "mtime": 1776584844.7325397,
@@ -144,124 +160,136 @@
     "hash": "ff265aa0ddfb010f0ed968f4b127c7ea"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/admin/payments/page.tsx": {
-    "mtime": 1780262996.6371288,
-    "hash": "b60913c3e459c9bbdd675b22378ee65b"
+    "mtime": 1780878065.0586612,
+    "hash": "fe895fa92ee9f7d766e269c35b20b027"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/admin/calendar/page.tsx": {
-    "mtime": 1777753970.9631653,
-    "hash": "fd34da0c3598fb17ee83c6a0f44337d7"
+    "mtime": 1781115662.2706103,
+    "hash": "dbbadb478df3478148493b453eeb2e8d"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/admin/calendar/full/page.tsx": {
-    "mtime": 1777753970.9627397,
-    "hash": "d4b4cf0014db80c435b48d8d5d802457"
+    "mtime": 1781093447.998777,
+    "hash": "198b3d5529dfe73e875e04c4739f4231"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/admin/invoices/page.tsx": {
-    "mtime": 1780262996.6359198,
-    "hash": "14e865e2b8916a97316a57d6d9611051"
+    "mtime": 1781117779.971393,
+    "hash": "90dc719bdf8484baa188da244b306574"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/admin/invoices/[id]/page.tsx": {
-    "mtime": 1780262996.6357372,
-    "hash": "abd7ee5456ea5cef87ff3b4c926d6752"
+    "mtime": 1781117769.1723337,
+    "hash": "d998651d1bb9ca245f4fd79498b33a26"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/admin/appointments/page.tsx": {
-    "mtime": 1780262996.63376,
-    "hash": "ab66292f8b91541b325a6fff20e78460"
+    "mtime": 1781117764.962307,
+    "hash": "820ebc0ee4ae31c7ebae38ec76b0b833"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/admin/appointments/calendar/page.tsx": {
     "mtime": 1777147828.9042892,
     "hash": "391b29d9cb3616e25af07338a1e82a6e"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/admin/appointments/[id]/page.tsx": {
-    "mtime": 1780262996.633448,
-    "hash": "e99e51eba344f35f70b5ff02f0c51e35"
+    "mtime": 1780878065.0558035,
+    "hash": "43414361b1549900cb6397b3ce90c83e"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/admin/expenses/page.tsx": {
-    "mtime": 1780262996.6349416,
-    "hash": "911f4c5f7d9f9ed519369fc112e0e9ba"
+    "mtime": 1781115480.3277814,
+    "hash": "e0e7b272876c2f06623d2c71bc5bdee1"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/admin/expenses/categories/page.tsx": {
     "mtime": 1777146204.7610126,
     "hash": "6c070fa4016cd1be05fbce9ab6d3dcea"
   },
+  "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/admin/amc/plans/page.tsx": {
+    "mtime": 1780878065.0554218,
+    "hash": "b67d725df33f0119d15b8c22128b56d5"
+  },
+  "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/admin/amc/contracts/page.tsx": {
+    "mtime": 1780878065.0552838,
+    "hash": "6248d2e69f0fac2981dab33b3f83703b"
+  },
+  "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/admin/amc/contracts/[id]/page.tsx": {
+    "mtime": 1781115315.1096933,
+    "hash": "fdcd4ee8928eab666f8d4317e6c3e340"
+  },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/admin/dashboard/page.tsx": {
-    "mtime": 1777140911.9519227,
-    "hash": "591a6418f97e19567a9086fe2ae02f63"
+    "mtime": 1781117866.2868698,
+    "hash": "0bbea4560256b5b4975a78237da73268"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/admin/service-requests/page.tsx": {
-    "mtime": 1780262996.6377625,
-    "hash": "cc3d91aa34b8512742e2761bedbb3107"
+    "mtime": 1781115454.5471535,
+    "hash": "1bf7bbaeb20350e77038db50634c3b49"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/admin/service-requests/[id]/page.tsx": {
-    "mtime": 1780262996.6375172,
-    "hash": "1fd75d0b1c080a0dbb3b0ca046926f04"
+    "mtime": 1781115648.9464226,
+    "hash": "baf6d4924d1c94223e73c9466a812f7d"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/admin/logs/page.tsx": {
-    "mtime": 1780262996.6366076,
-    "hash": "4e165538febd9a6be440e38fd10b7948"
+    "mtime": 1781093512.0513515,
+    "hash": "5c2dd4ee24e6272936565443fb432d38"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/admin/inventory/suppliers/page.tsx": {
-    "mtime": 1780262996.6354349,
-    "hash": "7f9ce4f6bbd3ab8cf2cd585e3c32075f"
+    "mtime": 1781117754.1142225,
+    "hash": "3947f36d7bcfcdf4ec66afdc4a17843c"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/admin/inventory/low-stock/page.tsx": {
     "mtime": 1776612318.4934132,
     "hash": "f3c3a5197139b40cc31ce21076002a0d"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/admin/inventory/movements/page.tsx": {
-    "mtime": 1776612324.2027519,
-    "hash": "e0b46e88b443b7dc99bf448c3ecd8dec"
+    "mtime": 1781115328.674704,
+    "hash": "65373bda1d26a3d0f44c640a055c9474"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/admin/inventory/items/page.tsx": {
-    "mtime": 1780262996.6352594,
-    "hash": "2b16e8d6e9990ff3ee7b59ff756dd53d"
+    "mtime": 1781117744.2021239,
+    "hash": "01c64fc942925a329ed42c9f5668f9dc"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/admin/inventory/categories/page.tsx": {
     "mtime": 1777146210.6969757,
     "hash": "433e8de857b0d687420db6142ea13318"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/admin/workers/page.tsx": {
-    "mtime": 1780262996.639341,
-    "hash": "49bb8fb27995c1e6bf12e97f2de4c16b"
+    "mtime": 1781090733.8282638,
+    "hash": "bf6660e1700245e8e0729881c474f755"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/admin/workers/calendar/page.tsx": {
-    "mtime": 1777147840.0819094,
-    "hash": "3fbd76b9a77d338d2761f2fd1e752b5b"
+    "mtime": 1781115664.0736651,
+    "hash": "a6fcd0371cd74f6c2aa5a1b03b669b86"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/admin/workers/[id]/page.tsx": {
-    "mtime": 1780262996.6390524,
-    "hash": "782d126dd1212039b496ee0c862b67c6"
+    "mtime": 1781090733.8276544,
+    "hash": "70dd033ca4466a5bbf2747dc9ba26ff8"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/admin/vehicles/page.tsx": {
-    "mtime": 1780262996.638793,
-    "hash": "8e35deb89ec9c55c5e195122cbccfd78"
+    "mtime": 1781117752.354012,
+    "hash": "6ea730e6f8e3d31547d78f44c954003a"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/admin/vehicles/[id]/page.tsx": {
-    "mtime": 1780262996.6386063,
-    "hash": "b28f68337f56714a14e91051e4709678"
+    "mtime": 1781117830.1522245,
+    "hash": "726181a4c4ead079f8281569c7b05a16"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/admin/notifications/page.tsx": {
-    "mtime": 1780262996.6369674,
-    "hash": "8573d00d4b1658475b759ba9903e8bad"
+    "mtime": 1781094623.8675954,
+    "hash": "5f7d8bb8aa7adf44c9dcf0df050744ea"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/admin/notifications/templates/page.tsx": {
     "mtime": 1776612288.9478335,
     "hash": "1778e7c9be521a0f2ef567486abb48d4"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/admin/login/page.tsx": {
-    "mtime": 1780264417.2237356,
-    "hash": "27307e806dd357e67560adcede608cc9"
+    "mtime": 1781117795.2918186,
+    "hash": "15350f141e291b0d04d1bbebddcffb28"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/admin/job-cards/page.tsx": {
-    "mtime": 1780262996.6363583,
-    "hash": "e0ac5832555cce61f7528ce7893980c9"
+    "mtime": 1781117773.1367342,
+    "hash": "b14a04d834a43a3cf8b52e847dccd1e9"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/admin/job-cards/[id]/page.tsx": {
-    "mtime": 1780262996.6360455,
-    "hash": "a3b8e9715affe539e1659b2ca8bc9e44"
+    "mtime": 1781117857.0061078,
+    "hash": "7813ec04cee0d74a24d4d7f16038cc58"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/admin/reports/page.tsx": {
-    "mtime": 1777146979.7169356,
-    "hash": "a29c4091884739cd8b8093296bef17b1"
+    "mtime": 1780878065.0589812,
+    "hash": "9823cb60a16515cf398d796ddacee22b"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/admin/reports/appointments/page.tsx": {
     "mtime": 1777146150.3608065,
@@ -284,8 +312,8 @@
     "hash": "33372ae18f2118400fdd02d13cf23e43"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/admin/reports/revenue/page.tsx": {
-    "mtime": 1777103370.359198,
-    "hash": "3f4c54b6338db8508bbf9bd375cdeb63"
+    "mtime": 1781117835.646515,
+    "hash": "e38c7ca9f506ece00529e878e0a3ab01"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/(public)/layout.tsx": {
     "mtime": 1780264417.2241836,
@@ -300,220 +328,252 @@
     "hash": "141174a833e348e01fed9b3ea34573ee"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/(public)/book-service/page.tsx": {
-    "mtime": 1777753970.9624283,
-    "hash": "a24bd16d87f02aee83e92d4157a304ab"
+    "mtime": 1781117744.310747,
+    "hash": "d120394fbe86cedc14dc99b4387485bf"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/(public)/track/page.tsx": {
-    "mtime": 1777148045.5910318,
-    "hash": "d4d1b12ff4761cecd9425fef62cfe939"
+    "mtime": 1781093482.0043623,
+    "hash": "692f5a16983f7d36f55c4504d3bc92d8"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/(public)/estimate/[token]/page.tsx": {
     "mtime": 1777103976.3274863,
     "hash": "4a31c66911fc7fa17576f1496ea3b2fc"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/health/route.ts": {
-    "mtime": 1776600048.3415856,
-    "hash": "1532f96e60461f66c18b026e0a515901"
+    "mtime": 1781117741.9359357,
+    "hash": "de9b32d5d53583ba584fac4b82f085a0"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/customers/route.ts": {
-    "mtime": 1776610196.0177748,
-    "hash": "0b45f8e81093e28ede5a58b1de9dfe62"
+    "mtime": 1781117749.5279,
+    "hash": "a811e4f4e44e11a83815f6912309b667"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/customers/[id]/route.ts": {
-    "mtime": 1780262996.639505,
-    "hash": "ec9828f50c3736ab96cff58c197d1d33"
+    "mtime": 1781117760.5895722,
+    "hash": "a2d521eb8374da242d060e352584a41c"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/customers/[id]/history/route.ts": {
-    "mtime": 1776600048.3393598,
-    "hash": "e6ec7a44be612fcc3e9af7ae6c404d7a"
+    "mtime": 1781117885.4442852,
+    "hash": "6668c377eab5b6524e9f30f633999d56"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/settings/route.ts": {
-    "mtime": 1776610196.019149,
-    "hash": "361d1810eca4029c4a3b90477b5db37d"
+    "mtime": 1781093397.668463,
+    "hash": "8935ebe856604021ffd2cc8ff8796d0e"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/settings/holidays/route.ts": {
-    "mtime": 1777145251.1843462,
-    "hash": "f21431c1f3e8bf85c7027fdd26aabc4c"
+    "mtime": 1781117910.0338812,
+    "hash": "4f53ad6f80245d88777b3dd4c86afce0"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/settings/business-hours/route.ts": {
-    "mtime": 1777103431.5944576,
-    "hash": "9685201872abb27c858eff2e9a35ecc8"
+    "mtime": 1781093447.0198267,
+    "hash": "a021d4aec74292b6f0ca47c9ae8ec5cd"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/settings/admins/route.ts": {
-    "mtime": 1777115308.645781,
-    "hash": "0e187b7d7d7e7a363b20fa06a2a9b241"
+    "mtime": 1781187408.596522,
+    "hash": "c726b13f01375aeef75463fc9615ae63"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/settings/export/route.ts": {
-    "mtime": 1780262996.641527,
-    "hash": "b61644673562389f5ca47999e140e1d1"
+    "mtime": 1781093397.6684644,
+    "hash": "482f1227a54a03a6cc758e049725d019"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/payments/route.ts": {
-    "mtime": 1776600048.340475,
-    "hash": "c4d6df0c9dd380db331dcaec65918885"
+    "mtime": 1780878065.0636148,
+    "hash": "959dd6e1a19111f7d5eb901571f92cb4"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/invoices/route.ts": {
-    "mtime": 1780262996.6410882,
-    "hash": "98528b89ebc38255b33232b9ba8caba0"
+    "mtime": 1781187408.5990186,
+    "hash": "57145b9a981193c1f401bc4fe7f0adfa"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/invoices/[id]/route.ts": {
-    "mtime": 1780262996.6408923,
-    "hash": "46638d9f0e39fc53a0510425c6754e13"
+    "mtime": 1781115457.9445913,
+    "hash": "d528271a7abc320f1bc2fdb04653fdf7"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/invoices/[id]/payments/route.ts": {
-    "mtime": 1780262996.6403236,
-    "hash": "b611a68efcd076c24a6d77fd7c524be8"
+    "mtime": 1781117792.8336933,
+    "hash": "f2e92e55f81853e2386499af41386918"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/invoices/[id]/line-items/route.ts": {
-    "mtime": 1780262996.6400762,
-    "hash": "35b9667dafb3f8363dc90afb582c6380"
+    "mtime": 1781187408.5993228,
+    "hash": "f33fe4e6051d8ce7a4f8ed1d11bfe8b7"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/invoices/[id]/pdf/route.ts": {
-    "mtime": 1780264423.9997647,
-    "hash": "317bdd451a7dc091d0f04823334813d8"
+    "mtime": 1781093677.5732627,
+    "hash": "66fdf75a823ffefb16648046b047089d"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/invoices/[id]/finalize/route.ts": {
-    "mtime": 1776610196.0182664,
-    "hash": "a3d914ad8bcac68145c3b99e3def81f2"
+    "mtime": 1781093594.2346163,
+    "hash": "1bf7a29c855c7472dd423a982b838261"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/appointments/route.ts": {
-    "mtime": 1777102991.0320876,
-    "hash": "fd9269d127881c9da899cd2a3f66cc23"
+    "mtime": 1781115301.455513,
+    "hash": "ad60ff5fab4e43b9b3b91844534f875d"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/appointments/[id]/route.ts": {
-    "mtime": 1776610196.0169144,
-    "hash": "dacc7564ee0a622278495662f15782ab"
+    "mtime": 1781187408.5969927,
+    "hash": "1e21f635ba4c7a1718809b0021e4949d"
+  },
+  "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/auth/logout/route.ts": {
+    "mtime": 1781093582.582597,
+    "hash": "259b257b21c50dee4fa8e55d44184b3a"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/auth/me/route.ts": {
-    "mtime": 1776600048.3391833,
-    "hash": "e560ee0d118ef02248950f7172de2b0a"
+    "mtime": 1781117867.5738351,
+    "hash": "8b0e6554f4139e9ec901f3e0cacc7b77"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/auth/change-password/route.ts": {
-    "mtime": 1776610196.0171611,
-    "hash": "f7644546a7d23abc2e221f9b851cff9b"
+    "mtime": 1781117814.39663,
+    "hash": "512439b908191e007494f1190a9fbce5"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/auth/login/route.ts": {
-    "mtime": 1776610196.0173793,
-    "hash": "ffb55a3c741101220f62b37c119b75b6"
+    "mtime": 1781117850.3390963,
+    "hash": "e1ba564ed27ed98886aee7908e179ced"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/expenses/route.ts": {
-    "mtime": 1777102991.0326529,
-    "hash": "6e960a12b54fe6e63b9d2fdabb24bbbd"
+    "mtime": 1781187408.597388,
+    "hash": "eeaa4c21ae8132cb84fdc01efc5d845b"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/expenses/[id]/route.ts": {
-    "mtime": 1777102991.0322926,
-    "hash": "36996a15a244a842aa2fdc9575746d0f"
+    "mtime": 1781117785.7936232,
+    "hash": "1482def6188016662e81dd2b58625791"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/expenses/categories/route.ts": {
     "mtime": 1777102991.0325465,
     "hash": "33ff98ff19f8a3e5018681f95c7cad15"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/expenses/categories/[id]/route.ts": {
-    "mtime": 1777102991.0324712,
-    "hash": "a33c5bafe377d751434b63c2ff58bd5f"
+    "mtime": 1781094813.3514752,
+    "hash": "84ce56d2eaef7b6b5ca1d76552ce9765"
+  },
+  "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/amc/plans/route.ts": {
+    "mtime": 1781117789.1127963,
+    "hash": "d5d656e9029871b8bc625eca99e3498c"
+  },
+  "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/amc/plans/[id]/route.ts": {
+    "mtime": 1781117808.8189611,
+    "hash": "0f60183c240de1569f626b9b8f69d20b"
+  },
+  "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/amc/contracts/route.ts": {
+    "mtime": 1781117785.7936983,
+    "hash": "72a23f5fa02935de1754986a47121898"
+  },
+  "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/amc/contracts/[id]/route.ts": {
+    "mtime": 1781187408.5984092,
+    "hash": "3e2901a58bb361545fdacc813e11714a"
+  },
+  "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/amc/contracts/[id]/usages/route.ts": {
+    "mtime": 1780878065.0602522,
+    "hash": "5b2a0a03a686a9e2dd4b70245ca9c849"
+  },
+  "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/amc/contracts/[id]/usages/[usageId]/route.ts": {
+    "mtime": 1781115195.7615452,
+    "hash": "9ad72a88757cdb2a845ac6cd9b5af4cb"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/service-requests/route.ts": {
-    "mtime": 1776600048.340785,
-    "hash": "0fa6dc7d7d11ed816de06cf1a8bd6618"
+    "mtime": 1781187408.5976872,
+    "hash": "12f2e774d572baa858c525106ce5c748"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/service-requests/[id]/route.ts": {
-    "mtime": 1776610196.0190408,
-    "hash": "810a6a9a1517f562ceccb7ffa293c689"
+    "mtime": 1781187408.5981362,
+    "hash": "827ac8bb650b9976d34252a30ae3f4f0"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/logs/route.ts": {
-    "mtime": 1776600048.3402708,
-    "hash": "19e186285190754492cf114231194977"
+    "mtime": 1781117826.749317,
+    "hash": "08b1576fcbd735d917d9a203a09eaae9"
+  },
+  "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/logs/export/route.ts": {
+    "mtime": 1781093448.7564337,
+    "hash": "d5dbf500f2974a5e01e6d59f1c321ffa"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/inventory/suppliers/route.ts": {
-    "mtime": 1777102991.0333292,
-    "hash": "b9dc71d37c51aff18f7c2921a350310e"
+    "mtime": 1781115310.7153876,
+    "hash": "f51db3304c211133ffbe62359f0995f2"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/inventory/suppliers/[id]/route.ts": {
     "mtime": 1777102991.0332627,
     "hash": "90fa35558b3240bec88586f6f248d4fa"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/inventory/low-stock/route.ts": {
-    "mtime": 1777103447.2532742,
-    "hash": "bfb2e806d6ba815bcecaf6f72e34895f"
+    "mtime": 1781115332.8828735,
+    "hash": "4fc050ac9d7dc6fa0f3cd473d914a120"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/inventory/movements/route.ts": {
-    "mtime": 1777103457.974207,
-    "hash": "a88a44b5c117209792e3b942d62ace21"
+    "mtime": 1781187408.5997996,
+    "hash": "8885f93fc6f4989c3fc56f5a91ee276c"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/inventory/items/route.ts": {
-    "mtime": 1776610196.0181346,
-    "hash": "3fd72d3eada2e42c90d8be17396df80b"
+    "mtime": 1781117770.3320506,
+    "hash": "ad2b3e94f0a80bf0a3c0ebf8a46643b2"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/inventory/items/[id]/route.ts": {
-    "mtime": 1780262996.6397028,
-    "hash": "aa56c8742a1fda262fd1abcdb5bd615e"
+    "mtime": 1781117562.3541656,
+    "hash": "5c3a7b18a0278fb015ac4b0480f8cfc2"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/inventory/items/[id]/stock/route.ts": {
-    "mtime": 1777104586.5025005,
-    "hash": "7f2270bec8d434a55a3f453bbdbca195"
+    "mtime": 1781117804.85799,
+    "hash": "1dcfd8505eeb5faf1afde2f468436d71"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/inventory/categories/route.ts": {
     "mtime": 1777102991.0328722,
     "hash": "fabbd3ad0a5f411a9f16fc6f3f07ae28"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/inventory/categories/[id]/route.ts": {
-    "mtime": 1777102991.0328002,
-    "hash": "5a9bb347a273c1897935519f6ca6bdab"
+    "mtime": 1781115331.4558396,
+    "hash": "b0dd6c93c383838ce77a731fb1e560ff"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/workers/route.ts": {
-    "mtime": 1780262996.6420078,
-    "hash": "278f5beea2d6b3fff2f0af7b4f04ac56"
+    "mtime": 1780878065.064246,
+    "hash": "422d24c0d6b169da90f05eeb53fb8044"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/workers/calendar/route.ts": {
-    "mtime": 1777145251.1857762,
-    "hash": "d707d38f80d0c647fd28c291c405fd1b"
+    "mtime": 1781115309.8996615,
+    "hash": "b3276133e9273891913bb4516f178add"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/workers/[id]/route.ts": {
-    "mtime": 1780262996.6417866,
-    "hash": "9f16dd4cc50d02bd8120ead6242e5d65"
+    "mtime": 1781187408.598773,
+    "hash": "f69c45a82b586968007c6b5a87f63147"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/workers/[id]/leave/route.ts": {
-    "mtime": 1777145251.1854804,
-    "hash": "8ddf7c18fdcdb3b3a46004763de0f218"
+    "mtime": 1781115340.1883123,
+    "hash": "8bfbddc4acdaac0753e2505e71b2332e"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/vehicles/route.ts": {
-    "mtime": 1777147601.6425583,
-    "hash": "d7c6af8c9a872f8781cc519284780055"
+    "mtime": 1781115197.1749432,
+    "hash": "d01e4ce5d825087d63b25c317ba008f6"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/vehicles/[id]/route.ts": {
-    "mtime": 1780262996.6416578,
-    "hash": "7b3133042fb06ecc4dcd7e1f1882f9b8"
+    "mtime": 1781115249.1069555,
+    "hash": "854532901697d383927de591120fbcac"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/notifications/route.ts": {
-    "mtime": 1776600048.3403673,
-    "hash": "7e1638f48d997dc4d2147828a7c5d3e8"
+    "mtime": 1781115453.2337985,
+    "hash": "ae67770aa5260b39ed95c0fe20947e02"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/notifications/templates/route.ts": {
-    "mtime": 1777103439.105353,
-    "hash": "40002fccc1c27082ec48695e108bdb5f"
+    "mtime": 1781093529.6181276,
+    "hash": "809f9d2edbfe12932d787322ff12f1a7"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/job-cards/route.ts": {
-    "mtime": 1777753970.9653852,
-    "hash": "4a1b3adb0f204702ea0c0bc5ec3c717b"
+    "mtime": 1781187408.5960414,
+    "hash": "a648bb7fab69673fd69d1e6799404d1e"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/job-cards/[id]/route.ts": {
-    "mtime": 1780262996.6413841,
-    "hash": "07ef2b638b9d14e41dc03eb3c4c84d76"
+    "mtime": 1781115367.4543889,
+    "hash": "8f96a4735962b153d3bc5085a0b20b7c"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/job-cards/[id]/tasks/route.ts": {
-    "mtime": 1777102991.0339642,
-    "hash": "ec8a97eb8f412fcf89d3f573b9cf123c"
+    "mtime": 1781187408.6000304,
+    "hash": "a62f5baba10f25a8a7b07a6987d8d6bd"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/job-cards/[id]/parts/route.ts": {
-    "mtime": 1777104681.0922701,
-    "hash": "e5c5ea49e87c5aaf37534e6080a8cb5e"
+    "mtime": 1781093500.9359972,
+    "hash": "d9968fbe8b09682ef3d990ef6083ead5"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/job-cards/[id]/workers/route.ts": {
     "mtime": 1777102991.0340679,
     "hash": "b6c948b0b8cee9c35ea40f3c43a633da"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/reports/route.ts": {
-    "mtime": 1777140898.8790653,
-    "hash": "454b8a15ee315f2f0adf397a7415a85a"
+    "mtime": 1781115524.1554723,
+    "hash": "fb8b651c3eff3c117a59e98c505bcef6"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/reports/appointments/route.ts": {
     "mtime": 1777145251.183475,
@@ -524,48 +584,52 @@
     "hash": "4051060176657335ee1ee289a6492471"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/reports/inventory/route.ts": {
-    "mtime": 1777145251.1836927,
-    "hash": "14e7b4c52a92e0e722f427a66b7a8e06"
+    "mtime": 1781115434.7852037,
+    "hash": "569a21cef31f4e6a4a58d71f02a971a2"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/reports/workers/route.ts": {
-    "mtime": 1777145251.1841333,
-    "hash": "4c60d97fddddde92001cec2f5cf64b91"
+    "mtime": 1781093351.2996082,
+    "hash": "0984a208f65c645fe8a773b01a3513be"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/reports/jobs/route.ts": {
     "mtime": 1777145251.1837916,
     "hash": "f68f1431ce5e6b63a43f2285dae41ac8"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/admin/reports/revenue/route.ts": {
-    "mtime": 1777145251.1839764,
-    "hash": "da995a8efb822711eeae7a8ccf213a93"
+    "mtime": 1781094699.7039995,
+    "hash": "120417e05ca0c1981d86c0e5f0bb6486"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/public/track/route.ts": {
-    "mtime": 1777147676.2108376,
-    "hash": "4ac8cc56d0209918c555c1c8e29f2595"
+    "mtime": 1781115653.7548952,
+    "hash": "362c80a78d133b158384e58749862cfd"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/public/service-requests/route.ts": {
-    "mtime": 1777147629.2813156,
-    "hash": "26b277ae94fda9e72cb3254fcee34cb3"
+    "mtime": 1781117750.6090858,
+    "hash": "a993a200dd26a524bc72d076ef76b0b1"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/public/customer-lookup/route.ts": {
-    "mtime": 1777147611.0958302,
-    "hash": "18822ba0f445008e94cbcf9f7da35ef0"
+    "mtime": 1781093437.8158755,
+    "hash": "249261c2135207156dea67b87488629c"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/public/available-slots/route.ts": {
-    "mtime": 1776610196.0196111,
-    "hash": "afb68a963c46e6883b6ca78c38c35fc1"
+    "mtime": 1781117761.7561772,
+    "hash": "5db8011a99d7ed260efc2c2103aad0f2"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/app/api/public/estimate/[token]/route.ts": {
-    "mtime": 1777104649.6714911,
-    "hash": "6a14d032948922a7b98c60299617a647"
+    "mtime": 1781094858.7874942,
+    "hash": "0a7f11adc499f33116e03926cc1cffdf"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/providers/index.tsx": {
     "mtime": 1776584844.7360384,
     "hash": "eeaf3fea2cd682d6781e6d8474aa9b3e"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/components/layout/admin-sidebar.tsx": {
-    "mtime": 1780264417.223012,
-    "hash": "ca1ce8f3db7a3683da42bc15e31e2054"
+    "mtime": 1781117752.4173222,
+    "hash": "da9ca5b172211d780575f3f8423fb495"
+  },
+  "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/components/shared/customer-picker.tsx": {
+    "mtime": 1780878065.065024,
+    "hash": "60c7b654967f72d8eefa3648d8f079dd"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/components/shared/pagination.tsx": {
     "mtime": 1776584844.7344983,
@@ -603,53 +667,65 @@
     "mtime": 1777755153.4123197,
     "hash": "67fec1428d537114c94df9dd6a8c4013"
   },
+  "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/__tests__/new-features.test.ts": {
+    "mtime": 1781090733.824926,
+    "hash": "5e30c1d3c8c85e13f3ab7aac697b0c66"
+  },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/lib/prisma.ts": {
-    "mtime": 1777145251.1863632,
-    "hash": "4999517a98d678fa8a8582d70b44bbf9"
+    "mtime": 1781115683.7746017,
+    "hash": "9e2ec8bbd056d9b62296447ed78bcfe2"
+  },
+  "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/lib/invoice-calc.ts": {
+    "mtime": 1781093357.0168803,
+    "hash": "c046340a254199256c765e700035b0fc"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/lib/clipboard.ts": {
     "mtime": 1777148032.596177,
     "hash": "7e199fee4e7706a40677a6d3389fd162"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/lib/pagination.ts": {
-    "mtime": 1776600048.342842,
-    "hash": "1d6c7c1651b48e3ff6875e6cc0df1407"
+    "mtime": 1781115668.436322,
+    "hash": "978135379aeceb7c4b6da9aa9fadd5ab"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/lib/errors.ts": {
-    "mtime": 1777104056.9315217,
-    "hash": "d6a62a39a5cfd5f8108dbada5e318cc8"
+    "mtime": 1781117766.669292,
+    "hash": "09fc433c1e277fea92d59c7ffadebe9d"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/lib/activity-logger.ts": {
-    "mtime": 1776610196.0199664,
-    "hash": "ba1d961a6bd737b6cea6168f8268ba23"
+    "mtime": 1781115212.2599335,
+    "hash": "66fdb2301d970dcf21b8ff4496ddd3a9"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/lib/constants.ts": {
     "mtime": 1776600048.3425252,
     "hash": "706d0d16c54cabb11a4aba9fa3b4cecf"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/lib/format-reg.ts": {
-    "mtime": 1780262996.6425133,
-    "hash": "0a283d8ad76473abc4d07d9129c59b09"
+    "mtime": 1781117777.7872682,
+    "hash": "5bda6ce3eadffc70d4d2b503d1dfa35b"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/lib/id-generators.ts": {
-    "mtime": 1776600048.3427253,
-    "hash": "51e5efa07ad86cb0eae4a9c761c7528a"
+    "mtime": 1781115649.6960487,
+    "hash": "83c6095d63432d7adf228aebd6bda57d"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/lib/auth.ts": {
-    "mtime": 1776610196.0202353,
-    "hash": "727afd21a2fff4e89f33fd63af219389"
+    "mtime": 1781115189.1543493,
+    "hash": "08e54eb14a6a51486b25197f9d9b410f"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/lib/auth/auth-context.tsx": {
-    "mtime": 1777140940.2851794,
-    "hash": "7e9a7986c86136c8fda092cc2de15f0e"
+    "mtime": 1781115657.1805286,
+    "hash": "060331dd6d077e51f07e9305ac170ea4"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/lib/theme/theme-context.tsx": {
     "mtime": 1776584844.7356267,
     "hash": "64b3b616a2dd16be6fc28709d12013a2"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/src/lib/api/client.ts": {
-    "mtime": 1777146093.4149327,
-    "hash": "7d97251173a3d5142c706a7b92964044"
+    "mtime": 1781115692.513518,
+    "hash": "416bcf6868dbbec0b192da253bfa1881"
+  },
+  "/Users/sagnikmitra/Desktop/GitHub/gearup/backups/gearup-20260611T131256Z.sql": {
+    "mtime": 1781183666.1651592,
+    "hash": "f2408de51adae9c8951920a7b63c4587"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/test plan.md": {
     "mtime": 1776603577.9033313,
@@ -660,8 +736,8 @@
     "hash": "a9190960bf04b29c6b3b967c21681a63"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/AGENTS.md": {
-    "mtime": 1780264366.5111525,
-    "hash": "bc344d56b8b5c5a7d38871a4420ac695"
+    "mtime": 1780878065.084129,
+    "hash": "71b49c1d7d746d274483f451ab656c52"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/pnpm-workspace.yaml": {
     "mtime": 1776600048.3444812,
@@ -686,6 +762,10 @@
   "/Users/sagnikmitra/Desktop/GitHub/gearup/docs/qa-matrix.md": {
     "mtime": 1776584844.7371323,
     "hash": "ccd3b6328ea07d1734167d49a3e280c9"
+  },
+  "/Users/sagnikmitra/Desktop/GitHub/gearup/docs/RESTORE.md": {
+    "mtime": 1781166099.9779012,
+    "hash": "02e3a9a404ffcf3f9d87345d30549b12"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/docs/env.md": {
     "mtime": 1776584844.736909,
@@ -719,6 +799,78 @@
     "mtime": 1776584844.736982,
     "hash": "1f97a7f9ddb6dab27f1a5b7d37ad7ac2"
   },
+  "/Users/sagnikmitra/Desktop/GitHub/gearup/docs/audit/2026-06-10/RECOVERY_REPORT.md": {
+    "mtime": 1781186728.7434883,
+    "hash": "9ee46f5e8039660956b813c5104b207a"
+  },
+  "/Users/sagnikmitra/Desktop/GitHub/gearup/docs/audit/2026-06-10/EXECUTIVE_SUMMARY.md": {
+    "mtime": 1781092376.022488,
+    "hash": "366d970794c4c54d555ef85c1582b556"
+  },
+  "/Users/sagnikmitra/Desktop/GitHub/gearup/docs/audit/2026-06-10/POST_RESTORE_PLAN.md": {
+    "mtime": 1781192004.4507875,
+    "hash": "45b815cf194c3f3cfe997824871125c1"
+  },
+  "/Users/sagnikmitra/Desktop/GitHub/gearup/docs/audit/2026-06-10/ISSUES.md": {
+    "mtime": 1781092376.022177,
+    "hash": "d35b63593dca66947dfdc13ee662fc91"
+  },
+  "/Users/sagnikmitra/Desktop/GitHub/gearup/docs/audit/2026-06-10/MAPS.md": {
+    "mtime": 1781092376.0219355,
+    "hash": "610e0f7acdd4ae358774074774ec779c"
+  },
+  "/Users/sagnikmitra/Desktop/GitHub/gearup/docs/audit/2026-06-10/PLAN.md": {
+    "mtime": 1781195842.6668227,
+    "hash": "1e868820416b098ea5de9115e0d7a61e"
+  },
+  "/Users/sagnikmitra/Desktop/GitHub/gearup/docs/audit/2026-06-10/FIX_PLAN.md": {
+    "mtime": 1781092376.0223296,
+    "hash": "8515d811f53e451b9bafc18c09bc20f6"
+  },
+  "/Users/sagnikmitra/Desktop/GitHub/gearup/docs/audit/2026-06-10/RECONSTRUCTION_PLAN.md": {
+    "mtime": 1781191180.0529046,
+    "hash": "08b43af0fe9f175420db686a63017792"
+  },
+  "/Users/sagnikmitra/Desktop/GitHub/gearup/docs/audit/2026-06-10/modules/settings-notifications.md": {
+    "mtime": 1781092376.0235693,
+    "hash": "5b98ab553924dcb295470178947f7957"
+  },
+  "/Users/sagnikmitra/Desktop/GitHub/gearup/docs/audit/2026-06-10/modules/infra-schema.md": {
+    "mtime": 1781092376.0239756,
+    "hash": "4ee6a9fc619e84147296ba947220a885"
+  },
+  "/Users/sagnikmitra/Desktop/GitHub/gearup/docs/audit/2026-06-10/modules/expenses-reports.md": {
+    "mtime": 1781092376.0234137,
+    "hash": "d1053c37d3fcfa3a0fc410129545d1a4"
+  },
+  "/Users/sagnikmitra/Desktop/GitHub/gearup/docs/audit/2026-06-10/modules/invoices-payments.md": {
+    "mtime": 1781092376.0232646,
+    "hash": "1cc57d7b13581e014a2e86c35bc57a54"
+  },
+  "/Users/sagnikmitra/Desktop/GitHub/gearup/docs/audit/2026-06-10/modules/dashboard-misc.md": {
+    "mtime": 1781092376.02384,
+    "hash": "d74854f076ba7992ad935cd4af8a44c4"
+  },
+  "/Users/sagnikmitra/Desktop/GitHub/gearup/docs/audit/2026-06-10/modules/customers-vehicles-amc.md": {
+    "mtime": 1781092376.022817,
+    "hash": "507ed0a4ff398578d516ad9a90496f19"
+  },
+  "/Users/sagnikmitra/Desktop/GitHub/gearup/docs/audit/2026-06-10/modules/inventory.md": {
+    "mtime": 1781092376.0231144,
+    "hash": "f9ac58329da3b7498c3cb4ea491f9899"
+  },
+  "/Users/sagnikmitra/Desktop/GitHub/gearup/docs/audit/2026-06-10/modules/job-cards.md": {
+    "mtime": 1781092376.0229707,
+    "hash": "ca887ec567199a4364edaa6a14d3acbf"
+  },
+  "/Users/sagnikmitra/Desktop/GitHub/gearup/docs/audit/2026-06-10/modules/public.md": {
+    "mtime": 1781092376.023717,
+    "hash": "923f3a869213e15bdc6b6e58af6a6d84"
+  },
+  "/Users/sagnikmitra/Desktop/GitHub/gearup/docs/audit/2026-06-10/modules/auth-rbac.md": {
+    "mtime": 1781092376.022652,
+    "hash": "7af8284df3a70dec6c0590a22eb01d6b"
+  },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/graphify-out/memory/query_20260419_151010_why_does_ultra_detailed_e2e_execution_contract_con.md": {
     "mtime": 1776611410.586612,
     "hash": "3eef20b219497599e60dc96a223b6d29"
@@ -730,6 +882,50 @@
   "/Users/sagnikmitra/Desktop/GitHub/gearup/gearup-tshirt.png": {
     "mtime": 1780263336.5755315,
     "hash": "22afd316fe9e1322ae1fe2ded2640b91"
+  },
+  "/Users/sagnikmitra/Desktop/GitHub/gearup/Gearup-Data-Reconstruction-WA-Images/WhatsApp Image 2026-06-11 at 19.45.07 (2).jpeg": {
+    "mtime": 1781188762.4669745,
+    "hash": "ac69f3107e7b36ad2e5dc8ffa87eb8d1"
+  },
+  "/Users/sagnikmitra/Desktop/GitHub/gearup/Gearup-Data-Reconstruction-WA-Images/WhatsApp Image 2026-06-11 at 19.45.06.jpeg": {
+    "mtime": 1781188762.4695399,
+    "hash": "7161222d4067be73da3451eb76ee93b5"
+  },
+  "/Users/sagnikmitra/Desktop/GitHub/gearup/Gearup-Data-Reconstruction-WA-Images/WhatsApp Image 2026-06-11 at 19.45.07 (3).jpeg": {
+    "mtime": 1781188762.468356,
+    "hash": "5b286a5903f50fac90a522b9357bc7d9"
+  },
+  "/Users/sagnikmitra/Desktop/GitHub/gearup/Gearup-Data-Reconstruction-WA-Images/WhatsApp Image 2026-06-11 at 19.45.07 (1).jpeg": {
+    "mtime": 1781188762.4654791,
+    "hash": "ca713a779e674b1f7cf08b6c6fe985ae"
+  },
+  "/Users/sagnikmitra/Desktop/GitHub/gearup/Gearup-Data-Reconstruction-WA-Images/WhatsApp Image 2026-06-11 at 19.45.07.jpeg": {
+    "mtime": 1781188762.4576645,
+    "hash": "dbe60856cd243d51f6e775188a4a3ebc"
+  },
+  "/Users/sagnikmitra/Desktop/GitHub/gearup/Gearup-Data-Reconstruction-WA-Images/WhatsApp Image 2026-06-11 at 19.45.08.jpeg": {
+    "mtime": 1781188762.4449017,
+    "hash": "a6fdae32b7d1950ff8041043912f3286"
+  },
+  "/Users/sagnikmitra/Desktop/GitHub/gearup/Gearup-Data-Reconstruction-WA-Images/WhatsApp Image 2026-06-11 at 19.45.09.jpeg": {
+    "mtime": 1781188762.4592593,
+    "hash": "0def9f217508367fba3e3381639d233b"
+  },
+  "/Users/sagnikmitra/Desktop/GitHub/gearup/Gearup-Data-Reconstruction-WA-Images/WhatsApp Image 2026-06-11 at 19.45.09 (3).jpeg": {
+    "mtime": 1781188762.4734473,
+    "hash": "9ecea78090e17fd52f2b83e85d6661e8"
+  },
+  "/Users/sagnikmitra/Desktop/GitHub/gearup/Gearup-Data-Reconstruction-WA-Images/WhatsApp Image 2026-06-11 at 19.45.09 (1).jpeg": {
+    "mtime": 1781188762.4626522,
+    "hash": "13cde6650116fd1ce7cbb0340aa03ed2"
+  },
+  "/Users/sagnikmitra/Desktop/GitHub/gearup/Gearup-Data-Reconstruction-WA-Images/WhatsApp Image 2026-06-11 at 19.45.08 (1).jpeg": {
+    "mtime": 1781188762.4609435,
+    "hash": "426866acf84c33fe775305fa4ec8ae84"
+  },
+  "/Users/sagnikmitra/Desktop/GitHub/gearup/Gearup-Data-Reconstruction-WA-Images/WhatsApp Image 2026-06-11 at 19.45.09 (2).jpeg": {
+    "mtime": 1781188762.4719276,
+    "hash": "7bc4ca89a6b63ba3ec033ad7a9a4c6c6"
   },
   "/Users/sagnikmitra/Desktop/GitHub/gearup/apps/web/public/landing/gearup-mark.webp": {
     "mtime": 1777754557.4791658,

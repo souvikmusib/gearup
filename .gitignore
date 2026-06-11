@@ -30,3 +30,6 @@ backups/.launchd.log
 backups/.launchd.err
 scripts/db-backup-launchd-wrapper.sh
 docs/audit/2026-06-10/.work/
+.playwright-mcp/
+Gearup-Data-Reconstruction-WA-Images/
+docs/audit/*/db-backups/*.sql
