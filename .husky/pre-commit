@@ -1,0 +1,2 @@
+# Fast guard on commit (typecheck). The full suite runs on pre-push.
+pnpm --filter @gearup/web exec tsc --noEmit || { echo "✖ typecheck failed — commit blocked"; exit 1; }
