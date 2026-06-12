@@ -12,12 +12,8 @@
     "db:migrate": "node ./scripts/with-root-env.mjs \"prisma migrate dev\"",
     "db:seed": "node ./scripts/with-root-env.mjs \"tsx prisma/seed.ts\"",
     "postinstall": "prisma generate",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:int": "vitest run --config vitest.integration.config.ts",
-    "test:cov": "vitest run --coverage",
-    "test:int:cov": "vitest run --config vitest.integration.config.ts --coverage",
-    "test:e2e": "playwright test"
+    "test": "vitest",
+    "test:run": "vitest run"
   },
   "dependencies": {
     "@fullcalendar/core": "6.1.15",
@@ -52,11 +48,9 @@
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",
     "@types/three": "^0.184.1",
-    "@vitest/coverage-v8": "^4.1.8",
+    "@vitejs/plugin-react": "^6.0.2",
     "autoprefixer": "^10.4.19",
     "dotenv": "^16.6.1",
-    "eslint": "^8",
-    "eslint-config-next": "14.2.35",
     "postcss": "^8.4.38",
     "prisma": "^5.14.0",
     "tailwindcss": "^3.4.3",
