@@ -8,6 +8,7 @@ import { PageHeader, StatusBadge } from '@gearup/ui';
 import { WhatsAppButton } from '@/components/shared/whatsapp-button';
 import { FileText, CheckCircle, CreditCard, Download } from 'lucide-react';
 import { Modal } from '@/components/shared/modal';
+import { ProcessLoader } from '@/components/shared/process-loader';
 
 export default function InvoiceDetailPage() {
   const { id } = useParams();
@@ -206,24 +207,47 @@ export default function InvoiceDetailPage() {
   };
 
   const openPdf = async (type = 'invoice') => {
-    const token = localStorage.getItem('gearup_token');
-    if (!token) { alert('Not authenticated. Please login again.'); return; }
     try {
       const res = await window.fetch(`${window.location.origin}/api/admin/invoices/${id}/pdf?type=${type}`, {
         method: 'GET',
-        headers: { 'Authorization': `Bearer ${token}` },
+        credentials: 'same-origin',
       });
+      if (res.status === 401) { alert('Not authenticated. Please login again.'); return; }
       if (!res.ok) { alert('Failed to generate PDF'); return; }
       const html = await res.text();
-      const w = window.open('', '_blank');
-      if (w) { w.document.write(html); w.document.close(); w.onload = () => w.print(); }
+      const blob = new Blob([html], { type: 'text/html' });
+      const blobUrl = URL.createObjectURL(blob);
+      const w = window.open(blobUrl, '_blank');
+      if (w) {
+        w.addEventListener('load', () => {
+          w.print();
+          // Release the Blob URL after the print dialog opens so we don't leak it.
+          setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+        });
+      } else {
+        URL.revokeObjectURL(blobUrl);
+      }
     } catch (e) {
       console.error('PDF error:', e);
       alert('Failed to generate PDF');
     }
   };
 
-  if (!data) return <div className="py-12 text-center text-gray-500 animate-pulse">Loading invoice...</div>;
+  if (!data) {
+    return (
+      <div className="mx-auto max-w-xl py-8">
+        <ProcessLoader
+          title="Opening invoice"
+          steps={[
+            'Fetching invoice and line items',
+            'Loading customer and vehicle details',
+            'Checking payment and AMC status',
+            'Preparing edit controls',
+          ]}
+        />
+      </div>
+    );
+  }
 
   const isDraft = data.invoiceStatus === 'DRAFT';
   const isFinalized = data.invoiceStatus === 'FINALIZED';

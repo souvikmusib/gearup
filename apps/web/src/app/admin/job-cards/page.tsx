@@ -9,6 +9,7 @@ import { PageHeader, DataTable, StatusBadge } from '@gearup/ui';
 import { Modal } from '@/components/shared/modal';
 import { Pagination } from '@/components/shared/pagination';
 import { formatRegNumber } from '@/lib/format-reg';
+import { SearchableSelect } from '@/components/shared/searchable-select';
 
 export default function JobCardsPage() {
   const [data, setData] = useState<any[]>([]);
@@ -129,20 +130,20 @@ export default function JobCardsPage() {
   };
 
   const columns = [
-    { key: 'jobCardNumber', header: 'Job Card', render: (r: any) => (
+    { key: 'jobCardNumber', header: 'Job Card', nowrap: true, render: (r: any) => (
       <div>
         <span className="font-medium text-sm">{r.jobCardNumber}</span>
         <span className="block text-[10px] text-gray-400">{new Date(r.createdAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short', year: 'numeric' })}</span>
       </div>
     )},
     { key: 'customer', header: 'Customer / Vehicle', render: (r: any) => (
-      <div>
+      <div className="min-w-0">
         <span className="font-medium text-sm">{toTitleCase(r.customer?.fullName)}</span>
         <span className="block text-xs text-gray-500">{r.vehicle?.registrationNumber} {r.vehicle?.brand ? `· ${toTitleCase(r.vehicle.brand)}` : ''}</span>
-        {r.issueSummary && <span title={r.issueSummary} className="block text-xs text-gray-400 truncate max-w-[200px]">{toSentenceCase(r.issueSummary)}</span>}
+        {r.issueSummary && <span title={r.issueSummary} className="block text-xs text-gray-400 line-clamp-2">{toSentenceCase(r.issueSummary)}</span>}
       </div>
     )},
-    { key: 'status', header: 'Status', render: (r: any) => (
+    { key: 'status', header: 'Status', nowrap: true, render: (r: any) => (
       <div className="flex flex-col gap-0.5">
         <StatusBadge status={r.status} />
         {r.priority && <span className="text-[10px] text-gray-400">{r.priority}</span>}
@@ -151,7 +152,7 @@ export default function JobCardsPage() {
     { key: 'workers', header: 'Workers', render: (r: any) => (
       <span className="text-xs text-gray-600 dark:text-gray-400">{r.assignments?.map((a: any) => toTitleCase(a.worker?.fullName)).join(', ') || '—'}</span>
     ), className: 'hidden md:table-cell' },
-    { key: 'invoice', header: 'Invoice', render: (r: any) => {
+    { key: 'invoice', header: 'Invoice', nowrap: true, render: (r: any) => {
       const inv = r.invoices?.[0];
       if (!inv) return <span className="text-xs text-gray-300">—</span>;
       const color = inv.paymentStatus === 'PAID' ? 'text-green-600 bg-green-50 dark:bg-green-900/20 hover:bg-green-100' : inv.invoiceStatus === 'DRAFT' ? 'text-gray-500 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100' : 'text-amber-600 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100';
@@ -262,10 +263,12 @@ export default function JobCardsPage() {
                 <label className="text-sm font-medium">Vehicle <span className="text-red-500">*</span></label>
                 {form.customerId && <button type="button" onClick={() => setNewVeh(true)} className="text-xs text-blue-600 hover:underline">+ New Vehicle</button>}
               </div>
-              <select className={inputCls} value={form.vehicleId} onChange={(e) => setForm((f) => ({ ...f, vehicleId: e.target.value }))}>
-                <option value="">Select vehicle...</option>
-                {vehicles.map((v: any) => <option key={v.id} value={v.id}>{v.registrationNumber} — {v.brand} {v.model}</option>)}
-              </select>
+              <SearchableSelect
+                options={vehicles.map((v: any) => ({ value: v.id, label: v.registrationNumber, sublabel: `${v.brand ?? ''} ${v.model ?? ''}`.trim() || undefined }))}
+                value={form.vehicleId}
+                onChange={(v) => setForm((f) => ({ ...f, vehicleId: v }))}
+                placeholder="Search by reg number, brand, or model…"
+              />
             </div>
           ) : (
             <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 dark:border-blue-800 dark:bg-blue-900/20 space-y-2">

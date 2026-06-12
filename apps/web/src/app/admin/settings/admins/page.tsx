@@ -1,9 +1,10 @@
 'use client';
-import { formatIST, formatTimeIST } from '@/lib/time';
-import { useEffect, useState } from 'react';
+import { formatIST } from '@/lib/time';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { api } from '@/lib/api/client';
 import { PageHeader } from '@gearup/ui';
 import { Modal } from '@/components/shared/modal';
+import { Pagination } from '@/components/shared/pagination';
 
 export default function AdminUsersPage() {
   const [data, setData] = useState<any[]>([]);
@@ -15,14 +16,35 @@ export default function AdminUsersPage() {
   const [error, setError] = useState('');
   const [editUser, setEditUser] = useState<any>(null);
   const [editForm, setEditForm] = useState({ fullName: '', password: '', phone: '', status: '', roleId: '' });
+  const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const timer = useRef<NodeJS.Timeout>();
 
-  const load = () => {
-    api.get<any>('/admin/settings/admins').then((res) => {
-      if (res.success) { setData(res.data?.admins ?? []); setRoles(res.data?.roles ?? []); }
+  const load = useCallback((q = search, p = page, ps = pageSize) => {
+    const qs = new URLSearchParams();
+    qs.set('page', String(p));
+    qs.set('pageSize', String(ps));
+    if (q) qs.set('search', q);
+    api.get<any>(`/admin/settings/admins?${qs.toString()}`).then((res) => {
+      if (res.success) {
+        setData(res.data?.admins ?? []);
+        setRoles(res.data?.roles ?? []);
+        setTotal(res.meta?.total ?? 0);
+        setTotalPages(res.meta?.totalPages ?? 0);
+      }
       setLoading(false);
     });
+  }, [search, page, pageSize]);
+  useEffect(() => { load(); }, [load]);
+
+  const onSearchChange = (v: string) => {
+    setSearch(v);
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => { setPage(1); load(v, 1, pageSize); }, 250);
   };
-  useEffect(() => { load(); }, []);
 
   const submit = async () => {
     if (!form.adminUserId || !form.fullName || !form.password || !form.roleId) { setError('Fill all required fields'); return; }
@@ -41,10 +63,16 @@ export default function AdminUsersPage() {
         <PageHeader title="Admin Users" description="Manage admin accounts and roles" />
         <button onClick={() => setShowCreate(true)} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">+ Create User</button>
       </div>
+      <input
+        className={`${inputCls} max-w-md`}
+        placeholder="Search by ID, name, email, or phone…"
+        value={search}
+        onChange={(e) => onSearchChange(e.target.value)}
+      />
       {loading ? <p className="py-8 text-center text-gray-500">Loading...</p> : (
         <>
           <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
-            <table className="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
+            <table className="w-full table-auto divide-y divide-gray-200 text-sm dark:divide-gray-700">
               <thead className="bg-gray-50 dark:bg-gray-900">
                 <tr>
                   <th className="px-4 py-3 text-left font-semibold text-gray-600 dark:text-gray-300">Admin</th>
@@ -55,21 +83,32 @@ export default function AdminUsersPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                {data.length === 0 && (
+                  <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-500">No admin users found.</td></tr>
+                )}
                 {data.map((admin) => (
                   <tr key={admin.id}>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 align-top">
                       <p className="font-medium text-gray-900 dark:text-white">{admin.fullName}</p>
                       <p className="text-xs text-gray-500">{admin.adminUserId}{admin.phone ? ` · ${admin.phone}` : ''}</p>
                     </td>
-                    <td className="px-4 py-3"><span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">{admin.roles.map((r: any) => r.name ?? r.key).join(', ') || '-'}</span></td>
-                    <td className="px-4 py-3"><span className={`text-xs font-medium ${admin.status === 'ACTIVE' ? 'text-green-600' : 'text-red-600'}`}>{admin.status}</span></td>
-                    <td className="px-4 py-3 text-xs text-gray-500">{admin.lastLoginAt ? formatIST(admin.lastLoginAt) : 'Never'}</td>
-                    <td className="px-4 py-3"><button onClick={() => { setEditUser(admin); setEditForm({ fullName: admin.fullName, password: '', phone: admin.phone || '', status: admin.status, roleId: admin.roles[0]?.id || '' }); }} className="text-xs text-blue-600 hover:underline">Edit</button></td>
+                    <td className="px-4 py-3 align-top"><span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">{admin.roles.map((r: any) => r.name ?? r.key).join(', ') || '-'}</span></td>
+                    <td className="px-4 py-3 align-top"><span className={`text-xs font-medium ${admin.status === 'ACTIVE' ? 'text-green-600' : 'text-red-600'}`}>{admin.status}</span></td>
+                    <td className="px-4 py-3 align-top text-xs text-gray-500 whitespace-nowrap">{admin.lastLoginAt ? formatIST(admin.lastLoginAt) : 'Never'}</td>
+                    <td className="px-4 py-3 align-top"><button onClick={() => { setEditUser(admin); setEditForm({ fullName: admin.fullName, password: '', phone: admin.phone || '', status: admin.status, roleId: admin.roles[0]?.id || '' }); }} className="text-xs text-blue-600 hover:underline">Edit</button></td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            onPageChange={(p) => { setPage(p); load(search, p, pageSize); }}
+            pageSize={pageSize}
+            onPageSizeChange={(s) => { setPageSize(s); load(search, 1, s); }}
+            total={total}
+          />
         </>
       )}
 

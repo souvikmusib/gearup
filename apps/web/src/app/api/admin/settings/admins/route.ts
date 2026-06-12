@@ -75,17 +75,29 @@ async function countOtherActiveAdminManagers(
   });
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     requirePermission(PERMISSIONS.ADMIN_USERS_MANAGE);
-    const [admins, roles] = await Promise.all([
+    const sp = req.nextUrl.searchParams;
+    const page = Math.max(1, Number(sp.get('page')) || 1);
+    const pageSize = Math.min(Math.max(1, Number(sp.get('pageSize')) || 20), 200);
+    const search = sp.get('search')?.trim() || '';
+    const where = search
+      ? {
+          OR: [
+            { adminUserId: { contains: search, mode: 'insensitive' as const } },
+            { fullName: { contains: search, mode: 'insensitive' as const } },
+            { email: { contains: search, mode: 'insensitive' as const } },
+            { phone: { contains: search, mode: 'insensitive' as const } },
+          ],
+        }
+      : {};
+    const [admins, total, roles] = await Promise.all([
       prisma.adminUser.findMany({
+        where,
         orderBy: { createdAt: 'desc' },
-        // Single-tenant deployments have a small staff list (<20). The cap is a
-        // defense-in-depth bound, not real pagination — if you ever need
-        // pages, switch to the standard paginate() helper used in other list
-        // routes and add a search/filter UI at the same time.
-        take: 100,
+        skip: (page - 1) * pageSize,
+        take: pageSize,
         select: {
           id: true,
           adminUserId: true,
@@ -98,6 +110,7 @@ export async function GET() {
           roles: { select: { role: { select: { id: true, key: true, name: true } } } },
         },
       }),
+      prisma.adminUser.count({ where }),
       prisma.role.findMany({ orderBy: { name: 'asc' }, select: { id: true, key: true, name: true, description: true } }),
     ]);
 
@@ -107,6 +120,7 @@ export async function GET() {
         admins: admins.map((admin) => ({ ...admin, roles: admin.roles.map((entry) => entry.role) })),
         roles,
       },
+      meta: { page, pageSize, total, totalPages: Math.ceil(total / pageSize) },
     });
   } catch (e) {
     return handleApiError(e);

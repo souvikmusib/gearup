@@ -6,6 +6,8 @@ interface Column<T> {
   header: string;
   render?: (row: T) => React.ReactNode;
   className?: string;
+  /** Force single-line on this cell. Default is wrap so the table fits the viewport. */
+  nowrap?: boolean;
 }
 
 interface DataTableProps<T> {
@@ -28,7 +30,7 @@ export function DataTable<T extends Record<string, unknown>>({
   }
   return (
     <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
-      <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+      <table className="w-full table-auto divide-y divide-gray-200 dark:divide-gray-700">
         <thead className="bg-gray-50 dark:bg-gray-800">
           <tr>
             {columns.map((col) => (
@@ -58,7 +60,7 @@ export function DataTable<T extends Record<string, unknown>>({
               className={onRowClick ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500' : ''}
             >
               {columns.map((col) => (
-                <td key={col.key} className={`whitespace-nowrap px-4 py-3 text-sm text-gray-900 dark:text-gray-100 ${col.className ?? ''}`}>
+                <td key={col.key} className={`${col.nowrap ? 'whitespace-nowrap' : 'whitespace-normal break-words'} align-top px-4 py-3 text-sm text-gray-900 dark:text-gray-100 ${col.className ?? ''}`}>
                   {col.render ? col.render(row) : String(row[col.key] ?? '')}
                 </td>
               ))}

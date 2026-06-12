@@ -1,8 +1,9 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { api } from '@/lib/api/client';
 import { PageHeader, DataTable } from '@gearup/ui';
 import { Modal } from '@/components/shared/modal';
+import { Pagination } from '@/components/shared/pagination';
 
 export default function InventoryCategoriesPage() {
   const [data, setData] = useState<any[]>([]);
@@ -12,6 +13,9 @@ export default function InventoryCategoriesPage() {
   const [editItem, setEditItem] = useState<any>(null);
   const [editForm, setEditForm] = useState({ categoryName: '', description: '' });
   const [saving, setSaving] = useState(false);
+  const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
 
   const load = () => {
     const { cached, promise } = api.getSWR<any>('/admin/inventory/categories');
@@ -20,6 +24,20 @@ export default function InventoryCategoriesPage() {
     promise.then((r) => { if (r.success) setData(r.data ?? []); setLoading(false); });
   };
   useEffect(() => { load(); }, []);
+
+  const filtered = useMemo(() => {
+    if (!search.trim()) return data;
+    const q = search.toLowerCase();
+    return data.filter((c: any) =>
+      (c.categoryName ?? '').toLowerCase().includes(q) ||
+      (c.description ?? '').toLowerCase().includes(q)
+    );
+  }, [data, search]);
+
+  const paged = useMemo(
+    () => filtered.slice((page - 1) * pageSize, page * pageSize),
+    [filtered, page, pageSize]
+  );
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault(); setSaving(true);
@@ -53,12 +71,26 @@ export default function InventoryCategoriesPage() {
         <PageHeader title="Inventory Categories" />
         <button onClick={() => setShowCreate(true)} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">+ Add Category</button>
       </div>
+      <input
+        className={`${inputCls} mb-3 max-w-md`}
+        placeholder="Search categories…"
+        value={search}
+        onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+      />
       <DataTable columns={[
         { key: 'categoryName', header: 'Category' },
         { key: 'description', header: 'Description', render: (r: any) => r.description || '—' },
-        { key: 'items', header: 'Items', render: (r: any) => r._count?.items ?? 0 },
-        { key: 'actions', header: '', render: (r: any) => <button onClick={(e) => remove(r.id, e)} className="text-xs text-red-500 hover:underline">Delete</button> },
-      ]} data={data} keyField="id" onRowClick={openEdit} />
+        { key: 'items', header: 'Items', nowrap: true, render: (r: any) => r._count?.items ?? 0 },
+        { key: 'actions', header: '', nowrap: true, render: (r: any) => <button onClick={(e) => remove(r.id, e)} className="text-xs text-red-500 hover:underline">Delete</button> },
+      ]} data={paged} keyField="id" onRowClick={openEdit} />
+      <Pagination
+        page={page}
+        totalPages={Math.max(1, Math.ceil(filtered.length / pageSize))}
+        onPageChange={setPage}
+        pageSize={pageSize}
+        onPageSizeChange={setPageSize}
+        total={filtered.length}
+      />
 
       <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Add Category">
         <form onSubmit={submit} className="space-y-3">
