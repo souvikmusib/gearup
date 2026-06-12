@@ -189,21 +189,55 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       unitPrice: z.number().optional(),
       taxRate: z.number().optional(),
       discountPercent: z.number().min(0).max(100).optional(),
+      // For DISCOUNT_ADJUSTMENT lines the caller must declare mode so the
+      // recompute uses the correct formula. Schema does not persist this on
+      // the line row yet (TODO: dedicated column).
+      discountMode: z.preprocess(v => v === '' ? undefined : v, z.enum(['flat', 'percent']).optional()),
     }).parse(await req.json());
 
     const item = await prisma.$transaction(async (tx) => {
-      await ensureDraftTx(tx, params.id);
+      const inv = await ensureDraftTx(tx, params.id);
       const { lineItemId, ...data } = body;
       const existing = await tx.invoiceLineItem.findFirstOrThrow({ where: { id: lineItemId, invoiceId: params.id } });
       const qty = data.quantity ?? Number(existing.quantity);
       const price = data.unitPrice ?? Number(existing.unitPrice);
       const discount = data.discountPercent ?? Number(existing.discountPercent);
       const rate = data.taxRate ?? Number(existing.taxRate);
-      const subtotal = qty * price * (1 - discount / 100);
-      const taxAmount = subtotal * (rate / 100);
-      const lineTotal = subtotal + taxAmount;
-      const updated = await tx.invoiceLineItem.update({ where: { id: lineItemId }, data: { ...data, taxAmount, lineTotal } });
-      await recalcTotalsTx(tx, params.id);
+
+      let taxAmount: number;
+      let lineTotal: number;
+      if (existing.lineType === 'DISCOUNT_ADJUSTMENT') {
+        // Discount lines have their own math: lineTotal is negative and there
+        // is no tax. Percent mode anchors to the pre-discount subtotal of the
+        // OTHER lines on this invoice (the canonical percent-discount base).
+        // The previous PATCH implementation incorrectly applied the
+        // qty*price*(1-discount%) formula here, which corrupted the invoice
+        // total whenever a discount line was edited (regression caught by an
+        // integration test exercising a percent-discount PATCH).
+        taxAmount = 0;
+        // Mode resolution: caller-supplied → existing-on-row (legacy) → flat.
+        // The schema does not yet persist discountMode on InvoiceLineItem, so
+        // for now percent-mode lines must be re-declared on every PATCH.
+        const mode = data.discountMode ?? ((existing as { discountMode?: string }).discountMode) ?? 'flat';
+        if (mode === 'percent') {
+          const otherLines = await tx.invoiceLineItem.findMany({
+            where: { invoiceId: params.id, lineType: { not: 'DISCOUNT_ADJUSTMENT' } },
+            select: { quantity: true, unitPrice: true },
+          });
+          const preSubtotal = otherLines.reduce((s, l) => s + Number(l.quantity) * Number(l.unitPrice), 0);
+          lineTotal = -(preSubtotal * (price / 100));
+        } else {
+          lineTotal = -Math.abs(qty * price);
+        }
+      } else {
+        const subtotal = qty * price * (1 - discount / 100);
+        taxAmount = subtotal * (rate / 100);
+        lineTotal = subtotal + taxAmount;
+      }
+      // discountMode is API-only (not yet a column); drop before write.
+      const { discountMode: _dm, ...persistable } = data;
+      const updated = await tx.invoiceLineItem.update({ where: { id: lineItemId }, data: { ...persistable, taxAmount, lineTotal } });
+      await recalcTotalsTx(tx, params.id, inv);
       return updated;
     });
 
