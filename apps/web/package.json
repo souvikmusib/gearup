@@ -13,7 +13,9 @@
     "db:seed": "node ./scripts/with-root-env.mjs \"tsx prisma/seed.ts\"",
     "postinstall": "prisma generate",
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "test:int": "vitest run --config vitest.integration.config.ts",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@fullcalendar/core": "6.1.15",
@@ -51,6 +53,8 @@
     "@vitejs/plugin-react": "^6.0.2",
     "autoprefixer": "^10.4.19",
     "dotenv": "^16.6.1",
+    "eslint": "^8",
+    "eslint-config-next": "14",
     "postcss": "^8.4.38",
     "prisma": "^5.14.0",
     "tailwindcss": "^3.4.3",
