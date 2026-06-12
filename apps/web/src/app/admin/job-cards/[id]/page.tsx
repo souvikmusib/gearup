@@ -270,7 +270,7 @@ export default function JobCardDetailPage() {
                 {locked ? <p className="text-gray-600 dark:text-gray-400">{data.issueSummary}</p> : <input className={inputCls} defaultValue={data.issueSummary} onBlur={(e) => e.target.value !== data.issueSummary && api.patch(`/admin/job-cards/${id}`, { issueSummary: e.target.value }).then(load)} />}
               </div>
               <div><label className="text-xs font-medium text-gray-500">Customer Complaints</label>
-                {locked ? <p className="text-gray-600 dark:text-gray-400">{data.customerComplaints || '—'}</p> : <input className={inputCls} defaultValue={data.customerComplaints || ''} onBlur={(e) => api.patch(`/admin/job-cards/${id}`, { customerVisibleNotes: e.target.value }).then(load)} />}
+                {locked ? <p className="text-gray-600 dark:text-gray-400">{data.customerComplaints || '—'}</p> : <input className={inputCls} defaultValue={data.customerComplaints || ''} onBlur={(e) => api.patch(`/admin/job-cards/${id}`, { customerComplaints: e.target.value }).then(load)} />}
               </div>
               <div className="flex gap-4">
                 <div className="flex-1"><label className="text-xs font-medium text-gray-500">Odometer (km)</label>

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { toTitleCase } from '@/lib/title-case';
 import { prisma } from '@/lib/prisma';
 import { requirePermission } from '@/lib/auth';
 import { handleApiError } from '@/lib/errors';
@@ -116,7 +117,7 @@ th { background:#f3f4f6; padding:8px 10px; text-align:left; font-size:10px; text
 <div style="display:flex;gap:12px;margin-bottom:20px">
   <div style="flex:1;background:#f9fafb;padding:12px;border-radius:6px">
     <div style="font-size:9px;text-transform:uppercase;color:#888;font-weight:600">Bill To</div>
-    <div style="font-weight:600;margin-top:3px">${esc(invoice.customer.fullName)}</div>
+    <div style="font-weight:600;margin-top:3px">${esc(toTitleCase(invoice.customer.fullName))}</div>
     <div style="color:#666;font-size:11px">${esc(invoice.customer.phoneNumber)}</div>
     ${invoice.customer.email ? `<div style="color:#666;font-size:11px">${esc(invoice.customer.email)}</div>` : ''}
   </div>
@@ -199,7 +200,7 @@ function generateCustomerDraftHTML(invoice: any, settings: Record<string, any>, 
     <div style="text-align:right"><div style="font-size:22px;font-weight:700">SERVICE SUMMARY</div><div style="color:#666;font-size:13px;margin-top:4px">${esc(invoice.invoiceNumber)}</div><div style="color:#666;font-size:12px;margin-top:4px">${formatDateIST(invoice.invoiceDate, { long: true })}</div></div>
   </div>
   <div style="display:flex;gap:16px;margin-bottom:20px">
-    <div style="flex:1;background:#f9fafb;padding:12px;border-radius:8px"><div style="font-size:10px;text-transform:uppercase;color:#888;font-weight:600">Customer</div><div style="font-weight:500;margin-top:4px">${esc(invoice.customer.fullName)}</div><div style="color:#666;font-size:12px">${esc(invoice.customer.phoneNumber)}</div></div>
+    <div style="flex:1;background:#f9fafb;padding:12px;border-radius:8px"><div style="font-size:10px;text-transform:uppercase;color:#888;font-weight:600">Customer</div><div style="font-weight:500;margin-top:4px">${esc(toTitleCase(invoice.customer.fullName))}</div><div style="color:#666;font-size:12px">${esc(invoice.customer.phoneNumber)}</div></div>
     <div style="flex:1;background:#f9fafb;padding:12px;border-radius:8px"><div style="font-size:10px;text-transform:uppercase;color:#888;font-weight:600">Vehicle</div><div style="font-weight:500;margin-top:4px">${esc(invoice.vehicle?.brand ?? '')} ${esc(invoice.vehicle?.model ?? '')}</div><div style="color:#666;font-size:12px">${esc(invoice.vehicle?.registrationNumber ?? 'Counter Sale')}</div>${invoice.jobCard?.odometerAtIntake ? `<div style="color:#666;font-size:11px;margin-top:2px">Odometer: ${invoice.jobCard.odometerAtIntake.toLocaleString()} km${invoice.jobCard.fuelIndicator ? ` · Fuel: ${esc(invoice.jobCard.fuelIndicator)}` : ''}</div>` : ''}</div>
   </div>
   ${invoice.jobCard?.issueSummary ? `<div style="margin-bottom:16px;padding:12px;background:#fffbeb;border-radius:8px;border:1px solid #fde68a"><strong>Issue:</strong> ${esc(invoice.jobCard.issueSummary)}</div>` : ''}
@@ -213,7 +214,7 @@ function generateMechanicCopyHTML(invoice: any, settings: Record<string, any>, l
   const biz = { name: settings['business.name'] || 'GearUp Auto Service' };
 
   const tasks = invoice.jobCard?.tasks?.map((t: any, i: number) => `
-    <tr><td style="padding:6px 12px;border-bottom:1px solid #eee">${i + 1}</td><td style="padding:6px 12px;border-bottom:1px solid #eee">${esc(t.taskName)}</td><td style="padding:6px 12px;border-bottom:1px solid #eee;text-align:center">${t.status === 'COMPLETED' ? '✅' : '⬜'}</td></tr>`).join('') || '<tr><td colspan="3" style="padding:12px;color:#888;text-align:center">No tasks</td></tr>';
+    <tr><td style="padding:6px 12px;border-bottom:1px solid #eee">${i + 1}</td><td style="padding:6px 12px;border-bottom:1px solid #eee">${esc(t.taskName)}</td><td style="padding:6px 12px;border-bottom:1px solid #eee;text-align:center">${t.status === 'COMPLETED' || t.status === 'DONE' ? '✅' : '⬜'}</td></tr>`).join('') || '<tr><td colspan="3" style="padding:12px;color:#888;text-align:center">No tasks</td></tr>';
 
   const parts = invoice.jobCard?.parts?.map((p: any, i: number) => `
     <tr><td style="padding:6px 12px;border-bottom:1px solid #eee">${i + 1}</td><td style="padding:6px 12px;border-bottom:1px solid #eee">${esc(p.inventoryItem?.itemName || 'Part')}</td><td style="padding:6px 12px;border-bottom:1px solid #eee;text-align:center">${Number(p.requiredQty)}</td><td style="padding:6px 12px;border-bottom:1px solid #eee;text-align:right">₹${Number(p.unitPrice).toLocaleString()}</td></tr>`).join('') || '<tr><td colspan="4" style="padding:12px;color:#888;text-align:center">No parts</td></tr>';
@@ -227,7 +228,7 @@ function generateMechanicCopyHTML(invoice: any, settings: Record<string, any>, l
   </div>
   <div style="display:flex;gap:16px;margin-bottom:20px">
     <div style="flex:1;background:#f9fafb;padding:12px;border-radius:8px"><strong>Vehicle:</strong> ${invoice.vehicle ? `${esc(invoice.vehicle.brand)} ${esc(invoice.vehicle.model)} — ${esc(invoice.vehicle.registrationNumber)}` : 'Counter Sale'}${invoice.jobCard?.odometerAtIntake ? `<br><span style="font-size:12px;color:#666">Odometer: ${invoice.jobCard.odometerAtIntake.toLocaleString()} km${invoice.jobCard.fuelIndicator ? ` · Fuel: ${esc(invoice.jobCard.fuelIndicator)}` : ''}</span>` : ''}</div>
-    <div style="flex:1;background:#f9fafb;padding:12px;border-radius:8px"><strong>Customer:</strong> ${esc(invoice.customer.fullName)} (${esc(invoice.customer.phoneNumber)})</div>
+    <div style="flex:1;background:#f9fafb;padding:12px;border-radius:8px"><strong>Customer:</strong> ${esc(toTitleCase(invoice.customer.fullName))} (${esc(invoice.customer.phoneNumber)})</div>
   </div>
   ${invoice.jobCard?.issueSummary ? `<div style="margin-bottom:16px;padding:12px;background:#fef3c7;border-radius:8px;border:1px solid #fde68a"><strong>Issue:</strong> ${esc(invoice.jobCard.issueSummary)}</div>` : ''}
   <h2>Tasks</h2>
@@ -314,7 +315,7 @@ th { background:#f9fafb; padding:9px 12px; text-align:left; font-size:10px; text
 
 <div style="padding:24px 32px">
   <div style="display:flex;gap:10px;margin-bottom:22px">
-    <div style="border:1px solid #e5e7eb;padding:11px;border-radius:4px;flex:1"><div style="font-size:9px;text-transform:uppercase;letter-spacing:0.5px;color:#6b7280;font-weight:600">Customer</div><div style="font-size:13px;margin-top:3px;font-weight:600">${esc(invoice.customer.fullName)}</div><div style="font-size:11px;color:#6b7280;margin-top:1px">${esc(invoice.customer.phoneNumber)}</div></div>
+    <div style="border:1px solid #e5e7eb;padding:11px;border-radius:4px;flex:1"><div style="font-size:9px;text-transform:uppercase;letter-spacing:0.5px;color:#6b7280;font-weight:600">Customer</div><div style="font-size:13px;margin-top:3px;font-weight:600">${esc(toTitleCase(invoice.customer.fullName))}</div><div style="font-size:11px;color:#6b7280;margin-top:1px">${esc(invoice.customer.phoneNumber)}</div></div>
     <div style="border:1px solid #e5e7eb;padding:11px;border-radius:4px;flex:1"><div style="font-size:9px;text-transform:uppercase;letter-spacing:0.5px;color:#6b7280;font-weight:600">Vehicle</div><div style="font-size:13px;margin-top:3px;font-weight:600">${esc(invoice.vehicle?.brand ?? '')} ${esc(invoice.vehicle?.model ?? '')}</div><div style="font-size:11px;color:#6b7280;margin-top:1px">${esc(invoice.vehicle?.registrationNumber ?? 'Counter Sale')}</div></div>
     <div style="border:1px solid #e5e7eb;padding:11px;border-radius:4px;flex:1"><div style="font-size:9px;text-transform:uppercase;letter-spacing:0.5px;color:#6b7280;font-weight:600">Job Card</div><div style="font-size:13px;margin-top:3px;font-weight:600">${esc(invoice.jobCard?.jobCardNumber ?? '-')}</div><div style="font-size:11px;color:#6b7280;margin-top:1px">${esc(invoice.jobCard?.issueSummary?.slice(0, 30) ?? '')}</div></div>
   </div>
@@ -385,7 +386,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       const biz = { name: settings['business.name'] || 'GearUp Auto Service', phone: settings['business.phone'] || '' };
       const items = invoice.lineItems.filter((li: any) => li.lineType !== 'DISCOUNT_ADJUSTMENT');
       const rows = items.map((li: any, i: number) => `<tr><td style="padding:3px 6px;border-bottom:1px solid #eee;font-size:10px">${i+1}</td><td style="padding:3px 6px;border-bottom:1px solid #eee;font-size:10px">${esc(li.description)}</td><td style="padding:3px 6px;border-bottom:1px solid #eee;text-align:center;font-size:10px">${Number(li.quantity)}</td><td style="padding:3px 6px;border-bottom:1px solid #eee;text-align:right;font-size:10px">₹${Number(li.lineTotal).toLocaleString()}</td></tr>`).join('');
-      const tasks = invoice.jobCard?.tasks?.map((t: any, i: number) => `<tr><td style="padding:2px 4px;border-bottom:1px solid #eee;font-size:10px">${i+1}. ${esc(t.taskName)}</td><td style="padding:2px 4px;border-bottom:1px solid #eee;text-align:center;font-size:10px">${t.status === 'COMPLETED' ? '✅' : '⬜'}</td></tr>`).join('') || '';
+      const tasks = invoice.jobCard?.tasks?.map((t: any, i: number) => `<tr><td style="padding:2px 4px;border-bottom:1px solid #eee;font-size:10px">${i+1}. ${esc(t.taskName)}</td><td style="padding:2px 4px;border-bottom:1px solid #eee;text-align:center;font-size:10px">${t.status === 'COMPLETED' || t.status === 'DONE' ? '✅' : '⬜'}</td></tr>`).join('') || '';
       const parts = invoice.jobCard?.parts?.map((p: any) => `<tr><td style="padding:2px 4px;border-bottom:1px solid #eee;font-size:10px">${esc(p.inventoryItem?.itemName || 'Part')}</td><td style="padding:2px 4px;border-bottom:1px solid #eee;text-align:center;font-size:10px">×${Number(p.requiredQty)}</td></tr>`).join('') || '';
       const vehicle = invoice.vehicle ? `${esc(invoice.vehicle.brand)} ${esc(invoice.vehicle.model)} — ${esc(invoice.vehicle.registrationNumber)}` : 'Counter Sale';
       const odometer = invoice.jobCard?.odometerAtIntake ? ` | Odo: ${invoice.jobCard.odometerAtIntake.toLocaleString()}km` : '';
@@ -413,7 +414,7 @@ table { width:100%; border-collapse:collapse; } th { background:#f3f4f6; padding
   </div>
   <div class="meta">
     <div class="meta-box"><div class="meta-label">Vehicle</div>${vehicle}${odometer}${fuel}</div>
-    <div class="meta-box"><div class="meta-label">Customer</div>${esc(invoice.customer.fullName)} · ${esc(invoice.customer.phoneNumber)}</div>
+    <div class="meta-box"><div class="meta-label">Customer</div>${esc(toTitleCase(invoice.customer.fullName))} · ${esc(invoice.customer.phoneNumber)}</div>
   </div>
   ${invoice.jobCard?.issueSummary ? `<div style="margin-bottom:4px;padding:3px 8px;background:#fef3c7;border-radius:4px;font-size:10px"><strong>Issue:</strong> ${esc(invoice.jobCard.issueSummary)}</div>` : ''}
   <div style="display:flex;gap:12px">
@@ -431,7 +432,7 @@ table { width:100%; border-collapse:collapse; } th { background:#f3f4f6; padding
     <div style="text-align:right"><strong style="font-size:10px">CUSTOMER COPY</strong><br><span style="font-size:9px;color:#666">${esc(invoice.invoiceNumber)} · ${formatDateIST(invoice.invoiceDate)}</span></div>
   </div>
   <div class="meta">
-    <div class="meta-box"><div class="meta-label">Customer</div>${esc(invoice.customer.fullName)} · ${esc(invoice.customer.phoneNumber)}</div>
+    <div class="meta-box"><div class="meta-label">Customer</div>${esc(toTitleCase(invoice.customer.fullName))} · ${esc(invoice.customer.phoneNumber)}</div>
     <div class="meta-box"><div class="meta-label">Vehicle</div>${vehicle}${odometer}${fuel}</div>
   </div>
   <table><thead><tr><th>#</th><th>Item</th><th style="text-align:center">Qty</th><th style="text-align:right">Amount</th></tr></thead><tbody>${rows}</tbody></table>

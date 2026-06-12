@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
     if (workerId) where.assignments = { some: { workerId } };
     if (priority) where.priority = priority;
     const [data, total] = await Promise.all([
-      prisma.jobCard.findMany({ where, ...p, orderBy: { createdAt: 'desc' }, include: { customer: { select: { fullName: true, phoneNumber: true } }, vehicle: { select: { registrationNumber: true, brand: true, model: true } }, assignments: { include: { worker: { select: { fullName: true } } } } } }),
+      prisma.jobCard.findMany({ where, ...p, orderBy: { createdAt: 'desc' }, include: { customer: { select: { fullName: true, phoneNumber: true } }, vehicle: { select: { registrationNumber: true, brand: true, model: true } }, assignments: { include: { worker: { select: { fullName: true } } } }, invoices: { select: { id: true, invoiceNumber: true, paymentStatus: true, invoiceStatus: true }, take: 1 } } }),
       prisma.jobCard.count({ where }),
     ]);
     return NextResponse.json({ success: true, data, meta: paginationMeta(total, page, pageSize) });
@@ -45,12 +45,12 @@ export async function POST(req: NextRequest) {
     const user = requirePermission(PERMISSIONS.JOB_CARDS_CREATE);
     const body = createSchema.parse(await req.json());
     const jc = await prisma.$transaction(async (tx) => {
-      const jcData: Prisma.JobCardUncheckedCreateInput = { jobCardNumber: generateJobCardNumber(), ...body, intakeDate: new Date(), estimatedDeliveryAt: body.estimatedDeliveryAt ? new Date(body.estimatedDeliveryAt) : undefined };
+      const jcData: Prisma.JobCardUncheckedCreateInput = { jobCardNumber: await generateJobCardNumber(tx), ...body, intakeDate: new Date(), estimatedDeliveryAt: body.estimatedDeliveryAt ? new Date(body.estimatedDeliveryAt) : undefined };
       const created = await tx.jobCard.create({ data: jcData });
       if (body.serviceRequestId) await tx.serviceRequest.update({ where: { id: body.serviceRequestId }, data: { status: 'CONVERTED_TO_JOB' } });
       if (body.odometerAtIntake) await tx.vehicle.update({ where: { id: body.vehicleId }, data: { odometerReading: body.odometerAtIntake } });
       // Auto-create DRAFT invoice for this job card
-      const invData: Prisma.InvoiceCreateInput = { invoiceNumber: generateInvoiceNumber(), jobCard: { connect: { id: created.id } }, customer: { connect: { id: body.customerId } }, vehicle: { connect: { id: body.vehicleId } }, createdBy: { connect: { id: user.sub } }, invoiceDate: new Date(), invoiceStatus: 'DRAFT', paymentStatus: 'UNPAID' };
+      const invData: Prisma.InvoiceCreateInput = { invoiceNumber: await generateInvoiceNumber(tx), jobCard: { connect: { id: created.id } }, customer: { connect: { id: body.customerId } }, vehicle: { connect: { id: body.vehicleId } }, createdBy: { connect: { id: user.sub } }, invoiceDate: new Date(), invoiceStatus: 'DRAFT', paymentStatus: 'UNPAID' };
       const inv = await tx.invoice.create({ data: invData });
       await logActivity({ actorType: 'ADMIN', actorId: user.sub, action: 'invoice.created', entityType: 'Invoice', entityId: inv.id, newValue: { invoiceNumber: inv.invoiceNumber, jobCardId: created.id, invoiceStatus: 'DRAFT', paymentStatus: 'UNPAID' }, tx });
       return created;

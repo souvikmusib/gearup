@@ -1,4 +1,5 @@
 'use client';
+import { toTitleCase } from '@/lib/title-case';
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';
@@ -87,10 +88,8 @@ export default function WorkersPage() {
             <input className={inputCls} placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <select className={inputCls} required value={form.designation} onChange={(e) => setForm({ ...form, designation: e.target.value })}>
-              <option value="">Select role *</option>
-              {['Role A', 'Role B', 'Role C', 'Role D', 'Mechanic', 'Electrician', 'Service Advisor', 'Supervisor'].map((role) => <option key={role} value={role}>{role}</option>)}
-            </select>
+            <input className={inputCls} list="designations" placeholder="Designation *" required value={form.designation} onChange={(e) => setForm({ ...form, designation: e.target.value })} />
+              <datalist id="designations">{data.map((w: any) => w.designation).filter((v: string, i: number, a: string[]) => v && a.indexOf(v) === i).map((d: string) => <option key={d} value={d} />)}</datalist>
             <input className={inputCls} placeholder="Specialization" value={form.specialization} onChange={(e) => setForm({ ...form, specialization: e.target.value })} />
           </div>
           <div className="grid grid-cols-2 gap-3">

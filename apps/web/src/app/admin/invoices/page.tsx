@@ -1,4 +1,5 @@
 'use client';
+import { toTitleCase } from '@/lib/title-case';
 import { formatIST, formatTimeIST } from '@/lib/time';
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
@@ -139,7 +140,7 @@ export default function InvoicesPage() {
   };
 
   const columns = [
-    { key: 'invoiceNumber', header: 'Invoice #' }, { key: 'customer', header: 'Customer', render: (r: any) => r.customer?.fullName },
+    { key: 'invoiceNumber', header: 'Invoice #' }, { key: 'customer', header: 'Customer', render: (r: any) => toTitleCase(r.customer?.fullName) },
     { key: 'invoiceDate', header: 'Date', render: (r: any) => formatIST(r.invoiceDate) },
     { key: 'grandTotal', header: 'Total', render: (r: any) => `₹${Number(r.grandTotal)}` },
     { key: 'amountDue', header: 'Due', render: (r: any) => `₹${Number(r.amountDue)}` },

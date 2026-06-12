@@ -1,5 +1,6 @@
 'use client';
 import { formatIST, formatTimeIST } from '@/lib/time';
+import { toTitleCase, toSentenceCase } from '@/lib/title-case';
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { api } from '@/lib/api/client';
@@ -70,13 +71,13 @@ export default function JobCardsPage() {
       if (customerId) {
         api.get<any>(`/admin/vehicles?customerId=${customerId}&pageSize=100`).then((res) => { if (res.success) setVehicles(res.data?.items ?? res.data ?? []); });
       }
-      api.get<any>('/admin/customers?pageSize=200').then((res) => { if (res.success) setCustomers(res.data?.items ?? res.data ?? []); });
+      api.get<any>('/admin/customers?pageSize=20').then((res) => { if (res.success) setCustomers(res.data?.items ?? res.data ?? []); });
     }
   }, [searchParams]);
 
   const openCreate = async () => {
     setShowCreate(true); setError(''); setNewCust(false); setNewVeh(false);
-    const res = await api.get<any>('/admin/customers?pageSize=200');
+    const res = await api.get<any>('/admin/customers?pageSize=20');
     if (res.success) setCustomers(res.data?.items ?? res.data ?? []);
   };
 
@@ -128,14 +129,35 @@ export default function JobCardsPage() {
   };
 
   const columns = [
-    { key: 'jobCardNumber', header: 'Job Card #' },
-    { key: 'customer', header: 'Customer', render: (r: any) => r.customer?.fullName },
-    { key: 'vehicle', header: 'Vehicle', render: (r: any) => r.vehicle?.registrationNumber },
-    { key: 'issueSummary', header: 'Issue' },
-    { key: 'status', header: 'Status', render: (r: any) => <StatusBadge status={r.status} /> },
-    { key: 'priority', header: 'Priority', render: (r: any) => r.priority ?? '—' },
-    { key: 'workers', header: 'Workers', render: (r: any) => r.assignments?.map((a: any) => a.worker?.fullName).join(', ') || '—' },
-    { key: 'createdAt', header: 'Created (IST)', render: (r: any) => new Date(r.createdAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true }) },
+    { key: 'jobCardNumber', header: 'Job Card', render: (r: any) => (
+      <div>
+        <span className="font-medium text-sm">{r.jobCardNumber}</span>
+        <span className="block text-[10px] text-gray-400">{new Date(r.createdAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short', year: 'numeric' })}</span>
+      </div>
+    )},
+    { key: 'customer', header: 'Customer / Vehicle', render: (r: any) => (
+      <div>
+        <span className="font-medium text-sm">{toTitleCase(r.customer?.fullName)}</span>
+        <span className="block text-xs text-gray-500">{r.vehicle?.registrationNumber} {r.vehicle?.brand ? `· ${toTitleCase(r.vehicle.brand)}` : ''}</span>
+        {r.issueSummary && <span title={r.issueSummary} className="block text-xs text-gray-400 truncate max-w-[200px]">{toSentenceCase(r.issueSummary)}</span>}
+      </div>
+    )},
+    { key: 'status', header: 'Status', render: (r: any) => (
+      <div className="flex flex-col gap-0.5">
+        <StatusBadge status={r.status} />
+        {r.priority && <span className="text-[10px] text-gray-400">{r.priority}</span>}
+      </div>
+    )},
+    { key: 'workers', header: 'Workers', render: (r: any) => (
+      <span className="text-xs text-gray-600 dark:text-gray-400">{r.assignments?.map((a: any) => toTitleCase(a.worker?.fullName)).join(', ') || '—'}</span>
+    ), className: 'hidden md:table-cell' },
+    { key: 'invoice', header: 'Invoice', render: (r: any) => {
+      const inv = r.invoices?.[0];
+      if (!inv) return <span className="text-xs text-gray-300">—</span>;
+      const color = inv.paymentStatus === 'PAID' ? 'text-green-600 bg-green-50 dark:bg-green-900/20 hover:bg-green-100' : inv.invoiceStatus === 'DRAFT' ? 'text-gray-500 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100' : 'text-amber-600 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100';
+      const label = inv.paymentStatus === 'PAID' ? 'Paid' : inv.invoiceStatus === 'DRAFT' ? 'Draft' : 'Unpaid';
+      return <a href={`/admin/invoices/${inv.id}`} onClick={(e) => e.stopPropagation()} className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${color}`}>{label}</a>;
+    }},
   ];
 
   const inputCls = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white';
@@ -147,43 +169,38 @@ export default function JobCardsPage() {
         <PageHeader title="Job Cards" description="Active and completed work orders" />
         <button onClick={openCreate} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">+ New Job Card</button>
       </div>
-      <div className="flex flex-wrap gap-2 mb-4">
-        <input className={inputCls + ' max-w-xs'} placeholder="Search job cards..." value={search} onChange={(e) => { setSearch(e.target.value); load(e.target.value, statusFilter, workerFilter, priorityFilter); }} />
-        <select className={inputCls + ' w-44'} value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); load(search, e.target.value, workerFilter, priorityFilter); }}>
+
+      {/* Filters - 3 column grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 mb-4">
+        <input className={inputCls} placeholder="Search job cards..." value={search} onChange={(e) => { setSearch(e.target.value); load(e.target.value, statusFilter, workerFilter, priorityFilter); }} />
+        <select className={inputCls} value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); load(search, e.target.value, workerFilter, priorityFilter); }}>
           <option value="">All Statuses</option>
           {[
             { value: 'CREATED', label: 'OPEN' },
             { value: 'ESTIMATE_PREPARED', label: 'ESTIMATE READY' },
-            // WORK_IN_PROGRESS is the canonical 'IN PROGRESS' filter; the API
-            // expands this to the full set of in-progress DB statuses
-            // (APPROVED, PARTS_PENDING, QUALITY_CHECK, …) so a card sitting in
-            // QUALITY_CHECK is still surfaced under 'IN PROGRESS' here.
             { value: 'WORK_IN_PROGRESS', label: 'IN PROGRESS' },
             { value: 'READY_FOR_DELIVERY', label: 'READY' },
             { value: 'DELIVERED', label: 'DELIVERED' },
             { value: 'CANCELLED', label: 'CANCELLED' },
           ].map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
         </select>
-        <select className={inputCls + ' w-48'} value={workerFilter} onChange={(e) => { setWorkerFilter(e.target.value); load(search, statusFilter, e.target.value, priorityFilter); }}>
+        <select className={inputCls} value={workerFilter} onChange={(e) => { setWorkerFilter(e.target.value); load(search, statusFilter, e.target.value, priorityFilter); }}>
           <option value="">All Workers</option>
           {allWorkers.map((w: any) => (
-            // Show total assignment count from the workers aggregate
-            // (`_count.assignments`) rather than recomputing from the current
-            // paginated page, which was both wrong (only 20 rows visible) and
-            // name-matched instead of id-matched.
             <option key={w.id} value={w.id}>
               {w.fullName}
               {typeof w._count?.assignments === 'number' ? ` (${w._count.assignments})` : ''}
             </option>
           ))}
         </select>
-        <select className={inputCls + ' w-36'} value={priorityFilter} onChange={(e) => { setPriorityFilter(e.target.value); load(search, statusFilter, workerFilter, e.target.value); }}>
+        <select className={inputCls} value={priorityFilter} onChange={(e) => { setPriorityFilter(e.target.value); load(search, statusFilter, workerFilter, e.target.value); }}>
           <option value="">All Priorities</option>
           <option value="HIGH">High</option>
           <option value="MEDIUM">Medium</option>
           <option value="LOW">Low</option>
         </select>
       </div>
+
       <DataTable columns={columns} data={data} keyField="id" onRowClick={(r: any) => router.push(`/admin/job-cards/${r.id}`)} />
       <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
 
@@ -198,10 +215,28 @@ export default function JobCardsPage() {
                 <label className="text-sm font-medium">Customer <span className="text-red-500">*</span></label>
                 <button type="button" onClick={() => setNewCust(true)} className="text-xs text-blue-600 hover:underline">+ New Customer</button>
               </div>
-              <select className={inputCls} value={form.customerId} onChange={(e) => onCustomerChange(e.target.value)}>
-                <option value="">Select customer...</option>
-                {customers.map((c: any) => <option key={c.id} value={c.id}>{c.fullName} ({c.phoneNumber})</option>)}
-              </select>
+              <div className="relative">
+                <input className={inputCls} placeholder="Type to search customer..." autoComplete="off"
+                  value={form.customerId ? (customers.find((c: any) => c.id === form.customerId)?.fullName || '') : ''}
+                  onChange={async (e) => {
+                    const q = e.target.value;
+                    if (q.length >= 2) {
+                      const res = await api.get<any>(`/admin/customers?search=${encodeURIComponent(q)}&pageSize=10`);
+                      if (res.success) setCustomers(res.data?.items ?? res.data ?? []);
+                    }
+                  }}
+                  onFocus={(e) => e.target.select()}
+                />
+                {customers.length > 0 && !form.customerId && (
+                  <div className="absolute z-50 top-full left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
+                    {customers.map((c: any) => (
+                      <button key={c.id} type="button" onClick={() => onCustomerChange(c.id)} className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 border-b border-gray-50 dark:border-gray-700 last:border-0">
+                        <span className="font-medium">{toTitleCase(c.fullName)}</span> <span className="text-xs text-gray-400">{c.phoneNumber}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           ) : (
             <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 dark:border-blue-800 dark:bg-blue-900/20 space-y-2">
