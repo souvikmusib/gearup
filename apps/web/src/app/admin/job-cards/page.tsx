@@ -134,6 +134,7 @@ export default function JobCardsPage() {
     { key: 'status', header: 'Status', render: (r: any) => <StatusBadge status={r.status} /> },
     { key: 'priority', header: 'Priority', render: (r: any) => r.priority ?? '—' },
     { key: 'workers', header: 'Workers', render: (r: any) => r.assignments?.map((a: any) => a.worker?.fullName).join(', ') || '—' },
+    { key: 'createdAt', header: 'Created (IST)', render: (r: any) => new Date(r.createdAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true }) },
   ];
 
   const inputCls = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white';

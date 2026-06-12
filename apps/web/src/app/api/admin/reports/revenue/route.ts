@@ -28,21 +28,21 @@ export async function GET(req: NextRequest) {
     }
     const { from, to } = parsed.data;
     const paymentWhere: Record<string, unknown> = {};
-    if (from && to) paymentWhere.paymentDate = { gte: new Date(from), lte: new Date(to) };
+    if (from && to) paymentWhere.paymentDate = { gte: new Date(from + 'T00:00:00+05:30'), lte: new Date(to + 'T23:59:59+05:30') };
 
     // Date bounds for raw aggregates — zod has already validated YYYY-MM-DD shape,
     // and we pass them as bind parameters anyway.
     const hasRange = Boolean(from && to);
     const rangeArgs = hasRange ? [from as string, to as string] : [];
-    const payRange = hasRange ? `WHERE "paymentDate" BETWEEN $1::date AND $2::date` : '';
-    const invRange = hasRange ? `AND i."invoiceDate" BETWEEN $1::date AND $2::date` : '';
+    const payRange = hasRange ? `WHERE ("paymentDate" AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata')::date BETWEEN $1::date AND $2::date` : '';
+    const invRange = hasRange ? `AND (i."invoiceDate" AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata')::date BETWEEN $1::date AND $2::date` : '';
 
     const [byMode, total, daily, byType, byWorker, workerJobValue] = await Promise.all([
       prisma.payment.groupBy({ by: ['paymentMode'], where: paymentWhere, _sum: { amount: true }, _count: true }),
       prisma.payment.aggregate({ where: paymentWhere, _sum: { amount: true } }),
-      // Revenue trend: payment totals per calendar day
+      // Revenue trend: payment totals per calendar day (IST)
       prisma.$queryRawUnsafe<{ date: string; amount: number }[]>(
-        `SELECT to_char("paymentDate"::date, 'YYYY-MM-DD') AS date, SUM(amount)::float AS amount
+        `SELECT to_char(("paymentDate" AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata')::date, 'YYYY-MM-DD') AS date, SUM(amount)::float AS amount
          FROM "Payment" ${payRange}
          GROUP BY 1 ORDER BY 1`,
         ...rangeArgs,

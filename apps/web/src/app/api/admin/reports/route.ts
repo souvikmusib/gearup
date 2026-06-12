@@ -33,7 +33,8 @@ export async function GET(req: NextRequest) {
     const now = new Date();
     const istOffset = 5.5 * 60 * 60 * 1000;
     const istNow = new Date(now.getTime() + istOffset);
-    const today = new Date(istNow.toISOString().slice(0, 10) + 'T00:00:00+05:30');
+    const todayStr = istNow.toISOString().slice(0, 10);
+    const today = new Date(todayStr + 'T00:00:00+05:30');
     const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
     const [
       todayAppointments,
@@ -49,7 +50,7 @@ export async function GET(req: NextRequest) {
       prisma.serviceRequest.count({ where: { status: { in: ['SUBMITTED', 'UNDER_REVIEW'] } } }),
       prisma.jobCard.count({ where: { status: { notIn: ['DELIVERED', 'CANCELLED', 'CLOSED'] } } }),
       prisma.invoice.count({ where: { invoiceStatus: 'FINALIZED', paymentStatus: { in: ['UNPAID', 'PARTIALLY_PAID'] } } }),
-      prisma.payment.aggregate({ where: { paymentDate: { gte: today, lt: tomorrow } }, _sum: { amount: true } }),
+      prisma.$queryRawUnsafe<[{ sum: number | null }]>(`SELECT SUM(amount)::float AS sum FROM "Payment" WHERE ("paymentDate" AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata')::date = $1::date`, todayStr).then(r => ({ _sum: { amount: r[0]?.sum ?? 0 } })),
       prisma.customer.count(),
       prisma.vehicle.count(),
       prisma.worker.count({ where: { status: 'ACTIVE' } }),
