@@ -1,3 +1,4 @@
+import { istDayEnd } from '@/lib/time';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requirePermission } from '@/lib/auth';
@@ -23,7 +24,7 @@ export async function GET(req: NextRequest) {
     if (from || to) {
       const createdAt: Record<string, Date> = {};
       if (from) createdAt.gte = new Date(from);
-      if (to) { const { istDayEnd } = require('@/lib/time'); createdAt.lte = istDayEnd(new Date(to)); }
+      if (to) { createdAt.lte = istDayEnd(new Date(to)); }
       where.createdAt = createdAt;
     }
     const rows = await prisma.activityLog.findMany({

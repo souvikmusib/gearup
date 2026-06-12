@@ -1,3 +1,4 @@
+import { istDayStart } from '@/lib/time';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { paginate, paginationMeta } from '@/lib/pagination';
@@ -22,7 +23,7 @@ const createSchema = z.object({
 });
 
 function startOfDay(d: Date): Date {
-  const { istDayStart } = require('@/lib/time');
+
   return istDayStart(d);
 }
 

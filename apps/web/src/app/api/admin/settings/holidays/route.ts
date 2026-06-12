@@ -1,3 +1,4 @@
+import { istDayStart } from '@/lib/time';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requirePermission } from '@/lib/auth';
@@ -77,7 +78,7 @@ export async function DELETE(req: NextRequest) {
     const id = z.string().cuid('id must be a valid cuid').parse(rawId);
     const existing = await prisma.holiday.findUnique({ where: { id } });
     if (!existing) throw new AppError(404, 'Holiday not found', 'HOLIDAY_NOT_FOUND');
-    const { istDayStart } = require('@/lib/time');
+
     const today = istDayStart();
     if (existing.holidayDate < today) {
       throw new AppError(409, 'Past holidays cannot be deleted; appointments may have been rescheduled around them', 'HOLIDAY_IN_PAST');
