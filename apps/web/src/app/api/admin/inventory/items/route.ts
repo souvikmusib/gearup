@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
     requirePermission(PERMISSIONS.INVENTORY_VIEW);
     const sp = req.nextUrl.searchParams;
     const page = Number(sp.get('page')) || 1;
-    const pageSize = Math.min(Number(sp.get('pageSize')) || 20, 100);
+    const pageSize = Math.min(Number(sp.get('pageSize')) || 20, 500);
     const search = sp.get('search') || '';
     const categoryId = sp.get('categoryId') || '';
     const p = paginate({ page, pageSize });

@@ -26,7 +26,7 @@ export default function RevenueReportPage() {
   const fetchReport = () => {
     setError('');
     setData(null);
-    const endpoint = `/admin/reports?type=revenue&from=${from}&to=${to}`;
+    const endpoint = `/admin/reports/revenue?from=${from}&to=${to}`;
     api.get<any>(endpoint).then((r) => {
       if (r.success) setData(r.data);
       else setError(r.error?.message || 'Failed to load revenue report');

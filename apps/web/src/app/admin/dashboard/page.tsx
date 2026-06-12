@@ -60,13 +60,13 @@ export default function DashboardPage() {
     });
     // Charts
     const from = new Date(); from.setDate(from.getDate() - 7);
-    api.get<any>(`/admin/reports?type=revenue&from=${from.toISOString().slice(0, 10)}&to=${new Date().toISOString().slice(0, 10)}`).then((r) => {
+    api.get<any>(`/admin/reports/revenue?from=${from.toISOString().slice(0, 10)}&to=${new Date().toISOString().slice(0, 10)}`).then((r) => {
       if (r.success) setRevenueChart(r.data?.daily ?? []);
     });
-    api.get<any>('/admin/reports?type=jobs').then((r) => {
+    api.get<any>('/admin/reports/jobs').then((r) => {
       if (r.success) setJobStats(r.data ?? []);
     });
-    api.get<any>('/admin/reports?type=workers').then((r) => {
+    api.get<any>('/admin/reports/workers').then((r) => {
       if (r.success) setWorkerLoad(r.data ?? []);
     });
     // Low stock items for inventory manager

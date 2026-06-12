@@ -8,7 +8,7 @@ export default function AppointmentsReportPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const { cached, promise } = api.getSWR<any>('/admin/reports?type=appointments');
+    const { cached, promise } = api.getSWR<any>('/admin/reports/appointments');
     if (cached?.success) { setData(cached.data ?? []); setLoading(false); }
     promise.then((r) => { if (r.success) setData(r.data ?? []); setLoading(false); });
   }, []);
