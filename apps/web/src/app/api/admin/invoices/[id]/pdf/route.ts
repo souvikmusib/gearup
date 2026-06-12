@@ -88,10 +88,10 @@ function generateInvoiceHTML(invoice: any, settings: Record<string, any>, logoUr
   const odometer = invoice.jobCard?.odometerAtIntake;
 
   return `<!DOCTYPE html>
-<html><head><meta charset="utf-8"><title>Invoice ${esc(invoice.invoiceNumber)}</title>
+<html><head><meta charset="utf-8"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Google+Sans:400,500,600,700,800&display=swap"><title>Invoice ${esc(invoice.invoiceNumber)}</title>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
-body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; color:#1a1a1a; font-size:12px; }
+body { font-family:'Google Sans','Product Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; color:#1a1a1a; font-size:12px; }
 @media print { body { -webkit-print-color-adjust:exact; print-color-adjust:exact; } }
 .page { max-width:800px; margin:0 auto; padding:30px; }
 table { width:100%; border-collapse:collapse; }
@@ -191,8 +191,8 @@ function generateCustomerDraftHTML(invoice: any, settings: Record<string, any>, 
       <td style="padding:8px 12px;border-bottom:1px solid #eee;text-align:center">${Number(li.quantity)}</td>
     </tr>`).join('');
 
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Service Summary — ${esc(invoice.invoiceNumber)}</title>
-<style>* { margin:0; padding:0; box-sizing:border-box; } body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; color:#1a1a1a; font-size:13px; } .page { max-width:800px; margin:0 auto; padding:40px; } .header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:24px; padding-bottom:16px; border-bottom:2px solid #111; } .biz-name { font-size:20px; font-weight:700; } table { width:100%; border-collapse:collapse; margin-top:16px; } th { background:#f3f4f6; padding:10px 12px; text-align:left; font-size:11px; text-transform:uppercase; color:#666; font-weight:600; } .footer { margin-top:32px; padding-top:12px; border-top:1px solid #eee; text-align:center; color:#888; font-size:12px; }</style>
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Google+Sans:400,500,600,700,800&display=swap"><title>Service Summary — ${esc(invoice.invoiceNumber)}</title>
+<style>* { margin:0; padding:0; box-sizing:border-box; } body { font-family:'Google Sans','Product Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; color:#1a1a1a; font-size:13px; } .page { max-width:800px; margin:0 auto; padding:40px; } .header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:24px; padding-bottom:16px; border-bottom:2px solid #111; } .biz-name { font-size:20px; font-weight:700; } table { width:100%; border-collapse:collapse; margin-top:16px; } th { background:#f3f4f6; padding:10px 12px; text-align:left; font-size:11px; text-transform:uppercase; color:#666; font-weight:600; } .footer { margin-top:32px; padding-top:12px; border-top:1px solid #eee; text-align:center; color:#888; font-size:12px; }</style>
 </head><body><div class="page">
   <div class="header">
     <div><img src="${esc(logoUrl)}" style="width:150px;margin-bottom:8px" alt="${esc(biz.name)}"><div class="biz-name">${esc(biz.name)}</div>${biz.phone ? `<div style="color:#666;font-size:12px">📞 ${esc(biz.phone)}</div>` : ''}</div>
@@ -218,8 +218,8 @@ function generateMechanicCopyHTML(invoice: any, settings: Record<string, any>, l
   const parts = invoice.jobCard?.parts?.map((p: any, i: number) => `
     <tr><td style="padding:6px 12px;border-bottom:1px solid #eee">${i + 1}</td><td style="padding:6px 12px;border-bottom:1px solid #eee">${esc(p.inventoryItem?.itemName || 'Part')}</td><td style="padding:6px 12px;border-bottom:1px solid #eee;text-align:center">${Number(p.requiredQty)}</td><td style="padding:6px 12px;border-bottom:1px solid #eee;text-align:right">₹${Number(p.unitPrice).toLocaleString()}</td></tr>`).join('') || '<tr><td colspan="4" style="padding:12px;color:#888;text-align:center">No parts</td></tr>';
 
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Mechanic Copy — ${esc(invoice.jobCard?.jobCardNumber || invoice.invoiceNumber)}</title>
-<style>* { margin:0; padding:0; box-sizing:border-box; } body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; color:#1a1a1a; font-size:13px; } .page { max-width:800px; margin:0 auto; padding:40px; } table { width:100%; border-collapse:collapse; margin-top:8px; } th { background:#f3f4f6; padding:8px 12px; text-align:left; font-size:11px; text-transform:uppercase; color:#666; font-weight:600; } h2 { font-size:16px; margin-top:24px; margin-bottom:4px; }</style>
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Google+Sans:400,500,600,700,800&display=swap"><title>Mechanic Copy — ${esc(invoice.jobCard?.jobCardNumber || invoice.invoiceNumber)}</title>
+<style>* { margin:0; padding:0; box-sizing:border-box; } body { font-family:'Google Sans','Product Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; color:#1a1a1a; font-size:13px; } .page { max-width:800px; margin:0 auto; padding:40px; } table { width:100%; border-collapse:collapse; margin-top:8px; } th { background:#f3f4f6; padding:8px 12px; text-align:left; font-size:11px; text-transform:uppercase; color:#666; font-weight:600; } h2 { font-size:16px; margin-top:24px; margin-bottom:4px; }</style>
 </head><body><div class="page">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;padding-bottom:12px;border-bottom:2px solid #111">
     <div><div style="font-size:20px;font-weight:700">${esc(biz.name)}</div><div style="font-size:11px;color:#888;margin-top:2px">MECHANIC WORK ORDER</div></div>
@@ -272,10 +272,10 @@ function generateAmcInvoiceHTML(invoice: any, settings: Record<string, any>, log
 
   const endDate = formatDateIST(amcContract.endDate, { long: true });
 
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Invoice ${esc(invoice.invoiceNumber)}</title>
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Google+Sans:400,500,600,700,800&display=swap"><title>Invoice ${esc(invoice.invoiceNumber)}</title>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
-body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; color:#1a1a1a; font-size:13px; }
+body { font-family:'Google Sans','Product Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; color:#1a1a1a; font-size:13px; }
 @media print { body { -webkit-print-color-adjust:exact; print-color-adjust:exact; } @page { margin:10mm; } }
 .page { max-width:800px; margin:0 auto; border:2px solid #111; }
 table { width:100%; border-collapse:collapse; }
@@ -391,8 +391,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       const odometer = invoice.jobCard?.odometerAtIntake ? ` | Odo: ${invoice.jobCard.odometerAtIntake.toLocaleString()}km` : '';
       const fuel = invoice.jobCard?.fuelIndicator ? ` | Fuel: ${esc(invoice.jobCard.fuelIndicator)}` : '';
 
-      html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Combined — ${esc(invoice.invoiceNumber)}</title>
-<style>* { margin:0; padding:0; box-sizing:border-box; } body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; color:#1a1a1a; font-size:11px; }
+      html = `<!DOCTYPE html><html><head><meta charset="utf-8"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Google+Sans:400,500,600,700,800&display=swap"><title>Combined — ${esc(invoice.invoiceNumber)}</title>
+<style>* { margin:0; padding:0; box-sizing:border-box; } body { font-family:'Google Sans','Product Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; color:#1a1a1a; font-size:11px; }
 @media print { body { -webkit-print-color-adjust:exact; print-color-adjust:exact; } @page { margin:8mm; size:A4; } }
 table { width:100%; border-collapse:collapse; } th { background:#f3f4f6; padding:4px 6px; text-align:left; font-size:9px; text-transform:uppercase; color:#666; font-weight:600; }
 .page { width:100%; height:277mm; display:flex; flex-direction:column; }
