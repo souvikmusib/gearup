@@ -34,6 +34,8 @@ jobs:
           node-version: 20
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Timezone lint (forbid raw toLocale* without timeZone)
+        run: bash scripts/check-tz.sh
       - name: Prisma generate
         run: pnpm --filter @gearup/web exec prisma generate
       - name: Unit tests (vitest)
