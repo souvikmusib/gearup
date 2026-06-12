@@ -1,4 +1,5 @@
 'use client';
+import { formatIST, formatTimeIST } from '@/lib/time';
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';
@@ -129,8 +130,8 @@ export default function AppointmentDetailPage() {
         <div className="rounded-lg border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-800 space-y-3">
           <h3 className="font-semibold text-gray-900 dark:text-white">Appointment Details</h3>
           <StatusBadge status={data.status} />
-          <p className="text-sm text-gray-600 dark:text-gray-400">Date: {new Date(data.appointmentDate).toLocaleDateString()}</p>
-          <p className="text-sm text-gray-600 dark:text-gray-400">Slot: {new Date(data.slotStart).toLocaleTimeString()} – {new Date(data.slotEnd).toLocaleTimeString()}</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">Date: {formatIST(data.appointmentDate)}</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">Slot: {formatTimeIST(data.slotStart)} – {formatTimeIST(data.slotEnd)}</p>
           <p className="text-sm text-gray-600 dark:text-gray-400">Source: {data.bookingSource}</p>
           {data.rescheduleReason && <p className="text-sm text-yellow-600">Reschedule reason: {data.rescheduleReason}</p>}
           {data.cancellationReason && <p className="text-sm text-red-600">Cancellation reason: {data.cancellationReason}</p>}
@@ -142,7 +143,7 @@ export default function AppointmentDetailPage() {
             <h3 className="font-semibold text-gray-900 dark:text-white">Customer</h3>
             <p className="text-sm text-gray-600 dark:text-gray-400">{data.customer?.fullName} · {data.customer?.phoneNumber}</p>
             {data.customer?.phoneNumber && data.status === 'CONFIRMED' && (
-              <div className="mt-2"><WhatsAppButton phone={data.customer.phoneNumber} message={`Hi ${data.customer.fullName}, your appointment on ${new Date(data.appointmentDate).toLocaleDateString()} at ${new Date(data.slotStart).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} is confirmed. Ref: ${data.referenceId}. - GearUp Servicing, 9242519099`} /></div>
+              <div className="mt-2"><WhatsAppButton phone={data.customer.phoneNumber} message={`Hi ${data.customer.fullName}, your appointment on ${formatIST(data.appointmentDate)} at ${formatTimeIST(data.slotStart)} is confirmed. Ref: ${data.referenceId}. - GearUp Servicing, 9242519099`} /></div>
             )}
           </div>
           <div className="rounded-lg border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-800">

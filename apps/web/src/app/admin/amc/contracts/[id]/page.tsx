@@ -1,4 +1,5 @@
 'use client';
+import { formatIST, formatTimeIST } from '@/lib/time';
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
@@ -94,8 +95,8 @@ export default function AmcContractDetailPage() {
           <h3 className="font-semibold text-gray-500 text-xs uppercase">Contract Info</h3>
           <p><span className="text-gray-500">Status:</span> <StatusBadge status={contract.status} /></p>
           <p><span className="text-gray-500">Plan:</span> {contract.plan?.planName}</p>
-          <p><span className="text-gray-500">Start:</span> {new Date(contract.startDate).toLocaleDateString('en-IN')}</p>
-          <p><span className="text-gray-500">End:</span> {new Date(contract.endDate).toLocaleDateString('en-IN')}</p>
+          <p><span className="text-gray-500">Start:</span> {formatIST(contract.startDate)}</p>
+          <p><span className="text-gray-500">End:</span> {formatIST(contract.endDate)}</p>
           <p><span className="text-gray-500">Paid:</span> ₹{Number(contract.amountPaid).toLocaleString()}</p>
         </div>
 
@@ -133,7 +134,7 @@ export default function AmcContractDetailPage() {
               {contract.usages?.map((u: any) => (
                 <tr key={u.id} className="border-b last:border-0">
                   <td className="py-2">{u.serviceNumber}</td>
-                  <td className="py-2">{new Date(u.serviceDate).toLocaleDateString('en-IN')}</td>
+                  <td className="py-2">{formatIST(u.serviceDate)}</td>
                   <td className="py-2"><Link href={`/admin/job-cards/${u.jobCard?.id}`} className="text-blue-600 hover:underline">{u.jobCard?.jobCardNumber}</Link></td>
                   <td className="py-2 text-gray-500">{u.notes || '—'}</td>
                   <td className="py-2"><button onClick={() => handleDeleteUsage(u.id)} className="text-red-600 text-xs hover:underline">Remove</button></td>
@@ -164,7 +165,7 @@ export default function AmcContractDetailPage() {
               </option>
               {jobCardOptions.map((jc) => (
                 <option key={jc.id} value={jc.id}>
-                  {jc.jobCardNumber} — {jc.status} — {new Date(jc.intakeDate || jc.createdAt).toLocaleDateString('en-IN')}
+                  {jc.jobCardNumber} — {jc.status} — {formatIST(jc.intakeDate || jc.createdAt)}
                 </option>
               ))}
             </select>

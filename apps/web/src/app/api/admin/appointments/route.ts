@@ -22,9 +22,8 @@ const createSchema = z.object({
 });
 
 function startOfDay(d: Date): Date {
-  const x = new Date(d);
-  x.setHours(0, 0, 0, 0);
-  return x;
+  const { istDayStart } = require('@/lib/time');
+  return istDayStart(d);
 }
 
 function addDays(d: Date, n: number): Date {

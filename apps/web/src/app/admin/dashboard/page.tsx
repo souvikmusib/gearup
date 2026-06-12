@@ -1,4 +1,5 @@
 'use client';
+import { formatIST, formatTimeIST } from '@/lib/time';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -165,7 +166,7 @@ export default function DashboardPage() {
             <ResponsiveContainer width="100%" height={200}>
               <AreaChart data={revenueChart}>
                 <defs><linearGradient id="dashGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/><stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/></linearGradient></defs>
-                <XAxis dataKey="date" tick={{ fontSize: 10 }} tickFormatter={(d) => new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })} />
+                <XAxis dataKey="date" tick={{ fontSize: 10 }} tickFormatter={(d) => formatIST(d, { day: 'numeric', month: 'short' })} />
                 <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`} />
                 <Tooltip formatter={(v: any) => [`₹${Number(v).toLocaleString()}`, 'Revenue']} />
                 <Area type="monotone" dataKey="amount" stroke="#3b82f6" strokeWidth={2} fill="url(#dashGrad)" />

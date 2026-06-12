@@ -1,4 +1,5 @@
 'use client';
+import { formatIST, formatTimeIST } from '@/lib/time';
 import { useEffect, useRef, useState } from 'react';
 import { api } from '@/lib/api/client';
 import { ProcessLoader } from '@/components/shared/process-loader';
@@ -128,7 +129,7 @@ export default function ExpensesPage() {
         </select>
       </div>
       <DataTable columns={[
-        { key: 'expenseDate', header: 'Date', render: (r: any) => new Date(r.expenseDate).toLocaleDateString() },
+        { key: 'expenseDate', header: 'Date', render: (r: any) => formatIST(r.expenseDate) },
         { key: 'title', header: 'Title' },
         { key: 'category', header: 'Category', render: (r: any) => r.category?.categoryName },
         { key: 'amount', header: 'Amount', render: (r: any) => `₹${Number(r.amount)}` },

@@ -255,7 +255,8 @@ async function main() {
   const apptStatuses = ['COMPLETED', 'COMPLETED', 'CHECKED_IN', 'CONFIRMED', 'CONFIRMED', 'REQUESTED', 'CONFIRMED'];
   for (let i = 0; i < 7; i++) {
     const date = daysAgo(srData[i].days - 1);
-    const slotStart = new Date(date); slotStart.setHours(9 + i, 0, 0, 0);
+    const ymd = new Date(date.getTime() + 5.5 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    const slotStart = new Date(`${ymd}T${String(9 + i).padStart(2, '0')}:00:00+05:30`);
     const slotEnd = new Date(slotStart.getTime() + 30 * 60000);
     appts.push(await prisma.appointment.create({ data: { referenceId: `APT-2026-${String(i + 1).padStart(4, '0')}`, serviceRequestId: srs[i].id, customerId: customers[i].id, vehicleId: vehicles[i].id, appointmentDate: date, slotStart, slotEnd, status: apptStatuses[i] as any, bookingSource: 'SEED' } }));
   }

@@ -1,4 +1,5 @@
 'use client';
+import { formatIST, formatTimeIST } from '@/lib/time';
 import { useEffect, useState, useCallback } from 'react';
 import { api } from '@/lib/api/client';
 import { ProcessLoader } from '@/components/shared/process-loader';
@@ -64,7 +65,7 @@ export default function NotificationsPage() {
       {loading ? <ProcessLoader title="Loading notifications" steps={['Fetching notification log', 'Preparing list']} /> :
         <DataTable
           columns={[
-            { key: 'createdAt', header: 'Date', render: (r: any) => new Date(r.createdAt).toLocaleString() },
+            { key: 'createdAt', header: 'Date', render: (r: any) => formatIST(r.createdAt, { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) },
             { key: 'channel', header: 'Channel' },
             { key: 'eventType', header: 'Event' },
             { key: 'recipient', header: 'To', render: (r: any) => r.recipientPhone || r.recipientEmail || '—' },

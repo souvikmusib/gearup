@@ -1,4 +1,5 @@
 'use client';
+import { formatIST, formatTimeIST } from '@/lib/time';
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';
@@ -55,7 +56,7 @@ export default function CustomersPage() {
   const columns = [
     { key: 'fullName', header: 'Name' }, { key: 'phoneNumber', header: 'Phone' }, { key: 'email', header: 'Email', render: (r: any) => r.email ?? '—' },
     { key: 'vehicles', header: 'Vehicles', render: (r: any) => r._count?.vehicles ?? 0 }, { key: 'jobs', header: 'Jobs', render: (r: any) => r._count?.jobCards ?? 0 },
-    { key: 'createdAt', header: 'Since', render: (r: any) => new Date(r.createdAt).toLocaleDateString() },
+    { key: 'createdAt', header: 'Since', render: (r: any) => formatIST(r.createdAt) },
   ];
 
   const inputCls = "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white";

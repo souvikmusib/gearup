@@ -21,8 +21,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       throw new AppError(400, 'endDate must be on or after startDate', 'INVALID_DATE_RANGE');
     }
     // Normalize end to end-of-day for overlap checks so same-day ranges count.
-    const endOfDay = new Date(endDate);
-    endOfDay.setHours(23, 59, 59, 999);
+    const { istDayEnd } = require('@/lib/time');
+    const endOfDay = istDayEnd(new Date(endDate));
     // Refuse overlap with any PENDING/APPROVED leave for this worker.
     const overlap = await prisma.workerLeave.findFirst({
       where: {
@@ -66,8 +66,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       const start = new Date(leave.startDate);
       const end = new Date(leave.endDate);
       // Normalize end to end-of-day so a same-day leave (start==end) still counts as active today.
-      end.setHours(23, 59, 59, 999);
-      if (now >= start && now <= end) {
+      const { istDayEnd: istEnd } = require('@/lib/time');
+      const endNorm = istEnd(end);
+      if (now >= start && now <= endNorm) {
         await prisma.worker.update({ where: { id: params.id }, data: { status: 'ON_LEAVE' } });
       }
     }

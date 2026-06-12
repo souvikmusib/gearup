@@ -1,4 +1,5 @@
 'use client';
+import { formatIST, formatTimeIST } from '@/lib/time';
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';
@@ -283,8 +284,8 @@ export default function JobCardDetailPage() {
             <div className="pt-2 border-t dark:border-gray-600 mt-3 space-y-1">
               <p className="text-sm text-gray-600 dark:text-gray-400">Customer: {data.customer?.fullName} · {data.customer?.phoneNumber}</p>
               <p className="text-sm text-gray-600 dark:text-gray-400">Vehicle: {data.vehicle?.registrationNumber} — {data.vehicle?.brand} {data.vehicle?.model}</p>
-              <p className="text-sm text-gray-500">Intake: {new Date(data.intakeDate).toLocaleDateString()}</p>
-              {data.actualDeliveryAt && <p className="text-sm text-green-600">Delivered: {new Date(data.actualDeliveryAt).toLocaleDateString()}</p>}
+              <p className="text-sm text-gray-500">Intake: {formatIST(data.intakeDate)}</p>
+              {data.actualDeliveryAt && <p className="text-sm text-green-600">Delivered: {formatIST(data.actualDeliveryAt)}</p>}
               {status === 'READY' && data.customer?.phoneNumber && (
                 <div className="mt-2"><WhatsAppButton phone={data.customer.phoneNumber} message={`Hi ${data.customer.fullName}, your ${data.vehicle?.brand} ${data.vehicle?.model} (${data.vehicle?.registrationNumber}) is ready for pickup! Job Card: ${data.jobCardNumber}. - GearUp Servicing, 9242519099`} /></div>
               )}
