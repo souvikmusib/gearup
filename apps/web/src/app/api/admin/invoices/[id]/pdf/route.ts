@@ -252,6 +252,9 @@ function generateAmcInvoiceHTML(invoice: any, settings: Record<string, any>, log
 
   const planPrice = Number(amcContract.plan.price);
   const amcSavings = invoice.lineItems.filter((li: any) => li.lineType === 'AMC' && Number(li.lineTotal) === 0).length * planPrice;
+  const discountFromAdjustments = invoice.lineItems.filter((li: any) => li.lineType === 'DISCOUNT_ADJUSTMENT').reduce((s: number, li: any) => s + Math.abs(Number(li.lineTotal)), 0);
+  const discountFromPercent = invoice.lineItems.filter((li: any) => li.lineType !== 'DISCOUNT_ADJUSTMENT' && Number(li.discountPercent) > 0).reduce((s: number, li: any) => s + Number(li.quantity) * Number(li.unitPrice) * Number(li.discountPercent) / 100, 0);
+  const totalDiscount = discountFromAdjustments + discountFromPercent;
 
   const rows = invoice.lineItems.map((li: any, i: number) => {
     const isAmcCovered = li.lineType === 'AMC' && Number(li.lineTotal) === 0;
