@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { api } from '@/lib/api/client';
 import { PageHeader } from '@gearup/ui';
 import { ProcessLoader } from '@/components/shared/process-loader';
-import { DollarSign, CreditCard, TrendingUp, Download } from 'lucide-react';
+import { DollarSign, CreditCard, TrendingUp, Download, HardHat, Cog, FileText } from 'lucide-react';
 import { AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 const PRESETS = [
@@ -229,7 +229,7 @@ export default function RevenueReportPage() {
                 return (
                   <div key={t.type}>
                     <div className="flex justify-between text-sm mb-1">
-                      <span className="font-medium text-gray-700 dark:text-gray-300">{t.type === 'LABOR' ? '👷 Labor' : t.type === 'PART' ? '🔩 Parts' : '📝 Custom/Service'}</span>
+                      <span className="inline-flex items-center gap-1.5 font-medium text-gray-700 dark:text-gray-300">{t.type === 'LABOR' ? <><HardHat size={14} /> Labor</> : t.type === 'PART' ? <><Cog size={14} /> Parts</> : <><FileText size={14} /> Custom/Service</>}</span>
                       <span className="font-semibold">₹{Math.round(tTotal).toLocaleString()} <span className="text-xs text-gray-400">({pct}%)</span></span>
                     </div>
                     <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2"><div className="h-2 rounded-full" style={{ width: `${pct}%`, background: color }} /></div>

@@ -219,7 +219,7 @@ export default function DashboardPage() {
       {(isInventoryManager || isAdmin) && lowStock.length > 0 && (
         <div className="rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 p-5">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-gray-900 dark:text-white">⚠️ Low Stock Items</h3>
+            <h3 className="flex items-center gap-2 font-semibold text-gray-900 dark:text-white"><AlertTriangle size={16} className="text-amber-500" /> Low Stock Items</h3>
             <button onClick={() => router.push('/admin/inventory/items')} className="text-sm text-blue-600 hover:text-blue-700 font-medium">View all →</button>
           </div>
           <div className="space-y-2">

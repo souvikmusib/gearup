@@ -40,6 +40,8 @@ export default function InvoicesPage() {
     if (s) params.set('search', s);
     if (f.paymentStatus) params.set('paymentStatus', f.paymentStatus);
     if (f.invoiceStatus) params.set('invoiceStatus', f.invoiceStatus);
+    if (f.from) params.set('from', f.from);
+    if (f.to) params.set('to', f.to);
     params.set('page', String(p));
     const endpoint = `/admin/invoices?${params}`;
     const { cached, promise } = api.getSWR<any>(endpoint);
@@ -159,9 +161,17 @@ export default function InvoicesPage() {
           <button onClick={openCounterSale} className="rounded-lg border border-blue-600 px-4 py-2 text-sm font-semibold text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950">+ Counter Sale</button>
         </div>
       </div>
-      <ListToolbar searchPlaceholder="Search invoices..." onSearch={onSearch}
-        filters={[{ label: 'Payment Status', value: 'paymentStatus', options: PAYMENT_STATUSES }, { label: 'Invoice Status', value: 'invoiceStatus', options: INVOICE_STATUSES }]}
-        onFilterChange={(k, v) => { setFilters(prev => ({ ...prev, [k]: v })); setPage(1); }} />
+      <ListToolbar
+        searchPlaceholder="Search invoices..."
+        onSearch={onSearch}
+        filters={[
+          { label: 'Payment Status', value: 'paymentStatus', options: PAYMENT_STATUSES },
+          { label: 'Invoice Status', value: 'invoiceStatus', options: INVOICE_STATUSES },
+        ]}
+        filterValues={filters}
+        dateRange={{ fromKey: 'from', toKey: 'to', label: 'Invoice date' }}
+        onFilterChange={(k, v) => { setFilters((prev) => ({ ...prev, [k]: v })); setPage(1); }}
+      />
       {loading ? <ProcessLoader title="Loading invoices" steps={['Fetching latest invoice list', 'Checking payment status', 'Preparing table rows']} /> :
         <DataTable columns={columns} data={data} keyField="id" onRowClick={(r: any) => router.push(`/admin/invoices/${r.id}`)} />}
       <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />

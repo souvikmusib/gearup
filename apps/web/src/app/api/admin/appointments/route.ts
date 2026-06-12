@@ -41,6 +41,8 @@ export async function GET(req: NextRequest) {
     const pageSize = Number(sp.get('pageSize')) || 20;
     const status = sp.get('status') || '';
     const date = sp.get('date') || '';
+    const from = sp.get('from') || '';
+    const to = sp.get('to') || '';
     const search = sp.get('search') || '';
     const p = paginate({ page, pageSize });
     const where: Record<string, unknown> = {};
@@ -48,6 +50,11 @@ export async function GET(req: NextRequest) {
     if (date) {
       const d = startOfDay(new Date(date));
       where.appointmentDate = { gte: d, lt: addDays(d, 1) };
+    } else if (from || to) {
+      const range: { gte?: Date; lte?: Date } = {};
+      if (from) range.gte = new Date(from + 'T00:00:00+05:30');
+      if (to) range.lte = new Date(to + 'T23:59:59+05:30');
+      where.appointmentDate = range;
     }
     if (search) where.OR = [{ referenceId: { contains: search, mode: 'insensitive' } }, { customer: { fullName: { contains: search, mode: 'insensitive' } } }];
     const [data, total] = await Promise.all([

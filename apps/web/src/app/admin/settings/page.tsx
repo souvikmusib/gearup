@@ -60,6 +60,7 @@ export default function SettingsPage() {
           { label: 'Shop Holidays', href: '/admin/settings/holidays', desc: 'Manage holidays & closures' },
           { label: 'Business Hours', href: '/admin/settings/business-hours', desc: 'Slot rules & capacity' },
           { label: 'Admin Users', href: '/admin/settings/admins', desc: 'Manage admin accounts' },
+          { label: 'Roles & Permissions', href: '/admin/settings/roles', desc: 'Define what each role can access' },
           { label: 'Notifications', href: '/admin/settings/notifications', desc: 'Templates & channels' },
         ].map((item) => (
           <Link prefetch={false} key={item.href} href={item.href} className="rounded-lg border border-gray-200 bg-white p-4 hover:border-blue-300 hover:shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:hover:border-blue-700">

@@ -6,6 +6,7 @@ import { ProcessLoader } from '@/components/shared/process-loader';
 import { PageHeader, DataTable } from '@gearup/ui';
 import { Modal } from '@/components/shared/modal';
 import { Pagination } from '@/components/shared/pagination';
+import { ListToolbar } from '@/components/shared/list-toolbar';
 
 export default function ExpensesPage() {
   const [data, setData] = useState<any[]>([]);
@@ -14,7 +15,8 @@ export default function ExpensesPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [categories, setCategories] = useState<any[]>([]);
   const [search, setSearch] = useState('');
-  const [catFilter, setCatFilter] = useState('');
+  const [filters, setFilters] = useState<Record<string, string>>({});
+  const catFilter = filters.categoryId ?? '';
   const [showCreate, setShowCreate] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -24,13 +26,12 @@ export default function ExpensesPage() {
   const [editSaving, setEditSaving] = useState(false);
   const [editError, setEditError] = useState('');
 
-  const load = (s = search, cat = catFilter, pg = page) => {
+  const load = (s = search, f = filters, pg = page) => {
     const p = new URLSearchParams();
     if (s) p.set('search', s);
-    if (cat) p.set('categoryId', cat);
+    Object.entries(f).forEach(([k, v]) => { if (v) p.set(k, v); });
     p.set('page', String(pg));
-    const qs = p.toString();
-    const endpoint = `/admin/expenses?${qs}`;
+    const endpoint = `/admin/expenses?${p.toString()}`;
     const { cached, promise } = api.getSWR<any>(endpoint);
     if (cached?.success) {
       setData(cached.data?.items ?? cached.data ?? []);
@@ -46,13 +47,13 @@ export default function ExpensesPage() {
     const { cached, promise } = api.getSWR<any>('/admin/expenses/categories');
     if (cached?.success) setCategories(cached.data ?? []);
     promise.then((r) => { if (r.success) setCategories(r.data ?? []); });
-  }, [page]);
+  }, [page, filters]);
 
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const onSearchChange = (v: string) => {
     setSearch(v);
     if (searchTimer.current) clearTimeout(searchTimer.current);
-    searchTimer.current = setTimeout(() => load(v, catFilter), 300);
+    searchTimer.current = setTimeout(() => load(v, filters, 1), 300);
   };
   useEffect(() => () => { if (searchTimer.current) clearTimeout(searchTimer.current); }, []);
 
@@ -121,13 +122,22 @@ export default function ExpensesPage() {
           <button onClick={openCreate} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">+ Add Expense</button>
         </div>
       </div>
-      <div className="flex gap-2 mb-4">
-        <input className={inputCls + ' max-w-xs'} placeholder="Search expenses..." value={search} onChange={(e) => onSearchChange(e.target.value)} />
-        <select className={inputCls + ' w-48'} value={catFilter} onChange={(e) => { setCatFilter(e.target.value); load(search, e.target.value); }}>
-          <option value="">All Categories</option>
-          {categories.map((c: any) => <option key={c.id} value={c.id}>{c.categoryName}</option>)}
-        </select>
-      </div>
+      <ListToolbar
+        searchPlaceholder="Search expenses..."
+        onSearch={(s) => { setSearch(s); setPage(1); load(s, filters, 1); }}
+        filters={[
+          { label: 'Category', value: 'categoryId', options: categories.map((c: any) => ({ value: c.id, label: c.categoryName })) },
+          { label: 'Payment Mode', value: 'paymentMode', options: [
+            { value: 'CASH', label: 'Cash' },
+            { value: 'UPI', label: 'UPI' },
+            { value: 'CARD', label: 'Card' },
+            { value: 'BANK_TRANSFER', label: 'Bank Transfer' },
+          ] },
+        ]}
+        filterValues={filters}
+        dateRange={{ fromKey: 'from', toKey: 'to', label: 'Expense date' }}
+        onFilterChange={(k, v) => { setFilters((prev) => ({ ...prev, [k]: v })); setPage(1); }}
+      />
       <DataTable columns={[
         { key: 'expenseDate', header: 'Date', render: (r: any) => formatIST(r.expenseDate) },
         { key: 'title', header: 'Title' },
