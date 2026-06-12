@@ -32,6 +32,13 @@ export async function GET(req: NextRequest) {
     const priority = sp.get('priority') || '';
     if (workerId) where.assignments = { some: { workerId } };
     if (priority) where.priority = priority;
+    const from = sp.get('from'); const to = sp.get('to');
+    if (from || to) {
+      const range: { gte?: Date; lte?: Date } = {};
+      if (from) range.gte = new Date(from + 'T00:00:00+05:30');
+      if (to) range.lte = new Date(to + 'T23:59:59+05:30');
+      where.createdAt = range;
+    }
     const [data, total] = await Promise.all([
       prisma.jobCard.findMany({ where, ...p, orderBy: { createdAt: 'desc' }, include: { customer: { select: { fullName: true, phoneNumber: true } }, vehicle: { select: { registrationNumber: true, brand: true, model: true } }, assignments: { include: { worker: { select: { fullName: true } } } }, invoices: { select: { id: true, invoiceNumber: true, paymentStatus: true, invoiceStatus: true }, take: 1 } } }),
       prisma.jobCard.count({ where }),

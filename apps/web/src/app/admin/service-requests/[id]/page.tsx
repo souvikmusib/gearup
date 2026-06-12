@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';
 import { PageHeader, StatusBadge } from '@gearup/ui';
+import { Car } from 'lucide-react';
 
 const STATUS_ACTIONS: Record<string, { label: string; status: string; color: string }[]> = {
   SUBMITTED: [
@@ -112,7 +113,7 @@ export default function ServiceRequestDetailPage() {
           <p className="text-sm text-gray-600 dark:text-gray-400">{data.issueDescription}</p>
           {data.preferredDate && <p className="text-sm text-gray-500 dark:text-gray-400">Preferred Date: {formatIST(data.preferredDate)}</p>}
           {data.urgency && <p className="text-sm text-gray-500 dark:text-gray-400">Urgency: {data.urgency}</p>}
-          {data.pickupDropRequired && <p className="text-sm text-gray-500 dark:text-gray-400">🚗 Pickup/Drop requested</p>}
+          {data.pickupDropRequired && <p className="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400"><Car size={14} /> Pickup/Drop requested</p>}
           {data.notes && <p className="text-sm text-gray-500 dark:text-gray-400">Notes: {data.notes}</p>}
           <p className="text-xs text-gray-400">Created: {formatIST(data.createdAt, { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
           {data.closedAt && <p className="text-xs text-gray-400">Closed: {formatIST(data.closedAt, { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>}

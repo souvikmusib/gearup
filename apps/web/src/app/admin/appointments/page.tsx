@@ -8,6 +8,7 @@ import { ProcessLoader } from '@/components/shared/process-loader';
 import { PageHeader, DataTable, StatusBadge } from '@gearup/ui';
 import { Modal } from '@/components/shared/modal';
 import { Pagination } from '@/components/shared/pagination';
+import { ListToolbar } from '@/components/shared/list-toolbar';
 
 export default function AppointmentsPage() {
   const [data, setData] = useState<any[]>([]);
@@ -15,7 +16,8 @@ export default function AppointmentsPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [filters, setFilters] = useState<Record<string, string>>({});
+  const statusFilter = filters.status ?? '';
   const [showCreate, setShowCreate] = useState(false);
   const [customers, setCustomers] = useState<any[]>([]);
   const [vehicles, setVehicles] = useState<any[]>([]);
@@ -28,13 +30,12 @@ export default function AppointmentsPage() {
   const [custForm, setCustForm] = useState({ fullName: '', phoneNumber: '' });
   const router = useRouter();
 
-  const load = (s = search, st = statusFilter, pg = page) => {
+  const load = (s = search, f = filters, pg = page) => {
     const p = new URLSearchParams();
     if (s) p.set('search', s);
-    if (st) p.set('status', st);
+    Object.entries(f).forEach(([k, v]) => { if (v) p.set(k, v); });
     p.set('page', String(pg));
-    const qs = p.toString();
-    const endpoint = `/admin/appointments?${qs}`;
+    const endpoint = `/admin/appointments?${p.toString()}`;
     const { cached, promise } = api.getSWR<any>(endpoint);
     if (cached?.success) {
       setData(cached.data?.items ?? cached.data ?? []);
@@ -45,22 +46,16 @@ export default function AppointmentsPage() {
     }
     promise.then((r) => { if (r.success) { setData(r.data?.items ?? r.data ?? []); setTotalPages(r.meta?.totalPages ?? 1); } setLoading(false); });
   };
-  useEffect(() => { load(); }, [page]);
+  useEffect(() => { load(); }, [page, filters]);
 
-  // Debounced search: reset to page 1 and reload after user pauses typing.
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const onSearchChange = (val: string) => {
     setSearch(val);
     if (searchTimer.current) clearTimeout(searchTimer.current);
     searchTimer.current = setTimeout(() => {
       setPage(1);
-      load(val, statusFilter, 1);
+      load(val, filters, 1);
     }, 300);
-  };
-  const onStatusChange = (val: string) => {
-    setStatusFilter(val);
-    setPage(1);
-    load(search, val, 1);
   };
 
   const openCreate = async () => {
@@ -110,13 +105,16 @@ export default function AppointmentsPage() {
         <PageHeader title="Appointments" description="Manage appointment schedule" />
         <button onClick={openCreate} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">+ New Appointment</button>
       </div>
-      <div className="flex gap-2 mb-4">
-        <input className={inputCls + ' max-w-xs'} placeholder="Search appointments..." value={search} onChange={(e) => onSearchChange(e.target.value)} />
-        <select className={inputCls + ' w-48'} value={statusFilter} onChange={(e) => onStatusChange(e.target.value)}>
-          <option value="">All Statuses</option>
-          {['REQUESTED','PENDING_REVIEW','CONFIRMED','RESCHEDULED','CANCELLED','NO_SHOW','CHECKED_IN','COMPLETED'].map((s) => <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>)}
-        </select>
-      </div>
+      <ListToolbar
+        searchPlaceholder="Search by reference or customer…"
+        onSearch={onSearchChange}
+        filters={[
+          { label: 'Status', value: 'status', options: ['REQUESTED','PENDING_REVIEW','CONFIRMED','RESCHEDULED','CANCELLED','NO_SHOW','CHECKED_IN','COMPLETED'].map((s) => ({ value: s, label: s.replace(/_/g, ' ') })) },
+        ]}
+        filterValues={filters}
+        dateRange={{ fromKey: 'from', toKey: 'to', label: 'Appointment date' }}
+        onFilterChange={(k, v) => { setFilters((prev) => ({ ...prev, [k]: v })); setPage(1); }}
+      />
       <DataTable columns={columns} data={data} keyField="id" onRowClick={(r: any) => router.push(`/admin/appointments/${r.id}`)} />
       <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
 

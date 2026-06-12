@@ -8,6 +8,7 @@ import { ListToolbar } from '@/components/shared/list-toolbar';
 import { Pagination } from '@/components/shared/pagination';
 import { Modal } from '@/components/shared/modal';
 import { SearchableSelect } from '@/components/shared/searchable-select';
+import { AlertTriangle, FolderOpen, Building2, List as ListIcon } from 'lucide-react';
 
 export default function InventoryItemsPage() {
   const [data, setData] = useState<any[]>([]);
@@ -124,7 +125,7 @@ export default function InventoryItemsPage() {
     { key: 'sku', header: 'SKU' }, { key: 'itemName', header: 'Item' }, { key: 'brand', header: 'Company', render: (r: any) => r.brand || '—' }, { key: 'category', header: 'Category', render: (r: any) => r.category?.categoryName },
     { key: 'quantityInStock', header: 'Stock', render: (r: any) => Number(r.quantityInStock) }, { key: 'mrp', header: 'MRP', render: (r: any) => r.mrp ? `₹${Number(r.mrp)}` : '—' }, { key: 'sellingPrice', header: 'Selling Price', render: (r: any) => `₹${Number(r.sellingPrice)}` },
     { key: 'discountedPrice', header: 'Discounted Price', render: (r: any) => { const dp = Number(r.discountPercent) || 0; const price = Number(r.sellingPrice) * (1 - dp / 100); return dp ? `₹${price.toFixed(0)} (${dp}% off)` : `₹${Number(r.sellingPrice)}`; } },
-    { key: 'lowStock', header: 'Low?', render: (r: any) => r.reorderLevel && Number(r.quantityInStock) <= Number(r.reorderLevel) ? '⚠️' : '—' },
+    { key: 'lowStock', header: 'Low?', render: (r: any) => r.reorderLevel && Number(r.quantityInStock) <= Number(r.reorderLevel) ? <AlertTriangle size={14} className="text-amber-500" /> : '—' },
     { key: 'actions', header: '', render: (r: any) => <button onClick={(e) => openStock(r, e)} className="text-xs text-blue-600 hover:underline">Stock Movement</button> },
   ];
 
@@ -153,9 +154,9 @@ export default function InventoryItemsPage() {
       {/* View mode toggle + category filter */}
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <div className="flex gap-1">
-          <button onClick={() => setViewMode('list')} className={viewBtnCls(viewMode === 'list')}>📋 List</button>
-          <button onClick={() => setViewMode('category')} className={viewBtnCls(viewMode === 'category')}>📂 Category</button>
-          <button onClick={() => setViewMode('company')} className={viewBtnCls(viewMode === 'company')}>🏢 Company</button>
+          <button onClick={() => setViewMode('list')} className={viewBtnCls(viewMode === 'list')}><span className="inline-flex items-center gap-1.5"><ListIcon size={14} /> List</span></button>
+          <button onClick={() => setViewMode('category')} className={viewBtnCls(viewMode === 'category')}><span className="inline-flex items-center gap-1.5"><FolderOpen size={14} /> Category</span></button>
+          <button onClick={() => setViewMode('company')} className={viewBtnCls(viewMode === 'company')}><span className="inline-flex items-center gap-1.5"><Building2 size={14} /> Company</span></button>
         </div>
         <select className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white" value={categoryFilter} onChange={(e) => { setCategoryFilter(e.target.value); load(search, 1, e.target.value); }} onFocus={loadLookups}>
           <option value="">All Categories</option>
@@ -172,7 +173,7 @@ export default function InventoryItemsPage() {
             .map(([group, items]) => (
             <div key={group}>
               <h3 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
-                {viewMode === 'category' ? '📂' : '🏢'} {group}
+                <span className="inline-flex items-center gap-2">{viewMode === 'category' ? <FolderOpen size={16} className="text-blue-600" /> : <Building2 size={16} className="text-blue-600" />} {group}</span>
                 <span className="text-xs font-normal text-gray-400">({(items as any[]).length} items)</span>
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">

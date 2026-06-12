@@ -16,16 +16,18 @@ export async function GET(req: NextRequest) {
     const pageSize = Number(sp.get('pageSize')) || 20;
     const categoryId = sp.get('categoryId') || '';
     const search = sp.get('search') || '';
+    const paymentMode = sp.get('paymentMode') || '';
     const from = sp.get('from') || '';
     const to = sp.get('to') || '';
     const p = paginate({ page, pageSize });
     const where: Prisma.ExpenseWhereInput = {};
     if (categoryId) where.categoryId = categoryId;
+    if (paymentMode) where.paymentMode = paymentMode as PaymentMode;
     if (search) where.OR = [{ title: { contains: search, mode: 'insensitive' } }, { vendorName: { contains: search, mode: 'insensitive' } }];
     if (from || to) {
       const range: Prisma.DateTimeFilter = {};
-      if (from) range.gte = new Date(from);
-      if (to) range.lte = new Date(to);
+      if (from) range.gte = new Date(from + 'T00:00:00+05:30');
+      if (to) range.lte = new Date(to + 'T23:59:59+05:30');
       where.expenseDate = range;
     }
     const [data, total] = await Promise.all([

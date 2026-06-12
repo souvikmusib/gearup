@@ -6,7 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';
 import { PageHeader, StatusBadge } from '@gearup/ui';
 import { WhatsAppButton } from '@/components/shared/whatsapp-button';
-import { FileText, CheckCircle, CreditCard, Download } from 'lucide-react';
+import { FileText, CheckCircle, CreditCard, Download, Sparkles, Shield, Wrench, Cog, HardHat, Tag, X as XIcon, Car } from 'lucide-react';
 import { Modal } from '@/components/shared/modal';
 import { ProcessLoader } from '@/components/shared/process-loader';
 
@@ -376,7 +376,7 @@ export default function InvoiceDetailPage() {
         const remaining = contract?.servicesRemaining ?? '—';
         return (
           <div className="rounded-xl border border-green-200 dark:border-green-800 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 p-5">
-            <div className="flex items-center gap-2 mb-2"><span className="text-lg">🎉</span><span className="font-bold text-green-700 dark:text-green-400">AMC Savings</span></div>
+            <div className="flex items-center gap-2 mb-2"><Sparkles size={18} className="text-green-600" /><span className="font-bold text-green-700 dark:text-green-400">AMC Savings</span></div>
             <div className="grid gap-3 sm:grid-cols-3 text-sm">
               {perVisit > 0 && <div><span className="text-gray-500">This visit saved:</span><span className="ml-2 font-bold text-green-600">₹{perVisit}</span></div>}
               {totalSaving > 0 && <div><span className="text-gray-500">Total plan savings:</span><span className="ml-2 font-bold text-green-600">₹{totalSaving}</span></div>}
@@ -391,7 +391,7 @@ export default function InvoiceDetailPage() {
         <div className="rounded-xl border border-amber-200 dark:border-amber-800 bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-950/30 dark:to-yellow-950/30 p-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="text-2xl">🛡️</div>
+              <Shield size={28} className="text-amber-600" />
               <div>
                 <p className="font-semibold text-gray-900 dark:text-white">Save ₹{Math.round(amcUpsell.savings)} on this bill with AMC!</p>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mt-0.5">
@@ -472,7 +472,7 @@ export default function InvoiceDetailPage() {
                   </>
                 )}
                 <td className="px-5 py-2.5 text-right font-semibold">₹{Number(li.lineTotal).toLocaleString()}</td>
-                {isDraft && <td className="px-3 py-2.5"><button onClick={() => removeLine(li.id)} className="text-red-500 hover:text-red-700 text-xs">✕</button></td>}
+                {isDraft && <td className="px-3 py-2.5"><button onClick={() => removeLine(li.id)} className="text-red-500 hover:text-red-700" aria-label="Remove line"><XIcon size={14} /></button></td>}
               </tr>
             ))}
           </tbody>
@@ -483,12 +483,12 @@ export default function InvoiceDetailPage() {
               <div>
                 <p className="text-xs font-medium text-gray-500 mb-3">Add to Invoice</p>
                 <div className="flex flex-wrap gap-2">
-                  <button onClick={() => { loadInventory(); setNewLine({ ...newLine, lineType: 'PART', description: '', unitPrice: '', discountPercent: '0', inventoryItemId: '' }); setAddStep('details'); }} className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-medium hover:bg-white dark:hover:bg-gray-700 transition">🔩 Part</button>
-                  <button onClick={() => { loadWorkers(); setNewLine({ ...newLine, lineType: 'LABOR', description: '', unitPrice: '' }); setAddStep('details'); }} className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-medium hover:bg-white dark:hover:bg-gray-700 transition">👷 Labor</button>
-                  <button onClick={() => { setNewLine({ ...newLine, lineType: 'SERVICE_CHARGE', description: 'General Service', unitPrice: '' }); setAddStep('details'); }} className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-medium hover:bg-white dark:hover:bg-gray-700 transition">🔧 Service Charge</button>
-                  <button onClick={() => { setNewLine({ ...newLine, lineType: 'CUSTOM_CHARGE', description: '', unitPrice: '' }); setAddStep('details'); }} className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-medium hover:bg-white dark:hover:bg-gray-700 transition">📝 Custom Charge</button>
-                  <button onClick={() => { setNewLine({ ...newLine, lineType: 'DISCOUNT_ADJUSTMENT', description: 'Discount', unitPrice: '', discountMode: 'flat' }); setAddStep('details'); }} className="rounded-lg border border-green-300 dark:border-green-700 px-4 py-2.5 text-sm font-medium text-green-700 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 transition">🏷️ Discount</button>
-                  <button onClick={() => { setNewLine({ ...newLine, lineType: 'AMC', description: '', unitPrice: '0' }); loadAmcOptions(); setAddStep('details'); }} className="rounded-lg border border-amber-300 dark:border-amber-700 px-4 py-2.5 text-sm font-medium text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition">🛡️ AMC</button>
+                  <button onClick={() => { loadInventory(); setNewLine({ ...newLine, lineType: 'PART', description: '', unitPrice: '', discountPercent: '0', inventoryItemId: '' }); setAddStep('details'); }} className="inline-flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-medium hover:bg-white dark:hover:bg-gray-700 transition"><Cog size={16} /> Part</button>
+                  <button onClick={() => { loadWorkers(); setNewLine({ ...newLine, lineType: 'LABOR', description: '', unitPrice: '' }); setAddStep('details'); }} className="inline-flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-medium hover:bg-white dark:hover:bg-gray-700 transition"><HardHat size={16} /> Labor</button>
+                  <button onClick={() => { setNewLine({ ...newLine, lineType: 'SERVICE_CHARGE', description: 'General Service', unitPrice: '' }); setAddStep('details'); }} className="inline-flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-medium hover:bg-white dark:hover:bg-gray-700 transition"><Wrench size={16} /> Service Charge</button>
+                  <button onClick={() => { setNewLine({ ...newLine, lineType: 'CUSTOM_CHARGE', description: '', unitPrice: '' }); setAddStep('details'); }} className="inline-flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-medium hover:bg-white dark:hover:bg-gray-700 transition"><FileText size={16} /> Custom Charge</button>
+                  <button onClick={() => { setNewLine({ ...newLine, lineType: 'DISCOUNT_ADJUSTMENT', description: 'Discount', unitPrice: '', discountMode: 'flat' }); setAddStep('details'); }} className="inline-flex items-center gap-2 rounded-lg border border-green-300 dark:border-green-700 px-4 py-2.5 text-sm font-medium text-green-700 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 transition"><Tag size={16} /> Discount</button>
+                  <button onClick={() => { setNewLine({ ...newLine, lineType: 'AMC', description: '', unitPrice: '0' }); loadAmcOptions(); setAddStep('details'); }} className="inline-flex items-center gap-2 rounded-lg border border-amber-300 dark:border-amber-700 px-4 py-2.5 text-sm font-medium text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition"><Shield size={16} /> AMC</button>
                 </div>
               </div>
             ) : (

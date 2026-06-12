@@ -10,6 +10,7 @@ import { Modal } from '@/components/shared/modal';
 import { Pagination } from '@/components/shared/pagination';
 import { formatRegNumber } from '@/lib/format-reg';
 import { SearchableSelect } from '@/components/shared/searchable-select';
+import { ListToolbar } from '@/components/shared/list-toolbar';
 
 export default function JobCardsPage() {
   const [data, setData] = useState<any[]>([]);
@@ -17,9 +18,10 @@ export default function JobCardsPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  const [workerFilter, setWorkerFilter] = useState('');
-  const [priorityFilter, setPriorityFilter] = useState('');
+  const [filters, setFilters] = useState<Record<string, string>>({});
+  const statusFilter = filters.status ?? '';
+  const workerFilter = filters.workerId ?? '';
+  const priorityFilter = filters.priority ?? '';
   const [allWorkers, setAllWorkers] = useState<any[]>([]);
   const [showCreate, setShowCreate] = useState(false);
   const [customers, setCustomers] = useState<any[]>([]);
@@ -34,15 +36,12 @@ export default function JobCardsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const load = (s = search, st = statusFilter, wk = workerFilter, pr = priorityFilter, pg = page) => {
+  const load = (s = search, f = filters, pg = page) => {
     const p = new URLSearchParams();
     if (s) p.set('search', s);
-    if (st) p.set('status', st);
-    if (wk) p.set('workerId', wk);
-    if (pr) p.set('priority', pr);
+    Object.entries(f).forEach(([k, v]) => { if (v) p.set(k, v); });
     p.set('page', String(pg));
-    const qs = p.toString();
-    const endpoint = `/admin/job-cards?${qs}`;
+    const endpoint = `/admin/job-cards?${p.toString()}`;
     const { cached, promise } = api.getSWR<any>(endpoint);
     if (cached?.success) {
       setData(cached.data?.items ?? cached.data ?? []);
@@ -57,7 +56,7 @@ export default function JobCardsPage() {
     load();
     api.get<any>('/admin/workers?pageSize=200').then((r) => { if (r.success) setAllWorkers(r.data?.items ?? r.data ?? []); });
   }, []);
-  useEffect(() => { load(); }, [page]);
+  useEffect(() => { load(); }, [page, filters]);
 
   // Auto-open create modal when redirected from service request
   useEffect(() => {
@@ -171,36 +170,30 @@ export default function JobCardsPage() {
         <button onClick={openCreate} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">+ New Job Card</button>
       </div>
 
-      {/* Filters - 3 column grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 mb-4">
-        <input className={inputCls} placeholder="Search job cards..." value={search} onChange={(e) => { setSearch(e.target.value); load(e.target.value, statusFilter, workerFilter, priorityFilter); }} />
-        <select className={inputCls} value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); load(search, e.target.value, workerFilter, priorityFilter); }}>
-          <option value="">All Statuses</option>
-          {[
-            { value: 'CREATED', label: 'OPEN' },
-            { value: 'ESTIMATE_PREPARED', label: 'ESTIMATE READY' },
-            { value: 'WORK_IN_PROGRESS', label: 'IN PROGRESS' },
-            { value: 'READY_FOR_DELIVERY', label: 'READY' },
-            { value: 'DELIVERED', label: 'DELIVERED' },
-            { value: 'CANCELLED', label: 'CANCELLED' },
-          ].map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
-        </select>
-        <select className={inputCls} value={workerFilter} onChange={(e) => { setWorkerFilter(e.target.value); load(search, statusFilter, e.target.value, priorityFilter); }}>
-          <option value="">All Workers</option>
-          {allWorkers.map((w: any) => (
-            <option key={w.id} value={w.id}>
-              {w.fullName}
-              {typeof w._count?.assignments === 'number' ? ` (${w._count.assignments})` : ''}
-            </option>
-          ))}
-        </select>
-        <select className={inputCls} value={priorityFilter} onChange={(e) => { setPriorityFilter(e.target.value); load(search, statusFilter, workerFilter, e.target.value); }}>
-          <option value="">All Priorities</option>
-          <option value="HIGH">High</option>
-          <option value="MEDIUM">Medium</option>
-          <option value="LOW">Low</option>
-        </select>
-      </div>
+      <ListToolbar
+        searchPlaceholder="Search by job-card # or customer…"
+        onSearch={(s) => { setSearch(s); setPage(1); load(s, filters, 1); }}
+        filters={[
+          { label: 'Status', value: 'status', options: [
+            { value: 'CREATED', label: 'Open' },
+            { value: 'ESTIMATE_PREPARED', label: 'Estimate Ready' },
+            { value: 'WORK_IN_PROGRESS', label: 'In Progress' },
+            { value: 'READY_FOR_DELIVERY', label: 'Ready' },
+            { value: 'DELIVERED', label: 'Delivered' },
+            { value: 'CANCELLED', label: 'Cancelled' },
+          ] },
+          { label: 'Worker', value: 'workerId', options: allWorkers.map((w: any) => ({ value: w.id, label: w.fullName + (typeof w._count?.assignments === 'number' ? ` (${w._count.assignments})` : '') })) },
+          { label: 'Priority', value: 'priority', options: [
+            { value: 'URGENT', label: 'Urgent' },
+            { value: 'HIGH', label: 'High' },
+            { value: 'MEDIUM', label: 'Medium' },
+            { value: 'LOW', label: 'Low' },
+          ] },
+        ]}
+        filterValues={filters}
+        dateRange={{ fromKey: 'from', toKey: 'to', label: 'Created' }}
+        onFilterChange={(k, v) => { setFilters((prev) => ({ ...prev, [k]: v })); setPage(1); }}
+      />
 
       <DataTable columns={columns} data={data} keyField="id" onRowClick={(r: any) => router.push(`/admin/job-cards/${r.id}`)} />
       <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
