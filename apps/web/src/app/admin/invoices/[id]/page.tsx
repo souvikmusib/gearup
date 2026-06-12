@@ -1,4 +1,5 @@
 'use client';
+import { toTitleCase } from '@/lib/title-case';
 import { formatIST, formatTimeIST } from '@/lib/time';
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -67,8 +68,9 @@ export default function InvoiceDetailPage() {
   useEffect(() => {
     fetch(true);
     // Pre-fetch inventory + workers so dropdowns are instant
-    loadInventory();
-    loadWorkers();
+    // Defer inventory/workers load until user interacts with line-item form
+    // loadInventory();
+    // loadWorkers();
   }, [id]);
 
   // Check AMC upsell opportunity
@@ -457,8 +459,8 @@ export default function InvoiceDetailPage() {
               <div>
                 <p className="text-xs font-medium text-gray-500 mb-3">Add to Invoice</p>
                 <div className="flex flex-wrap gap-2">
-                  <button onClick={() => { setNewLine({ ...newLine, lineType: 'PART', description: '', unitPrice: '', discountPercent: '0', inventoryItemId: '' }); setAddStep('details'); }} className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-medium hover:bg-white dark:hover:bg-gray-700 transition">🔩 Part</button>
-                  <button onClick={() => { setNewLine({ ...newLine, lineType: 'LABOR', description: '', unitPrice: '' }); setAddStep('details'); }} className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-medium hover:bg-white dark:hover:bg-gray-700 transition">👷 Labor</button>
+                  <button onClick={() => { loadInventory(); setNewLine({ ...newLine, lineType: 'PART', description: '', unitPrice: '', discountPercent: '0', inventoryItemId: '' }); setAddStep('details'); }} className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-medium hover:bg-white dark:hover:bg-gray-700 transition">🔩 Part</button>
+                  <button onClick={() => { loadWorkers(); setNewLine({ ...newLine, lineType: 'LABOR', description: '', unitPrice: '' }); setAddStep('details'); }} className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-medium hover:bg-white dark:hover:bg-gray-700 transition">👷 Labor</button>
                   <button onClick={() => { setNewLine({ ...newLine, lineType: 'SERVICE_CHARGE', description: 'General Service', unitPrice: '' }); setAddStep('details'); }} className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-medium hover:bg-white dark:hover:bg-gray-700 transition">🔧 Service Charge</button>
                   <button onClick={() => { setNewLine({ ...newLine, lineType: 'CUSTOM_CHARGE', description: '', unitPrice: '' }); setAddStep('details'); }} className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-medium hover:bg-white dark:hover:bg-gray-700 transition">📝 Custom Charge</button>
                   <button onClick={() => { setNewLine({ ...newLine, lineType: 'DISCOUNT_ADJUSTMENT', description: 'Discount', unitPrice: '', discountMode: 'flat' }); setAddStep('details'); }} className="rounded-lg border border-green-300 dark:border-green-700 px-4 py-2.5 text-sm font-medium text-green-700 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 transition">🏷️ Discount</button>

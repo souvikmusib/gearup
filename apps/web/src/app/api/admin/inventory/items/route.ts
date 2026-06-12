@@ -34,9 +34,10 @@ export async function POST(req: NextRequest) {
     const body = z.object({
       sku: z.string().min(1), itemName: z.string().min(1), categoryId: z.string().min(1), supplierId: z.string().min(1).optional(),
       brand: z.string().optional(), description: z.string().optional(), unit: z.string().min(1),
-      taxRate: z.number().nonnegative().optional(), costPrice: z.number().nonnegative().optional(), sellingPrice: z.number().nonnegative().optional(), discountPercent: z.number().min(0).max(100).optional(),
+      taxRate: z.number().nonnegative().optional(), costPrice: z.number().nonnegative().optional(), mrp: z.number().nonnegative().optional(), sellingPrice: z.number().nonnegative().optional(), discountPercent: z.number().min(0).max(100).optional(),
       quantityInStock: z.number().nonnegative().optional(), reorderLevel: z.number().nonnegative().optional(), reorderQuantity: z.number().nonnegative().optional(),
       storageLocation: z.string().optional(), barcode: z.string().optional(),
+      variablePrice: z.boolean().optional(), isBranded: z.boolean().optional(),
     }).parse(await req.json());
     const openingQty = body.quantityInStock ?? 0;
     const item = await prisma.$transaction(async (tx) => {

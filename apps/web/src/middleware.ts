@@ -164,6 +164,7 @@ export async function middleware(request: NextRequest) {
           try {
             const parsed = JSON.parse(bodyText) as Record<string, unknown>;
             const candidate =
+              (typeof parsed.adminUserId === 'string' && parsed.adminUserId) ||
               (typeof parsed.email === 'string' && parsed.email) ||
               (typeof parsed.username === 'string' && parsed.username) ||
               (typeof parsed.phone === 'string' && parsed.phone) ||

@@ -10,26 +10,19 @@ import {
 } from '../../lib/id-generators';
 
 describe('id generators — shape', () => {
-  it('job-card numbers are JC- + 12 alphanumerics', () => {
-    expect(generateJobCardNumber()).toMatch(/^JC-[0-9A-Z]{12}$/);
-  });
-  it('invoice numbers are INV- + 12', () => {
-    expect(generateInvoiceNumber()).toMatch(/^INV-[0-9A-Z]{12}$/);
-  });
+  // Sequential generators (invoice, job-card, worker) require DB access.
+  // These are tested in integration tests. Here we test the synchronous ones.
   it('reference ids match prefix + 12', () => {
     expect(generateReferenceId()).toMatch(/^[A-Z]+-[0-9A-Z]{12}$/);
   });
   it('appointment refs are APT- + 12', () => {
     expect(generateAppointmentRef()).toMatch(/^APT-[0-9A-Z]{12}$/);
   });
-  it('worker codes are WRK- + 6', () => {
-    expect(generateWorkerCode()).toMatch(/^WRK-[0-9A-Z]{6}$/);
-  });
   it('amc contract numbers are AMC- + 12', () => {
     expect(generateAmcContractNumber()).toMatch(/^AMC-[0-9A-Z]{12}$/);
   });
-  it('are unique across many calls', () => {
-    const s = new Set(Array.from({ length: 500 }, generateInvoiceNumber));
+  it('appointment refs are unique across many calls', () => {
+    const s = new Set(Array.from({ length: 500 }, generateAppointmentRef));
     expect(s.size).toBe(500);
   });
 });

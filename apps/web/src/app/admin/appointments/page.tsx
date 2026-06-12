@@ -1,4 +1,5 @@
 'use client';
+import { toTitleCase } from '@/lib/title-case';
 import { formatIST, formatTimeIST } from '@/lib/time';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -92,7 +93,7 @@ export default function AppointmentsPage() {
 
   const columns = [
     { key: 'referenceId', header: 'Reference' },
-    { key: 'customer', header: 'Customer', render: (r: any) => r.customer?.fullName },
+    { key: 'customer', header: 'Customer', render: (r: any) => toTitleCase(r.customer?.fullName) },
     { key: 'vehicle', header: 'Vehicle', render: (r: any) => r.vehicle?.registrationNumber },
     { key: 'appointmentDate', header: 'Date', render: (r: any) => formatIST(r.appointmentDate) },
     { key: 'slot', header: 'Slot', render: (r: any) => `${formatTimeIST(r.slotStart)} - ${formatTimeIST(r.slotEnd)}` },

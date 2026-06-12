@@ -887,3 +887,16 @@ model AmcServiceUsage {
   @@index([amcContractId])
   @@index([jobCardId])
 }
+
+/// Daily sequence counter for generating chronological document numbers.
+/// Keyed by (kind, businessDate). Incremented transactionally.
+model DocumentSequence {
+  id           String   @id @default(cuid())
+  kind         String   // 'INVOICE' | 'JOB_CARD' | 'WORKER' | 'AMC'
+  businessDate String   // IST date as 'YYYY-MM-DD'
+  lastSeq      Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([kind, businessDate])
+}

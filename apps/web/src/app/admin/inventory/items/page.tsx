@@ -1,4 +1,5 @@
 'use client';
+import { toTitleCase } from '@/lib/title-case';
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { api } from '@/lib/api/client';
 import { ProcessLoader } from '@/components/shared/process-loader';
@@ -26,6 +27,7 @@ export default function InventoryItemsPage() {
   const [stockSaving, setStockSaving] = useState(false);
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'list' | 'category' | 'company'>('list');
   const timer = useRef<NodeJS.Timeout>();
 
   const loadLookups = async () => {
@@ -125,21 +127,77 @@ export default function InventoryItemsPage() {
     { key: 'actions', header: '', render: (r: any) => <button onClick={(e) => openStock(r, e)} className="text-xs text-blue-600 hover:underline">Adjust</button> },
   ];
 
+  // Group data for card views
+  const groupedByCategory = data.reduce((acc: Record<string, any[]>, item: any) => {
+    const key = item.category?.categoryName || 'Uncategorized';
+    (acc[key] = acc[key] || []).push(item);
+    return acc;
+  }, {});
+  const groupedByCompany = data.reduce((acc: Record<string, any[]>, item: any) => {
+    const key = item.brand || 'Unbranded';
+    (acc[key] = acc[key] || []).push(item);
+    return acc;
+  }, {});
+
   const inputCls = "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white";
   const labelCls = "block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1";
+
+  const viewBtnCls = (active: boolean) => `px-3 py-1.5 rounded-lg text-sm font-medium border transition ${active ? 'bg-blue-600 text-white border-blue-600' : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'}`;
 
   return (
     <div>
       <PageHeader title="Inventory Items" />
       <ListToolbar searchPlaceholder="Search items..." onSearch={onSearch} onCreateClick={() => setShowCreate(true)} createLabel="Create Item" />
-      <div className="mb-4 flex gap-2">
+
+      {/* View mode toggle + category filter */}
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        <div className="flex gap-1">
+          <button onClick={() => setViewMode('list')} className={viewBtnCls(viewMode === 'list')}>📋 List</button>
+          <button onClick={() => setViewMode('category')} className={viewBtnCls(viewMode === 'category')}>📂 Category</button>
+          <button onClick={() => setViewMode('company')} className={viewBtnCls(viewMode === 'company')}>🏢 Company</button>
+        </div>
         <select className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white" value={categoryFilter} onChange={(e) => { setCategoryFilter(e.target.value); load(search, 1, e.target.value); }} onFocus={loadLookups}>
           <option value="">All Categories</option>
           {categories.map((c: any) => <option key={c.id} value={c.id}>{c.categoryName}</option>)}
         </select>
       </div>
-      {loading ? <ProcessLoader title="Loading inventory" steps={['Fetching items', 'Preparing list']} /> :
-        <DataTable columns={columns} data={data} keyField="id" onRowClick={openEdit} />}
+
+      {loading ? <ProcessLoader title="Loading inventory" steps={['Fetching items', 'Preparing list']} /> : viewMode === 'list' ? (
+        <DataTable columns={columns} data={data} keyField="id" onRowClick={openEdit} />
+      ) : (
+        <div className="space-y-6">
+          {Object.entries(viewMode === 'category' ? groupedByCategory : groupedByCompany)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([group, items]) => (
+            <div key={group}>
+              <h3 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                {viewMode === 'category' ? '📂' : '🏢'} {group}
+                <span className="text-xs font-normal text-gray-400">({(items as any[]).length} items)</span>
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                {(items as any[]).map((item: any) => (
+                  <div key={item.id} onClick={() => openEdit(item)} className="cursor-pointer rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-md transition">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm truncate">{toTitleCase(item.itemName)}</p>
+                        <p className="text-xs text-gray-400 mt-0.5">{item.sku}</p>
+                      </div>
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${Number(item.quantityInStock) <= 0 ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : Number(item.quantityInStock) <= (Number(item.reorderLevel) || 3) ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'}`}>
+                        {Number(item.quantityInStock)} in stock
+                      </span>
+                    </div>
+                    <div className="mt-2 flex items-center gap-3 text-xs text-gray-500">
+                      {item.brand && <span className="bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded">{toTitleCase(item.brand)}</span>}
+                      <span>₹{Number(item.sellingPrice)}</span>
+                      {Number(item.discountPercent) > 0 && <span className="text-green-600">{Number(item.discountPercent)}% off</span>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
       <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       <Modal open={showCreate} onClose={() => { setShowCreate(false); setCreateError(null); }} title="Create Item">
         <form onSubmit={onSubmit} className="space-y-3">
