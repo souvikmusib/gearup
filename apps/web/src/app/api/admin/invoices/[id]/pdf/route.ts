@@ -46,6 +46,16 @@ function numberToWords(num: number): string {
   return parts.join(' ').trim();
 }
 
+/**
+ * Industry-standard invoice template (v3).
+ * - Google Sans throughout.
+ * - SVG wordmark on top, accent strip in brand red.
+ * - Bill-To / Vehicle / Job-Card cards; itemised table with HSN/SAC
+ *   when available, discount column, tax column, amount.
+ * - Totals box with subtotal / discount / tax / round-off / grand
+ *   total, plus amount-paid + balance-due when relevant.
+ * - Amount in words, bank details, authorised signatory, terms.
+ */
 function generateInvoiceHTML(invoice: any, settings: Record<string, any>, logoUrl: string, itemMap: Record<string, any> = {}) {
   const biz = {
     name: settings['business.name'] || 'GearUp Auto Service',
@@ -53,6 +63,10 @@ function generateInvoiceHTML(invoice: any, settings: Record<string, any>, logoUr
     email: settings['business.email'] || '',
     address: settings['business.address'] || '',
     gst: settings['business.gst'] || '',
+    bankName: settings['business.bank.name'] || '',
+    bankAccount: settings['business.bank.account'] || '',
+    bankIfsc: settings['business.bank.ifsc'] || '',
+    bankUpi: settings['business.bank.upi'] || '',
   };
   const footer = settings['invoice.footer'] || 'Thank you for your business!';
 
@@ -67,113 +81,208 @@ function generateInvoiceHTML(invoice: any, settings: Record<string, any>, logoUr
     const sku = item?.sku || '';
     const mrp = item?.mrp ? Number(item.mrp) : null;
     const disc = Number(li.discountPercent) || 0;
+    const qty = Number(li.quantity);
+    const rate = Number(li.unitPrice);
+    const taxRate = Number(li.taxRate) || 0;
+    const taxable = qty * rate * (1 - disc / 100);
+    const taxAmt = taxable * (taxRate / 100);
+    const hsn = item?.hsn || (li.lineType === 'PART' ? '8714' : li.lineType === 'LABOR' || li.lineType === 'SERVICE_CHARGE' ? '9987' : '');
     return `<tr>
-      <td style="padding:7px 10px;border-bottom:1px solid #eee;text-align:center">${i + 1}</td>
-      <td style="padding:7px 10px;border-bottom:1px solid #eee">${sku ? `<span style="color:#666;font-size:10px">${esc(sku)}</span> ` : ''}${esc(li.description)}</td>
-      <td style="padding:7px 10px;border-bottom:1px solid #eee;text-align:center">${Number(li.quantity)}</td>
-      <td style="padding:7px 10px;border-bottom:1px solid #eee;text-align:right">${mrp ? `₹${mrp.toLocaleString()}` : '—'}</td>
-      <td style="padding:7px 10px;border-bottom:1px solid #eee;text-align:right">₹${Number(li.unitPrice).toLocaleString()}</td>
-      <td style="padding:7px 10px;border-bottom:1px solid #eee;text-align:center">${disc ? disc + '%' : '—'}</td>
-      <td style="padding:7px 10px;border-bottom:1px solid #eee;text-align:right;font-weight:600">₹${Number(li.lineTotal).toLocaleString()}</td>
+      <td style="padding:9px 10px;border-bottom:1px solid #f3f4f6;text-align:center;color:#9ca3af;font-size:10px">${i + 1}</td>
+      <td style="padding:9px 10px;border-bottom:1px solid #f3f4f6">
+        <div style="font-weight:600;color:#111">${esc(li.description)}</div>
+        ${sku ? `<div style="color:#9ca3af;font-size:10px;margin-top:1px;font-family:'Google Sans Code',ui-monospace,monospace">SKU: ${esc(sku)}</div>` : ''}
+      </td>
+      <td style="padding:9px 10px;border-bottom:1px solid #f3f4f6;text-align:center;color:#6b7280;font-size:10px;font-family:'Google Sans Code',ui-monospace,monospace">${hsn || '—'}</td>
+      <td style="padding:9px 10px;border-bottom:1px solid #f3f4f6;text-align:center">${qty}</td>
+      <td style="padding:9px 10px;border-bottom:1px solid #f3f4f6;text-align:right">${mrp ? `<span style="color:#9ca3af">₹${mrp.toLocaleString('en-IN')}</span>` : '—'}</td>
+      <td style="padding:9px 10px;border-bottom:1px solid #f3f4f6;text-align:right">₹${rate.toLocaleString('en-IN')}</td>
+      <td style="padding:9px 10px;border-bottom:1px solid #f3f4f6;text-align:center;color:${disc ? '#16a34a' : '#9ca3af'};font-weight:${disc ? '600' : '400'}">${disc ? disc + '%' : '—'}</td>
+      <td style="padding:9px 10px;border-bottom:1px solid #f3f4f6;text-align:right;color:#6b7280;font-size:11px">${taxRate ? `${taxRate}%<br><span style="font-size:10px">₹${taxAmt.toFixed(2)}</span>` : '—'}</td>
+      <td style="padding:9px 10px;border-bottom:1px solid #f3f4f6;text-align:right;font-weight:700;color:#111">₹${Number(li.lineTotal).toLocaleString('en-IN')}</td>
     </tr>`;
   }).join('');
 
   const payments = invoice.payments?.map((p: any) => `
-    <tr><td style="padding:6px 10px;border-bottom:1px solid #eee">${formatDateIST(p.paymentDate)}</td><td style="padding:6px 10px;border-bottom:1px solid #eee">${esc(p.paymentMode)}</td><td style="padding:6px 10px;border-bottom:1px solid #eee">${esc(p.referenceNumber || '-')}</td><td style="padding:6px 10px;border-bottom:1px solid #eee;text-align:right;font-weight:600">₹${Number(p.amount).toLocaleString()}</td></tr>`).join('') || '';
+    <tr>
+      <td style="padding:7px 10px;border-bottom:1px solid #f3f4f6">${formatDateIST(p.paymentDate)}</td>
+      <td style="padding:7px 10px;border-bottom:1px solid #f3f4f6">${esc(p.paymentMode)}</td>
+      <td style="padding:7px 10px;border-bottom:1px solid #f3f4f6;font-family:'Google Sans Code',ui-monospace,monospace;font-size:11px">${esc(p.referenceNumber || '—')}</td>
+      <td style="padding:7px 10px;border-bottom:1px solid #f3f4f6;text-align:right;font-weight:600;color:#16a34a">₹${Number(p.amount).toLocaleString('en-IN')}</td>
+    </tr>`).join('') || '';
 
   const statusColor = invoice.paymentStatus === 'PAID' ? '#16a34a' : invoice.paymentStatus === 'PARTIALLY_PAID' ? '#d97706' : '#dc2626';
+  const statusBg = invoice.paymentStatus === 'PAID' ? '#dcfce7' : invoice.paymentStatus === 'PARTIALLY_PAID' ? '#fef3c7' : '#fee2e2';
   const grandTotal = Number(invoice.grandTotal);
   const roundOff = Math.round(grandTotal) - grandTotal;
   const netAmount = Math.round(grandTotal);
   const amountWords = numberToWords(netAmount) + ' Rupees Only';
   const odometer = invoice.jobCard?.odometerAtIntake;
+  const taxTotal = Number(invoice.taxTotal) || 0;
+  const cgst = taxTotal / 2;
+  const sgst = taxTotal / 2;
 
   return `<!DOCTYPE html>
-<html><head><meta charset="utf-8"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Google+Sans:400,500,600,700,800&display=swap"><title>Invoice ${esc(invoice.invoiceNumber)}</title>
+<html><head><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Google+Sans:400,500,600,700,800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans+Code:wght@400;500;600&display=swap">
+<title>Invoice ${esc(invoice.invoiceNumber)}</title>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
-body { font-family:'Google Sans','Product Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; color:#1a1a1a; font-size:12px; }
-@media print { body { -webkit-print-color-adjust:exact; print-color-adjust:exact; } }
-.page { max-width:800px; margin:0 auto; padding:30px; }
+body { font-family:'Google Sans','Product Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; color:#111; font-size:12px; background:#fff; }
+@media print { body { -webkit-print-color-adjust:exact; print-color-adjust:exact; } @page { margin:8mm; size:A4; } }
+.page { max-width:820px; margin:0 auto; background:#fff; }
 table { width:100%; border-collapse:collapse; }
-th { background:#f3f4f6; padding:8px 10px; text-align:left; font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:#666; font-weight:600; }
+th { background:#fafafa; padding:10px 10px; text-align:left; font-size:10px; text-transform:uppercase; letter-spacing:0.6px; color:#6b7280; font-weight:600; border-bottom:2px solid #e5e7eb; }
+.card-label { font-size:9px; text-transform:uppercase; letter-spacing:1px; color:#9ca3af; font-weight:600; }
+.card-value { font-size:13px; font-weight:600; color:#111; margin-top:4px; }
+.card-meta { font-size:11px; color:#6b7280; margin-top:2px; line-height:1.5; }
 </style></head><body><div class="page">
 
-<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid #111">
-  <div>
-    <img src="${esc(logoUrl)}" style="height:45px;margin-bottom:8px" alt="${esc(biz.name)}">
-    <div style="font-size:10px;color:#666;margin-top:4px">${esc(biz.address)}</div>
-    ${biz.phone ? `<div style="font-size:10px;color:#666">Ph: ${esc(biz.phone)}</div>` : ''}
-    ${biz.gst ? `<div style="font-size:10px;color:#666">GSTIN: ${esc(biz.gst)}</div>` : ''}
-  </div>
-  <div style="text-align:right">
-    <div style="font-size:22px;font-weight:700">INVOICE</div>
-    <div style="color:#666;font-size:12px;margin-top:4px">${esc(invoice.invoiceNumber)}</div>
-    <div style="color:#666;font-size:11px;margin-top:2px">Date: ${formatDateIST(invoice.invoiceDate, { long: true })}</div>
-    <div style="margin-top:6px"><span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;color:white;background:${statusColor}">${esc(invoice.paymentStatus)}</span></div>
-  </div>
-</div>
-
-<div style="display:flex;gap:12px;margin-bottom:20px">
-  <div style="flex:1;background:#f9fafb;padding:12px;border-radius:6px">
-    <div style="font-size:9px;text-transform:uppercase;color:#888;font-weight:600">Bill To</div>
-    <div style="font-weight:600;margin-top:3px">${esc(toTitleCase(invoice.customer.fullName))}</div>
-    <div style="color:#666;font-size:11px">${esc(invoice.customer.phoneNumber)}</div>
-    ${invoice.customer.email ? `<div style="color:#666;font-size:11px">${esc(invoice.customer.email)}</div>` : ''}
-  </div>
-  <div style="flex:1;background:#f9fafb;padding:12px;border-radius:6px">
-    <div style="font-size:9px;text-transform:uppercase;color:#888;font-weight:600">Vehicle</div>
-    <div style="font-weight:600;margin-top:3px">${esc(invoice.vehicle?.brand ?? '')} ${esc(invoice.vehicle?.model ?? '')}</div>
-    <div style="color:#666;font-size:11px">${esc(invoice.vehicle?.registrationNumber ?? 'Counter Sale')}</div>
-    ${odometer ? `<div style="color:#666;font-size:11px">Odometer: ${odometer.toLocaleString()} km</div>` : ''}
-  </div>
-  <div style="flex:1;background:#f9fafb;padding:12px;border-radius:6px">
-    <div style="font-size:9px;text-transform:uppercase;color:#888;font-weight:600">Details</div>
-    ${invoice.jobCard ? `<div style="font-weight:600;margin-top:3px">${esc(invoice.jobCard.jobCardNumber)}</div>` : '<div style="font-weight:600;margin-top:3px">Counter Sale</div>'}
-    <div style="color:#666;font-size:11px">Status: ${esc(invoice.invoiceStatus)}</div>
-    ${invoice.finalizedAt ? `<div style="color:#666;font-size:11px">Finalized: ${formatDateIST(invoice.finalizedAt)}</div>` : ''}
-  </div>
-</div>
-
-<table>
-  <thead><tr>
-    <th style="width:30px;text-align:center">#</th>
-    <th>Part No. & Description</th>
-    <th style="text-align:center">Qty</th>
-    <th style="text-align:right">MRP</th>
-    <th style="text-align:right">Rate</th>
-    <th style="text-align:center">Disc%</th>
-    <th style="text-align:right">Amount</th>
-  </tr></thead>
-  <tbody>${rows}</tbody>
-</table>
-
-<div style="display:flex;justify-content:space-between;margin-top:16px">
-  <div style="flex:1">
-    <div style="font-size:11px;color:#666;margin-top:8px;border:1px solid #e5e7eb;padding:8px 10px;border-radius:4px">
-      <strong>Amount in words:</strong> ${esc(amountWords)}
+<!-- Header band -->
+<div style="background:#fff;border-bottom:1px solid #e5e7eb">
+  <div style="padding:24px 32px 18px 32px;display:flex;justify-content:space-between;align-items:flex-start;gap:24px">
+    <div style="flex:1;min-width:0">
+      <img src="${esc(logoUrl)}" style="height:42px;width:auto;display:block" alt="${esc(biz.name)}" />
+      <div style="margin-top:10px;color:#6b7280;font-size:11px;line-height:1.55">
+        ${biz.address ? `${esc(biz.address)}<br>` : ''}
+        ${biz.phone ? `Tel: ${esc(biz.phone)}` : ''}${biz.phone && biz.email ? ' &nbsp;·&nbsp; ' : ''}${biz.email ? `${esc(biz.email)}` : ''}
+        ${biz.gst ? `<br><span style="color:#111;font-weight:600">GSTIN:</span> <span style="font-family:'Google Sans Code',ui-monospace,monospace">${esc(biz.gst)}</span>` : ''}
+      </div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:#9ca3af;font-weight:600">Tax Invoice</div>
+      <div style="font-size:22px;font-weight:800;color:#111;margin-top:6px;font-family:'Google Sans Code',ui-monospace,monospace">${esc(invoice.invoiceNumber)}</div>
+      <div style="font-size:11px;color:#6b7280;margin-top:6px">Issued <strong style="color:#111">${formatDateIST(invoice.invoiceDate, { long: true })}</strong></div>
+      <div style="margin-top:10px;display:inline-block;background:${statusBg};color:${statusColor};font-size:10px;font-weight:700;padding:4px 12px;border-radius:20px;letter-spacing:0.5px;text-transform:uppercase">${esc(invoice.paymentStatus.replace('_', ' '))}</div>
     </div>
   </div>
-  <table style="width:240px;margin-left:20px">
-    <tr><td style="padding:4px 10px;color:#666">Subtotal</td><td style="padding:4px 10px;text-align:right">₹${Number(invoice.subtotal).toLocaleString()}</td></tr>
-    ${totalDiscount > 0 ? `<tr><td style="padding:4px 10px;color:#666">Discount</td><td style="padding:4px 10px;text-align:right;color:#16a34a">-₹${totalDiscount.toLocaleString()}</td></tr>` : ''}
-    ${Number(invoice.taxTotal) > 0 ? `<tr><td style="padding:4px 10px;color:#666">Tax</td><td style="padding:4px 10px;text-align:right">₹${Number(invoice.taxTotal).toLocaleString()}</td></tr>` : ''}
-    ${Math.abs(roundOff) > 0.001 ? `<tr><td style="padding:4px 10px;color:#666">Round Off</td><td style="padding:4px 10px;text-align:right">${roundOff > 0 ? '+' : ''}₹${roundOff.toFixed(2)}</td></tr>` : ''}
-    <tr><td style="padding:6px 10px;font-size:14px;font-weight:700;border-top:2px solid #111">Net Amount</td><td style="padding:6px 10px;text-align:right;font-size:14px;font-weight:700;border-top:2px solid #111">₹${netAmount.toLocaleString()}</td></tr>
-    ${Number(invoice.amountPaid) > 0 ? `<tr><td style="padding:4px 10px;color:#666">Paid</td><td style="padding:4px 10px;text-align:right;color:#16a34a">₹${Number(invoice.amountPaid).toLocaleString()}</td></tr>` : ''}
-    ${Number(invoice.amountDue) > 0 ? `<tr><td style="padding:4px 10px;color:#dc2626;font-weight:600">Balance Due</td><td style="padding:4px 10px;text-align:right;color:#dc2626;font-weight:600">₹${Number(invoice.amountDue).toLocaleString()}</td></tr>` : ''}
+  <!-- Brand accent strip -->
+  <div style="height:3px;background:linear-gradient(90deg,#FF0000 0%,#AC0000 100%)"></div>
+</div>
+
+<!-- Body -->
+<div style="padding:24px 32px">
+
+  <!-- Bill-To / Vehicle / Job-Card cards -->
+  <div style="display:flex;gap:12px;margin-bottom:22px">
+    <div style="flex:1;border:1px solid #e5e7eb;border-radius:6px;padding:12px">
+      <div class="card-label">Bill To</div>
+      <div class="card-value">${esc(toTitleCase(invoice.customer.fullName))}</div>
+      <div class="card-meta">
+        ${esc(invoice.customer.phoneNumber)}
+        ${invoice.customer.email ? `<br>${esc(invoice.customer.email)}` : ''}
+        ${invoice.customer.addressLine1 ? `<br>${esc(invoice.customer.addressLine1)}` : ''}
+        ${invoice.customer.city ? `<br>${esc(invoice.customer.city)}${invoice.customer.postalCode ? ' — ' + esc(invoice.customer.postalCode) : ''}` : ''}
+      </div>
+    </div>
+    <div style="flex:1;border:1px solid #e5e7eb;border-radius:6px;padding:12px">
+      <div class="card-label">Vehicle</div>
+      <div class="card-value">${esc(toTitleCase(invoice.vehicle?.brand ?? ''))} ${esc(toTitleCase(invoice.vehicle?.model ?? ''))}</div>
+      <div class="card-meta">
+        ${invoice.vehicle?.registrationNumber ? `<span style="font-family:'Google Sans Code',ui-monospace,monospace;font-weight:600;color:#111">${esc(invoice.vehicle.registrationNumber)}</span>` : 'Counter Sale'}
+        ${odometer ? `<br>Odometer: ${odometer.toLocaleString()} km` : ''}
+        ${invoice.jobCard?.fuelIndicator ? `<br>Fuel: ${esc(invoice.jobCard.fuelIndicator)}` : ''}
+      </div>
+    </div>
+    <div style="flex:1;border:1px solid #e5e7eb;border-radius:6px;padding:12px">
+      <div class="card-label">${invoice.jobCard ? 'Job Card' : 'Sale Type'}</div>
+      <div class="card-value">${invoice.jobCard ? esc(invoice.jobCard.jobCardNumber) : 'Counter Sale'}</div>
+      <div class="card-meta">
+        Status: <strong style="color:#111">${esc(invoice.invoiceStatus)}</strong>
+        ${invoice.finalizedAt ? `<br>Finalised: ${formatDateIST(invoice.finalizedAt)}` : ''}
+        ${invoice.jobCard?.issueSummary ? `<br><span style="color:#9ca3af">Issue:</span> ${esc(invoice.jobCard.issueSummary.slice(0, 50))}${invoice.jobCard.issueSummary.length > 50 ? '…' : ''}` : ''}
+      </div>
+    </div>
+  </div>
+
+  <!-- Line items -->
+  <table>
+    <thead>
+      <tr>
+        <th style="width:30px;text-align:center">#</th>
+        <th>Description</th>
+        <th style="width:55px;text-align:center">HSN/SAC</th>
+        <th style="width:50px;text-align:center">Qty</th>
+        <th style="width:70px;text-align:right">MRP</th>
+        <th style="width:70px;text-align:right">Rate</th>
+        <th style="width:50px;text-align:center">Disc</th>
+        <th style="width:75px;text-align:right">Tax</th>
+        <th style="width:85px;text-align:right">Amount</th>
+      </tr>
+    </thead>
+    <tbody>${rows}</tbody>
   </table>
+
+  <!-- Totals row -->
+  <div style="display:flex;gap:18px;margin-top:20px">
+    <div style="flex:1">
+      <div style="border:1px solid #e5e7eb;border-radius:6px;padding:12px 14px">
+        <div class="card-label">Amount in Words</div>
+        <div style="margin-top:5px;font-size:12px;color:#111;font-weight:500;line-height:1.5">${esc(amountWords)}</div>
+      </div>
+      ${biz.bankName || biz.bankUpi ? `
+      <div style="margin-top:12px;border:1px solid #e5e7eb;border-radius:6px;padding:12px 14px">
+        <div class="card-label">Payment Details</div>
+        <div style="margin-top:5px;font-size:11px;color:#374151;line-height:1.7">
+          ${biz.bankName ? `<div><strong>${esc(biz.bankName)}</strong></div>` : ''}
+          ${biz.bankAccount ? `<div>A/c No: <span style="font-family:'Google Sans Code',ui-monospace,monospace">${esc(biz.bankAccount)}</span></div>` : ''}
+          ${biz.bankIfsc ? `<div>IFSC: <span style="font-family:'Google Sans Code',ui-monospace,monospace">${esc(biz.bankIfsc)}</span></div>` : ''}
+          ${biz.bankUpi ? `<div>UPI: <span style="font-family:'Google Sans Code',ui-monospace,monospace">${esc(biz.bankUpi)}</span></div>` : ''}
+        </div>
+      </div>` : ''}
+    </div>
+    <div style="width:280px">
+      <table style="border-collapse:separate">
+        <tr><td style="padding:5px 12px;color:#6b7280;font-size:12px">Subtotal</td><td style="padding:5px 12px;text-align:right;font-size:12px">₹${Number(invoice.subtotal).toLocaleString('en-IN')}</td></tr>
+        ${totalDiscount > 0 ? `<tr><td style="padding:5px 12px;color:#16a34a;font-size:12px;font-weight:600">Discount</td><td style="padding:5px 12px;text-align:right;color:#16a34a;font-size:12px;font-weight:600">−₹${totalDiscount.toLocaleString('en-IN')}</td></tr>` : ''}
+        ${taxTotal > 0 ? `
+          <tr><td style="padding:5px 12px;color:#6b7280;font-size:11px">CGST (½ Tax)</td><td style="padding:5px 12px;text-align:right;font-size:11px">₹${cgst.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td></tr>
+          <tr><td style="padding:5px 12px;color:#6b7280;font-size:11px">SGST (½ Tax)</td><td style="padding:5px 12px;text-align:right;font-size:11px">₹${sgst.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td></tr>
+        ` : ''}
+        ${Math.abs(roundOff) > 0.001 ? `<tr><td style="padding:5px 12px;color:#6b7280;font-size:11px">Round Off</td><td style="padding:5px 12px;text-align:right;font-size:11px">${roundOff > 0 ? '+' : ''}₹${roundOff.toFixed(2)}</td></tr>` : ''}
+        <tr><td colspan="2" style="padding:0;border-top:2px solid #111"></td></tr>
+        <tr><td style="padding:10px 12px;font-size:14px;font-weight:800;color:#111">Net Total</td><td style="padding:10px 12px;text-align:right;font-size:16px;font-weight:800;color:#111">₹${netAmount.toLocaleString('en-IN')}</td></tr>
+        ${Number(invoice.amountPaid) > 0 ? `<tr><td style="padding:5px 12px;color:#16a34a;font-size:12px;border-top:1px solid #e5e7eb">Amount Paid</td><td style="padding:5px 12px;text-align:right;color:#16a34a;font-size:12px;border-top:1px solid #e5e7eb">₹${Number(invoice.amountPaid).toLocaleString('en-IN')}</td></tr>` : ''}
+        ${Number(invoice.amountDue) > 0 ? `<tr><td style="padding:7px 12px;color:#dc2626;font-size:13px;font-weight:700;background:#fee2e2">Balance Due</td><td style="padding:7px 12px;text-align:right;color:#dc2626;font-size:13px;font-weight:700;background:#fee2e2">₹${Number(invoice.amountDue).toLocaleString('en-IN')}</td></tr>` : ''}
+      </table>
+    </div>
+  </div>
+
+  ${payments ? `
+  <div style="margin-top:24px">
+    <div style="font-size:11px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Payment History</div>
+    <table>
+      <thead><tr><th>Date</th><th>Mode</th><th>Reference</th><th style="text-align:right">Amount</th></tr></thead>
+      <tbody>${payments}</tbody>
+    </table>
+  </div>` : ''}
+
+  <!-- Signature + Terms -->
+  <div style="margin-top:30px;display:flex;gap:24px;align-items:flex-end">
+    <div style="flex:1;font-size:10px;color:#6b7280;line-height:1.6">
+      <div style="font-weight:600;color:#374151;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;font-size:9px">Terms & Conditions</div>
+      <div>1. Goods once sold will not be taken back or exchanged.</div>
+      <div>2. Warranty as per manufacturer policy only.</div>
+      <div>3. Subject to ${esc(biz.address ? biz.address.split(',').pop()?.trim() || 'local' : 'local')} jurisdiction.</div>
+    </div>
+    <div style="width:200px;text-align:center;font-size:10px;color:#6b7280">
+      <div style="border-top:1px solid #111;padding-top:6px;margin-top:30px">
+        <div style="font-weight:600;color:#111;font-size:11px">For ${esc(biz.name)}</div>
+        <div style="margin-top:2px">Authorised Signatory</div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
-${payments ? `<div style="margin-top:20px"><div style="font-size:12px;font-weight:600;margin-bottom:6px">Payment History</div><table><thead><tr><th>Date</th><th>Mode</th><th>Ref</th><th style="text-align:right">Amount</th></tr></thead><tbody>${payments}</tbody></table></div>` : ''}
-
-${(() => { const scLine = invoice.lineItems.find((li: any) => li.lineType === 'SERVICE_CHARGE' && Number(li.discountPercent) === 100); const amcLine = invoice.lineItems.find((li: any) => li.lineType === 'AMC' && Number(li.lineTotal) > 0); if (!scLine && !amcLine) return ''; const perVisit = scLine ? Number(scLine.unitPrice) : 0; const planPrice = amcLine ? Number(amcLine.unitPrice) : 0; const totalServices = 3; const totalSaving = perVisit > 0 ? (perVisit * totalServices) - planPrice : 0; return `<div style="margin-top:20px;padding:12px 16px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px"><div style="font-weight:700;font-size:13px;color:#166534;margin-bottom:6px">🎉 AMC Member Savings</div><div style="font-size:12px;color:#333">${perVisit > 0 ? `Service Charge Saved: <strong>₹${perVisit}</strong><br>` : ''}${totalSaving > 0 ? `Total Plan Savings: <strong>₹${totalSaving}</strong> (${totalServices} services × ₹${perVisit} − ₹${planPrice} plan)` : ''}</div></div>`; })()}
-
-<div style="margin-top:30px;padding-top:12px;border-top:1px solid #eee">
-  <p style="font-size:10px;color:#666;margin-bottom:4px">* Goods once sold will not be taken back / No Exchange / No Return</p>
-  <p style="text-align:center;color:#888;font-size:11px;margin-top:8px">${esc(footer)}</p>
-  <p style="text-align:center;color:#888;font-size:10px;margin-top:2px">${esc(biz.name)}${biz.gst ? ` | GSTIN: ${esc(biz.gst)}` : ''}</p>
+<!-- Footer -->
+<div style="margin-top:18px;padding:14px 32px;background:#fafafa;border-top:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center;font-size:10px;color:#9ca3af">
+  <div>${esc(footer)}</div>
+  <div>${esc(biz.name)}${biz.gst ? ` · GSTIN ${esc(biz.gst)}` : ''}</div>
 </div>
+
 </div></body></html>`;
 }
 
@@ -242,6 +351,12 @@ function generateMechanicCopyHTML(invoice: any, settings: Record<string, any>, l
 </div></body></html>`;
 }
 
+/**
+ * Gold-tier AMC invoice template (v3).
+ * Same base structure as `generateInvoiceHTML` so a member sees a
+ * familiar layout, but dressed in a premium gold palette and with
+ * AMC-specific banners + line-item highlights.
+ */
 function generateAmcInvoiceHTML(invoice: any, settings: Record<string, any>, logoUrl: string, amcContract: any) {
   const biz = {
     name: settings['business.name'] || 'GearUp Auto Service',
@@ -249,103 +364,265 @@ function generateAmcInvoiceHTML(invoice: any, settings: Record<string, any>, log
     email: settings['business.email'] || '',
     address: settings['business.address'] || '',
     gst: settings['business.gst'] || '',
+    bankName: settings['business.bank.name'] || '',
+    bankAccount: settings['business.bank.account'] || '',
+    bankIfsc: settings['business.bank.ifsc'] || '',
+    bankUpi: settings['business.bank.upi'] || '',
   };
+  const footer = settings['invoice.footer'] || 'Thank you for being a Premium AMC member.';
 
   const planPrice = Number(amcContract.plan.price);
-  const amcSavings = invoice.lineItems.filter((li: any) => li.lineType === 'AMC' && Number(li.lineTotal) === 0).length * planPrice;
-  const discountFromAdjustments = invoice.lineItems.filter((li: any) => li.lineType === 'DISCOUNT_ADJUSTMENT').reduce((s: number, li: any) => s + Math.abs(Number(li.lineTotal)), 0);
-  const discountFromPercent = invoice.lineItems.filter((li: any) => li.lineType !== 'DISCOUNT_ADJUSTMENT' && Number(li.discountPercent) > 0).reduce((s: number, li: any) => s + Number(li.quantity) * Number(li.unitPrice) * Number(li.discountPercent) / 100, 0);
+  const amcSavings = invoice.lineItems
+    .filter((li: any) => li.lineType === 'AMC' && Number(li.lineTotal) === 0)
+    .length * planPrice;
+  const discountFromAdjustments = invoice.lineItems
+    .filter((li: any) => li.lineType === 'DISCOUNT_ADJUSTMENT')
+    .reduce((s: number, li: any) => s + Math.abs(Number(li.lineTotal)), 0);
+  const discountFromPercent = invoice.lineItems
+    .filter((li: any) => li.lineType !== 'DISCOUNT_ADJUSTMENT' && Number(li.discountPercent) > 0)
+    .reduce((s: number, li: any) => s + Number(li.quantity) * Number(li.unitPrice) * Number(li.discountPercent) / 100, 0);
   const totalDiscount = discountFromAdjustments + discountFromPercent;
 
-  const rows = invoice.lineItems.map((li: any, i: number) => {
+  const nonDiscountItems = invoice.lineItems.filter((li: any) => li.lineType !== 'DISCOUNT_ADJUSTMENT');
+
+  const rows = nonDiscountItems.map((li: any, i: number) => {
     const isAmcCovered = li.lineType === 'AMC' && Number(li.lineTotal) === 0;
-    return `<tr${isAmcCovered ? ' style="background:#fefce8"' : ''}>
-      <td style="padding:10px 12px;border-bottom:1px solid ${isAmcCovered ? '#fde047' : '#f3f4f6'}">${i + 1}</td>
-      <td style="padding:10px 12px;border-bottom:1px solid ${isAmcCovered ? '#fde047' : '#f3f4f6'}"><strong>${esc(li.description)}</strong>${isAmcCovered ? '<span style="display:inline-block;background:#111;color:#d4a017;font-size:8px;font-weight:700;padding:2px 7px;border-radius:2px;text-transform:uppercase;letter-spacing:1px;margin-left:8px;border:1px solid #d4a017">★ AMC</span>' : ''}</td>
-      <td style="padding:10px 12px;border-bottom:1px solid ${isAmcCovered ? '#fde047' : '#f3f4f6'};text-align:right">${Number(li.quantity)}</td>
-      <td style="padding:10px 12px;border-bottom:1px solid ${isAmcCovered ? '#fde047' : '#f3f4f6'};text-align:right">${isAmcCovered ? `<span style="text-decoration:line-through;color:#9ca3af;font-size:11px">₹${planPrice.toLocaleString()}</span>` : `₹${Number(li.unitPrice).toLocaleString()}`}</td>
-      <td style="padding:10px 12px;border-bottom:1px solid ${isAmcCovered ? '#fde047' : '#f3f4f6'};text-align:right;font-weight:600">${isAmcCovered ? '<span style="font-weight:800;color:#dc2626;font-size:13px">FREE</span>' : `₹${Number(li.lineTotal).toLocaleString()}`}</td>
+    const disc = Number(li.discountPercent) || 0;
+    const qty = Number(li.quantity);
+    const rate = Number(li.unitPrice);
+    const taxRate = Number(li.taxRate) || 0;
+    const taxable = qty * rate * (1 - disc / 100);
+    const taxAmt = taxable * (taxRate / 100);
+    const hsn = li.lineType === 'PART' ? '8714' : li.lineType === 'LABOR' || li.lineType === 'SERVICE_CHARGE' ? '9987' : li.lineType === 'AMC' ? '9987' : '';
+    const rowBg = isAmcCovered ? 'background:#fffbeb' : '';
+    const cellBorder = isAmcCovered ? '#fde68a' : '#f3f4f6';
+    return `<tr style="${rowBg}">
+      <td style="padding:9px 10px;border-bottom:1px solid ${cellBorder};text-align:center;color:#9ca3af;font-size:10px">${i + 1}</td>
+      <td style="padding:9px 10px;border-bottom:1px solid ${cellBorder}">
+        <div style="font-weight:600;color:#111">${esc(li.description)}${isAmcCovered ? '<span style="display:inline-block;margin-left:8px;background:#111;color:#D4A017;font-size:8px;font-weight:800;padding:2px 8px;border-radius:2px;text-transform:uppercase;letter-spacing:1.2px;border:1px solid #D4A017">★ AMC Covered</span>' : ''}</div>
+      </td>
+      <td style="padding:9px 10px;border-bottom:1px solid ${cellBorder};text-align:center;color:#6b7280;font-size:10px;font-family:'Google Sans Code',ui-monospace,monospace">${hsn || '—'}</td>
+      <td style="padding:9px 10px;border-bottom:1px solid ${cellBorder};text-align:center">${qty}</td>
+      <td style="padding:9px 10px;border-bottom:1px solid ${cellBorder};text-align:right">${isAmcCovered ? `<span style="text-decoration:line-through;color:#9ca3af;font-size:11px">₹${planPrice.toLocaleString('en-IN')}</span>` : `₹${rate.toLocaleString('en-IN')}`}</td>
+      <td style="padding:9px 10px;border-bottom:1px solid ${cellBorder};text-align:center;color:${disc ? '#16a34a' : '#9ca3af'};font-weight:${disc ? '600' : '400'}">${disc ? disc + '%' : '—'}</td>
+      <td style="padding:9px 10px;border-bottom:1px solid ${cellBorder};text-align:right;color:#6b7280;font-size:11px">${taxRate ? `${taxRate}%<br><span style="font-size:10px">₹${taxAmt.toFixed(2)}</span>` : '—'}</td>
+      <td style="padding:9px 10px;border-bottom:1px solid ${cellBorder};text-align:right;font-weight:700;color:#111">${isAmcCovered ? '<span style="font-weight:800;color:#B45309;font-size:13px;letter-spacing:0.5px">FREE</span>' : `₹${Number(li.lineTotal).toLocaleString('en-IN')}`}</td>
     </tr>`;
   }).join('');
 
   const payments = invoice.payments?.map((p: any) => `
-    <tr><td style="padding:6px 12px;border-bottom:1px solid #f3f4f6">${formatDateIST(p.paymentDate)}</td><td style="padding:6px 12px;border-bottom:1px solid #f3f4f6">${esc(p.paymentMode)}</td><td style="padding:6px 12px;border-bottom:1px solid #f3f4f6">${esc(p.referenceNumber || '-')}</td><td style="padding:6px 12px;border-bottom:1px solid #f3f4f6;text-align:right;font-weight:600;color:#16a34a">₹${Number(p.amount).toLocaleString()}</td></tr>`).join('') || '';
+    <tr>
+      <td style="padding:7px 10px;border-bottom:1px solid #f3f4f6">${formatDateIST(p.paymentDate)}</td>
+      <td style="padding:7px 10px;border-bottom:1px solid #f3f4f6">${esc(p.paymentMode)}</td>
+      <td style="padding:7px 10px;border-bottom:1px solid #f3f4f6;font-family:'Google Sans Code',ui-monospace,monospace;font-size:11px">${esc(p.referenceNumber || '—')}</td>
+      <td style="padding:7px 10px;border-bottom:1px solid #f3f4f6;text-align:right;font-weight:600;color:#16a34a">₹${Number(p.amount).toLocaleString('en-IN')}</td>
+    </tr>`).join('') || '';
 
   const endDate = formatDateIST(amcContract.endDate, { long: true });
+  const statusColor = invoice.paymentStatus === 'PAID' ? '#16a34a' : invoice.paymentStatus === 'PARTIALLY_PAID' ? '#d97706' : '#dc2626';
+  const statusBg = invoice.paymentStatus === 'PAID' ? '#dcfce7' : invoice.paymentStatus === 'PARTIALLY_PAID' ? '#fef3c7' : '#fee2e2';
+  const grandTotal = Number(invoice.grandTotal);
+  const roundOff = Math.round(grandTotal) - grandTotal;
+  const netAmount = Math.round(grandTotal);
+  const amountWords = numberToWords(netAmount) + ' Rupees Only';
+  const odometer = invoice.jobCard?.odometerAtIntake;
+  const taxTotal = Number(invoice.taxTotal) || 0;
+  const cgst = taxTotal / 2;
+  const sgst = taxTotal / 2;
 
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Google+Sans:400,500,600,700,800&display=swap"><title>Invoice ${esc(invoice.invoiceNumber)}</title>
+  return `<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Google+Sans:400,500,600,700,800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans+Code:wght@400;500;600&display=swap">
+<title>AMC Invoice ${esc(invoice.invoiceNumber)}</title>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
-body { font-family:'Google Sans','Product Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; color:#1a1a1a; font-size:13px; }
-@media print { body { -webkit-print-color-adjust:exact; print-color-adjust:exact; } @page { margin:10mm; } }
-.page { max-width:800px; margin:0 auto; border:2px solid #111; }
+body { font-family:'Google Sans','Product Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; color:#111; font-size:12px; background:#fff; }
+@media print { body { -webkit-print-color-adjust:exact; print-color-adjust:exact; } @page { margin:8mm; size:A4; } }
+.page { max-width:820px; margin:0 auto; background:#fff; border:2px solid #D4A017; }
 table { width:100%; border-collapse:collapse; }
-th { background:#f9fafb; padding:9px 12px; text-align:left; font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:#6b7280; font-weight:600; border-bottom:2px solid #e5e7eb; }
+th { background:#FFFBEB; padding:10px 10px; text-align:left; font-size:10px; text-transform:uppercase; letter-spacing:0.6px; color:#92400E; font-weight:700; border-bottom:2px solid #FDE68A; }
+.card-label { font-size:9px; text-transform:uppercase; letter-spacing:1px; color:#9ca3af; font-weight:600; }
+.card-value { font-size:13px; font-weight:600; color:#111; margin-top:4px; }
+.card-meta { font-size:11px; color:#6b7280; margin-top:2px; line-height:1.5; }
 </style></head><body><div class="page">
 
-<div style="background:#111;color:white;padding:22px 32px;display:flex;justify-content:space-between;align-items:center;border-bottom:4px solid #dc2626">
-  <div style="display:flex;align-items:center;gap:14px">
-    <img src="${esc(logoUrl)}" style="height:48px;width:auto" alt="${esc(biz.name)}">
-    <div>
-      <div style="color:#d4a017;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:2px">Service · Spares · Safety</div>
-      <div style="color:#9ca3af;font-size:11px;margin-top:4px">${esc(biz.address)} · ${esc(biz.phone)}</div>
+<!-- Premium dark header -->
+<div style="background:linear-gradient(135deg,#1A1A1A 0%,#2D2D2D 100%);color:#fff;padding:24px 32px;display:flex;justify-content:space-between;align-items:flex-start;gap:24px;position:relative">
+  <div style="flex:1;min-width:0">
+    <img src="${esc(logoUrl)}" style="height:42px;width:auto;display:block;filter:brightness(0) invert(1)" alt="${esc(biz.name)}" />
+    <div style="margin-top:10px;color:#D1D5DB;font-size:11px;line-height:1.55">
+      ${biz.address ? `${esc(biz.address)}<br>` : ''}
+      ${biz.phone ? `Tel: ${esc(biz.phone)}` : ''}${biz.phone && biz.email ? ' &nbsp;·&nbsp; ' : ''}${biz.email ? `${esc(biz.email)}` : ''}
+      ${biz.gst ? `<br><span style="color:#D4A017;font-weight:600">GSTIN:</span> <span style="font-family:'Google Sans Code',ui-monospace,monospace">${esc(biz.gst)}</span>` : ''}
     </div>
   </div>
   <div style="text-align:right">
-    <div style="font-size:20px;font-weight:800">${esc(invoice.invoiceNumber)}</div>
-    <div style="color:#9ca3af;font-size:12px;margin-top:4px">${formatDateIST(invoice.invoiceDate, { long: true })}</div>
-    <div style="display:inline-block;background:${invoice.paymentStatus === 'PAID' ? '#16a34a' : '#dc2626'};color:white;font-size:10px;font-weight:700;padding:3px 10px;border-radius:3px;margin-top:6px;letter-spacing:0.5px">${esc(invoice.paymentStatus)}</div>
+    <div style="font-size:10px;text-transform:uppercase;letter-spacing:2.5px;color:#D4A017;font-weight:700">★ Premium AMC Tax Invoice</div>
+    <div style="font-size:22px;font-weight:800;color:#fff;margin-top:6px;font-family:'Google Sans Code',ui-monospace,monospace">${esc(invoice.invoiceNumber)}</div>
+    <div style="font-size:11px;color:#D1D5DB;margin-top:6px">Issued <strong style="color:#fff">${formatDateIST(invoice.invoiceDate, { long: true })}</strong></div>
+    <div style="margin-top:10px;display:inline-block;background:${statusBg};color:${statusColor};font-size:10px;font-weight:700;padding:4px 12px;border-radius:20px;letter-spacing:0.5px;text-transform:uppercase">${esc(invoice.paymentStatus.replace('_', ' '))}</div>
   </div>
 </div>
 
-<div style="background:#dc2626;color:white;padding:14px 32px;display:flex;justify-content:space-between;align-items:center">
-  <div style="display:flex;align-items:center;gap:12px">
-    <span style="color:#d4a017;font-size:22px">★</span>
+<!-- Gold accent strip -->
+<div style="height:4px;background:linear-gradient(90deg,#B45309 0%,#D4A017 30%,#FCD34D 50%,#D4A017 70%,#B45309 100%)"></div>
+
+<!-- Membership banner -->
+<div style="background:#FFFBEB;border-bottom:1px solid #FDE68A;padding:14px 32px;display:flex;justify-content:space-between;align-items:center">
+  <div style="display:flex;align-items:center;gap:14px">
+    <div style="width:38px;height:38px;background:linear-gradient(135deg,#D4A017,#FCD34D);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#111;font-size:18px;font-weight:800">★</div>
     <div>
-      <div style="font-size:15px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px">AMC ${esc(amcContract.plan.planName)} Member</div>
-      <div style="font-size:10px;opacity:0.9">#${esc(amcContract.contractNumber)} · Valid till ${esc(endDate)}</div>
+      <div style="font-size:14px;font-weight:800;color:#111;letter-spacing:0.5px">AMC ${esc(amcContract.plan.planName)} <span style="color:#92400E;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;margin-left:6px">Premium Member</span></div>
+      <div style="font-size:11px;color:#6b7280;margin-top:2px;font-family:'Google Sans Code',ui-monospace,monospace">Contract #${esc(amcContract.contractNumber)} · Valid till <strong style="color:#111;font-family:'Google Sans',sans-serif">${esc(endDate)}</strong></div>
     </div>
   </div>
-  <div style="display:flex;align-items:center;gap:14px">
-    <div style="text-align:center"><div style="font-size:22px;font-weight:800;color:#d4a017">${amcContract.servicesRemaining}</div><div style="font-size:9px;text-transform:uppercase;letter-spacing:0.5px;opacity:0.85">Remaining</div></div>
-    <div style="width:1px;height:30px;background:rgba(255,255,255,0.3)"></div>
-    <div style="text-align:center"><div style="font-size:22px;font-weight:800;color:#d4a017">${amcContract.totalServices}</div><div style="font-size:9px;text-transform:uppercase;letter-spacing:0.5px;opacity:0.85">Total</div></div>
+  <div style="display:flex;align-items:center;gap:16px">
+    <div style="text-align:center"><div style="font-size:22px;font-weight:800;color:#92400E;line-height:1">${amcContract.servicesRemaining}</div><div style="font-size:9px;text-transform:uppercase;letter-spacing:0.5px;color:#6b7280;margin-top:3px">Remaining</div></div>
+    <div style="width:1px;height:32px;background:#FDE68A"></div>
+    <div style="text-align:center"><div style="font-size:22px;font-weight:800;color:#92400E;line-height:1">${amcContract.totalServices}</div><div style="font-size:9px;text-transform:uppercase;letter-spacing:0.5px;color:#6b7280;margin-top:3px">Total</div></div>
   </div>
 </div>
 
-<div style="padding:24px 32px">
-  <div style="display:flex;gap:10px;margin-bottom:22px">
-    <div style="border:1px solid #e5e7eb;padding:11px;border-radius:4px;flex:1"><div style="font-size:9px;text-transform:uppercase;letter-spacing:0.5px;color:#6b7280;font-weight:600">Customer</div><div style="font-size:13px;margin-top:3px;font-weight:600">${esc(toTitleCase(invoice.customer.fullName))}</div><div style="font-size:11px;color:#6b7280;margin-top:1px">${esc(invoice.customer.phoneNumber)}</div></div>
-    <div style="border:1px solid #e5e7eb;padding:11px;border-radius:4px;flex:1"><div style="font-size:9px;text-transform:uppercase;letter-spacing:0.5px;color:#6b7280;font-weight:600">Vehicle</div><div style="font-size:13px;margin-top:3px;font-weight:600">${esc(invoice.vehicle?.brand ?? '')} ${esc(invoice.vehicle?.model ?? '')}</div><div style="font-size:11px;color:#6b7280;margin-top:1px">${esc(invoice.vehicle?.registrationNumber ?? 'Counter Sale')}</div></div>
-    <div style="border:1px solid #e5e7eb;padding:11px;border-radius:4px;flex:1"><div style="font-size:9px;text-transform:uppercase;letter-spacing:0.5px;color:#6b7280;font-weight:600">Job Card</div><div style="font-size:13px;margin-top:3px;font-weight:600">${esc(invoice.jobCard?.jobCardNumber ?? '-')}</div><div style="font-size:11px;color:#6b7280;margin-top:1px">${esc(invoice.jobCard?.issueSummary?.slice(0, 30) ?? '')}</div></div>
+<!-- Body -->
+<div style="padding:22px 32px">
+
+  <!-- Bill-To / Vehicle / Job-Card cards -->
+  <div style="display:flex;gap:12px;margin-bottom:22px">
+    <div style="flex:1;border:1px solid #e5e7eb;border-radius:6px;padding:12px">
+      <div class="card-label">Bill To</div>
+      <div class="card-value">${esc(toTitleCase(invoice.customer.fullName))}</div>
+      <div class="card-meta">
+        ${esc(invoice.customer.phoneNumber)}
+        ${invoice.customer.email ? `<br>${esc(invoice.customer.email)}` : ''}
+        ${invoice.customer.addressLine1 ? `<br>${esc(invoice.customer.addressLine1)}` : ''}
+        ${invoice.customer.city ? `<br>${esc(invoice.customer.city)}${invoice.customer.postalCode ? ' — ' + esc(invoice.customer.postalCode) : ''}` : ''}
+      </div>
+    </div>
+    <div style="flex:1;border:1px solid #e5e7eb;border-radius:6px;padding:12px">
+      <div class="card-label">Vehicle</div>
+      <div class="card-value">${esc(toTitleCase(invoice.vehicle?.brand ?? ''))} ${esc(toTitleCase(invoice.vehicle?.model ?? ''))}</div>
+      <div class="card-meta">
+        ${invoice.vehicle?.registrationNumber ? `<span style="font-family:'Google Sans Code',ui-monospace,monospace;font-weight:600;color:#111">${esc(invoice.vehicle.registrationNumber)}</span>` : 'Counter Sale'}
+        ${odometer ? `<br>Odometer: ${odometer.toLocaleString()} km` : ''}
+        ${invoice.jobCard?.fuelIndicator ? `<br>Fuel: ${esc(invoice.jobCard.fuelIndicator)}` : ''}
+      </div>
+    </div>
+    <div style="flex:1;border:1px solid #e5e7eb;border-radius:6px;padding:12px">
+      <div class="card-label">${invoice.jobCard ? 'Job Card' : 'Sale Type'}</div>
+      <div class="card-value">${invoice.jobCard ? esc(invoice.jobCard.jobCardNumber) : 'Counter Sale'}</div>
+      <div class="card-meta">
+        Status: <strong style="color:#111">${esc(invoice.invoiceStatus)}</strong>
+        ${invoice.finalizedAt ? `<br>Finalised: ${formatDateIST(invoice.finalizedAt)}` : ''}
+        ${invoice.jobCard?.issueSummary ? `<br><span style="color:#9ca3af">Issue:</span> ${esc(invoice.jobCard.issueSummary.slice(0, 50))}${invoice.jobCard.issueSummary.length > 50 ? '…' : ''}` : ''}
+      </div>
+    </div>
   </div>
 
-  <table><thead><tr><th style="width:30px">#</th><th>Item</th><th style="text-align:right">Qty</th><th style="text-align:right">Rate</th><th style="text-align:right">Amount</th></tr></thead><tbody>${rows}</tbody></table>
+  <!-- Line items -->
+  <table>
+    <thead>
+      <tr>
+        <th style="width:30px;text-align:center">#</th>
+        <th>Description</th>
+        <th style="width:55px;text-align:center">HSN/SAC</th>
+        <th style="width:50px;text-align:center">Qty</th>
+        <th style="width:75px;text-align:right">Rate</th>
+        <th style="width:50px;text-align:center">Disc</th>
+        <th style="width:75px;text-align:right">Tax</th>
+        <th style="width:90px;text-align:right">Amount</th>
+      </tr>
+    </thead>
+    <tbody>${rows}</tbody>
+  </table>
 
-  <div style="margin-top:16px;display:flex;justify-content:flex-end">
-    <table style="width:240px"><tbody>
-      <tr><td style="padding:5px 10px;border:none;font-size:13px;color:#6b7280">Subtotal</td><td style="padding:5px 10px;border:none;font-size:13px;text-align:right">₹${Number(invoice.subtotal).toLocaleString()}</td></tr>
-      ${totalDiscount > 0 ? `<tr><td style="padding:5px 10px;border:none;font-size:13px;color:#16a34a;font-weight:600">Discount</td><td style="padding:5px 10px;border:none;font-size:13px;text-align:right;color:#16a34a;font-weight:600">-₹${totalDiscount.toLocaleString()}</td></tr>` : ''}
-      ${amcSavings > 0 ? `<tr><td style="padding:5px 10px;border:none;font-size:13px;color:#dc2626;font-weight:700">★ AMC Benefit</td><td style="padding:5px 10px;border:none;font-size:13px;text-align:right;color:#dc2626;font-weight:700">−₹${amcSavings.toLocaleString()}</td></tr>` : ''}
-      ${Number(invoice.taxTotal) > 0 ? `<tr><td style="padding:5px 10px;border:none;font-size:13px;color:#6b7280">Tax</td><td style="padding:5px 10px;border:none;font-size:13px;text-align:right">₹${Number(invoice.taxTotal).toLocaleString()}</td></tr>` : ''}
-      <tr><td style="padding:5px 10px;border:none;font-size:18px;font-weight:800;border-top:3px solid #111;padding-top:10px">Total</td><td style="padding:5px 10px;border:none;font-size:18px;font-weight:800;text-align:right;border-top:3px solid #111;padding-top:10px">₹${Number(invoice.grandTotal).toLocaleString()}</td></tr>
-    </tbody></table>
+  <!-- Totals row -->
+  <div style="display:flex;gap:18px;margin-top:20px">
+    <div style="flex:1">
+      <div style="border:1px solid #e5e7eb;border-radius:6px;padding:12px 14px">
+        <div class="card-label">Amount in Words</div>
+        <div style="margin-top:5px;font-size:12px;color:#111;font-weight:500;line-height:1.5">${esc(amountWords)}</div>
+      </div>
+      ${biz.bankName || biz.bankUpi ? `
+      <div style="margin-top:12px;border:1px solid #e5e7eb;border-radius:6px;padding:12px 14px">
+        <div class="card-label">Payment Details</div>
+        <div style="margin-top:5px;font-size:11px;color:#374151;line-height:1.7">
+          ${biz.bankName ? `<div><strong>${esc(biz.bankName)}</strong></div>` : ''}
+          ${biz.bankAccount ? `<div>A/c No: <span style="font-family:'Google Sans Code',ui-monospace,monospace">${esc(biz.bankAccount)}</span></div>` : ''}
+          ${biz.bankIfsc ? `<div>IFSC: <span style="font-family:'Google Sans Code',ui-monospace,monospace">${esc(biz.bankIfsc)}</span></div>` : ''}
+          ${biz.bankUpi ? `<div>UPI: <span style="font-family:'Google Sans Code',ui-monospace,monospace">${esc(biz.bankUpi)}</span></div>` : ''}
+        </div>
+      </div>` : ''}
+    </div>
+    <div style="width:280px">
+      <table style="border-collapse:separate">
+        <tr><td style="padding:5px 12px;color:#6b7280;font-size:12px">Subtotal</td><td style="padding:5px 12px;text-align:right;font-size:12px">₹${Number(invoice.subtotal).toLocaleString('en-IN')}</td></tr>
+        ${totalDiscount > 0 ? `<tr><td style="padding:5px 12px;color:#16a34a;font-size:12px;font-weight:600">Discount</td><td style="padding:5px 12px;text-align:right;color:#16a34a;font-size:12px;font-weight:600">−₹${totalDiscount.toLocaleString('en-IN')}</td></tr>` : ''}
+        ${amcSavings > 0 ? `<tr><td style="padding:6px 12px;color:#92400E;font-size:12px;font-weight:700;background:#FFFBEB"><span style="color:#D4A017">★</span> AMC Benefit</td><td style="padding:6px 12px;text-align:right;color:#92400E;font-size:12px;font-weight:700;background:#FFFBEB">−₹${amcSavings.toLocaleString('en-IN')}</td></tr>` : ''}
+        ${taxTotal > 0 ? `
+          <tr><td style="padding:5px 12px;color:#6b7280;font-size:11px">CGST (½ Tax)</td><td style="padding:5px 12px;text-align:right;font-size:11px">₹${cgst.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td></tr>
+          <tr><td style="padding:5px 12px;color:#6b7280;font-size:11px">SGST (½ Tax)</td><td style="padding:5px 12px;text-align:right;font-size:11px">₹${sgst.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td></tr>
+        ` : ''}
+        ${Math.abs(roundOff) > 0.001 ? `<tr><td style="padding:5px 12px;color:#6b7280;font-size:11px">Round Off</td><td style="padding:5px 12px;text-align:right;font-size:11px">${roundOff > 0 ? '+' : ''}₹${roundOff.toFixed(2)}</td></tr>` : ''}
+        <tr><td colspan="2" style="padding:0;border-top:2px solid #D4A017"></td></tr>
+        <tr><td style="padding:10px 12px;font-size:14px;font-weight:800;color:#111">Net Total</td><td style="padding:10px 12px;text-align:right;font-size:16px;font-weight:800;color:#111">₹${netAmount.toLocaleString('en-IN')}</td></tr>
+        ${Number(invoice.amountPaid) > 0 ? `<tr><td style="padding:5px 12px;color:#16a34a;font-size:12px;border-top:1px solid #e5e7eb">Amount Paid</td><td style="padding:5px 12px;text-align:right;color:#16a34a;font-size:12px;border-top:1px solid #e5e7eb">₹${Number(invoice.amountPaid).toLocaleString('en-IN')}</td></tr>` : ''}
+        ${Number(invoice.amountDue) > 0 ? `<tr><td style="padding:7px 12px;color:#dc2626;font-size:13px;font-weight:700;background:#fee2e2">Balance Due</td><td style="padding:7px 12px;text-align:right;color:#dc2626;font-size:13px;font-weight:700;background:#fee2e2">₹${Number(invoice.amountDue).toLocaleString('en-IN')}</td></tr>` : ''}
+      </table>
+    </div>
   </div>
 
-  ${payments ? `<div style="margin-top:20px"><div style="font-size:12px;font-weight:600;margin-bottom:6px;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px">Payments</div><table><thead><tr><th>Date</th><th>Mode</th><th>Ref</th><th style="text-align:right">Amount</th></tr></thead><tbody>${payments}</tbody></table></div>` : ''}
-</div>
+  ${payments ? `
+  <div style="margin-top:24px">
+    <div style="font-size:11px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Payment History</div>
+    <table>
+      <thead><tr><th>Date</th><th>Mode</th><th>Reference</th><th style="text-align:right">Amount</th></tr></thead>
+      <tbody>${payments}</tbody>
+    </table>
+  </div>` : ''}
 
-<div style="background:#111;padding:16px 32px;display:flex;align-items:center;justify-content:space-between">
-  <div style="display:flex;align-items:center;gap:12px;color:white">
-    <span style="color:#d4a017;font-size:20px">★</span>
-    <div><div style="font-size:18px;font-weight:800;color:#d4a017">₹${amcSavings.toLocaleString()} Saved</div><div style="font-size:11px;color:#9ca3af;margin-top:1px">AMC ${esc(amcContract.plan.planName)} benefit applied</div></div>
+  ${amcSavings > 0 ? `
+  <!-- AMC Savings ribbon -->
+  <div style="margin-top:24px;background:linear-gradient(135deg,#1A1A1A 0%,#2D2D2D 100%);color:#fff;border-radius:8px;padding:18px 22px;display:flex;justify-content:space-between;align-items:center;border:1px solid #D4A017">
+    <div style="display:flex;align-items:center;gap:14px">
+      <div style="font-size:28px;color:#D4A017">★</div>
+      <div>
+        <div style="font-size:11px;color:#FCD34D;text-transform:uppercase;letter-spacing:1.5px;font-weight:600">You Saved Today</div>
+        <div style="font-size:24px;font-weight:800;color:#fff;margin-top:2px">₹${amcSavings.toLocaleString('en-IN')}</div>
+      </div>
+    </div>
+    <div style="text-align:right;color:#D1D5DB;font-size:11px;line-height:1.6">
+      <div><strong style="color:#fff">${amcContract.servicesRemaining}</strong> free service${amcContract.servicesRemaining > 1 ? 's' : ''} remaining</div>
+      <div>Plan valid until <strong style="color:#fff">${esc(endDate)}</strong></div>
+    </div>
+  </div>` : ''}
+
+  <!-- Signature + Terms -->
+  <div style="margin-top:24px;display:flex;gap:24px;align-items:flex-end">
+    <div style="flex:1;font-size:10px;color:#6b7280;line-height:1.6">
+      <div style="font-weight:600;color:#374151;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;font-size:9px">Terms & Conditions</div>
+      <div>1. AMC benefits applied per active membership terms.</div>
+      <div>2. Goods once sold will not be taken back or exchanged.</div>
+      <div>3. Warranty as per manufacturer policy only.</div>
+      <div>4. Subject to ${esc(biz.address ? biz.address.split(',').pop()?.trim() || 'local' : 'local')} jurisdiction.</div>
+    </div>
+    <div style="width:200px;text-align:center;font-size:10px;color:#6b7280">
+      <div style="border-top:1px solid #111;padding-top:6px;margin-top:30px">
+        <div style="font-weight:600;color:#111;font-size:11px">For ${esc(biz.name)}</div>
+        <div style="margin-top:2px">Authorised Signatory</div>
+      </div>
+    </div>
   </div>
-  <div style="text-align:right;color:#9ca3af;font-size:11px;line-height:1.6"><strong style="color:white">${amcContract.servicesRemaining} free service${amcContract.servicesRemaining > 1 ? 's' : ''}</strong> remaining<br>Valid until ${esc(endDate)}</div>
+
 </div>
 
-<div style="padding:12px 32px;text-align:center;color:#6b7280;font-size:10px;border-top:1px solid #f3f4f6">
-  Thank you for choosing Gear Up! · ${biz.gst ? `GSTIN: ${esc(biz.gst)} · ` : ''}${esc(biz.email)}
+<!-- Footer -->
+<div style="margin-top:8px;padding:14px 32px;background:#1A1A1A;color:#D4A017;border-top:2px solid #D4A017;display:flex;justify-content:space-between;align-items:center;font-size:10px;letter-spacing:0.5px">
+  <div>${esc(footer)}</div>
+  <div style="color:#9ca3af">${esc(biz.name)}${biz.gst ? ` · GSTIN ${esc(biz.gst)}` : ''}</div>
 </div>
+
 </div></body></html>`;
 }
 
@@ -366,7 +643,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
     const settingsRaw = await prisma.setting.findMany();
     const settings = Object.fromEntries(settingsRaw.map((s: any) => [s.key, s.value]));
-    const logoUrl = `${req.nextUrl.origin}/brand/gearup-logo.png`;
+    const logoUrl = `${req.nextUrl.origin}/brand/gearup.svg`;
+    const markUrl = `${req.nextUrl.origin}/brand/gearup-favi.svg`;
     const type = req.nextUrl.searchParams.get('type') || 'invoice';
 
     // Lookup inventory items for SKU/MRP

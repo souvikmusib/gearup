@@ -7,7 +7,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
       <header className="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950">
         <div className="mx-auto max-w-6xl flex items-center justify-between px-4 py-4">
           <Link prefetch={false} href="/" className="flex h-10 w-44 items-center" aria-label="GearUp Servicing">
-            <img src="/brand/gearup-logo.png" alt="GearUp Servicing" className="h-10 w-auto object-contain" />
+            <img src="/brand/gearup.svg" alt="GearUp Servicing" className="h-10 w-auto object-contain" />
           </Link>
           <nav className="flex items-center gap-6 text-sm">
             <Link prefetch={false} href="/book-service" className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">Book Service</Link>
