@@ -106,7 +106,7 @@ th { background:#f3f4f6; padding:8px 10px; text-align:left; font-size:10px; text
     ${biz.gst ? `<div style="font-size:10px;color:#666">GSTIN: ${esc(biz.gst)}</div>` : ''}
   </div>
   <div style="text-align:right">
-    <div style="font-size:22px;font-weight:700">TAX INVOICE</div>
+    <div style="font-size:22px;font-weight:700">INVOICE</div>
     <div style="color:#666;font-size:12px;margin-top:4px">${esc(invoice.invoiceNumber)}</div>
     <div style="color:#666;font-size:11px;margin-top:2px">Date: ${formatDateIST(invoice.invoiceDate, { long: true })}</div>
     <div style="margin-top:6px"><span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;color:white;background:${statusColor}">${esc(invoice.paymentStatus)}</span></div>
