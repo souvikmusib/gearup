@@ -1,8 +1,9 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { api } from '@/lib/api/client';
 import { PageHeader, DataTable } from '@gearup/ui';
 import { Modal } from '@/components/shared/modal';
+import { Pagination } from '@/components/shared/pagination';
 
 const empty = { supplierName: '', phone: '', email: '', address: '', contactPerson: '', notes: '' };
 
@@ -14,6 +15,21 @@ export default function SuppliersPage() {
   const [editItem, setEditItem] = useState<any>(null);
   const [editForm, setEditForm] = useState({ ...empty });
   const [saving, setSaving] = useState(false);
+  const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
+
+  const filtered = useMemo(() => {
+    if (!search.trim()) return data;
+    const q = search.toLowerCase();
+    return data.filter((s: any) =>
+      (s.supplierName ?? '').toLowerCase().includes(q) ||
+      (s.phone ?? '').toLowerCase().includes(q) ||
+      (s.email ?? '').toLowerCase().includes(q) ||
+      (s.contactPerson ?? '').toLowerCase().includes(q)
+    );
+  }, [data, search]);
+  const paged = useMemo(() => filtered.slice((page - 1) * pageSize, page * pageSize), [filtered, page, pageSize]);
 
   const load = () => {
     const { cached, promise } = api.getSWR<any>('/admin/inventory/suppliers');
@@ -73,14 +89,28 @@ export default function SuppliersPage() {
         <PageHeader title="Suppliers" />
         <button onClick={() => setShowCreate(true)} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">+ Add Supplier</button>
       </div>
+      <input
+        className={`${inputCls} mb-3 max-w-md`}
+        placeholder="Search by name, phone, email, or contact…"
+        value={search}
+        onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+      />
       <DataTable columns={[
         { key: 'supplierName', header: 'Name' },
-        { key: 'phone', header: 'Phone' },
+        { key: 'phone', header: 'Phone', nowrap: true },
         { key: 'contactPerson', header: 'Contact' },
         { key: 'email', header: 'Email', render: (r: any) => r.email || '—' },
-        { key: 'items', header: 'Items', render: (r: any) => r._count?.items ?? 0 },
-        { key: 'actions', header: '', render: (r: any) => <button onClick={(e) => remove(r.id, e)} className="text-xs text-red-500 hover:underline">Delete</button> },
-      ]} data={data} keyField="id" onRowClick={openEdit} />
+        { key: 'items', header: 'Items', nowrap: true, render: (r: any) => r._count?.items ?? 0 },
+        { key: 'actions', header: '', nowrap: true, render: (r: any) => <button onClick={(e) => remove(r.id, e)} className="text-xs text-red-500 hover:underline">Delete</button> },
+      ]} data={paged} keyField="id" onRowClick={openEdit} />
+      <Pagination
+        page={page}
+        totalPages={Math.max(1, Math.ceil(filtered.length / pageSize))}
+        onPageChange={setPage}
+        pageSize={pageSize}
+        onPageSizeChange={setPageSize}
+        total={filtered.length}
+      />
 
       <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Add Supplier">
         <form onSubmit={submit}>

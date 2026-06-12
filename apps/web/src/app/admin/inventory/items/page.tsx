@@ -7,6 +7,7 @@ import { PageHeader, DataTable } from '@gearup/ui';
 import { ListToolbar } from '@/components/shared/list-toolbar';
 import { Pagination } from '@/components/shared/pagination';
 import { Modal } from '@/components/shared/modal';
+import { SearchableSelect } from '@/components/shared/searchable-select';
 
 export default function InventoryItemsPage() {
   const [data, setData] = useState<any[]>([]);
@@ -124,7 +125,7 @@ export default function InventoryItemsPage() {
     { key: 'quantityInStock', header: 'Stock', render: (r: any) => Number(r.quantityInStock) }, { key: 'mrp', header: 'MRP', render: (r: any) => r.mrp ? `₹${Number(r.mrp)}` : '—' }, { key: 'sellingPrice', header: 'Selling Price', render: (r: any) => `₹${Number(r.sellingPrice)}` },
     { key: 'discountedPrice', header: 'Discounted Price', render: (r: any) => { const dp = Number(r.discountPercent) || 0; const price = Number(r.sellingPrice) * (1 - dp / 100); return dp ? `₹${price.toFixed(0)} (${dp}% off)` : `₹${Number(r.sellingPrice)}`; } },
     { key: 'lowStock', header: 'Low?', render: (r: any) => r.reorderLevel && Number(r.quantityInStock) <= Number(r.reorderLevel) ? '⚠️' : '—' },
-    { key: 'actions', header: '', render: (r: any) => <button onClick={(e) => openStock(r, e)} className="text-xs text-blue-600 hover:underline">Adjust</button> },
+    { key: 'actions', header: '', render: (r: any) => <button onClick={(e) => openStock(r, e)} className="text-xs text-blue-600 hover:underline">Stock Movement</button> },
   ];
 
   // Group data for card views
@@ -207,16 +208,20 @@ export default function InventoryItemsPage() {
           <div><label className="block text-xs font-medium mb-1">Company / Brand</label><input className={inputCls} placeholder="e.g. Hero, Honda, Bajaj" value={form.brand} onChange={(e) => setForm({ ...form, brand: e.target.value })} /></div>
           <div className="grid grid-cols-2 gap-3">
             <div><label className={labelCls}>Category <span className="text-red-500">*</span></label>
-              <select className={inputCls} required value={form.categoryId} onFocus={loadLookups} onChange={(e) => setForm({ ...form, categoryId: e.target.value })}>
-                <option value="">Select...</option>
-                {categories.map((c: any) => <option key={c.id} value={c.id}>{c.categoryName}</option>)}
-              </select>
+              <SearchableSelect
+                options={categories.map((c: any) => ({ value: c.id, label: c.categoryName }))}
+                value={form.categoryId}
+                onChange={(v) => setForm({ ...form, categoryId: v })}
+                placeholder="Select category…"
+              />
             </div>
             <div><label className={labelCls}>Supplier</label>
-              <select className={inputCls} value={form.supplierId} onFocus={loadLookups} onChange={(e) => setForm({ ...form, supplierId: e.target.value })}>
-                <option value="">None</option>
-                {suppliers.map((s: any) => <option key={s.id} value={s.id}>{s.supplierName}</option>)}
-              </select>
+              <SearchableSelect
+                options={[{ value: '', label: 'None' }, ...suppliers.map((s: any) => ({ value: s.id, label: s.supplierName, sublabel: s.phone }))]}
+                value={form.supplierId}
+                onChange={(v) => setForm({ ...form, supplierId: v })}
+                placeholder="Select supplier…"
+              />
             </div>
           </div>
           <div><label className="block text-xs font-medium mb-1">Unit <span className="text-red-500">*</span></label><input className={inputCls} placeholder="e.g. pcs, litre" required value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })} /></div>
@@ -238,16 +243,20 @@ export default function InventoryItemsPage() {
           <div><label className={labelCls}>Company / Brand</label><input className={inputCls} placeholder="e.g. Hero, Honda, Bajaj" value={editForm.brand} onChange={(e) => setEditForm({ ...editForm, brand: e.target.value })} /></div>
           <div className="grid grid-cols-2 gap-3">
             <div><label className={labelCls}>Category</label>
-              <select className={inputCls} value={editForm.categoryId} onChange={(e) => setEditForm({ ...editForm, categoryId: e.target.value })}>
-                <option value="">Select...</option>
-                {categories.map((c: any) => <option key={c.id} value={c.id}>{c.categoryName}</option>)}
-              </select>
+              <SearchableSelect
+                options={categories.map((c: any) => ({ value: c.id, label: c.categoryName }))}
+                value={editForm.categoryId}
+                onChange={(v) => setEditForm({ ...editForm, categoryId: v })}
+                placeholder="Select category…"
+              />
             </div>
             <div><label className={labelCls}>Supplier</label>
-              <select className={inputCls} value={editForm.supplierId} onChange={(e) => setEditForm({ ...editForm, supplierId: e.target.value })}>
-                <option value="">None</option>
-                {suppliers.map((s: any) => <option key={s.id} value={s.id}>{s.supplierName}</option>)}
-              </select>
+              <SearchableSelect
+                options={[{ value: '', label: 'None' }, ...suppliers.map((s: any) => ({ value: s.id, label: s.supplierName, sublabel: s.phone }))]}
+                value={editForm.supplierId}
+                onChange={(v) => setEditForm({ ...editForm, supplierId: v })}
+                placeholder="Select supplier…"
+              />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -279,21 +288,21 @@ export default function InventoryItemsPage() {
           <button type="button" onClick={async () => { if (!confirm('Delete this item?')) return; const res = await api.delete(`/admin/inventory/items/${editItem?.id}`); if (res.success) { setEditItem(null); load(); } else alert(res.error?.message || 'Cannot delete'); }} className="w-full mt-2 rounded-lg py-2 text-sm font-medium text-red-600 border border-red-300 hover:bg-red-50 dark:border-red-700 dark:hover:bg-red-900/20">Delete Item</button>
         </form>
       </Modal>
-      <Modal open={!!stockItem} onClose={() => setStockItem(null)} title={`Adjust Stock: ${stockItem?.itemName ?? ''}`}>
+      <Modal open={!!stockItem} onClose={() => setStockItem(null)} title={`Stock Movement: ${stockItem?.itemName ?? ''}`}>
         <p className="text-sm text-gray-500 mb-3">Current stock: <span className="font-semibold">{stockItem ? Number(stockItem.quantityInStock) : 0}</span></p>
         <form onSubmit={submitStock} className="space-y-3">
-          <div><label className={labelCls}>Type</label>
+          <div><label className={labelCls}>Movement Type</label>
             <select className={inputCls} value={stockForm.type} onChange={(e) => setStockForm({ ...stockForm, type: e.target.value })}>
-              <option value="STOCK_IN">Stock In (received from supplier)</option>
-              <option value="STOCK_OUT">Stock Out (damaged / lost)</option>
-              <option value="ADJUSTMENT_INCREASE">Adjustment +</option>
-              <option value="ADJUSTMENT_DECREASE">Adjustment −</option>
+              <option value="STOCK_IN">Stock In — received from supplier</option>
+              <option value="STOCK_OUT">Stock Out — sold / issued</option>
+              <option value="ADJUSTMENT_INCREASE">Adjustment + — physical count higher</option>
+              <option value="ADJUSTMENT_DECREASE">Adjustment − — damage / loss / count lower</option>
             </select>
           </div>
           <div><label className={labelCls}>Quantity</label><input className={inputCls} type="number" min="0.01" step="0.01" required value={stockForm.quantity} onChange={(e) => setStockForm({ ...stockForm, quantity: e.target.value })} /></div>
-          <div><label className={labelCls}>Reason</label><input className={inputCls} placeholder="e.g. Received from ABC Supplier" value={stockForm.reason} onChange={(e) => setStockForm({ ...stockForm, reason: e.target.value })} /></div>
+          <div><label className={labelCls}>Reason / Reference</label><input className={inputCls} placeholder="e.g. PO #123 from ABC Supplier, or damage report" value={stockForm.reason} onChange={(e) => setStockForm({ ...stockForm, reason: e.target.value })} /></div>
           <button type="submit" disabled={stockSaving} className="w-full rounded-lg bg-green-600 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50">
-            {stockSaving ? 'Saving...' : 'Submit Adjustment'}
+            {stockSaving ? 'Saving...' : 'Record Movement'}
           </button>
         </form>
       </Modal>

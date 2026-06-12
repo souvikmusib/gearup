@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { paginate, paginationMeta } from '@/lib/pagination';
+import { MAX_PAGE_SIZE } from '@/lib/constants';
 import { requirePermission } from '@/lib/auth';
 import { handleApiError } from '@/lib/errors';
 import { logActivity } from '@/lib/activity-logger';
@@ -37,7 +38,7 @@ export async function GET(req: NextRequest) {
     requirePermission(PERMISSIONS.INVOICES_VIEW);
     const sp = req.nextUrl.searchParams;
     const pageQuery = z.coerce.number().int().min(1).default(1);
-    const pageSizeQuery = z.coerce.number().int().min(1).max(100).default(20);
+    const pageSizeQuery = z.coerce.number().int().min(1).max(MAX_PAGE_SIZE).default(20);
     const page = pageQuery.parse(sp.get('page') ?? undefined);
     const pageSize = pageSizeQuery.parse(sp.get('pageSize') ?? undefined);
     const p = paginate({ page, pageSize });
