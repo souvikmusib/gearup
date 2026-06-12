@@ -1,4 +1,5 @@
 'use client';
+import { formatIST, formatTimeIST } from '@/lib/time';
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';
@@ -83,7 +84,7 @@ export default function CustomerDetailPage() {
                 </div>
                 <div className="text-right">
                   <StatusBadge status={jc.status} />
-                  <p className="text-xs text-gray-400 mt-0.5">{new Date(jc.createdAt).toLocaleDateString()}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{formatIST(jc.createdAt)}</p>
                 </div>
               </div>
             ))}
@@ -101,7 +102,7 @@ export default function CustomerDetailPage() {
                 </div>
                 <div className="text-right">
                   <StatusBadge status={inv.paymentStatus} />
-                  <p className="text-xs text-gray-400 mt-0.5">{new Date(inv.createdAt).toLocaleDateString()}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{formatIST(inv.createdAt)}</p>
                 </div>
               </div>
             ))}

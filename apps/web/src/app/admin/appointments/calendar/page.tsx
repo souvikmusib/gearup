@@ -1,4 +1,5 @@
 'use client';
+import { formatIST, formatTimeIST } from '@/lib/time';
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { api } from '@/lib/api/client';
@@ -6,11 +7,11 @@ import { PageHeader } from '@gearup/ui';
 import { ProcessLoader } from '@/components/shared/process-loader';
 
 function fmtDate(value: string) {
-  return new Date(value).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+  return formatIST(value, { weekday: 'short', month: 'short', day: 'numeric' });
 }
 
 function fmtTime(value: string) {
-  return new Date(value).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+  return formatTimeIST(value);
 }
 
 export default function AppointmentCalendarPage() {

@@ -1,4 +1,5 @@
 'use client';
+import { formatIST, formatTimeIST } from '@/lib/time';
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api/client';
 import { ProcessLoader } from '@/components/shared/process-loader';
@@ -54,7 +55,7 @@ export default function PaymentsPage() {
       </div>
       {loading ? <ProcessLoader title="Loading payments" steps={['Fetching payment records']} /> :
         <DataTable columns={[
-          { key: 'paymentDate', header: 'Date', render: (r: any) => new Date(r.paymentDate).toLocaleDateString('en-IN') },
+          { key: 'paymentDate', header: 'Date', render: (r: any) => formatIST(r.paymentDate) },
           { key: 'invoice', header: 'Invoice', render: (r: any) => r.invoice?.invoiceNumber },
           { key: 'customer', header: 'Customer', render: (r: any) => r.invoice?.customer?.fullName },
           { key: 'amount', header: 'Amount', render: (r: any) => `₹${Number(r.amount).toLocaleString()}` },

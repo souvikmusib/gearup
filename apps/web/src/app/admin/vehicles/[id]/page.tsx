@@ -1,4 +1,5 @@
 'use client';
+import { formatIST, formatTimeIST } from '@/lib/time';
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';
@@ -84,9 +85,9 @@ export default function VehicleDetailPage() {
                   </div>
                   <p className="text-sm text-gray-600 dark:text-gray-400">{jc.issueSummary}</p>
                   <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
-                    <span>Intake: {new Date(jc.intakeDate).toLocaleDateString()}</span>
+                    <span>Intake: {formatIST(jc.intakeDate)}</span>
                     {jc.odometerAtIntake && <span>Odometer: {jc.odometerAtIntake.toLocaleString()} km</span>}
-                    {jc.actualDeliveryAt && <span>Delivered: {new Date(jc.actualDeliveryAt).toLocaleDateString()}</span>}
+                    {jc.actualDeliveryAt && <span>Delivered: {formatIST(jc.actualDeliveryAt)}</span>}
                     {Number(jc.finalTotal) > 0 && <span>Cost: ₹{Number(jc.finalTotal).toLocaleString()}</span>}
                   </div>
                   {jc.parts?.length > 0 && (

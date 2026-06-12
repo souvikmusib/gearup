@@ -1,4 +1,5 @@
 'use client';
+import { formatIST, formatTimeIST } from '@/lib/time';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';
@@ -93,8 +94,8 @@ export default function AppointmentsPage() {
     { key: 'referenceId', header: 'Reference' },
     { key: 'customer', header: 'Customer', render: (r: any) => r.customer?.fullName },
     { key: 'vehicle', header: 'Vehicle', render: (r: any) => r.vehicle?.registrationNumber },
-    { key: 'appointmentDate', header: 'Date', render: (r: any) => new Date(r.appointmentDate).toLocaleDateString() },
-    { key: 'slot', header: 'Slot', render: (r: any) => `${new Date(r.slotStart).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})} - ${new Date(r.slotEnd).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}` },
+    { key: 'appointmentDate', header: 'Date', render: (r: any) => formatIST(r.appointmentDate) },
+    { key: 'slot', header: 'Slot', render: (r: any) => `${formatTimeIST(r.slotStart)} - ${formatTimeIST(r.slotEnd)}` },
     { key: 'status', header: 'Status', render: (r: any) => <StatusBadge status={r.status} /> },
     { key: 'worker', header: 'Worker', render: (r: any) => r.worker?.fullName ?? '—' },
   ];

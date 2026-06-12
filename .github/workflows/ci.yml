@@ -22,6 +22,8 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/gearup_test
+      DIRECT_URL: postgresql://postgres:postgres@localhost:5432/gearup_test
       TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/gearup_test
       JWT_SECRET: ci-placeholder-secret
     steps:
@@ -44,9 +46,6 @@ jobs:
         run: pnpm lint
       - name: Build
         run: pnpm build
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/gearup_test
-          DIRECT_URL: postgresql://postgres:postgres@localhost:5432/gearup_test
 
   e2e:
     runs-on: ubuntu-latest

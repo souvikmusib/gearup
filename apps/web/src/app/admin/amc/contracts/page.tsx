@@ -1,4 +1,5 @@
 'use client';
+import { formatIST, formatTimeIST } from '@/lib/time';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { api } from '@/lib/api/client';
@@ -71,7 +72,7 @@ export default function AmcContractsPage() {
           { key: 'vehicle', header: 'Vehicle', render: (row: any) => row.vehicle?.registrationNumber },
           { key: 'plan', header: 'Plan', render: (row: any) => row.plan?.planName },
           { key: 'servicesRemaining', header: 'Remaining', render: (row: any) => `${row.servicesRemaining}/${row.totalServices}` },
-          { key: 'endDate', header: 'Expires', render: (row: any) => new Date(row.endDate).toLocaleDateString('en-IN') },
+          { key: 'endDate', header: 'Expires', render: (row: any) => formatIST(row.endDate) },
           { key: 'status', header: 'Status', render: (row: any) => <StatusBadge status={row.status} /> },
         ]}
         data={data}

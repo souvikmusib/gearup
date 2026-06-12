@@ -1,4 +1,5 @@
 'use client';
+import { formatIST, formatTimeIST } from '@/lib/time';
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';
@@ -54,7 +55,7 @@ export default function ServiceRequestsPage() {
     { key: 'vehicle', header: 'Vehicle', render: (r: any) => `${r.vehicle?.brand} ${r.vehicle?.model}` },
     { key: 'serviceCategory', header: 'Category' },
     { key: 'status', header: 'Status', render: (r: any) => <StatusBadge status={r.status} /> },
-    { key: 'createdAt', header: 'Created', render: (r: any) => new Date(r.createdAt).toLocaleDateString() },
+    { key: 'createdAt', header: 'Created', render: (r: any) => formatIST(r.createdAt) },
   ];
 
   return (

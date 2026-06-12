@@ -1,4 +1,5 @@
 'use client';
+import { formatIST, formatTimeIST } from '@/lib/time';
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api/client';
 import { PageHeader, DataTable } from '@gearup/ui';
@@ -53,7 +54,7 @@ export default function HolidaysPage() {
         <div className="mb-6">
           <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Upcoming</h3>
           <DataTable keyField="id" columns={[
-            { key: 'holidayDate', header: 'Date', render: (r: any) => new Date(r.holidayDate).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) },
+            { key: 'holidayDate', header: 'Date', render: (r: any) => formatIST(r.holidayDate, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) },
             { key: 'holidayName', header: 'Name' },
             { key: 'holidayType', header: 'Type', render: (r: any) => r.holidayType.replace(/_/g, ' ') },
             { key: 'time', header: 'Time', render: (r: any) => r.isFullDay ? 'Full Day' : `${r.startTime} – ${r.endTime}` },
@@ -66,7 +67,7 @@ export default function HolidaysPage() {
         <div>
           <h3 className="text-sm font-semibold text-gray-500 mb-2">Past</h3>
           <DataTable keyField="id" columns={[
-            { key: 'holidayDate', header: 'Date', render: (r: any) => new Date(r.holidayDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) },
+            { key: 'holidayDate', header: 'Date', render: (r: any) => formatIST(r.holidayDate, { day: 'numeric', month: 'short', year: 'numeric' }) },
             { key: 'holidayName', header: 'Name' },
             { key: 'holidayType', header: 'Type', render: (r: any) => r.holidayType.replace(/_/g, ' ') },
           ]} data={past} />

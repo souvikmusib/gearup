@@ -1,3 +1,4 @@
+import { istDayEnd } from '@/lib/time';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { paginate, paginationMeta } from '@/lib/pagination';
@@ -37,7 +38,7 @@ export async function GET(req: NextRequest) {
     if (from || to) {
       const createdAt: Record<string, Date> = {};
       if (from) createdAt.gte = new Date(from);
-      if (to) { const d = new Date(to); d.setHours(23, 59, 59, 999); createdAt.lte = d; }
+      if (to) { createdAt.lte = istDayEnd(new Date(to)); }
       where.createdAt = createdAt;
     }
     const [data, total] = await Promise.all([

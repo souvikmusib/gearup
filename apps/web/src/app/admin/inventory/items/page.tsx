@@ -119,7 +119,7 @@ export default function InventoryItemsPage() {
 
   const columns = [
     { key: 'sku', header: 'SKU' }, { key: 'itemName', header: 'Item' }, { key: 'brand', header: 'Company', render: (r: any) => r.brand || '—' }, { key: 'category', header: 'Category', render: (r: any) => r.category?.categoryName },
-    { key: 'quantityInStock', header: 'Stock', render: (r: any) => Number(r.quantityInStock) }, { key: 'sellingPrice', header: 'MRP', render: (r: any) => `₹${Number(r.sellingPrice)}` },
+    { key: 'quantityInStock', header: 'Stock', render: (r: any) => Number(r.quantityInStock) }, { key: 'mrp', header: 'MRP', render: (r: any) => r.mrp ? `₹${Number(r.mrp)}` : '—' }, { key: 'sellingPrice', header: 'Selling Price', render: (r: any) => `₹${Number(r.sellingPrice)}` },
     { key: 'discountedPrice', header: 'Discounted Price', render: (r: any) => { const dp = Number(r.discountPercent) || 0; const price = Number(r.sellingPrice) * (1 - dp / 100); return dp ? `₹${price.toFixed(0)} (${dp}% off)` : `₹${Number(r.sellingPrice)}`; } },
     { key: 'lowStock', header: 'Low?', render: (r: any) => r.reorderLevel && Number(r.quantityInStock) <= Number(r.reorderLevel) ? '⚠️' : '—' },
     { key: 'actions', header: '', render: (r: any) => <button onClick={(e) => openStock(r, e)} className="text-xs text-blue-600 hover:underline">Adjust</button> },

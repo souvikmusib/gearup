@@ -1,4 +1,5 @@
 'use client';
+import { formatIST, formatTimeIST } from '@/lib/time';
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';
@@ -109,12 +110,12 @@ export default function ServiceRequestDetailPage() {
           <h3 className="font-semibold text-gray-900 dark:text-white">Request Details</h3>
           <div className="flex gap-2"><StatusBadge status={data.status} /></div>
           <p className="text-sm text-gray-600 dark:text-gray-400">{data.issueDescription}</p>
-          {data.preferredDate && <p className="text-sm text-gray-500 dark:text-gray-400">Preferred Date: {new Date(data.preferredDate).toLocaleDateString()}</p>}
+          {data.preferredDate && <p className="text-sm text-gray-500 dark:text-gray-400">Preferred Date: {formatIST(data.preferredDate)}</p>}
           {data.urgency && <p className="text-sm text-gray-500 dark:text-gray-400">Urgency: {data.urgency}</p>}
           {data.pickupDropRequired && <p className="text-sm text-gray-500 dark:text-gray-400">🚗 Pickup/Drop requested</p>}
           {data.notes && <p className="text-sm text-gray-500 dark:text-gray-400">Notes: {data.notes}</p>}
-          <p className="text-xs text-gray-400">Created: {new Date(data.createdAt).toLocaleString()}</p>
-          {data.closedAt && <p className="text-xs text-gray-400">Closed: {new Date(data.closedAt).toLocaleString()}</p>}
+          <p className="text-xs text-gray-400">Created: {formatIST(data.createdAt, { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+          {data.closedAt && <p className="text-xs text-gray-400">Closed: {formatIST(data.closedAt, { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>}
         </div>
         <div className="space-y-4">
           <div className="rounded-lg border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-800">
@@ -129,7 +130,7 @@ export default function ServiceRequestDetailPage() {
           {data.appointment && (
             <div className="rounded-lg border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-800">
               <h3 className="font-semibold text-gray-900 dark:text-white">Appointment</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">{new Date(data.appointment.appointmentDate).toLocaleDateString()} · <StatusBadge status={data.appointment.status} /></p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">{formatIST(data.appointment.appointmentDate)} · <StatusBadge status={data.appointment.status} /></p>
               <button onClick={() => router.push(`/admin/appointments/${data.appointment.id}`)} className="mt-2 text-sm text-blue-600 hover:underline">View Appointment →</button>
             </div>
           )}

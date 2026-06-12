@@ -1,3 +1,4 @@
+import { istDayStart } from '@/lib/time';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { paginate, paginationMeta } from '@/lib/pagination';
@@ -22,9 +23,8 @@ const createSchema = z.object({
 });
 
 function startOfDay(d: Date): Date {
-  const x = new Date(d);
-  x.setHours(0, 0, 0, 0);
-  return x;
+
+  return istDayStart(d);
 }
 
 function addDays(d: Date, n: number): Date {

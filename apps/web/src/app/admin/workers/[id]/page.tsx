@@ -1,4 +1,5 @@
 'use client';
+import { formatIST, formatTimeIST } from '@/lib/time';
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';
@@ -91,7 +92,7 @@ export default function WorkerDetailPage() {
               {data.leaves.map((l: any) => (
                 <div key={l.id} className="flex items-center justify-between text-sm py-1">
                   <div>
-                    <span className="text-gray-600 dark:text-gray-400">{new Date(l.startDate).toLocaleDateString()} – {new Date(l.endDate).toLocaleDateString()}</span>
+                    <span className="text-gray-600 dark:text-gray-400">{formatIST(l.startDate)} – {formatIST(l.endDate)}</span>
                     <span className="ml-2 text-gray-500">{l.leaveType}</span>
                     <span className="ml-2"><StatusBadge status={l.status} /></span>
                   </div>

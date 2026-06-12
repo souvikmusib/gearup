@@ -57,7 +57,9 @@ function generateInvoiceHTML(invoice: any, settings: Record<string, any>, logoUr
 
   const nonDiscountItems = invoice.lineItems.filter((li: any) => li.lineType !== 'DISCOUNT_ADJUSTMENT');
   const discountItems = invoice.lineItems.filter((li: any) => li.lineType === 'DISCOUNT_ADJUSTMENT');
-  const totalDiscount = discountItems.reduce((s: number, li: any) => s + Math.abs(Number(li.lineTotal)), 0);
+  const discountFromAdjustments = discountItems.reduce((s: number, li: any) => s + Math.abs(Number(li.lineTotal)), 0);
+  const discountFromPercent = invoice.lineItems.filter((li: any) => li.lineType !== 'DISCOUNT_ADJUSTMENT' && Number(li.discountPercent) > 0).reduce((s: number, li: any) => s + Number(li.quantity) * Number(li.unitPrice) * Number(li.discountPercent) / 100, 0);
+  const totalDiscount = discountFromAdjustments + discountFromPercent;
 
   const rows = nonDiscountItems.map((li: any, i: number) => {
     const item = li.referenceItemId ? itemMap[li.referenceItemId] : null;
@@ -164,6 +166,8 @@ th { background:#f3f4f6; padding:8px 10px; text-align:left; font-size:10px; text
 
 ${payments ? `<div style="margin-top:20px"><div style="font-size:12px;font-weight:600;margin-bottom:6px">Payment History</div><table><thead><tr><th>Date</th><th>Mode</th><th>Ref</th><th style="text-align:right">Amount</th></tr></thead><tbody>${payments}</tbody></table></div>` : ''}
 
+${(() => { const scLine = invoice.lineItems.find((li: any) => li.lineType === 'SERVICE_CHARGE' && Number(li.discountPercent) === 100); const amcLine = invoice.lineItems.find((li: any) => li.lineType === 'AMC' && Number(li.lineTotal) > 0); if (!scLine && !amcLine) return ''; const perVisit = scLine ? Number(scLine.unitPrice) : 0; const planPrice = amcLine ? Number(amcLine.unitPrice) : 0; const totalServices = 3; const totalSaving = perVisit > 0 ? (perVisit * totalServices) - planPrice : 0; return `<div style="margin-top:20px;padding:12px 16px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px"><div style="font-weight:700;font-size:13px;color:#166534;margin-bottom:6px">🎉 AMC Member Savings</div><div style="font-size:12px;color:#333">${perVisit > 0 ? `Service Charge Saved: <strong>₹${perVisit}</strong><br>` : ''}${totalSaving > 0 ? `Total Plan Savings: <strong>₹${totalSaving}</strong> (${totalServices} services × ₹${perVisit} − ₹${planPrice} plan)` : ''}</div></div>`; })()}
+
 <div style="margin-top:30px;padding-top:12px;border-top:1px solid #eee">
   <p style="font-size:10px;color:#666;margin-bottom:4px">* Goods once sold will not be taken back / No Exchange / No Return</p>
   <p style="text-align:center;color:#888;font-size:11px;margin-top:8px">${esc(footer)}</p>
@@ -248,6 +252,9 @@ function generateAmcInvoiceHTML(invoice: any, settings: Record<string, any>, log
 
   const planPrice = Number(amcContract.plan.price);
   const amcSavings = invoice.lineItems.filter((li: any) => li.lineType === 'AMC' && Number(li.lineTotal) === 0).length * planPrice;
+  const discountFromAdjustments = invoice.lineItems.filter((li: any) => li.lineType === 'DISCOUNT_ADJUSTMENT').reduce((s: number, li: any) => s + Math.abs(Number(li.lineTotal)), 0);
+  const discountFromPercent = invoice.lineItems.filter((li: any) => li.lineType !== 'DISCOUNT_ADJUSTMENT' && Number(li.discountPercent) > 0).reduce((s: number, li: any) => s + Number(li.quantity) * Number(li.unitPrice) * Number(li.discountPercent) / 100, 0);
+  const totalDiscount = discountFromAdjustments + discountFromPercent;
 
   const rows = invoice.lineItems.map((li: any, i: number) => {
     const isAmcCovered = li.lineType === 'AMC' && Number(li.lineTotal) === 0;
@@ -317,6 +324,7 @@ th { background:#f9fafb; padding:9px 12px; text-align:left; font-size:10px; text
   <div style="margin-top:16px;display:flex;justify-content:flex-end">
     <table style="width:240px"><tbody>
       <tr><td style="padding:5px 10px;border:none;font-size:13px;color:#6b7280">Subtotal</td><td style="padding:5px 10px;border:none;font-size:13px;text-align:right">₹${Number(invoice.subtotal).toLocaleString()}</td></tr>
+      ${totalDiscount > 0 ? `<tr><td style="padding:5px 10px;border:none;font-size:13px;color:#16a34a;font-weight:600">Discount</td><td style="padding:5px 10px;border:none;font-size:13px;text-align:right;color:#16a34a;font-weight:600">-₹${totalDiscount.toLocaleString()}</td></tr>` : ''}
       ${amcSavings > 0 ? `<tr><td style="padding:5px 10px;border:none;font-size:13px;color:#dc2626;font-weight:700">★ AMC Benefit</td><td style="padding:5px 10px;border:none;font-size:13px;text-align:right;color:#dc2626;font-weight:700">−₹${amcSavings.toLocaleString()}</td></tr>` : ''}
       ${Number(invoice.taxTotal) > 0 ? `<tr><td style="padding:5px 10px;border:none;font-size:13px;color:#6b7280">Tax</td><td style="padding:5px 10px;border:none;font-size:13px;text-align:right">₹${Number(invoice.taxTotal).toLocaleString()}</td></tr>` : ''}
       <tr><td style="padding:5px 10px;border:none;font-size:18px;font-weight:800;border-top:3px solid #111;padding-top:10px">Total</td><td style="padding:5px 10px;border:none;font-size:18px;font-weight:800;text-align:right;border-top:3px solid #111;padding-top:10px">₹${Number(invoice.grandTotal).toLocaleString()}</td></tr>

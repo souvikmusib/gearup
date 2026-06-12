@@ -42,6 +42,12 @@
     },
     "db:seed": {
       "cache": false
+    },
+    "test:int": {
+      "cache": false
+    },
+    "test:e2e": {
+      "cache": false
     }
   }
 }

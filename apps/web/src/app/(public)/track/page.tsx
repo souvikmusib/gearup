@@ -1,4 +1,5 @@
 'use client';
+import { formatIST, formatTimeIST } from '@/lib/time';
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '@/lib/api/client';
 import { ProcessLoader } from '@/components/shared/process-loader';
@@ -25,11 +26,11 @@ type TrackRequest = {
 type TrackPayload = { lookupType: 'reference'; request: TrackRequest } | { lookupType: 'vehicle'; requests: TrackRequest[] };
 
 function fmtDate(value?: string | null) {
-  return value ? new Date(value).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' }) : 'Not scheduled yet';
+  return value ? formatIST(value, { day: '2-digit', month: 'short', year: 'numeric' }) : 'Not scheduled yet';
 }
 
 function fmtDateTime(value?: string | null) {
-  return value ? new Date(value).toLocaleString(undefined, { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'Not scheduled yet';
+  return value ? formatIST(value, { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'Not scheduled yet';
 }
 
 function normalizePhone(value: string) {

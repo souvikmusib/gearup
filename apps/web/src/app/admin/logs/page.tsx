@@ -1,4 +1,5 @@
 'use client';
+import { formatIST, formatTimeIST } from '@/lib/time';
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api/client';
 import { ProcessLoader } from '@/components/shared/process-loader';
@@ -108,7 +109,7 @@ export default function ActivityLogsPage() {
       {loading ? <ProcessLoader title="Loading activity" steps={['Fetching activity logs', 'Preparing list']} /> :
         <>
           <DataTable<LogRow> columns={[
-            { key: 'createdAt', header: 'Time', render: (r) => new Date(r.createdAt).toLocaleString() },
+            { key: 'createdAt', header: 'Time', render: (r) => formatIST(r.createdAt, { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) },
             { key: 'actorType', header: 'Actor' },
             { key: 'actor', header: 'User', render: (r) => r.adminUser?.fullName ?? r.actorId ?? '—' },
             { key: 'entityType', header: 'Entity' },
@@ -126,7 +127,7 @@ export default function ActivityLogsPage() {
           {data.filter((r) => expanded[r.id]).map((r) => (
             <div key={`exp-${r.id}`} className="mt-3 rounded-lg border border-gray-200 bg-gray-50 p-3 text-xs dark:border-gray-700 dark:bg-gray-800">
               <div className="mb-2 font-semibold text-gray-700 dark:text-gray-300">
-                {r.entityType} · {r.action} · {new Date(r.createdAt).toLocaleString()}
+                {r.entityType} · {r.action} · {formatIST(r.createdAt, { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
               </div>
               <div className="grid gap-3 md:grid-cols-2">
                 <div>

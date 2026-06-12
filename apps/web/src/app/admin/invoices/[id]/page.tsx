@@ -1,4 +1,5 @@
 'use client';
+import { formatIST, formatTimeIST } from '@/lib/time';
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';
@@ -312,11 +313,16 @@ export default function InvoiceDetailPage() {
       )}
 
       {/* Summary Cards */}
-      <div className="grid gap-4 sm:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-5">
         <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
           <p className="text-xs text-gray-500 uppercase tracking-wide">Subtotal</p>
           <p className="text-lg font-bold mt-1">₹{Number(data.subtotal).toLocaleString()}</p>
         </div>
+        {(() => { const disc = data.lineItems?.reduce((s: number, li: any) => s + (Number(li.discountPercent) > 0 ? Number(li.quantity) * Number(li.unitPrice) * Number(li.discountPercent) / 100 : 0), 0) || 0; return disc > 0 ? (
+        <div className="rounded-xl border border-green-200 dark:border-green-900 bg-green-50 dark:bg-green-950/30 p-4">
+          <p className="text-xs text-green-600 uppercase tracking-wide">Discount</p>
+          <p className="text-lg font-bold mt-1 text-green-600">-₹{disc.toLocaleString()}</p>
+        </div>) : null; })()}
         <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
           <p className="text-xs text-gray-500 uppercase tracking-wide">Tax</p>
           <p className="text-lg font-bold mt-1">₹{Number(data.taxTotal).toLocaleString()}</p>
@@ -330,6 +336,29 @@ export default function InvoiceDetailPage() {
           <p className={`text-xl font-bold mt-1 ${isPaid ? 'text-green-600' : 'text-red-600'}`}>₹{Number(data.amountDue).toLocaleString()}</p>
         </div>
       </div>
+
+      {/* AMC Savings Banner */}
+      {(() => {
+        const scLine = data.lineItems?.find((li: any) => li.lineType === 'SERVICE_CHARGE' && Number(li.discountPercent) === 100);
+        const amcLine = data.lineItems?.find((li: any) => li.lineType === 'AMC');
+        if (!scLine && !amcLine) return null;
+        const perVisit = scLine ? Number(scLine.unitPrice) : 0;
+        const contract = data.amcContract || null;
+        const planPrice = amcLine ? Number(amcLine.unitPrice) : 0;
+        const totalServices = contract?.totalServices || 3;
+        const totalSaving = perVisit > 0 ? (perVisit * totalServices) - planPrice : 0;
+        const remaining = contract?.servicesRemaining ?? '—';
+        return (
+          <div className="rounded-xl border border-green-200 dark:border-green-800 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 p-5">
+            <div className="flex items-center gap-2 mb-2"><span className="text-lg">🎉</span><span className="font-bold text-green-700 dark:text-green-400">AMC Savings</span></div>
+            <div className="grid gap-3 sm:grid-cols-3 text-sm">
+              {perVisit > 0 && <div><span className="text-gray-500">This visit saved:</span><span className="ml-2 font-bold text-green-600">₹{perVisit}</span></div>}
+              {totalSaving > 0 && <div><span className="text-gray-500">Total plan savings:</span><span className="ml-2 font-bold text-green-600">₹{totalSaving}</span></div>}
+              <div><span className="text-gray-500">Services remaining:</span><span className="ml-2 font-bold">{remaining}</span></div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* AMC Upsell Banner */}
       {amcUpsell?.show && isDraft && (
@@ -545,7 +574,7 @@ export default function InvoiceDetailPage() {
             <tbody>
               {data.payments.map((p: any) => (
                 <tr key={p.id} className="border-t border-gray-100 dark:border-gray-800">
-                  <td className="px-5 py-2.5">{new Date(p.paymentDate).toLocaleDateString('en-IN')}</td>
+                  <td className="px-5 py-2.5">{formatIST(p.paymentDate)}</td>
                   <td className="px-5 py-2.5"><span className="rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-2 py-0.5 text-xs font-medium">{p.paymentMode}</span></td>
                   <td className="px-5 py-2.5 text-gray-500">{p.referenceNumber || '—'}</td>
                   <td className="px-5 py-2.5 text-right font-semibold text-green-600">₹{Number(p.amount).toLocaleString()}</td>
@@ -574,9 +603,9 @@ export default function InvoiceDetailPage() {
         </div>
         <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
           <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">Details</p>
-          <p className="text-gray-500">Date: {new Date(data.invoiceDate).toLocaleDateString('en-IN')}</p>
+          <p className="text-gray-500">Date: {formatIST(data.invoiceDate)}</p>
           {data.jobCard && <button onClick={() => router.push(`/admin/job-cards/${data.jobCard.id}`)} className="text-sm text-blue-600 hover:underline">Job Card: {data.jobCard.jobCardNumber} →</button>}
-          {data.finalizedAt && <p className="text-gray-500">Finalized: {new Date(data.finalizedAt).toLocaleDateString('en-IN')}</p>}
+          {data.finalizedAt && <p className="text-gray-500">Finalized: {formatIST(data.finalizedAt)}</p>}
         </div>
       </div>
 

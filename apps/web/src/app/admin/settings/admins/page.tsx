@@ -1,4 +1,5 @@
 'use client';
+import { formatIST, formatTimeIST } from '@/lib/time';
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api/client';
 import { PageHeader } from '@gearup/ui';
@@ -62,7 +63,7 @@ export default function AdminUsersPage() {
                     </td>
                     <td className="px-4 py-3"><span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">{admin.roles.map((r: any) => r.name ?? r.key).join(', ') || '-'}</span></td>
                     <td className="px-4 py-3"><span className={`text-xs font-medium ${admin.status === 'ACTIVE' ? 'text-green-600' : 'text-red-600'}`}>{admin.status}</span></td>
-                    <td className="px-4 py-3 text-xs text-gray-500">{admin.lastLoginAt ? new Date(admin.lastLoginAt).toLocaleDateString('en-IN') : 'Never'}</td>
+                    <td className="px-4 py-3 text-xs text-gray-500">{admin.lastLoginAt ? formatIST(admin.lastLoginAt) : 'Never'}</td>
                     <td className="px-4 py-3"><button onClick={() => { setEditUser(admin); setEditForm({ fullName: admin.fullName, password: '', phone: admin.phone || '', status: admin.status, roleId: admin.roles[0]?.id || '' }); }} className="text-xs text-blue-600 hover:underline">Edit</button></td>
                   </tr>
                 ))}

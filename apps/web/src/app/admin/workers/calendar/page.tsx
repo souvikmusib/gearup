@@ -1,4 +1,5 @@
 'use client';
+import { formatIST, formatTimeIST } from '@/lib/time';
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { api } from '@/lib/api/client';
@@ -66,7 +67,7 @@ export default function WorkerCalendarPage() {
                 <div className="mt-4 space-y-2">
                   {assigned.slice(0, 4).map((appointment) => (
                     <Link prefetch={false} key={appointment.id} href={`/admin/appointments/${appointment.id}`} className="block rounded-lg border border-gray-100 p-2 text-sm hover:border-blue-300 dark:border-gray-700">
-                      <span className="font-medium text-gray-900 dark:text-white">{new Date(appointment.slotStart).toLocaleString()}</span>
+                      <span className="font-medium text-gray-900 dark:text-white">{formatIST(appointment.slotStart, { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
                       <span className="ml-2 text-gray-500">{appointment.customer?.fullName ?? appointment.referenceId}</span>
                     </Link>
                   ))}
