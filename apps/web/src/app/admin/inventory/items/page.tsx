@@ -93,9 +93,9 @@ export default function InventoryItemsPage() {
     setEditSaving(true);
     const body: Record<string, unknown> = {
       itemName: editForm.itemName, categoryId: editForm.categoryId, supplierId: editForm.supplierId || null, unit: editForm.unit,
-      costPrice: Number(editForm.costPrice), sellingPrice: Number(editForm.sellingPrice), discountPercent: editForm.discountPercent ? Number(editForm.discountPercent) : null,
+      brand: editForm.brand || null, costPrice: Number(editForm.costPrice), mrp: editForm.mrp ? Number(editForm.mrp) : null, sellingPrice: Number(editForm.sellingPrice), discountPercent: editForm.discountPercent ? Number(editForm.discountPercent) : null,
       reorderLevel: editForm.reorderLevel ? Number(editForm.reorderLevel) : null,
-      storageLocation: editForm.storageLocation || null, isActive: editForm.isActive,
+      storageLocation: editForm.storageLocation || null, isActive: editForm.isActive, variablePrice: editForm.variablePrice, isBranded: editForm.isBranded,
     };
     const res = await api.patch(`/admin/inventory/items/${editItem.id}`, body);
     setEditSaving(false);
