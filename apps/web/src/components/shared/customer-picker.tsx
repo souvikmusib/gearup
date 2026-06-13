@@ -63,9 +63,20 @@ export function CustomerPicker({ value, onChange, onCustomerCreated }: CustomerP
     };
   }, [value, customers]);
 
-  const createCustomer = async () => {
-    if (!newForm.fullName || !newForm.phoneNumber) return;
+  const [duplicateCustomer, setDuplicateCustomer] = useState<any>(null);
+
+  const checkAndCreateCustomer = async () => {
+    if (!newForm.fullName || !/^[6-9]\d{9}$/.test(newForm.phoneNumber)) return;
+    // Check if phone already exists
     setCreating(true);
+    const check = await api.get<any>(`/admin/customers?search=${newForm.phoneNumber}&pageSize=1`);
+    const existing = (check.data?.items ?? check.data ?? []).find((c: any) => c.phoneNumber === newForm.phoneNumber);
+    if (existing) {
+      setDuplicateCustomer(existing);
+      setCreating(false);
+      return;
+    }
+    setDuplicateCustomer(null);
     const res = await api.post<any>('/admin/customers', newForm);
     setCreating(false);
     if (res.success) {
@@ -100,13 +111,25 @@ export function CustomerPicker({ value, onChange, onCustomerCreated }: CustomerP
         </button>
       </div>
       {showNew ? (
+        <>
         <div className="flex gap-2">
           <input className={inputCls} placeholder="Full Name *" value={newForm.fullName} onChange={(e) => setNewForm({ ...newForm, fullName: e.target.value })} />
-          <input className={inputCls} placeholder="Phone *" value={newForm.phoneNumber} onChange={(e) => setNewForm({ ...newForm, phoneNumber: e.target.value })} />
-          <button type="button" onClick={createCustomer} disabled={creating || !newForm.fullName || !newForm.phoneNumber} className="shrink-0 rounded-lg bg-green-600 px-3 py-2 text-xs font-semibold text-white hover:bg-green-700 disabled:opacity-50">
+          <input className={inputCls} placeholder="Phone * (10 digits)" pattern="[6-9][0-9]{9}" maxLength={10} value={newForm.phoneNumber} onChange={(e) => setNewForm({ ...newForm, phoneNumber: e.target.value.replace(/\D/g, '').slice(0, 10) })} />
+          <button type="button" onClick={checkAndCreateCustomer} disabled={creating || !newForm.fullName || !/^[6-9]\d{9}$/.test(newForm.phoneNumber)} className="shrink-0 rounded-lg bg-green-600 px-3 py-2 text-xs font-semibold text-white hover:bg-green-700 disabled:opacity-50">
             {creating ? '...' : 'Add'}
           </button>
         </div>
+        {duplicateCustomer && (
+          <div className="mt-2 rounded-lg border border-amber-300 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-700 p-3 text-sm">
+            <p className="font-medium text-amber-800 dark:text-amber-300">This phone number already exists:</p>
+            <p className="mt-1 text-amber-700 dark:text-amber-400">{duplicateCustomer.fullName} — {duplicateCustomer.phoneNumber}</p>
+            <div className="mt-2 flex gap-2">
+              <button type="button" onClick={() => { onChange(duplicateCustomer.id); setSelectedName(`${duplicateCustomer.fullName} — ${duplicateCustomer.phoneNumber}`); setShowNew(false); setDuplicateCustomer(null); }} className="rounded bg-amber-600 px-3 py-1 text-xs font-medium text-white hover:bg-amber-700">Use this customer</button>
+              <button type="button" onClick={() => setDuplicateCustomer(null)} className="rounded border border-amber-300 px-3 py-1 text-xs text-amber-700 hover:bg-amber-100">Create anyway</button>
+            </div>
+          </div>
+        )}
+        </>
       ) : (
         <div className="relative">
           <input

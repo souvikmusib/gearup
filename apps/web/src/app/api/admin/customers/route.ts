@@ -8,7 +8,7 @@ import { PERMISSIONS } from '@gearup/types';
 import { z } from 'zod';
 
 const createSchema = z.object({
-  fullName: z.string().min(1), phoneNumber: z.string().min(5), alternatePhone: z.string().optional(),
+  fullName: z.string().min(1), phoneNumber: z.string().regex(/^[6-9]\d{9}$/, 'Enter a valid 10-digit mobile number'), alternatePhone: z.string().regex(/^[6-9]\d{9}$/).optional().or(z.literal('')),
   email: z.preprocess((v) => (typeof v === 'string' ? v.trim() || undefined : v ?? undefined), z.string().email().optional()), addressLine1: z.string().optional(), addressLine2: z.string().optional(),
   city: z.string().optional(), state: z.string().optional(), postalCode: z.string().optional(),
   notes: z.string().optional(), source: z.string().optional(),
