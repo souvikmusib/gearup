@@ -152,7 +152,7 @@ th { background:#fafafa; padding:10px 10px; text-align:left; font-size:10px; tex
       </div>
     </div>
     <div style="text-align:right">
-      <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:#9ca3af;font-weight:600">Tax Invoice</div>
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:#9ca3af;font-weight:600">Invoice</div>
       <div style="font-size:22px;font-weight:800;color:#111;margin-top:6px;font-family:'Google Sans Code',ui-monospace,monospace">${esc(invoice.invoiceNumber)}</div>
       <div style="font-size:11px;color:#6b7280;margin-top:6px">Issued <strong style="color:#111">${formatDateIST(invoice.invoiceDate, { long: true })}</strong></div>
       <div style="margin-top:10px;display:inline-block;background:${statusBg};color:${statusColor};font-size:10px;font-weight:700;padding:4px 12px;border-radius:20px;letter-spacing:0.5px;text-transform:uppercase">${esc(invoice.paymentStatus.replace('_', ' '))}</div>
@@ -459,7 +459,7 @@ th { background:#FFFBEB; padding:10px 10px; text-align:left; font-size:10px; tex
     </div>
   </div>
   <div style="text-align:right">
-    <div style="font-size:10px;text-transform:uppercase;letter-spacing:2.5px;color:#D4A017;font-weight:700">★ Premium AMC Tax Invoice</div>
+    <div style="font-size:10px;text-transform:uppercase;letter-spacing:2.5px;color:#D4A017;font-weight:700">★ Premium AMC Invoice</div>
     <div style="font-size:22px;font-weight:800;color:#fff;margin-top:6px;font-family:'Google Sans Code',ui-monospace,monospace">${esc(invoice.invoiceNumber)}</div>
     <div style="font-size:11px;color:#D1D5DB;margin-top:6px">Issued <strong style="color:#fff">${formatDateIST(invoice.invoiceDate, { long: true })}</strong></div>
     <div style="margin-top:10px;display:inline-block;background:${statusBg};color:${statusColor};font-size:10px;font-weight:700;padding:4px 12px;border-radius:20px;letter-spacing:0.5px;text-transform:uppercase">${esc(invoice.paymentStatus.replace('_', ' '))}</div>
