@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';
 import { PageHeader } from '@gearup/ui';
+import { ProcessLoader } from '@/components/shared/process-loader';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -74,11 +75,23 @@ export default function FullCalendarPage() {
   const [workerEvents, setWorkerEvents] = useState<CalEvent[]>([]);
   const [workers, setWorkers] = useState<WorkerItem[]>([]);
   const [selectedWorker, setSelectedWorker] = useState('');
+  const [loadingShop, setLoadingShop] = useState(true);
+  const [loadingWorkers, setLoadingWorkers] = useState(false);
+  const [workerLoaded, setWorkerLoaded] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
+    const fromDate = new Date();
+    fromDate.setDate(1);
+    fromDate.setHours(0, 0, 0, 0);
+    fromDate.setDate(fromDate.getDate() - 7);
+    const toDate = new Date(fromDate.getFullYear(), fromDate.getMonth() + 2, 0);
+    toDate.setDate(toDate.getDate() + 7);
+    const from = fromDate.toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+    const to = toDate.toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+
     Promise.all([
-      api.get<{ items?: AppointmentItem[] } | AppointmentItem[]>('/admin/appointments?pageSize=500'),
+      api.get<{ items?: AppointmentItem[] } | AppointmentItem[]>(`/admin/appointments?pageSize=200&from=${from}&to=${to}`),
       api.get<HolidayItem[]>('/admin/settings/holidays'),
     ]).then(([apptRes, holRes]) => {
       const events: CalEvent[] = [];
@@ -97,10 +110,18 @@ export default function FullCalendarPage() {
         });
       }
       setApptEvents(events);
+      setLoadingShop(false);
     });
+  }, []);
 
+  useEffect(() => {
+    if (tab !== 'worker' || workerLoaded) return;
+    setLoadingWorkers(true);
     api.get<WorkerCalendarResponse>('/admin/workers/calendar').then((res) => {
-      if (!res.success) return;
+      if (!res.success) {
+        setLoadingWorkers(false);
+        return;
+      }
       const data = res.data ?? ({} as Partial<WorkerCalendarResponse>);
       const w: WorkerItem[] = data.workers ?? [];
       const leaves: LeaveItem[] = data.leaves ?? [];
@@ -117,8 +138,10 @@ export default function FullCalendarPage() {
         evts.push({ id: `assign-${a.id}`, title: `🔧 ${a.worker?.fullName || 'Worker'} — ${jc.jobCardNumber}`, start: jc.intakeDate, end: jc.estimatedDeliveryAt || jc.intakeDate, allDay: true, backgroundColor: color, borderColor: color, extendedProps: { workerId: a.workerId } });
       });
       setWorkerEvents(evts);
+      setWorkerLoaded(true);
+      setLoadingWorkers(false);
     });
-  }, []);
+  }, [tab, workerLoaded]);
 
   const filteredWorkerEvents = selectedWorker ? workerEvents.filter((e) => e.extendedProps?.workerId === selectedWorker) : workerEvents;
   const tabCls = (t: string) => `px-4 py-2 text-sm font-medium rounded-lg ${tab === t ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300'}`;
@@ -140,28 +163,32 @@ export default function FullCalendarPage() {
 
       {tab === 'shop' && (
         <div className={calCls}>
-          <FullCalendar
-            plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-            initialView="timeGridWeek"
-            headerToolbar={{ left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' }}
-            events={apptEvents}
-            eventClick={(info) => { if (!info.event.id.startsWith('hol-')) router.push(`/admin/appointments/${info.event.id}`); }}
-            slotMinTime="07:00:00" slotMaxTime="21:00:00" allDaySlot
-            height="auto" nowIndicator slotDuration="00:30:00"
-          />
+          {loadingShop ? <ProcessLoader title="Loading full calendar" steps={['Fetching appointment window', 'Loading holidays', 'Building calendar events']} /> : (
+            <FullCalendar
+              plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+              initialView="timeGridWeek"
+              headerToolbar={{ left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' }}
+              events={apptEvents}
+              eventClick={(info) => { if (!info.event.id.startsWith('hol-')) router.push(`/admin/appointments/${info.event.id}`); }}
+              slotMinTime="07:00:00" slotMaxTime="21:00:00" allDaySlot
+              height="auto" nowIndicator slotDuration="00:30:00"
+            />
+          )}
         </div>
       )}
 
       {tab === 'worker' && (
         <div className={calCls}>
-          <FullCalendar
-            plugins={[dayGridPlugin, timeGridPlugin]}
-            initialView="dayGridMonth"
-            headerToolbar={{ left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek' }}
-            events={filteredWorkerEvents}
-            eventClick={(info) => { const wId = info.event.extendedProps?.workerId; if (wId) router.push(`/admin/workers/${wId}`); }}
-            height="auto" nowIndicator
-          />
+          {loadingWorkers ? <ProcessLoader title="Loading worker calendar" steps={['Fetching worker assignments', 'Loading leave windows', 'Building worker events']} /> : (
+            <FullCalendar
+              plugins={[dayGridPlugin, timeGridPlugin]}
+              initialView="dayGridMonth"
+              headerToolbar={{ left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek' }}
+              events={filteredWorkerEvents}
+              eventClick={(info) => { const wId = info.event.extendedProps?.workerId; if (wId) router.push(`/admin/workers/${wId}`); }}
+              height="auto" nowIndicator
+            />
+          )}
         </div>
       )}
 
