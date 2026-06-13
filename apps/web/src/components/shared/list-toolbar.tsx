@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, Plus, X } from 'lucide-react';
 
 export interface FilterDef {
@@ -12,6 +12,7 @@ export interface FilterDef {
 
 interface ListToolbarProps {
   searchPlaceholder?: string;
+  searchValue?: string;
   onSearch: (q: string) => void;
   onCreateClick?: () => void;
   createLabel?: string;
@@ -25,6 +26,7 @@ interface ListToolbarProps {
 
 export function ListToolbar({
   searchPlaceholder = 'Search...',
+  searchValue,
   onSearch,
   onCreateClick,
   createLabel = 'Create',
@@ -33,7 +35,7 @@ export function ListToolbar({
   filterValues = {},
   dateRange,
 }: ListToolbarProps) {
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(searchValue ?? '');
 
   const activeChips = Object.entries(filterValues).filter(([k, v]) => {
     if (!v) return false;

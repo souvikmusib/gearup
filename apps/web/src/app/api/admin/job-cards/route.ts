@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
     const p = paginate({ page, pageSize });
     const where: Record<string, unknown> = {};
     if (status) where.status = status;
-    if (search) where.OR = [{ jobCardNumber: { contains: search, mode: 'insensitive' } }, { customer: { fullName: { contains: search, mode: 'insensitive' } } }];
+    if (search) where.OR = [{ jobCardNumber: { contains: search, mode: 'insensitive' } }, { customer: { fullName: { contains: search, mode: 'insensitive' } } }, { customer: { phoneNumber: { contains: search } } }, { vehicle: { registrationNumber: { contains: search, mode: 'insensitive' } } }, { issueSummary: { contains: search, mode: 'insensitive' } }];
     if (customerId) where.customerId = customerId;
     if (vehicleId) where.vehicleId = vehicleId;
     const workerId = sp.get('workerId') || '';

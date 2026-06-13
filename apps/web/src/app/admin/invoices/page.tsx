@@ -167,7 +167,7 @@ export default function InvoicesPage() {
       <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
 
       <Modal open={showCreate} onClose={() => setShowCreate(false)} title={saleType === 'COUNTER' ? 'Counter Sale' : 'Create Invoice'}>
-        <div className="space-y-4 max-h-[70vh] overflow-y-auto">
+        <div className="space-y-4">
           {error && <p className="text-sm text-red-600">{error}</p>}
           {modalLoading && <ProcessLoader title="Preparing invoice form" steps={['Loading eligible job cards', 'Reading selected job-card parts', 'Calculating starter line items']} />}
           <div>

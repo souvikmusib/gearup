@@ -22,7 +22,7 @@ export function CustomerPicker({ value, onChange, onCustomerCreated }: CustomerP
     let active = true;
     setLoading(true);
     const timer = window.setTimeout(() => {
-      const params = new URLSearchParams({ pageSize: '20' });
+      const params = new URLSearchParams({ pageSize: '50' });
       if (search.trim()) params.set('search', search.trim());
       api.get<any>(`/admin/customers?${params.toString()}`).then((r) => {
         if (!active) return;

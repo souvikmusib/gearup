@@ -263,7 +263,7 @@ export default function InvoiceDetailPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title={`Invoice ${data.invoiceNumber}`} description={`${data.customer?.fullName} • ${data.vehicle?.brand} ${data.vehicle?.model} (${data.vehicle?.registrationNumber})`} />
+      <PageHeader title={`Invoice ${data.invoiceNumber}`} description={`${data.customer?.fullName}${data.vehicle ? ` • ${data.vehicle.brand} ${data.vehicle.model} (${data.vehicle.registrationNumber})` : ' • Counter Sale'}`} />
 
       {/* Status + Actions */}
       <div className="flex flex-wrap items-center gap-3">
@@ -630,8 +630,8 @@ export default function InvoiceDetailPage() {
         </div>
         <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
           <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">Vehicle</p>
-          <p className="font-medium">{data.vehicle?.brand} {data.vehicle?.model}</p>
-          <p className="text-gray-500">{data.vehicle?.registrationNumber}</p>
+          <p className="font-medium">{data.vehicle ? `${data.vehicle.brand} ${data.vehicle.model}` : 'Counter Sale'}</p>
+          <p className="text-gray-500">{data.vehicle?.registrationNumber || '—'}</p>
         </div>
         <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
           <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">Details</p>
