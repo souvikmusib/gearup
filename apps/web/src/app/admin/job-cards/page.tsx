@@ -11,6 +11,7 @@ import { Pagination } from '@/components/shared/pagination';
 import { formatRegNumber } from '@/lib/format-reg';
 import { SearchableSelect } from '@/components/shared/searchable-select';
 import { ListToolbar } from '@/components/shared/list-toolbar';
+import { CustomerPicker } from '@/components/shared/customer-picker';
 
 export default function JobCardsPage() {
   const [data, setData] = useState<any[]>([]);
@@ -19,19 +20,12 @@ export default function JobCardsPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState('');
   const [filters, setFilters] = useState<Record<string, string>>({});
-  const statusFilter = filters.status ?? '';
-  const workerFilter = filters.workerId ?? '';
-  const priorityFilter = filters.priority ?? '';
   const [allWorkers, setAllWorkers] = useState<any[]>([]);
   const [showCreate, setShowCreate] = useState(false);
-  const [customers, setCustomers] = useState<any[]>([]);
   const [vehicles, setVehicles] = useState<any[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [form, setForm] = useState({ customerId: '', vehicleId: '', issueSummary: '', priority: '', customerComplaints: '', odometerAtIntake: '', fuelIndicator: '', serviceRequestId: '', appointmentId: '' });
-  const [customerSearch, setCustomerSearch] = useState('');
-  const [newCust, setNewCust] = useState(false);
-  const [custForm, setCustForm] = useState({ fullName: '', phoneNumber: '', email: '' });
   const [newVeh, setNewVeh] = useState(false);
   const [vehForm, setVehForm] = useState({ vehicleType: 'BIKE' as string, registrationNumber: '', brand: '', model: '' });
   const router = useRouter();
@@ -55,7 +49,7 @@ export default function JobCardsPage() {
   };
   useEffect(() => {
     load();
-    api.get<any>('/admin/workers?pageSize=200').then((r) => { if (r.success) setAllWorkers(r.data?.items ?? r.data ?? []); });
+    api.get<any>('/admin/workers?status=ACTIVE&pageSize=100').then((r) => { if (r.success) setAllWorkers(r.data?.items ?? r.data ?? []); });
   }, []);
   useEffect(() => { load(); }, [page, filters]);
 
@@ -70,39 +64,22 @@ export default function JobCardsPage() {
       setShowCreate(true);
       // Load vehicles for the pre-selected customer
       if (customerId) {
-        api.get<any>(`/admin/vehicles?customerId=${customerId}&pageSize=100`).then((res) => { if (res.success) setVehicles(res.data?.items ?? res.data ?? []); });
+        api.get<any>(`/admin/vehicles?customerId=${customerId}&pageSize=50`).then((res) => { if (res.success) setVehicles(res.data?.items ?? res.data ?? []); });
       }
-      api.get<any>('/admin/customers?pageSize=20').then((res) => { if (res.success) setCustomers(res.data?.items ?? res.data ?? []); });
     }
   }, [searchParams]);
 
-  const openCreate = async () => {
-    setShowCreate(true); setError(''); setNewCust(false); setNewVeh(false);
-    const res = await api.get<any>('/admin/customers?pageSize=20');
-    if (res.success) setCustomers(res.data?.items ?? res.data ?? []);
+  const openCreate = () => {
+    setShowCreate(true); setError(''); setNewVeh(false);
+    setVehicles([]);
+    setForm({ customerId: '', vehicleId: '', issueSummary: '', priority: '', customerComplaints: '', odometerAtIntake: '', fuelIndicator: '', serviceRequestId: '', appointmentId: '' });
   };
 
   const onCustomerChange = async (customerId: string) => {
     setForm((f) => ({ ...f, customerId, vehicleId: '' })); setNewVeh(false);
-    const selected = customers.find((c: any) => c.id === customerId);
-    setCustomerSearch(selected ? selected.fullName : '');
     if (!customerId) { setVehicles([]); return; }
-    const res = await api.get<any>(`/admin/vehicles?customerId=${customerId}&pageSize=100`);
+    const res = await api.get<any>(`/admin/vehicles?customerId=${customerId}&pageSize=50`);
     if (res.success) setVehicles(res.data?.items ?? res.data ?? []);
-  };
-
-  const createCustomer = async () => {
-    if (!custForm.fullName || !custForm.phoneNumber) { setError('Customer name and phone are required'); return; }
-    setError(''); setSaving(true);
-    const res = await api.post<any>('/admin/customers', { ...custForm, source: 'JOB_CARD_FORM' });
-    setSaving(false);
-    if (res.success && res.data) {
-      setCustomers((prev) => [res.data, ...prev]);
-      setForm((f) => ({ ...f, customerId: res.data.id, vehicleId: '' }));
-      setVehicles([]);
-      setNewCust(false);
-      setCustForm({ fullName: '', phoneNumber: '', email: '' });
-    } else { setError(res.error?.message || 'Failed to create customer'); }
   };
 
   const createVehicle = async () => {
@@ -127,7 +104,7 @@ export default function JobCardsPage() {
     if (!payload.appointmentId) delete payload.appointmentId;
     const res = await api.post<any>('/admin/job-cards', payload);
     setSaving(false);
-    if (res.success) { setShowCreate(false); setCustomerSearch(''); setForm({ customerId: '', vehicleId: '', issueSummary: '', priority: '', customerComplaints: '', odometerAtIntake: '', fuelIndicator: '', serviceRequestId: '', appointmentId: '' }); load(); }
+    if (res.success) { setShowCreate(false); setForm({ customerId: '', vehicleId: '', issueSummary: '', priority: '', customerComplaints: '', odometerAtIntake: '', fuelIndicator: '', serviceRequestId: '', appointmentId: '' }); load(); }
     else setError(res.error?.message || 'Failed to create');
   };
 
@@ -206,53 +183,11 @@ export default function JobCardsPage() {
           {error && <p className="text-sm text-red-600">{error}</p>}
 
           {/* Customer */}
-          {!newCust ? (
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="text-sm font-medium">Customer <span className="text-red-500">*</span></label>
-                <button type="button" onClick={() => setNewCust(true)} className="text-xs text-blue-600 hover:underline">+ New Customer</button>
-              </div>
-              <div className="relative">
-                <input className={inputCls} placeholder="Type to search customer..." autoComplete="off"
-                  value={form.customerId ? (customers.find((c: any) => c.id === form.customerId)?.fullName || customerSearch) : customerSearch}
-                  onChange={async (e) => {
-                    const q = e.target.value;
-                    setCustomerSearch(q);
-                    if (form.customerId) { setForm((f) => ({ ...f, customerId: '', vehicleId: '' })); setVehicles([]); }
-                    if (q.length >= 2) {
-                      const res = await api.get<any>(`/admin/customers?search=${encodeURIComponent(q)}&pageSize=10`);
-                      if (res.success) setCustomers(res.data?.items ?? res.data ?? []);
-                    }
-                  }}
-                  onFocus={(e) => e.target.select()}
-                />
-                {customers.length > 0 && !form.customerId && (
-                  <div className="absolute z-50 top-full left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
-                    {customers.map((c: any) => (
-                      <button key={c.id} type="button" onClick={() => onCustomerChange(c.id)} className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 border-b border-gray-50 dark:border-gray-700 last:border-0">
-                        <span className="font-medium">{toTitleCase(c.fullName)}</span> <span className="text-xs text-gray-400">{c.phoneNumber}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          ) : (
-            <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 dark:border-blue-800 dark:bg-blue-900/20 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-blue-700 dark:text-blue-300">New Customer</span>
-                <button type="button" onClick={() => setNewCust(false)} className="text-xs text-gray-500 hover:underline">Cancel</button>
-              </div>
-              <input className={inputCls} placeholder="Full Name *" value={custForm.fullName} onChange={(e) => setCustForm({ ...custForm, fullName: e.target.value })} />
-              <div className="grid grid-cols-2 gap-2">
-                <input className={inputCls} placeholder="Phone *" value={custForm.phoneNumber} onChange={(e) => setCustForm({ ...custForm, phoneNumber: e.target.value })} />
-                <input className={inputCls} placeholder="Email" value={custForm.email} onChange={(e) => setCustForm({ ...custForm, email: e.target.value })} />
-              </div>
-              <button type="button" onClick={createCustomer} disabled={saving} className="w-full rounded-lg bg-green-600 py-1.5 text-xs font-semibold text-white hover:bg-green-700 disabled:opacity-50">
-                {saving ? 'Creating...' : 'Create Customer'}
-              </button>
-            </div>
-          )}
+          <CustomerPicker
+            value={form.customerId}
+            onChange={(customerId) => { void onCustomerChange(customerId); }}
+            onCustomerCreated={(customer) => { void onCustomerChange(customer.id); }}
+          />
 
           {/* Vehicle */}
           {!newVeh ? (

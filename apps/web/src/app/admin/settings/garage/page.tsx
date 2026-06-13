@@ -8,19 +8,43 @@ import { ProcessLoader } from '@/components/shared/process-loader';
 export default function GarageConfigPage() {
   const [workers, setWorkers] = useState<any[]>([]);
   const [hours, setHours] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [hoursLoading, setHoursLoading] = useState(true);
+  const [workersLoading, setWorkersLoading] = useState(true);
 
   useEffect(() => {
-    const workersReq = api.getSWR<any>('/admin/workers?pageSize=200');
     const hoursReq = api.getSWR<any>('/admin/settings/business-hours');
-    if (workersReq.cached?.success) setWorkers(workersReq.cached.data?.items ?? workersReq.cached.data ?? []);
     if (hoursReq.cached?.success) setHours(hoursReq.cached.data ?? []);
-    if (workersReq.cached?.success && hoursReq.cached?.success) setLoading(false);
-    Promise.all([workersReq.promise, hoursReq.promise]).then(([workerRes, hoursRes]) => {
-      if (workerRes.success) setWorkers(workerRes.data?.items ?? workerRes.data ?? []);
+    if (hoursReq.cached?.success) setHoursLoading(false);
+    hoursReq.promise.then((hoursRes) => {
       if (hoursRes.success) setHours(hoursRes.data ?? []);
-      setLoading(false);
+      setHoursLoading(false);
     });
+
+    const workersReq = api.getSWR<any>('/admin/workers?pageSize=200');
+    if (workersReq.cached?.success) setWorkers(workersReq.cached.data?.items ?? workersReq.cached.data ?? []);
+    if (workersReq.cached?.success) setWorkersLoading(false);
+
+    const loadWorkers = () => {
+      void workersReq.promise.then((workerRes) => {
+        if (workerRes.success) setWorkers(workerRes.data?.items ?? workerRes.data ?? []);
+        setWorkersLoading(false);
+      });
+    };
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    let idleId: number | null = null;
+
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      idleId = window.requestIdleCallback(loadWorkers);
+    } else {
+      timeoutId = globalThis.setTimeout(loadWorkers, 250);
+    }
+
+    return () => {
+      if (idleId !== null && typeof window !== 'undefined' && 'cancelIdleCallback' in window) {
+        window.cancelIdleCallback(idleId);
+      }
+      if (timeoutId !== null) globalThis.clearTimeout(timeoutId);
+    };
   }, []);
 
   const roleCounts = useMemo(() => {
@@ -31,7 +55,7 @@ export default function GarageConfigPage() {
     }, {});
   }, [workers]);
 
-  if (loading) return <ProcessLoader title="Loading garage configuration" steps={['Reading worker roster', 'Checking role coverage', 'Loading business-hour rules']} />;
+  if (hoursLoading) return <ProcessLoader title="Loading garage configuration" steps={['Checking business-hour rules', 'Preparing workspace summary']} />;
 
   return (
     <div className="space-y-6">
@@ -51,6 +75,7 @@ export default function GarageConfigPage() {
 
       <section className="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-800">
         <h2 className="font-semibold text-gray-900 dark:text-white">Role Coverage</h2>
+        {workersLoading && <p className="mt-3 text-sm text-gray-500">Loading worker roster…</p>}
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {Object.entries(roleCounts).map(([role, count]) => (
             <div key={role} className="rounded-lg bg-gray-50 p-3 dark:bg-gray-900">
@@ -64,6 +89,7 @@ export default function GarageConfigPage() {
 
       <section className="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-800">
         <h2 className="font-semibold text-gray-900 dark:text-white">Workers</h2>
+        {workersLoading && <p className="mt-3 text-sm text-gray-500">Loading worker roster…</p>}
         <div className="mt-4 overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="text-left text-xs uppercase text-gray-500"><tr><th className="py-2">Code</th><th>Name</th><th>Role</th><th>Specialization</th><th>Status</th><th>Shift</th></tr></thead>

@@ -17,13 +17,22 @@ export default function WorkerCalendarPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const workersReq = api.getSWR<any>('/admin/workers?pageSize=200');
-    const appointmentsReq = api.getSWR<any>('/admin/appointments?pageSize=200');
-    if (workersReq.cached?.success) setWorkers(workersReq.cached.data?.items ?? workersReq.cached.data ?? []);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const fromDate = new Date(today);
+    fromDate.setDate(fromDate.getDate() - 7);
+    const toDate = new Date(today);
+    toDate.setDate(toDate.getDate() + 21);
+    const from = fromDate.toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+    const to = toDate.toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+
+    const workersReq = api.getSWR<any>(`/admin/workers/calendar?from=${fromDate.toISOString()}&to=${toDate.toISOString()}`);
+    const appointmentsReq = api.getSWR<any>(`/admin/appointments?pageSize=100&from=${from}&to=${to}`);
+    if (workersReq.cached?.success) setWorkers(workersReq.cached.data?.workers ?? []);
     if (appointmentsReq.cached?.success) setAppointments(appointmentsReq.cached.data?.items ?? appointmentsReq.cached.data ?? []);
     if (workersReq.cached?.success && appointmentsReq.cached?.success) setLoading(false);
     Promise.all([workersReq.promise, appointmentsReq.promise]).then(([workerRes, appointmentRes]) => {
-      if (workerRes.success) setWorkers(workerRes.data?.items ?? workerRes.data ?? []);
+      if (workerRes.success) setWorkers(workerRes.data?.workers ?? []);
       if (appointmentRes.success) setAppointments(appointmentRes.data?.items ?? appointmentRes.data ?? []);
       setLoading(false);
     });

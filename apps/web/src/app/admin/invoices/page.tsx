@@ -9,6 +9,7 @@ import { ListToolbar } from '@/components/shared/list-toolbar';
 import { Pagination } from '@/components/shared/pagination';
 import { Modal } from '@/components/shared/modal';
 import { ProcessLoader } from '@/components/shared/process-loader';
+import { CustomerPicker } from '@/components/shared/customer-picker';
 
 const PAYMENT_STATUSES = ['UNPAID','PARTIALLY_PAID','PAID'].map(s => ({ label: s.replace(/_/g, ' '), value: s }));
 const INVOICE_STATUSES = ['DRAFT','FINALIZED','CANCELLED'].map(s => ({ label: s, value: s }));
@@ -23,9 +24,6 @@ export default function InvoicesPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [saleType, setSaleType] = useState<'SERVICE' | 'COUNTER'>('SERVICE');
   const [counterCustomerId, setCounterCustomerId] = useState('')
-  const [customers, setCustomers] = useState<any[]>([]);
-  const [showNewCustomer, setShowNewCustomer] = useState(false);
-  const [newCustomer, setNewCustomer] = useState({ fullName: '', phoneNumber: '' });
   const [jobCards, setJobCards] = useState<any[]>([]);
   const [selectedJC, setSelectedJC] = useState<any>(null);
   const [lineItems, setLineItems] = useState<any[]>([]);
@@ -80,9 +78,7 @@ export default function InvoicesPage() {
   const openCounterSale = () => {
     setSaleType('COUNTER');
     setShowCreate(true); setError(''); setSelectedJC(null); setCounterCustomerId('');
-    setShowNewCustomer(false); setNewCustomer({ fullName: '', phoneNumber: '' });
     setLineItems([]); setCounterInvoiceStarted(false);
-    api.get<any>('/admin/customers?pageSize=200').then((r) => { if (r.success) setCustomers(r.data?.items ?? r.data ?? []); });
   };
 
   const onJobCardSelect = async (jcId: string) => {
@@ -109,18 +105,12 @@ export default function InvoicesPage() {
   const submit = async () => {
     if (saleType === 'SERVICE' && (!selectedJC || lineItems.length === 0)) { setError('Select a job card and add line items'); return; }
     if (saleType === 'COUNTER' && lineItems.length === 0) { setError('Add at least one line item'); return; }
-    if (saleType === 'COUNTER' && !counterCustomerId && !showNewCustomer) { setError('Select a customer'); return; }
-    if (saleType === 'COUNTER' && showNewCustomer && (!newCustomer.fullName || !newCustomer.phoneNumber)) { setError('Enter customer name and phone'); return; }
+    if (saleType === 'COUNTER' && !counterCustomerId) { setError('Select a customer'); return; }
     setSaving(true); setError('');
 
-    // Create new customer if needed
     let customerId = '';
     if (saleType === 'SERVICE' && selectedJC) {
       customerId = selectedJC.customerId;
-    } else if (showNewCustomer) {
-      const custRes = await api.post<any>('/admin/customers', newCustomer);
-      if (!custRes.success) { setSaving(false); setError(custRes.error?.message || 'Failed to create customer'); return; }
-      customerId = custRes.data.id;
     } else {
       customerId = counterCustomerId;
     }
@@ -191,27 +181,11 @@ export default function InvoicesPage() {
               </>
             ) : (
               <div className="space-y-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium">Customer <span className="text-red-500">*</span></label>
-                  <button type="button" onClick={() => setShowNewCustomer(!showNewCustomer)} className="text-xs text-blue-600 hover:underline">
-                    {showNewCustomer ? '← Select existing' : '+ New customer'}
-                  </button>
-                </div>
-                {showNewCustomer ? (
-                  <div className="grid grid-cols-2 gap-2">
-                    <input className={inputCls} placeholder="Full Name *" value={newCustomer.fullName} onChange={(e) => setNewCustomer({ ...newCustomer, fullName: e.target.value })} />
-                    <input className={inputCls} placeholder="Phone *" value={newCustomer.phoneNumber} onChange={(e) => setNewCustomer({ ...newCustomer, phoneNumber: e.target.value })} />
-                  </div>
-                ) : (
-                  <select className={inputCls} value={counterCustomerId} onChange={(e) => setCounterCustomerId(e.target.value)}>
-                    <option value="">Select customer...</option>
-                    {customers.map((c: any) => <option key={c.id} value={c.id}>{c.fullName} — {c.phoneNumber}</option>)}
-                  </select>
-                )}
+                <CustomerPicker value={counterCustomerId} onChange={setCounterCustomerId} />
               </div>
             )}
           </div>
-          {saleType === 'COUNTER' && !counterInvoiceStarted && (counterCustomerId || (showNewCustomer && newCustomer.fullName && newCustomer.phoneNumber)) && (
+          {saleType === 'COUNTER' && !counterInvoiceStarted && counterCustomerId && (
             <button onClick={() => setCounterInvoiceStarted(true)} className="w-full rounded-lg bg-blue-600 py-2 text-sm font-semibold text-white hover:bg-blue-700">Create Invoice</button>
           )}
           {(selectedJC || (saleType === 'COUNTER' && counterInvoiceStarted)) && (

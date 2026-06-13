@@ -28,12 +28,10 @@ export default function AmcContractDetailPage() {
   useEffect(() => {
     if (!showUse || !contract) return;
     setJobCardsLoading(true);
-    api.get<any>(`/admin/job-cards?pageSize=100`).then((r) => {
+    api.get<any>(`/admin/job-cards?customerId=${contract.customerId}&vehicleId=${contract.vehicleId}&pageSize=25`).then((r) => {
       if (r.success) {
         const eligibleStatuses = new Set(['IN_PROGRESS', 'COMPLETED', 'INTAKE', 'DIAGNOSIS', 'AWAITING_APPROVAL', 'AWAITING_PARTS', 'READY_FOR_DELIVERY']);
         const filtered = (r.data?.items ?? r.data ?? []).filter((jc: any) =>
-          jc.customerId === contract.customerId &&
-          jc.vehicleId === contract.vehicleId &&
           eligibleStatuses.has(jc.status),
         );
         setJobCardOptions(filtered);

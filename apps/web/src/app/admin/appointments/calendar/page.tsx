@@ -19,7 +19,13 @@ export default function AppointmentCalendarPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const { cached, promise } = api.getSWR<any>('/admin/appointments?pageSize=200');
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const end = new Date(today);
+    end.setDate(end.getDate() + 21);
+    const from = today.toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+    const to = end.toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+    const { cached, promise } = api.getSWR<any>(`/admin/appointments?pageSize=100&from=${from}&to=${to}`);
     if (cached?.success) {
       setItems(cached.data?.items ?? cached.data ?? []);
       setLoading(false);

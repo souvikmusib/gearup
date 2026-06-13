@@ -9,6 +9,7 @@ import { PageHeader, DataTable, StatusBadge } from '@gearup/ui';
 import { Modal } from '@/components/shared/modal';
 import { Pagination } from '@/components/shared/pagination';
 import { ListToolbar } from '@/components/shared/list-toolbar';
+import { CustomerPicker } from '@/components/shared/customer-picker';
 
 export default function AppointmentsPage() {
   const [data, setData] = useState<any[]>([]);
@@ -17,17 +18,13 @@ export default function AppointmentsPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState('');
   const [filters, setFilters] = useState<Record<string, string>>({});
-  const statusFilter = filters.status ?? '';
   const [showCreate, setShowCreate] = useState(false);
-  const [customers, setCustomers] = useState<any[]>([]);
   const [vehicles, setVehicles] = useState<any[]>([]);
   const [showNewVeh, setShowNewVeh] = useState(false);
   const [vehForm, setVehForm] = useState({ vehicleType: 'BIKE', registrationNumber: '', brand: '', model: '' });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [form, setForm] = useState({ customerId: '', vehicleId: '', appointmentDate: '', slotStart: '', slotEnd: '' });
-  const [showNewCust, setShowNewCust] = useState(false);
-  const [custForm, setCustForm] = useState({ fullName: '', phoneNumber: '' });
   const router = useRouter();
 
   const load = (s = search, f = filters, pg = page) => {
@@ -58,17 +55,19 @@ export default function AppointmentsPage() {
     }, 300);
   };
 
-  const openCreate = async () => {
+  const openCreate = () => {
     setShowCreate(true);
     setError('');
-    const res = await api.get<any>('/admin/customers?pageSize=200');
-    if (res.success) setCustomers(res.data?.items ?? res.data ?? []);
+    setVehicles([]);
+    setShowNewVeh(false);
+    setForm({ customerId: '', vehicleId: '', appointmentDate: '', slotStart: '', slotEnd: '' });
   };
 
   const onCustomerChange = async (customerId: string) => {
     setForm((f) => ({ ...f, customerId, vehicleId: '' }));
+    setShowNewVeh(false);
     if (!customerId) { setVehicles([]); return; }
-    const res = await api.get<any>(`/admin/vehicles?customerId=${customerId}&pageSize=100`);
+    const res = await api.get<any>(`/admin/vehicles?customerId=${customerId}&pageSize=50`);
     if (res.success) setVehicles(res.data?.items ?? res.data ?? []);
   };
 
@@ -122,29 +121,11 @@ export default function AppointmentsPage() {
         <div className="space-y-4">
           {error && <p className="text-sm text-red-600">{error}</p>}
           <div>
-            <div className="flex items-center justify-between mb-1">
-              <label className="text-sm font-medium">Customer <span className="text-red-500">*</span></label>
-              <button type="button" onClick={() => setShowNewCust(!showNewCust)} className="text-xs text-blue-600 hover:underline">{showNewCust ? '← Select existing' : '+ New customer'}</button>
-            </div>
-            {showNewCust ? (
-              <div className="flex gap-2">
-                <input className={inputCls} placeholder="Full Name *" value={custForm.fullName} onChange={(e) => setCustForm({ ...custForm, fullName: e.target.value })} />
-                <input className={inputCls} placeholder="Phone *" value={custForm.phoneNumber} onChange={(e) => setCustForm({ ...custForm, phoneNumber: e.target.value })} />
-                <button type="button" onClick={async () => {
-                  if (!custForm.fullName || !custForm.phoneNumber) return;
-                  setSaving(true);
-                  const res = await api.post<any>('/admin/customers', custForm);
-                  setSaving(false);
-                  if (res.success) { setCustomers((p) => [res.data, ...p]); onCustomerChange(res.data.id); setShowNewCust(false); setCustForm({ fullName: '', phoneNumber: '' }); }
-                  else setError(res.error?.message || 'Failed');
-                }} disabled={saving || !custForm.fullName || !custForm.phoneNumber} className="shrink-0 rounded-lg bg-green-600 px-3 py-2 text-xs font-semibold text-white hover:bg-green-700 disabled:opacity-50">Add</button>
-              </div>
-            ) : (
-              <select className={inputCls} value={form.customerId} onChange={(e) => onCustomerChange(e.target.value)}>
-                <option value="">Select customer...</option>
-                {customers.map((c: any) => <option key={c.id} value={c.id}>{c.fullName} ({c.phoneNumber})</option>)}
-              </select>
-            )}
+            <CustomerPicker
+              value={form.customerId}
+              onChange={(customerId) => { void onCustomerChange(customerId); }}
+              onCustomerCreated={(customer) => { void onCustomerChange(customer.id); }}
+            />
           </div>
           <div>
             <div className="flex items-center justify-between mb-1">

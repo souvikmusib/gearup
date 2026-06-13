@@ -24,10 +24,14 @@ export async function GET(req: NextRequest) {
     const pageSize = Number(sp.get('pageSize')) || 20;
     const status = sp.get('status') || '';
     const search = sp.get('search') || '';
+    const customerId = sp.get('customerId') || '';
+    const vehicleId = sp.get('vehicleId') || '';
     const p = paginate({ page, pageSize });
     const where: Record<string, unknown> = {};
     if (status) where.status = status;
     if (search) where.OR = [{ jobCardNumber: { contains: search, mode: 'insensitive' } }, { customer: { fullName: { contains: search, mode: 'insensitive' } } }];
+    if (customerId) where.customerId = customerId;
+    if (vehicleId) where.vehicleId = vehicleId;
     const workerId = sp.get('workerId') || '';
     const priority = sp.get('priority') || '';
     if (workerId) where.assignments = { some: { workerId } };
