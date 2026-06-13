@@ -1,6 +1,6 @@
 'use client';
 import { toTitleCase } from '@/lib/title-case';
-import { formatIST, formatTimeIST } from '@/lib/time';
+import { formatIST } from '@/lib/time';
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';

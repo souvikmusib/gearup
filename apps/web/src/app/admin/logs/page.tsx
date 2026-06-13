@@ -1,5 +1,5 @@
 'use client';
-import { formatIST, formatTimeIST } from '@/lib/time';
+import { formatIST } from '@/lib/time';
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api/client';
 import { ProcessLoader } from '@/components/shared/process-loader';
@@ -25,7 +25,7 @@ const ACTOR_TYPES = ['ADMIN', 'WORKER', 'SYSTEM', 'PUBLIC'];
 
 export default function ActivityLogsPage() {
   const [data, setData] = useState<LogRow[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [entityType, setEntityType] = useState('');

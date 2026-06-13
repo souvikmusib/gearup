@@ -56,6 +56,8 @@ export function ListToolbar({
       onFilterChange(dateRange.fromKey, '');
       onFilterChange(dateRange.toKey, '');
     }
+    setSearch('');
+    onSearch('');
   };
 
   return (

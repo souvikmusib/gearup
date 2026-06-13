@@ -1,5 +1,5 @@
 'use client';
-import { formatIST, formatTimeIST } from '@/lib/time';
+import { formatIST } from '@/lib/time';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -123,7 +123,7 @@ export default function DashboardPage() {
     if (diff < 1) return 'Just now';
     if (diff < 60) return `${diff}m ago`;
     if (diff < 1440) return `${Math.floor(diff / 60)}h ago`;
-    return d.toLocaleDateString('en-IN');
+    return d.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' });
   };
 
   const formatAction = (action: string) => action.replace(/\./g, ' ').replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());

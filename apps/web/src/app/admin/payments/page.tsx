@@ -1,5 +1,5 @@
 'use client';
-import { formatIST, formatTimeIST } from '@/lib/time';
+import { formatIST } from '@/lib/time';
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api/client';
 import { ProcessLoader } from '@/components/shared/process-loader';
@@ -8,7 +8,7 @@ import { Pagination } from '@/components/shared/pagination';
 
 export default function PaymentsPage() {
   const [data, setData] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const today = new Date().toISOString().slice(0, 10);

@@ -100,7 +100,7 @@ export default function RolesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <PageHeader title="Roles & Permissions" description="Define what each role can access" />
-        <button onClick={() => setShowCreate(true)} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">+ Create Role</button>
+        <button onClick={() => { setError(''); setShowCreate(true); }} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">+ Create Role</button>
       </div>
 
       {loading ? <p className="py-8 text-center text-gray-500">Loading…</p> : (

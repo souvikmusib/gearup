@@ -16,6 +16,7 @@ const lineItemSchema = z.object({
   referenceItemId: z.string().optional(), description: z.string().trim().min(1),
   quantity: z.number().positive().default(1), unitPrice: z.number().nonnegative().default(0),
   taxRate: z.number().min(0).max(100).default(0), sortOrder: z.number().default(0),
+  discountPercent: z.number().min(0).max(100).default(0),
   discountMode: z.preprocess(v => v === '' ? undefined : v, z.enum(['flat', 'percent']).optional()),
 });
 const createSchema = z.object({
@@ -45,12 +46,11 @@ export async function GET(req: NextRequest) {
     const where: Record<string, unknown> = {};
     const ps = sp.get('paymentStatus'); if (ps) where.paymentStatus = ps;
     const is = sp.get('invoiceStatus'); if (is) where.invoiceStatus = is;
-    const saleType = sp.get('saleType'); if (saleType) where.saleType = saleType;
     const search = sp.get('search'); if (search) where.OR = [{ invoiceNumber: { contains: search, mode: 'insensitive' } }, { customer: { fullName: { contains: search, mode: 'insensitive' } } }];
     const from = sp.get('from'); const to = sp.get('to');
-    if (from && to) where.invoiceDate = { gte: new Date(from), lte: new Date(to + 'T23:59:59') };
-    else if (from) where.invoiceDate = { gte: new Date(from) };
-    else if (to) where.invoiceDate = { lte: new Date(to + 'T23:59:59') };
+    if (from && to) where.invoiceDate = { gte: new Date(from + 'T00:00:00+05:30'), lte: new Date(to + 'T23:59:59+05:30') };
+    else if (from) where.invoiceDate = { gte: new Date(from + 'T00:00:00+05:30') };
+    else if (to) where.invoiceDate = { lte: new Date(to + 'T23:59:59+05:30') };
     const [data, total] = await Promise.all([
       prisma.invoice.findMany({ where, ...p, orderBy: { invoiceDate: 'desc' }, include: { customer: { select: { fullName: true, phoneNumber: true } }, vehicle: { select: { registrationNumber: true } } } }),
       prisma.invoice.count({ where }),
@@ -76,9 +76,11 @@ export async function POST(req: NextRequest) {
           const { lineTotal, taxAmount, netLineTotal } = computeLineTotal(li, preSubtotal);
           subtotal += netLineTotal;
           taxTotal += taxAmount;
-          return { lineType: li.lineType, description: li.description, quantity: li.quantity, unitPrice: li.unitPrice, taxRate: li.taxRate, sortOrder: li.sortOrder, taxAmount, lineTotal };
+          return { lineType: li.lineType, description: li.description, quantity: li.quantity, unitPrice: li.unitPrice, taxRate: li.taxRate, sortOrder: li.sortOrder, discountPercent: li.discountPercent, taxAmount, lineTotal };
         });
-        const discountAmount = body.discountType === 'PERCENTAGE' ? subtotal * ((body.discountValue ?? 0) / 100) : (body.discountValue ?? 0);
+        subtotal = Math.round(subtotal * 100) / 100;
+        taxTotal = Math.round(taxTotal * 100) / 100;
+        const discountAmount = Math.round((body.discountType === 'PERCENTAGE' ? subtotal * ((body.discountValue ?? 0) / 100) : (body.discountValue ?? 0)) * 100) / 100;
         const grandTotal = Math.round(subtotal + taxTotal - discountAmount);
         return tx.invoice.create({
           data: { invoiceNumber: await generateInvoiceNumber(tx), customerId: body.customerId, vehicleId: body.vehicleId, jobCardId: body.jobCardId, appointmentId: body.appointmentId, invoiceDate: new Date(body.invoiceDate), dueDate: body.dueDate ? new Date(body.dueDate) : undefined, subtotal, taxTotal, discountType: body.discountType, discountValue: body.discountValue, discountAmount, grandTotal, amountDue: grandTotal, notes: body.notes, createdByAdminId: user.sub, lineItems: { create: lines } },

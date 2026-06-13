@@ -1,5 +1,5 @@
 'use client';
-import { formatIST, formatTimeIST } from '@/lib/time';
+import { formatIST } from '@/lib/time';
 import { toTitleCase, toSentenceCase } from '@/lib/title-case';
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -29,6 +29,7 @@ export default function JobCardsPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [form, setForm] = useState({ customerId: '', vehicleId: '', issueSummary: '', priority: '', customerComplaints: '', odometerAtIntake: '', fuelIndicator: '', serviceRequestId: '', appointmentId: '' });
+  const [customerSearch, setCustomerSearch] = useState('');
   const [newCust, setNewCust] = useState(false);
   const [custForm, setCustForm] = useState({ fullName: '', phoneNumber: '', email: '' });
   const [newVeh, setNewVeh] = useState(false);
@@ -83,6 +84,8 @@ export default function JobCardsPage() {
 
   const onCustomerChange = async (customerId: string) => {
     setForm((f) => ({ ...f, customerId, vehicleId: '' })); setNewVeh(false);
+    const selected = customers.find((c: any) => c.id === customerId);
+    setCustomerSearch(selected ? selected.fullName : '');
     if (!customerId) { setVehicles([]); return; }
     const res = await api.get<any>(`/admin/vehicles?customerId=${customerId}&pageSize=100`);
     if (res.success) setVehicles(res.data?.items ?? res.data ?? []);
@@ -124,7 +127,7 @@ export default function JobCardsPage() {
     if (!payload.appointmentId) delete payload.appointmentId;
     const res = await api.post<any>('/admin/job-cards', payload);
     setSaving(false);
-    if (res.success) { setShowCreate(false); setForm({ customerId: '', vehicleId: '', issueSummary: '', priority: '', customerComplaints: '', odometerAtIntake: '', fuelIndicator: '', serviceRequestId: '', appointmentId: '' }); load(); }
+    if (res.success) { setShowCreate(false); setCustomerSearch(''); setForm({ customerId: '', vehicleId: '', issueSummary: '', priority: '', customerComplaints: '', odometerAtIntake: '', fuelIndicator: '', serviceRequestId: '', appointmentId: '' }); load(); }
     else setError(res.error?.message || 'Failed to create');
   };
 
@@ -132,7 +135,7 @@ export default function JobCardsPage() {
     { key: 'jobCardNumber', header: 'Job Card', nowrap: true, render: (r: any) => (
       <div>
         <span className="font-medium text-sm">{r.jobCardNumber}</span>
-        <span className="block text-[10px] text-gray-400">{new Date(r.createdAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short', year: 'numeric' })}</span>
+        <span className="block text-[10px] text-gray-400">{formatIST(r.createdAt, { day: '2-digit', month: 'short', year: 'numeric' })}</span>
       </div>
     )},
     { key: 'customer', header: 'Customer / Vehicle', render: (r: any) => (
@@ -211,9 +214,11 @@ export default function JobCardsPage() {
               </div>
               <div className="relative">
                 <input className={inputCls} placeholder="Type to search customer..." autoComplete="off"
-                  value={form.customerId ? (customers.find((c: any) => c.id === form.customerId)?.fullName || '') : ''}
+                  value={form.customerId ? (customers.find((c: any) => c.id === form.customerId)?.fullName || customerSearch) : customerSearch}
                   onChange={async (e) => {
                     const q = e.target.value;
+                    setCustomerSearch(q);
+                    if (form.customerId) { setForm((f) => ({ ...f, customerId: '', vehicleId: '' })); setVehicles([]); }
                     if (q.length >= 2) {
                       const res = await api.get<any>(`/admin/customers?search=${encodeURIComponent(q)}&pageSize=10`);
                       if (res.success) setCustomers(res.data?.items ?? res.data ?? []);

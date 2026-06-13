@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
         const created: { id: string; holidayDate: Date; holidayType: string }[] = [];
         const seen = new Set<string>();
         for (const it of items) {
-          const parsedDate = new Date(`${it.holidayDate}T00:00:00.000Z`);
+          const parsedDate = new Date(`${it.holidayDate}T00:00:00+05:30`);
           if (Number.isNaN(parsedDate.getTime())) throw new AppError(400, `Invalid holidayDate: ${it.holidayDate}`, 'INVALID_DATE');
           const key = `${parsedDate.toISOString()}|${it.holidayType}`;
           if (seen.has(key)) continue;

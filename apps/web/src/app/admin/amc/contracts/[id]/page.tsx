@@ -1,5 +1,5 @@
 'use client';
-import { formatIST, formatTimeIST } from '@/lib/time';
+import { formatIST } from '@/lib/time';
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
@@ -31,7 +31,7 @@ export default function AmcContractDetailPage() {
     api.get<any>(`/admin/job-cards?pageSize=100`).then((r) => {
       if (r.success) {
         const eligibleStatuses = new Set(['IN_PROGRESS', 'COMPLETED', 'INTAKE', 'DIAGNOSIS', 'AWAITING_APPROVAL', 'AWAITING_PARTS', 'READY_FOR_DELIVERY']);
-        const filtered = (r.data || []).filter((jc: any) =>
+        const filtered = (r.data?.items ?? r.data ?? []).filter((jc: any) =>
           jc.customerId === contract.customerId &&
           jc.vehicleId === contract.vehicleId &&
           eligibleStatuses.has(jc.status),

@@ -1,5 +1,5 @@
 'use client';
-import { formatIST, formatTimeIST } from '@/lib/time';
+import { formatIST } from '@/lib/time';
 import { useEffect, useRef, useState } from 'react';
 import { api } from '@/lib/api/client';
 import { ProcessLoader } from '@/components/shared/process-loader';
@@ -53,7 +53,7 @@ export default function ExpensesPage() {
   const onSearchChange = (v: string) => {
     setSearch(v);
     if (searchTimer.current) clearTimeout(searchTimer.current);
-    searchTimer.current = setTimeout(() => load(v, filters, 1), 300);
+    searchTimer.current = setTimeout(() => { setPage(1); load(v, filters, 1); }, 300);
   };
   useEffect(() => () => { if (searchTimer.current) clearTimeout(searchTimer.current); }, []);
 
@@ -124,7 +124,7 @@ export default function ExpensesPage() {
       </div>
       <ListToolbar
         searchPlaceholder="Search expenses..."
-        onSearch={(s) => { setSearch(s); setPage(1); load(s, filters, 1); }}
+        onSearch={onSearchChange}
         filters={[
           { label: 'Category', value: 'categoryId', options: categories.map((c: any) => ({ value: c.id, label: c.categoryName })) },
           { label: 'Payment Mode', value: 'paymentMode', options: [

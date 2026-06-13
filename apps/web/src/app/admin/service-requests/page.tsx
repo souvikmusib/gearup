@@ -1,5 +1,5 @@
 'use client';
-import { formatIST, formatTimeIST } from '@/lib/time';
+import { formatIST } from '@/lib/time';
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';
@@ -65,6 +65,7 @@ export default function ServiceRequestsPage() {
         searchPlaceholder="Search requests..."
         onSearch={onSearch}
         filters={[{ label: 'All Statuses', value: 'status', options: STATUSES }]}
+        filterValues={{ status }}
         onFilterChange={(_, v) => { setStatus(v); setPage(1); }}
       />
       {loading ? <ProcessLoader title="Loading requests" steps={['Fetching service requests', 'Preparing list']} /> :

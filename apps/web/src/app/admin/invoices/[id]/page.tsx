@@ -1,12 +1,12 @@
 'use client';
 import { toTitleCase } from '@/lib/title-case';
-import { formatIST, formatTimeIST } from '@/lib/time';
+import { formatIST } from '@/lib/time';
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';
 import { PageHeader, StatusBadge } from '@gearup/ui';
 import { WhatsAppButton } from '@/components/shared/whatsapp-button';
-import { FileText, CheckCircle, CreditCard, Download, Sparkles, Shield, Wrench, Cog, HardHat, Tag, X as XIcon, Car } from 'lucide-react';
+import { FileText, CheckCircle, CreditCard, Download, Sparkles, Shield, Wrench, Cog, HardHat, Tag, X as XIcon } from 'lucide-react';
 import { Modal } from '@/components/shared/modal';
 import { ProcessLoader } from '@/components/shared/process-loader';
 

@@ -149,7 +149,7 @@ export default function InventoryItemsPage() {
   return (
     <div>
       <PageHeader title="Inventory Items" />
-      <ListToolbar searchPlaceholder="Search items..." onSearch={onSearch} onCreateClick={() => setShowCreate(true)} createLabel="Create Item" />
+      <ListToolbar searchPlaceholder="Search items..." onSearch={onSearch} onCreateClick={() => { loadLookups(); setShowCreate(true); }} createLabel="Create Item" />
 
       {/* View mode toggle + category filter */}
       <div className="mb-4 flex flex-wrap items-center gap-3">

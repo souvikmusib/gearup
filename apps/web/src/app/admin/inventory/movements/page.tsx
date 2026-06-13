@@ -1,5 +1,5 @@
 'use client';
-import { formatIST, formatTimeIST } from '@/lib/time';
+import { formatIST } from '@/lib/time';
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api/client';
 import { PageHeader, DataTable, StatusBadge } from '@gearup/ui';

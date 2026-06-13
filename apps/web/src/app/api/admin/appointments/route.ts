@@ -124,7 +124,8 @@ export async function POST(req: NextRequest) {
       }
 
       // (c) Capacity check via AppointmentSlotRule for the weekday
-      const dayOfWeek = slotStart.getDay();
+      const istSlotStart = new Date(slotStart.getTime() + 5.5 * 60 * 60 * 1000);
+      const dayOfWeek = istSlotStart.getUTCDay();
       const rule = await tx.appointmentSlotRule.findFirst({
         where: { dayOfWeek, isActive: true },
         select: { maxCapacity: true },
