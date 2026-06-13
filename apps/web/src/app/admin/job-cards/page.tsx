@@ -152,6 +152,7 @@ export default function JobCardsPage() {
 
       <ListToolbar
         searchPlaceholder="Search by job-card # or customer…"
+        searchValue={search}
         onSearch={(s) => { setSearch(s); setPage(1); load(s, filters, 1); }}
         filters={[
           { label: 'Status', value: 'status', options: [

@@ -43,7 +43,11 @@ export default function InventoryItemsPage() {
     const params = new URLSearchParams();
     if (s) params.set('search', s);
     if (cat) params.set('categoryId', cat);
-    params.set('page', String(p));
+    if (viewMode === 'list') {
+      params.set('page', String(p));
+    } else {
+      params.set('pageSize', '500');
+    }
     const endpoint = `/admin/inventory/items?${params.toString()}`;
     const { cached, promise } = api.getSWR<any>(endpoint);
     if (cached?.success) {
@@ -57,9 +61,9 @@ export default function InventoryItemsPage() {
       if (res.success) { setData(res.data?.items ?? res.data ?? []); setTotalPages(res.meta?.totalPages ?? 1); }
       setLoading(false);
     });
-  }, [search, page, categoryFilter]);
+  }, [search, page, categoryFilter, viewMode]);
 
-  useEffect(() => { load(); }, [page]);
+  useEffect(() => { load(); }, [page, viewMode]);
 
   const onSearch = useCallback((q: string) => {
     setSearch(q);
@@ -141,6 +145,8 @@ export default function InventoryItemsPage() {
     return acc;
   }, {});
 
+  const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
+
   const inputCls = "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white";
   const labelCls = "block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1";
 
@@ -154,9 +160,9 @@ export default function InventoryItemsPage() {
       {/* View mode toggle + category filter */}
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <div className="flex gap-1">
-          <button onClick={() => setViewMode('list')} className={viewBtnCls(viewMode === 'list')}><span className="inline-flex items-center gap-1.5"><ListIcon size={14} /> List</span></button>
-          <button onClick={() => setViewMode('category')} className={viewBtnCls(viewMode === 'category')}><span className="inline-flex items-center gap-1.5"><FolderOpen size={14} /> Category</span></button>
-          <button onClick={() => setViewMode('company')} className={viewBtnCls(viewMode === 'company')}><span className="inline-flex items-center gap-1.5"><Building2 size={14} /> Company</span></button>
+          <button onClick={() => { setViewMode('list'); setExpandedGroup(null); }} className={viewBtnCls(viewMode === 'list')}><span className="inline-flex items-center gap-1.5"><ListIcon size={14} /> List</span></button>
+          <button onClick={() => { setViewMode('category'); setExpandedGroup(null); }} className={viewBtnCls(viewMode === 'category')}><span className="inline-flex items-center gap-1.5"><FolderOpen size={14} /> Category</span></button>
+          <button onClick={() => { setViewMode('company'); setExpandedGroup(null); }} className={viewBtnCls(viewMode === 'company')}><span className="inline-flex items-center gap-1.5"><Building2 size={14} /> Company</span></button>
         </div>
         <select className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white" value={categoryFilter} onChange={(e) => { setCategoryFilter(e.target.value); load(search, 1, e.target.value); }} onFocus={loadLookups}>
           <option value="">All Categories</option>
@@ -166,41 +172,26 @@ export default function InventoryItemsPage() {
 
       {loading ? <ProcessLoader title="Loading inventory" steps={['Fetching items', 'Preparing list']} /> : viewMode === 'list' ? (
         <DataTable columns={columns} data={data} keyField="id" onRowClick={openEdit} />
+      ) : expandedGroup ? (
+        <div>
+          <button onClick={() => setExpandedGroup(null)} className="mb-3 text-sm text-blue-600 hover:underline flex items-center gap-1">← Back to all {viewMode === 'category' ? 'categories' : 'companies'}</button>
+          <h3 className="text-lg font-bold mb-3">{expandedGroup} <span className="text-sm font-normal text-gray-400">({(viewMode === 'category' ? groupedByCategory : groupedByCompany)[expandedGroup]?.length || 0} items)</span></h3>
+          <DataTable columns={columns} data={(viewMode === 'category' ? groupedByCategory : groupedByCompany)[expandedGroup] || []} keyField="id" onRowClick={openEdit} />
+        </div>
       ) : (
-        <div className="space-y-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
           {Object.entries(viewMode === 'category' ? groupedByCategory : groupedByCompany)
             .sort(([a], [b]) => a.localeCompare(b))
             .map(([group, items]) => (
-            <div key={group}>
-              <h3 className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
-                <span className="inline-flex items-center gap-2">{viewMode === 'category' ? <FolderOpen size={16} className="text-blue-600" /> : <Building2 size={16} className="text-blue-600" />} {group}</span>
-                <span className="text-xs font-normal text-gray-400">({(items as any[]).length} items)</span>
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                {(items as any[]).map((item: any) => (
-                  <div key={item.id} onClick={() => openEdit(item)} className="cursor-pointer rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-md transition">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm truncate">{toTitleCase(item.itemName)}</p>
-                        <p className="text-xs text-gray-400 mt-0.5">{item.sku}</p>
-                      </div>
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${Number(item.quantityInStock) <= 0 ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : Number(item.quantityInStock) <= (Number(item.reorderLevel) || 3) ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'}`}>
-                        {Number(item.quantityInStock)} in stock
-                      </span>
-                    </div>
-                    <div className="mt-2 flex items-center gap-3 text-xs text-gray-500">
-                      {item.brand && <span className="bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded">{toTitleCase(item.brand)}</span>}
-                      <span>₹{Number(item.sellingPrice)}</span>
-                      {Number(item.discountPercent) > 0 && <span className="text-green-600">{Number(item.discountPercent)}% off</span>}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <button key={group} onClick={() => setExpandedGroup(group)} className="aspect-square rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-md transition flex flex-col items-center justify-center text-center">
+              <span className="text-2xl mb-2">{viewMode === 'category' ? '📂' : '🏢'}</span>
+              <span className="font-medium text-sm leading-tight">{group}</span>
+              <span className="text-xs text-gray-400 mt-1">{(items as any[]).length} items</span>
+            </button>
           ))}
         </div>
       )}
-      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+      {viewMode === 'list' && <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />}
       <Modal open={showCreate} onClose={() => { setShowCreate(false); setCreateError(null); }} title="Create Item">
         <form onSubmit={onSubmit} className="space-y-3">
           {createError && <div className="rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-700 dark:bg-red-900/20 dark:text-red-300">{createError}</div>}
