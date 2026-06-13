@@ -18,8 +18,10 @@ function withServerlessPoolLimits(databaseUrl?: string) {
       return databaseUrl;
     }
 
+    const defaultConnectionLimit = process.env.PRISMA_CONNECTION_LIMIT
+      ?? (process.env.NODE_ENV === 'production' ? '3' : '5');
     if (!url.searchParams.has('pgbouncer')) url.searchParams.set('pgbouncer', 'true');
-    if (!url.searchParams.has('connection_limit')) url.searchParams.set('connection_limit', '1');
+    if (!url.searchParams.has('connection_limit')) url.searchParams.set('connection_limit', defaultConnectionLimit);
     if (!url.searchParams.has('pool_timeout')) url.searchParams.set('pool_timeout', '20');
     if (process.env.NODE_ENV !== 'production') {
       const reason = isSupabasePooler

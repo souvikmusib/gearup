@@ -47,36 +47,59 @@ export default function DashboardPage() {
   const isAdmin = user?.roles?.includes('SUPER_ADMIN') || user?.roles?.includes('ADMIN');
 
   useEffect(() => {
+    let cancelled = false;
     setError(null);
+
+    const loadSecondaryWidgets = async () => {
+      const from = new Date(); from.setDate(from.getDate() - 7);
+      const tasks = [
+        async () => {
+          const logsReq = api.getSWR<any>('/admin/logs?pageSize=8');
+          if (logsReq.cached?.success && !cancelled) setLogs(logsReq.cached.data?.items ?? logsReq.cached.data ?? []);
+          const res = await logsReq.promise;
+          if (res.success && !cancelled) setLogs(res.data?.items ?? res.data ?? []);
+        },
+        async () => {
+          const r = await api.get<any>(`/admin/reports/revenue?from=${from.toISOString().slice(0, 10)}&to=${new Date().toISOString().slice(0, 10)}`);
+          if (r.success && !cancelled) setRevenueChart(r.data?.daily ?? []);
+        },
+        async () => {
+          const r = await api.get<any>('/admin/reports/jobs');
+          if (r.success && !cancelled) setJobStats(r.data ?? []);
+        },
+        async () => {
+          const r = await api.get<any>('/admin/reports/workers');
+          if (r.success && !cancelled) setWorkerLoad(r.data ?? []);
+        },
+        async () => {
+          const r = await api.get<any>('/admin/inventory/low-stock');
+          if (r.success && !cancelled) {
+            const items = r.data?.items ?? r.data ?? [];
+            setLowStock(items.slice(0, 10));
+          }
+        },
+      ];
+
+      for (const batch of [[0, 1], [2, 3], [4]]) {
+        await Promise.allSettled(batch.map((index) => tasks[index]()));
+        if (cancelled) return;
+      }
+    };
+
     const dashboard = api.getSWR<DashboardData>('/admin/reports?type=dashboard');
     if (dashboard.cached?.success && dashboard.cached.data) setData(dashboard.cached.data);
     dashboard.promise.then((res) => {
-      if (res.success && res.data) setData(res.data);
-      else setError(res.error?.message || 'Failed to load dashboard');
-    });
-    const logsReq = api.getSWR<any>('/admin/logs?pageSize=8');
-    if (logsReq.cached?.success) setLogs(logsReq.cached.data?.items ?? logsReq.cached.data ?? []);
-    logsReq.promise.then((res) => {
-      if (res.success && res.data) setLogs(res.data?.items ?? res.data ?? []);
-    });
-    // Charts
-    const from = new Date(); from.setDate(from.getDate() - 7);
-    api.get<any>(`/admin/reports/revenue?from=${from.toISOString().slice(0, 10)}&to=${new Date().toISOString().slice(0, 10)}`).then((r) => {
-      if (r.success) setRevenueChart(r.data?.daily ?? []);
-    });
-    api.get<any>('/admin/reports/jobs').then((r) => {
-      if (r.success) setJobStats(r.data ?? []);
-    });
-    api.get<any>('/admin/reports/workers').then((r) => {
-      if (r.success) setWorkerLoad(r.data ?? []);
-    });
-    // Low stock items for inventory manager
-    api.get<any>('/admin/inventory/low-stock').then((r) => {
-      if (r.success) {
-        const items = r.data?.items ?? r.data ?? [];
-        setLowStock(items.slice(0, 10));
+      if (cancelled) return;
+      if (res.success && res.data) {
+        setData(res.data);
+        void loadSecondaryWidgets();
+        return;
       }
+      setError(res.error?.message || 'Failed to load dashboard');
     });
+    return () => {
+      cancelled = true;
+    };
   }, [reloadKey]);
 
   if (!data) {
