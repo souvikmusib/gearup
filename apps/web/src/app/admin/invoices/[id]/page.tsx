@@ -1,7 +1,7 @@
 'use client';
 import { toTitleCase } from '@/lib/title-case';
 import { formatIST } from '@/lib/time';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';
 import { PageHeader, StatusBadge } from '@gearup/ui';
@@ -36,14 +36,20 @@ export default function InvoiceDetailPage() {
   const [newPartForm, setNewPartForm] = useState({ sku: '', itemName: '', unit: 'PCS', costPrice: '', sellingPrice: '', quantityInStock: '' });
   const [amcUpsell, setAmcUpsell] = useState<{ show: boolean; plan: any; savings: number; partsSavings: number; serviceSavings: number } | null>(null);
   const [applyingAmc, setApplyingAmc] = useState(false);
+  const inventoryQueryRef = useRef('');
 
-  const loadInventory = async () => {
-    const res = await api.get<any>('/admin/inventory/items?pageSize=500');
+  const loadInventory = async (search = '') => {
+    const normalized = search.trim();
+    inventoryQueryRef.current = normalized;
+    const params = new URLSearchParams({ pageSize: '25' });
+    if (normalized) params.set('search', normalized);
+    const res = await api.get<any>(`/admin/inventory/items?${params.toString()}`);
+    if (inventoryQueryRef.current !== normalized) return;
     if (res.success) setInventoryItems(res.data?.items ?? res.data ?? []);
   };
   const loadWorkers = async () => {
     if (workers.length) return;
-    const res = await api.get<any>('/admin/workers?pageSize=200');
+    const res = await api.get<any>('/admin/workers?status=ACTIVE&pageSize=100');
     if (res.success) setWorkers(res.data?.items ?? res.data ?? []);
   };
   const loadAmcOptions = async () => {
@@ -483,7 +489,7 @@ export default function InvoiceDetailPage() {
               <div>
                 <p className="text-xs font-medium text-gray-500 mb-3">Add to Invoice</p>
                 <div className="flex flex-wrap gap-2">
-                  <button onClick={() => { loadInventory(); setNewLine({ ...newLine, lineType: 'PART', description: '', unitPrice: '', discountPercent: '0', inventoryItemId: '' }); setAddStep('details'); }} className="inline-flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-medium hover:bg-white dark:hover:bg-gray-700 transition"><Cog size={16} /> Part</button>
+                  <button onClick={() => { void loadInventory(); setNewLine({ ...newLine, lineType: 'PART', description: '', unitPrice: '', discountPercent: '0', inventoryItemId: '' }); setAddStep('details'); }} className="inline-flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-medium hover:bg-white dark:hover:bg-gray-700 transition"><Cog size={16} /> Part</button>
                   <button onClick={() => { loadWorkers(); setNewLine({ ...newLine, lineType: 'LABOR', description: '', unitPrice: '' }); setAddStep('details'); }} className="inline-flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-medium hover:bg-white dark:hover:bg-gray-700 transition"><HardHat size={16} /> Labor</button>
                   <button onClick={() => { setNewLine({ ...newLine, lineType: 'SERVICE_CHARGE', description: 'General Service', unitPrice: '' }); setAddStep('details'); }} className="inline-flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-medium hover:bg-white dark:hover:bg-gray-700 transition"><Wrench size={16} /> Service Charge</button>
                   <button onClick={() => { setNewLine({ ...newLine, lineType: 'CUSTOM_CHARGE', description: '', unitPrice: '' }); setAddStep('details'); }} className="inline-flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2.5 text-sm font-medium hover:bg-white dark:hover:bg-gray-700 transition"><FileText size={16} /> Custom Charge</button>
@@ -505,7 +511,7 @@ export default function InvoiceDetailPage() {
                         <button type="button" onClick={() => setShowNewPart(true)} className="text-blue-600 hover:underline">+ New Part</button>
                       </label>
                       <div className="relative">
-                        <input className={inputCls} placeholder="Type to search parts..." value={newLine.description} onChange={(e) => setNewLine({ ...newLine, description: e.target.value, unitPrice: '', inventoryItemId: '' })} onFocus={(e) => e.target.setAttribute('data-open', '1')} onBlur={(e) => setTimeout(() => e.target.removeAttribute('data-open'), 200)} autoComplete="off" />
+                        <input className={inputCls} placeholder="Type to search parts..." value={newLine.description} onChange={(e) => { const description = e.target.value; setNewLine({ ...newLine, description, unitPrice: '', inventoryItemId: '' }); if (!description || description.length >= 2) void loadInventory(description); }} onFocus={(e) => { e.target.setAttribute('data-open', '1'); void loadInventory(newLine.description); }} onBlur={(e) => setTimeout(() => e.target.removeAttribute('data-open'), 200)} autoComplete="off" />
                         {!inventoryItems.some((i: any) => i.itemName === newLine.description) && (
                           <div className="absolute z-50 top-full left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
                             {inventoryItems.filter((i: any) => { if (!newLine.description) return true; const q = newLine.description.toLowerCase().replace(/\s+/g, ' '); return i.itemName.toLowerCase().replace(/\s+/g, ' ').includes(q) || i.sku.toLowerCase().includes(q); }).map((i: any) => {

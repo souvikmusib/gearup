@@ -42,6 +42,11 @@ export default function AppointmentDetailPage() {
   const [rescheduleReason, setRescheduleReason] = useState('');
   const [showEdit, setShowEdit] = useState(false);
   const [editForm, setEditForm] = useState({ appointmentDate: '', assignedWorkerId: '' });
+  const loadWorkers = () => {
+    const { cached, promise } = api.getSWR<any>('/admin/workers?status=ACTIVE&pageSize=100');
+    if (cached?.success) setWorkers(cached.data?.items ?? cached.data ?? []);
+    void promise.then((r) => r.success && setWorkers(r.data?.items ?? r.data ?? []));
+  };
   const load = () => {
     const { cached, promise } = api.getSWR<any>(`/admin/appointments/${id}`);
     if (cached?.success) setData(cached.data);
@@ -49,9 +54,6 @@ export default function AppointmentDetailPage() {
   };
   useEffect(() => {
     load();
-    const { cached, promise } = api.getSWR<any>('/admin/workers?pageSize=100');
-    if (cached?.success) setWorkers(cached.data?.items ?? cached.data ?? []);
-    promise.then((r) => r.success && setWorkers(r.data?.items ?? r.data ?? []));
   }, [id]);
 
   const updateStatus = async (status: string) => {
@@ -85,6 +87,7 @@ export default function AppointmentDetailPage() {
     const dt = new Date(data.slotStart);
     const local = new Date(dt.getTime() - dt.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
     setEditForm({ appointmentDate: local, assignedWorkerId: data.assignedWorkerId || '' });
+    loadWorkers();
     setShowEdit(true);
   };
 
@@ -152,8 +155,9 @@ export default function AppointmentDetailPage() {
           </div>
           <div className="rounded-lg border border-gray-200 bg-white p-5 dark:border-gray-700 dark:bg-gray-800">
             <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Assigned Worker</h3>
-            <select className={inputCls} value={data.assignedWorkerId || ''} onChange={(e) => assignWorker(e.target.value)}>
+            <select className={inputCls} value={data.assignedWorkerId || ''} onFocus={loadWorkers} onChange={(e) => assignWorker(e.target.value)}>
               <option value="">Unassigned</option>
+              {data.worker && !workers.some((w: any) => w.id === data.worker.id) && <option value={data.worker.id}>{data.worker.fullName} ({data.worker.workerCode})</option>}
               {workers.map((w: any) => <option key={w.id} value={w.id}>{w.fullName} ({w.workerCode})</option>)}
             </select>
           </div>
@@ -167,7 +171,7 @@ export default function AppointmentDetailPage() {
         <div className="space-y-4">
           <div><label className="block text-sm font-medium mb-1">Date & Time <span className="text-red-500">*</span></label><input type="datetime-local" className={inputCls} value={editForm.appointmentDate} onChange={(e) => setEditForm({ ...editForm, appointmentDate: e.target.value })} /></div>
           <div><label className="block text-sm font-medium mb-1">Assigned Worker</label>
-            <select className={inputCls} value={editForm.assignedWorkerId} onChange={(e) => setEditForm({ ...editForm, assignedWorkerId: e.target.value })}>
+            <select className={inputCls} value={editForm.assignedWorkerId} onFocus={loadWorkers} onChange={(e) => setEditForm({ ...editForm, assignedWorkerId: e.target.value })}>
               <option value="">Unassigned</option>
               {workers.map((w: any) => <option key={w.id} value={w.id}>{w.fullName}</option>)}
             </select>

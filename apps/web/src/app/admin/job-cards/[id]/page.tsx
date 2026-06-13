@@ -1,6 +1,6 @@
 'use client';
 import { formatIST } from '@/lib/time';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';
 import { PageHeader, StatusBadge } from '@gearup/ui';
@@ -82,6 +82,7 @@ export default function JobCardDetailPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [deleting, setDeleting] = useState(false);
+  const inventoryQueryRef = useRef('');
 
   const load = () => {
     const apply = (r: any) => {
@@ -117,9 +118,13 @@ export default function JobCardDetailPage() {
     if (res.success) load();
   };
 
-  const loadInventory = async () => {
-    if (inventoryItems.length) return;
-    const res = await api.get<any>('/admin/inventory/items?pageSize=500');
+  const loadInventory = async (search = '') => {
+    const normalized = search.trim();
+    inventoryQueryRef.current = normalized;
+    const params = new URLSearchParams({ pageSize: '25' });
+    if (normalized) params.set('search', normalized);
+    const res = await api.get<any>(`/admin/inventory/items?${params.toString()}`);
+    if (inventoryQueryRef.current !== normalized) return;
     if (res.success) setInventoryItems(res.data?.items ?? res.data ?? []);
   };
 
@@ -157,7 +162,7 @@ export default function JobCardDetailPage() {
 
   const loadWorkers = async () => {
     if (workers.length) return;
-    const res = await api.get<any>('/admin/workers?pageSize=200');
+    const res = await api.get<any>('/admin/workers?status=ACTIVE&pageSize=100');
     if (res.success) setWorkers(res.data?.items ?? res.data ?? []);
   };
   const assignWorker = async () => {
@@ -399,7 +404,7 @@ export default function JobCardDetailPage() {
                   <button type="button" onClick={() => setShowNewPart(true)} className="text-[10px] text-blue-600 hover:underline">+ New Part</button>
                 </div>
                 <div className="relative">
-                  <input className={inputCls} placeholder="Type to search parts..." value={partForm.search || ''} onFocus={() => { loadInventory(); setPartForm({ ...partForm, _open: true }); }} onChange={(e) => setPartForm({ ...partForm, search: e.target.value, inventoryItemId: '', _open: true })} onBlur={() => setTimeout(() => setPartForm((f: any) => ({ ...f, _open: false })), 150)} autoComplete="off" />
+                  <input className={inputCls} placeholder="Type to search parts..." value={partForm.search || ''} onFocus={() => { void loadInventory(partForm.search || ''); setPartForm({ ...partForm, _open: true }); }} onChange={(e) => { const search = e.target.value; setPartForm({ ...partForm, search, inventoryItemId: '', _open: true }); if (!search || search.length >= 2) void loadInventory(search); }} onBlur={() => setTimeout(() => setPartForm((f: any) => ({ ...f, _open: false })), 150)} autoComplete="off" />
                   {partForm._open && !partForm.inventoryItemId && (
                     <div className="absolute z-50 top-full left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
                       {inventoryItems.filter((i: any) => !partForm.search || i.itemName.toLowerCase().includes((partForm.search || '').toLowerCase()) || i.sku.toLowerCase().includes((partForm.search || '').toLowerCase())).map((i: any) => (

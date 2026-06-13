@@ -18,7 +18,25 @@ export default function ReportsPage() {
   const [stats, setStats] = useState<any>(null);
 
   useEffect(() => {
-    api.get<any>('/admin/reports?type=dashboard').then((r) => { if (r.success) setStats(r.data); });
+    const { cached, promise } = api.getSWR<any>('/admin/reports?type=dashboard');
+    if (cached?.success) setStats(cached.data);
+
+    const loadStats = () => { void promise.then((r) => { if (r.success) setStats(r.data); }); };
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    let idleId: number | null = null;
+
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      idleId = window.requestIdleCallback(loadStats);
+    } else {
+      timeoutId = globalThis.setTimeout(loadStats, 250);
+    }
+
+    return () => {
+      if (idleId !== null && typeof window !== 'undefined' && 'cancelIdleCallback' in window) {
+        window.cancelIdleCallback(idleId);
+      }
+      if (timeoutId !== null) globalThis.clearTimeout(timeoutId);
+    };
   }, []);
 
   return (

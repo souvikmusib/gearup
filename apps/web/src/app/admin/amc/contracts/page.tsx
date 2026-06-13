@@ -6,6 +6,7 @@ import { api } from '@/lib/api/client';
 import { ProcessLoader } from '@/components/shared/process-loader';
 import { PageHeader, DataTable, StatusBadge } from '@gearup/ui';
 import { Modal } from '@/components/shared/modal';
+import { CustomerPicker } from '@/components/shared/customer-picker';
 
 export default function AmcContractsPage() {
   const [data, setData] = useState<any[]>([]);
@@ -15,10 +16,7 @@ export default function AmcContractsPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [plans, setPlans] = useState<any[]>([]);
-  const [customers, setCustomers] = useState<any[]>([]);
   const [vehicles, setVehicles] = useState<any[]>([]);
-  const [showNewCust, setShowNewCust] = useState(false);
-  const [custForm, setCustForm] = useState({ fullName: '', phoneNumber: '' });
   const [form, setForm] = useState({ customerId: '', vehicleId: '', amcPlanId: '', startDate: '', amountPaid: '', paymentMode: 'CASH', notes: '' });
 
   const load = (status = statusFilter) => {
@@ -30,13 +28,14 @@ export default function AmcContractsPage() {
   const openCreate = () => {
     setShowCreate(true); setError('');
     api.get<any>('/admin/amc/plans').then((r) => { if (r.success) setPlans((r.data ?? []).filter((p: any) => p.isActive)); });
-    api.get<any>('/admin/customers?pageSize=200').then((r) => { if (r.success) setCustomers(r.data?.items ?? r.data ?? []); });
+    setVehicles([]);
+    setForm({ customerId: '', vehicleId: '', amcPlanId: '', startDate: '', amountPaid: '', paymentMode: 'CASH', notes: '' });
   };
 
   const onCustomerChange = (customerId: string) => {
-    setForm({ ...form, customerId, vehicleId: '' });
+    setForm((prev) => ({ ...prev, customerId, vehicleId: '' }));
     if (customerId) {
-      api.get<any>(`/admin/vehicles?customerId=${customerId}&pageSize=100`).then((r) => { if (r.success) setVehicles(r.data?.items ?? r.data ?? []); });
+      api.get<any>(`/admin/vehicles?customerId=${customerId}&pageSize=50`).then((r) => { if (r.success) setVehicles(r.data?.items ?? r.data ?? []); });
     } else {
       setVehicles([]);
     }
@@ -81,26 +80,11 @@ export default function AmcContractsPage() {
       <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Create AMC Contract">
         <div className="space-y-3">
           {error && <p className="text-red-600 text-sm">{error}</p>}
-          <div><div className="flex items-center justify-between"><label className="text-xs text-gray-500">Customer</label><button type="button" onClick={() => setShowNewCust(!showNewCust)} className="text-xs text-blue-600 hover:underline">{showNewCust ? '← Select existing' : '+ New customer'}</button></div>
-          {showNewCust ? (
-            <div className="flex gap-2 mt-1">
-              <input className="w-full border rounded px-3 py-2 dark:bg-gray-800 dark:border-gray-700 text-sm" placeholder="Full Name *" value={custForm.fullName} onChange={(e) => setCustForm({ ...custForm, fullName: e.target.value })} />
-              <input className="w-full border rounded px-3 py-2 dark:bg-gray-800 dark:border-gray-700 text-sm" placeholder="Phone *" value={custForm.phoneNumber} onChange={(e) => setCustForm({ ...custForm, phoneNumber: e.target.value })} />
-              <button type="button" onClick={async () => {
-                if (!custForm.fullName || !custForm.phoneNumber) return;
-                setSaving(true);
-                const res = await api.post<any>('/admin/customers', custForm);
-                setSaving(false);
-                if (res.success) { setCustomers((p) => [res.data, ...p]); onCustomerChange(res.data.id); setShowNewCust(false); setCustForm({ fullName: '', phoneNumber: '' }); }
-                else setError(res.error?.message || 'Failed');
-              }} disabled={saving || !custForm.fullName || !custForm.phoneNumber} className="shrink-0 rounded bg-green-600 px-3 py-2 text-xs font-semibold text-white hover:bg-green-700 disabled:opacity-50">Add</button>
-            </div>
-          ) : (
-            <select className="w-full border rounded px-3 py-2 dark:bg-gray-800 dark:border-gray-700" value={form.customerId} onChange={(e) => onCustomerChange(e.target.value)}>
-              <option value="">Select Customer</option>
-              {customers.map((c: any) => <option key={c.id} value={c.id}>{c.fullName} — {c.phoneNumber}</option>)}
-            </select>
-          )}</div>
+          <CustomerPicker
+            value={form.customerId}
+            onChange={onCustomerChange}
+            onCustomerCreated={(customer) => onCustomerChange(customer.id)}
+          />
           <div><label className="text-xs text-gray-500">Vehicle</label>
           <select className="w-full border rounded px-3 py-2 dark:bg-gray-800 dark:border-gray-700" value={form.vehicleId} onChange={(e) => setForm({ ...form, vehicleId: e.target.value })} disabled={!form.customerId}>
             <option value="">{form.customerId ? 'Select Vehicle' : 'Select customer first'}</option>
