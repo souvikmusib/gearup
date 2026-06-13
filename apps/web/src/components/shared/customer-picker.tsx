@@ -14,18 +14,53 @@ export function CustomerPicker({ value, onChange, onCustomerCreated }: CustomerP
   const [showNew, setShowNew] = useState(false);
   const [newForm, setNewForm] = useState({ fullName: '', phoneNumber: '' });
   const [creating, setCreating] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [selectedName, setSelectedName] = useState('');
 
   useEffect(() => {
-    api.get<any>('/admin/customers?pageSize=500').then((r) => { if (r.success) setCustomers(r.data?.items ?? r.data ?? []); });
-  }, []);
+    if (showNew) return;
+    let active = true;
+    setLoading(true);
+    const timer = window.setTimeout(() => {
+      const params = new URLSearchParams({ pageSize: '20' });
+      if (search.trim()) params.set('search', search.trim());
+      api.get<any>(`/admin/customers?${params.toString()}`).then((r) => {
+        if (!active) return;
+        if (r.success) setCustomers(r.data?.items ?? r.data ?? []);
+        setLoading(false);
+      });
+    }, 200);
+
+    return () => {
+      active = false;
+      window.clearTimeout(timer);
+    };
+  }, [search, showNew]);
 
   // Set display name when value changes externally
   useEffect(() => {
-    if (value && customers.length) {
-      const c = customers.find((c) => c.id === value);
-      if (c) setSelectedName(`${c.fullName} — ${c.phoneNumber}`);
+    if (!value) {
+      setSelectedName('');
+      return;
     }
+
+    const existing = customers.find((c) => c.id === value);
+    if (existing) {
+      setSelectedName(`${existing.fullName} — ${existing.phoneNumber}`);
+      return;
+    }
+
+    let active = true;
+    api.get<any>(`/admin/customers/${value}`).then((r) => {
+      if (!active || !r.success) return;
+      const customer = r.data;
+      setSelectedName(`${customer.fullName} — ${customer.phoneNumber}`);
+      setCustomers((prev) => prev.some((entry) => entry.id === customer.id) ? prev : [customer, ...prev]);
+    });
+
+    return () => {
+      active = false;
+    };
   }, [value, customers]);
 
   const createCustomer = async () => {
@@ -78,17 +113,29 @@ export function CustomerPicker({ value, onChange, onCustomerCreated }: CustomerP
             className={inputCls}
             placeholder="Search customer by name or phone..."
             value={search || (value ? selectedName : '')}
-            onChange={(e) => { setSearch(e.target.value); if (value) { onChange(''); setSelectedName(''); } }}
-            onFocus={() => { if (value) { setSearch(selectedName); onChange(''); setSelectedName(''); } }}
+            onChange={(e) => {
+              const next = e.target.value;
+              if (value) {
+                onChange('');
+                setSelectedName('');
+              }
+              setSearch(next);
+            }}
+            onFocus={() => {
+              if (value && !search) {
+                setSearch('');
+              }
+            }}
           />
           {(search || !value) && !value && (
             <div className="absolute z-50 top-full left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
+              {loading && <p className="px-3 py-2 text-xs text-gray-400">Searching...</p>}
               {filtered.map((c) => (
                 <button key={c.id} type="button" onClick={() => selectCustomer(c)} className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 border-b border-gray-50 dark:border-gray-700 last:border-0">
                   <span className="font-medium">{c.fullName}</span> <span className="text-xs text-gray-400">{c.phoneNumber}</span>
                 </button>
               ))}
-              {filtered.length === 0 && <p className="px-3 py-2 text-xs text-gray-400">No matches</p>}
+              {!loading && filtered.length === 0 && <p className="px-3 py-2 text-xs text-gray-400">No matches</p>}
             </div>
           )}
         </div>

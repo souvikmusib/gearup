@@ -6,7 +6,7 @@ import { handleApiError, UnauthorizedError, AppError } from '@/lib/errors';
 import { MAX_LOGIN_ATTEMPTS, LOCKOUT_DURATION_MINUTES, JWT_EXPIRY } from '@/lib/constants';
 import { logActivity } from '@/lib/activity-logger';
 import { ROLE_PERMISSIONS, type RoleKey } from '@gearup/types';
-import { z } from 'zod';
+import { ZodError, z } from 'zod';
 import { getJwtSecret } from '@/lib/jwt-secret';
 import { AUTH_COOKIE_NAME } from '@/lib/auth';
 
@@ -20,7 +20,20 @@ const DUMMY_BCRYPT_HASH = '$2a$12$CwTycUXWue0Thq9StjUM0uJ8eVf3qB7n3qV3yQ8nQ6f2cT
 
 export async function POST(req: NextRequest) {
   try {
-    const { adminUserId, password } = loginSchema.parse(await req.json());
+    const rawBody = await req.text();
+    let parsedBody: unknown = {};
+
+    if (rawBody.trim()) {
+      try {
+        parsedBody = JSON.parse(rawBody);
+      } catch {
+        throw new AppError(400, 'Validation failed', 'VALIDATION_ERROR', {
+          _root: ['Request body must be valid JSON'],
+        });
+      }
+    }
+
+    const { adminUserId, password } = loginSchema.parse(parsedBody);
     const user = await prisma.adminUser.findUnique({ where: { adminUserId }, include: { roles: { include: { role: true } } } });
 
     // Unified-timing path: if the user doesn't exist, is INACTIVE, or is
@@ -70,7 +83,7 @@ export async function POST(req: NextRequest) {
     });
     return res;
   } catch (e) {
-    if (!(e instanceof AppError)) {
+    if (!(e instanceof AppError) && !(e instanceof ZodError)) {
       console.error('Login error:', e);
     }
     return handleApiError(e);
