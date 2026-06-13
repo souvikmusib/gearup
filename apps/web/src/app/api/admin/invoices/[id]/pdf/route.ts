@@ -677,10 +677,10 @@ body { font-family:'Google Sans','Product Sans',-apple-system,BlinkMacSystemFont
 @media print { body { -webkit-print-color-adjust:exact; print-color-adjust:exact; padding:0; } @page { margin:8mm; size:A4; } }
 table { width:100%; border-collapse:collapse; }
 th { background:#f3f4f6; padding:4px 6px; text-align:left; font-size:9px; text-transform:uppercase; color:#666; font-weight:600; }
-.section-top { padding-bottom:14px; }
-.cut { border-top:2px dashed #aaa; margin:14px 0; position:relative; }
+.section-top { min-height:72vh; padding-bottom:14px; display:flex; flex-direction:column; justify-content:space-between; }
+.cut { border-top:2px dashed #aaa; margin:6px 0; position:relative; }
 .cut::before { content:'✂ cut here'; position:absolute; top:-8px; left:0; background:#fff; padding:0 8px; color:#999; font-size:10px; }
-.section-bottom { padding-top:6px; }
+.section-bottom { padding-top:6px; max-height:25vh; }
 .header { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; padding-bottom:6px; border-bottom:1.5px solid #111; }
 .meta { display:flex; gap:8px; margin-bottom:8px; font-size:11px; }
 .meta-box { background:#f9fafb; padding:6px 10px; border-radius:4px; flex:1; }
@@ -689,6 +689,7 @@ th { background:#f3f4f6; padding:4px 6px; text-align:left; font-size:9px; text-t
 </style></head><body><div>
 
 <div class="section-top">
+  <div>
   <div class="header">
     <div><img src="${esc(logoUrl)}" style="height:26px" alt="${esc(biz.name)}"><span style="font-size:8px;color:#666;margin-left:6px">MECHANIC WORK ORDER</span></div>
     <div style="text-align:right"><strong style="font-size:11px">${esc(invoice.jobCard?.jobCardNumber || invoice.invoiceNumber)}</strong><br><span style="font-size:9px;color:#666">${formatDateIST(invoice.invoiceDate)}</span></div>
@@ -701,6 +702,7 @@ th { background:#f3f4f6; padding:4px 6px; text-align:left; font-size:9px; text-t
   <div style="display:flex;gap:12px">
     ${tasks ? `<div style="flex:1"><strong style="font-size:9px;text-transform:uppercase;color:#666">Tasks</strong><table><tbody>${tasks}</tbody></table></div>` : ''}
     ${parts ? `<div style="flex:1"><strong style="font-size:9px;text-transform:uppercase;color:#666">Parts</strong><table><tbody>${parts}</tbody></table></div>` : ''}
+  </div>
   </div>
   <div class="signature-row"><div>Mechanic: _______________</div><div>Date: _______________</div></div>
 </div>
