@@ -11,7 +11,7 @@
 //      localStorage reads/writes below.
 //   4. Add a CSRF token (or Origin check) on cookie-authed mutations.
 // This is tracked as a cascading change and must land before public launch.
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { api } from '@/lib/api/client';
 import type { MeResponse } from '@gearup/types';
 
@@ -25,6 +25,7 @@ interface AuthCtx {
 
 const AuthContext = createContext<AuthCtx>({ user: null, loading: true, login: async () => {}, logout: () => {}, hasPermission: () => false });
 const USER_CACHE_KEY = 'gearup_user';
+const REVALIDATE_COOLDOWN_MS = 30_000;
 
 function readCachedUser(): MeResponse | null {
   try {
@@ -43,6 +44,7 @@ function writeCachedUser(user: MeResponse | null) {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<MeResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const lastBackgroundCheckRef = useRef(0);
 
   const fetchMe = async ({ keepCurrent = false } = {}) => {
     const token = localStorage.getItem('gearup_token');
@@ -58,12 +60,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(res.data);
       writeCachedUser(res.data);
     }
-    else {
+    else if (res.error?.code === 'UNAUTHORIZED') {
       localStorage.removeItem('gearup_token');
       localStorage.removeItem('gearup_demo');
       writeCachedUser(null);
       setUser(null);
       api.clearCache();
+    }
+    else if (!keepCurrent && !user) {
+      const cachedUser = readCachedUser();
+      if (cachedUser) setUser(cachedUser);
     }
     setLoading(false);
   };
@@ -94,6 +100,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (typeof document === 'undefined') return;
       if (document.visibilityState !== 'visible') return;
       if (!localStorage.getItem('gearup_token')) return;
+      const now = Date.now();
+      if (now - lastBackgroundCheckRef.current < REVALIDATE_COOLDOWN_MS) return;
+      lastBackgroundCheckRef.current = now;
       void fetchMe({ keepCurrent: true });
     };
     document.addEventListener('visibilitychange', onVisibility);
@@ -108,7 +117,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     api.clearCache();
     writeCachedUser(null);
     localStorage.setItem('gearup_token', token);
-    await fetchMe();
+    await fetchMe({ keepCurrent: true });
   };
   const logout = () => {
     localStorage.removeItem('gearup_token');

@@ -18,11 +18,13 @@ export default function NotificationsPage() {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [search, setSearch] = useState('');
   const [channel, setChannel] = useState('');
   const [sendStatus, setSendStatus] = useState('');
 
   const load = useCallback(() => {
     const params = new URLSearchParams();
+    if (search) params.set('q', search);
     if (channel) params.set('channel', channel);
     if (sendStatus) params.set('sendStatus', sendStatus);
     params.set('page', String(page));
@@ -42,7 +44,7 @@ export default function NotificationsPage() {
       }
       setLoading(false);
     });
-  }, [page, channel, sendStatus]);
+  }, [page, search, channel, sendStatus]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -51,7 +53,10 @@ export default function NotificationsPage() {
       <PageHeader title="Notifications" />
       <ListToolbar
         searchPlaceholder="Search notifications…"
-        onSearch={() => { /* search not wired server-side yet */ }}
+        onSearch={(q) => {
+          setSearch(q);
+          setPage(1);
+        }}
         filters={[
           { label: 'All Channels', value: 'channel', options: CHANNELS },
           { label: 'All Statuses', value: 'sendStatus', options: STATUSES },

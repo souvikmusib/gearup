@@ -26,7 +26,7 @@ export default function AdminLoginPage() {
     try {
       const res = await api.post<{ token: string }>('/admin/auth/login', { adminUserId, password });
       setLoading(false);
-      if (res.success && res.data) { await login(res.data.token); router.push('/admin/dashboard'); return; }
+      if (res.success && res.data) { void login(res.data.token); router.push('/admin/dashboard'); return; }
       else setError(res.error?.message || 'Login failed');
     } catch {
       setError('Unable to reach server. Please try again.');
@@ -48,11 +48,11 @@ export default function AdminLoginPage() {
         {error && <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/30 dark:text-red-300">{error}</div>}
 
         <form onSubmit={submit} className="space-y-4">
-          <div><label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Admin User ID</label><input className={inputCls} required value={adminUserId} onChange={(e) => setAdminUserId(e.target.value)} /></div>
+          <div><label htmlFor="admin-user-id" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Admin User ID</label><input id="admin-user-id" autoComplete="username" className={inputCls} required value={adminUserId} onChange={(e) => setAdminUserId(e.target.value)} /></div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password</label>
+            <label htmlFor="admin-password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password</label>
             <div className="relative">
-              <input type={showPw ? 'text' : 'password'} className={inputCls} required value={password} onChange={(e) => setPassword(e.target.value)} />
+              <input id="admin-password" autoComplete="current-password" type={showPw ? 'text' : 'password'} className={inputCls} required value={password} onChange={(e) => setPassword(e.target.value)} />
               <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3 top-2.5 text-gray-400">{showPw ? <EyeOff size={16} /> : <Eye size={16} />}</button>
             </div>
           </div>
