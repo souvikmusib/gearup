@@ -33,6 +33,9 @@ export default function CatalogPage() {
   const [editItem, setEditItem] = useState<any>(null);
   const [editForm, setEditForm] = useState({ itemName: '', brand: '', costPrice: '', mrp: '', sellingPrice: '', discountPercent: '' });
   const [editSaving, setEditSaving] = useState(false);
+  const [editModelIds, setEditModelIds] = useState<string[]>([]);
+  const [allBrands, setAllBrands] = useState<any[]>([]);
+  const [allModels, setAllModels] = useState<any[]>([]);
 
   // Navigation state
   const [selectedBrand, setSelectedBrand] = useState<Brand | null>(null);
@@ -109,6 +112,20 @@ export default function CatalogPage() {
       const d = res.data;
       setEditItem(d);
       setEditForm({ itemName: d.itemName || '', brand: d.brand || '', costPrice: String(Number(d.costPrice) || ''), mrp: String(Number(d.mrp) || ''), sellingPrice: String(Number(d.sellingPrice) || ''), discountPercent: String(Number(d.discountPercent) || '') });
+      setEditModelIds((d.vehicleModels || []).map((vm: any) => vm.vehicleModelId));
+    }
+    // Load brands/models if not already loaded
+    if (!allBrands.length) {
+      const bRes = await api.get<any>('/admin/inventory/catalog?level=brands');
+      if (bRes.success) {
+        setAllBrands(bRes.data);
+        const mAll: any[] = [];
+        for (const b of bRes.data) {
+          const mRes = await api.get<any>(`/admin/inventory/catalog?level=models&brandId=${b.id}`);
+          if (mRes.success) mAll.push(...mRes.data.map((m: any) => ({ ...m, brandId: b.id, brandName: b.name })));
+        }
+        setAllModels(mAll);
+      }
     }
   };
 
@@ -119,6 +136,7 @@ export default function CatalogPage() {
       itemName: editForm.itemName, brand: editForm.brand || null,
       costPrice: Number(editForm.costPrice) || 0, mrp: editForm.mrp ? Number(editForm.mrp) : null,
       sellingPrice: Number(editForm.sellingPrice) || 0, discountPercent: editForm.discountPercent ? Number(editForm.discountPercent) : null,
+      modelIds: editModelIds,
     });
     setEditSaving(false);
     setEditItem(null);
@@ -375,6 +393,26 @@ export default function CatalogPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div><label className="block text-xs font-medium text-gray-500 mb-1">Selling Price</label><input type="number" step="0.01" className="w-full rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm bg-white dark:bg-gray-800" value={editForm.sellingPrice} onChange={e => setEditForm({ ...editForm, sellingPrice: e.target.value })} /></div>
                 <div><label className="block text-xs font-medium text-gray-500 mb-1">Discount %</label><input type="number" step="0.01" min="0" max="100" className="w-full rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm bg-white dark:bg-gray-800" value={editForm.discountPercent} onChange={e => setEditForm({ ...editForm, discountPercent: e.target.value })} /></div>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">Compatible Models {editModelIds.length > 0 && <span className="text-blue-600">({editModelIds.length})</span>}</label>
+                <div className="max-h-40 overflow-y-auto border rounded-lg p-2 space-y-1 bg-gray-50 dark:bg-gray-800 text-xs">
+                  {allBrands.filter(b => !editForm.brand || b.name.toLowerCase() === editForm.brand.toLowerCase()).map((b: any) => (
+                    <div key={b.id}>
+                      <div className="font-semibold text-gray-500 mt-1 flex items-center justify-between">
+                        <span>{b.name}</span>
+                        <button type="button" onClick={() => { const bModelIds = allModels.filter(m => m.brandId === b.id).map(m => m.id); const allChecked = bModelIds.every(id => editModelIds.includes(id)); setEditModelIds(allChecked ? editModelIds.filter(id => !bModelIds.includes(id)) : [...new Set([...editModelIds, ...bModelIds])]); }} className="text-[10px] text-blue-600 hover:underline">{allModels.filter(m => m.brandId === b.id).every(m => editModelIds.includes(m.id)) ? 'Deselect all' : 'Select all'}</button>
+                      </div>
+                      {allModels.filter((m: any) => m.brandId === b.id).map((m: any) => (
+                        <label key={m.id} className="flex items-center gap-1.5 cursor-pointer hover:bg-white dark:hover:bg-gray-700 px-1 rounded">
+                          <input type="checkbox" checked={editModelIds.includes(m.id)} onChange={e => setEditModelIds(e.target.checked ? [...editModelIds, m.id] : editModelIds.filter(x => x !== m.id))} className="rounded" />
+                          {m.name}
+                        </label>
+                      ))}
+                    </div>
+                  ))}
+                  {allBrands.length === 0 && <span className="text-gray-400">Loading models...</span>}
+                </div>
               </div>
               <button onClick={saveEdit} disabled={editSaving || !editForm.itemName} className="w-full rounded-lg bg-blue-600 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">{editSaving ? 'Saving...' : 'Save'}</button>
             </div>
