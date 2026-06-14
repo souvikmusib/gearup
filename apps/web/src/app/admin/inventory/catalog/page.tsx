@@ -36,6 +36,7 @@ export default function CatalogPage() {
   const [editModelIds, setEditModelIds] = useState<string[]>([]);
   const [allBrands, setAllBrands] = useState<any[]>([]);
   const [allModels, setAllModels] = useState<any[]>([]);
+  const [newModelName, setNewModelName] = useState('');
 
   // Navigation state
   const [selectedBrand, setSelectedBrand] = useState<Brand | null>(null);
@@ -141,6 +142,17 @@ export default function CatalogPage() {
     setEditSaving(false);
     setEditItem(null);
     loadItems(page);
+  };
+
+  const addModel = async (brandId: string, brandName: string) => {
+    if (!newModelName.trim()) return;
+    const res = await api.post<any>('/admin/inventory/catalog/models', { brandId, name: newModelName.trim() });
+    if (res.success) {
+      const m = { id: res.data.id, name: res.data.name, brandId, brandName, engineCC: res.data.engineCC, itemCount: 0 };
+      setAllModels([...allModels, m]);
+      setEditModelIds([...editModelIds, res.data.id]);
+      setNewModelName('');
+    }
   };
 
   const removeFromModel = async (itemId: string) => {
@@ -409,6 +421,10 @@ export default function CatalogPage() {
                           {m.name}
                         </label>
                       ))}
+                      <div className="flex gap-1 mt-1 px-1">
+                        <input placeholder="+ New model" className="flex-1 rounded border border-gray-300 dark:border-gray-600 px-2 py-0.5 text-xs bg-white dark:bg-gray-800" value={newModelName} onChange={e => setNewModelName(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addModel(b.id, b.name); } }} />
+                        <button type="button" onClick={() => addModel(b.id, b.name)} className="text-[10px] bg-blue-600 text-white px-2 py-0.5 rounded hover:bg-blue-700">Add</button>
+                      </div>
                     </div>
                   ))}
                   {allBrands.length === 0 && <span className="text-gray-400">Loading models...</span>}
