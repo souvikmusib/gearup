@@ -9,7 +9,7 @@ import { z } from 'zod';
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
   try {
     requirePermission(PERMISSIONS.INVENTORY_VIEW);
-    const item = await prisma.inventoryItem.findUniqueOrThrow({ where: { id: params.id }, include: { category: true, supplier: true } });
+    const item = await prisma.inventoryItem.findUniqueOrThrow({ where: { id: params.id }, include: { category: true, supplier: true, vehicleModels: { include: { vehicleModel: { include: { brand: true } } } } } });
     return NextResponse.json({ success: true, data: item });
   } catch (e) { return handleApiError(e); }
 }
@@ -24,8 +24,19 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       reorderLevel: z.number().nonnegative().nullable().optional(), reorderQuantity: z.number().nonnegative().nullable().optional(),
       storageLocation: z.string().nullable().optional(), barcode: z.string().nullable().optional(), isActive: z.boolean().optional(),
       variablePrice: z.boolean().optional(), isBranded: z.boolean().optional(),
+      modelIds: z.string().array().optional(),
     }).parse(await req.json());
-    const item = await prisma.inventoryItem.update({ where: { id: params.id }, data: body });
+    const { modelIds, ...data } = body;
+    const item = await prisma.$transaction(async (tx) => {
+      const updated = await tx.inventoryItem.update({ where: { id: params.id }, data });
+      if (modelIds !== undefined) {
+        await tx.inventoryItemModel.deleteMany({ where: { inventoryItemId: params.id } });
+        if (modelIds.length) {
+          await tx.inventoryItemModel.createMany({ data: modelIds.map(vehicleModelId => ({ inventoryItemId: params.id, vehicleModelId })) });
+        }
+      }
+      return updated;
+    });
     logActivity({ entityType: 'InventoryItem', entityId: item.id, action: 'inventory.item.updated', newValue: body, actorType: 'ADMIN', actorId: user.sub });
     return NextResponse.json({ success: true, data: item });
   } catch (e) { return handleApiError(e); }
