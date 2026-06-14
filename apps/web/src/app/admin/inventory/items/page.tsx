@@ -106,7 +106,7 @@ export default function InventoryItemsPage() {
     else { setCreateError(res.error?.message || 'Failed to create item'); }
   };
 
-  const openEdit = (item: any) => {
+  const openEdit = async (item: any) => {
     setEditItem(item);
     setEditForm({
       itemName: item.itemName || '', categoryId: item.categoryId || '', supplierId: item.supplierId || '', unit: item.unit || '', brand: item.brand || '',
@@ -114,6 +114,13 @@ export default function InventoryItemsPage() {
       reorderLevel: item.reorderLevel != null ? String(Number(item.reorderLevel)) : '', storageLocation: item.storageLocation || '', isActive: item.isActive ?? true, variablePrice: item.variablePrice ?? false, isBranded: item.isBranded ?? true,
     });
     loadLookups();
+    loadVehicleCatalog();
+    const res = await api.get<any>(`/admin/inventory/items/${item.id}`);
+    if (res.success && res.data.vehicleModels) {
+      setEditModelIds(res.data.vehicleModels.map((vm: any) => vm.vehicleModelId));
+    } else {
+      setEditModelIds([]);
+    }
   };
 
   const saveEdit = async (e: React.FormEvent) => {
@@ -125,6 +132,7 @@ export default function InventoryItemsPage() {
       brand: editForm.brand || null, costPrice: Number(editForm.costPrice), mrp: editForm.mrp ? Number(editForm.mrp) : null, sellingPrice: Number(editForm.sellingPrice), discountPercent: editForm.discountPercent ? Number(editForm.discountPercent) : null,
       reorderLevel: editForm.reorderLevel ? Number(editForm.reorderLevel) : null,
       storageLocation: editForm.storageLocation || null, isActive: editForm.isActive, variablePrice: editForm.variablePrice, isBranded: editForm.isBranded,
+      modelIds: editModelIds,
     };
     const res = await api.patch(`/admin/inventory/items/${editItem.id}`, body);
     setEditSaving(false);
@@ -286,6 +294,23 @@ export default function InventoryItemsPage() {
         <form onSubmit={saveEdit} className="space-y-3">
           <div><label className={labelCls}>Item Name</label><input className={inputCls} required value={editForm.itemName} onChange={(e) => setEditForm({ ...editForm, itemName: e.target.value })} /></div>
           <div><label className={labelCls}>Company / Brand</label><input className={inputCls} list="brand-options-edit" placeholder="e.g. Hero, Honda, Bajaj" value={editForm.brand} onChange={(e) => setEditForm({ ...editForm, brand: e.target.value })} /><datalist id="brand-options-edit">{[...new Set(data.map((i: any) => i.brand).filter(Boolean))].sort().map((b: string) => <option key={b} value={b} />)}</datalist></div>
+          <div><label className={labelCls}>Compatible Models</label>
+            <div className="max-h-32 overflow-y-auto border rounded-lg p-2 space-y-1 bg-gray-50 dark:bg-gray-800">
+              {vehicleBrands.filter(b => !editForm.brand || b.name.toLowerCase() === editForm.brand.toLowerCase()).map((b: any) => (
+                <div key={b.id}>
+                  <div className="text-xs font-semibold text-gray-500 mt-1">{b.name}</div>
+                  {vehicleModels.filter((m: any) => m.brandId === b.id).map((m: any) => (
+                    <label key={m.id} className="flex items-center gap-1.5 text-xs cursor-pointer hover:bg-white dark:hover:bg-gray-700 px-1 rounded">
+                      <input type="checkbox" checked={editModelIds.includes(m.id)} onChange={(e) => setEditModelIds(e.target.checked ? [...editModelIds, m.id] : editModelIds.filter(x => x !== m.id))} className="rounded" />
+                      {m.name}
+                    </label>
+                  ))}
+                </div>
+              ))}
+              {vehicleBrands.length === 0 && <span className="text-xs text-gray-400">Loading models...</span>}
+            </div>
+            {editModelIds.length > 0 && <span className="text-xs text-blue-600">{editModelIds.length} selected</span>}
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <div><label className={labelCls}>Category</label>
               <SearchableSelect

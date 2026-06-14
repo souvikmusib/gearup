@@ -28,6 +28,7 @@ const NAV = [
   },
   {
     label: 'Inventory', icon: Package, permission: 'inventory.view', children: [
+      { label: 'Catalog', href: '/admin/inventory/catalog' },
       { label: 'Items', href: '/admin/inventory/items' },
       { label: 'Categories', href: '/admin/inventory/categories' },
       { label: 'Suppliers', href: '/admin/inventory/suppliers' },
