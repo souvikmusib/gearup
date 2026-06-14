@@ -8,6 +8,7 @@ import { ListToolbar } from '@/components/shared/list-toolbar';
 import { Pagination } from '@/components/shared/pagination';
 import { Modal } from '@/components/shared/modal';
 import { SearchableSelect } from '@/components/shared/searchable-select';
+import { InventoryEditModal } from '@/components/inventory/edit-modal';
 import { AlertTriangle, FolderOpen, Building2, List as ListIcon, MoreVertical } from 'lucide-react';
 import { getBrandStyle, getBrandInitial } from '@/lib/brand-logos';
 
@@ -314,74 +315,7 @@ export default function InventoryItemsPage() {
           <button type="submit" disabled={creating} className="w-full rounded-lg bg-blue-600 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">{creating ? 'Creating...' : 'Create'}</button>
         </form>
       </Modal>
-      <Modal open={!!editItem} onClose={() => setEditItem(null)} title={`Edit: ${editItem?.sku ?? ''}`}>
-        <form onSubmit={saveEdit} className="space-y-3">
-          <div><label className={labelCls}>Item Name</label><input className={inputCls} required value={editForm.itemName} onChange={(e) => setEditForm({ ...editForm, itemName: e.target.value })} /></div>
-          <div><label className={labelCls}>Company / Brand</label><input className={inputCls} list="brand-options-edit" placeholder="e.g. Hero, Honda, Bajaj" value={editForm.brand} onChange={(e) => setEditForm({ ...editForm, brand: e.target.value })} /><datalist id="brand-options-edit">{[...new Set(data.map((i: any) => i.brand).filter(Boolean))].sort().map((b: string) => <option key={b} value={b} />)}</datalist></div>
-          <div><label className={labelCls}>Compatible Models</label>
-            <div className="max-h-32 overflow-y-auto border rounded-lg p-2 space-y-1 bg-gray-50 dark:bg-gray-800">
-              {vehicleBrands.filter(b => !editForm.brand || b.name.toLowerCase() === editForm.brand.toLowerCase()).map((b: any) => (
-                <div key={b.id}>
-                  <div className="text-xs font-semibold text-gray-500 mt-1">{b.name}</div>
-                  {vehicleModels.filter((m: any) => m.brandId === b.id).map((m: any) => (
-                    <label key={m.id} className="flex items-center gap-1.5 text-xs cursor-pointer hover:bg-white dark:hover:bg-gray-700 px-1 rounded">
-                      <input type="checkbox" checked={editModelIds.includes(m.id)} onChange={(e) => setEditModelIds(e.target.checked ? [...editModelIds, m.id] : editModelIds.filter(x => x !== m.id))} className="rounded" />
-                      {m.name}
-                    </label>
-                  ))}
-                </div>
-              ))}
-              {vehicleBrands.length === 0 && <span className="text-xs text-gray-400">Loading models...</span>}
-            </div>
-            {editModelIds.length > 0 && <span className="text-xs text-blue-600">{editModelIds.length} selected</span>}
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div><label className={labelCls}>Category</label>
-              <SearchableSelect
-                options={categories.map((c: any) => ({ value: c.id, label: c.categoryName }))}
-                value={editForm.categoryId}
-                onChange={(v) => setEditForm({ ...editForm, categoryId: v })}
-                placeholder="Select category…"
-              />
-            </div>
-            <div><label className={labelCls}>Supplier</label>
-              <SearchableSelect
-                options={[{ value: '', label: 'None' }, ...suppliers.map((s: any) => ({ value: s.id, label: s.supplierName, sublabel: s.phone }))]}
-                value={editForm.supplierId}
-                onChange={(v) => setEditForm({ ...editForm, supplierId: v })}
-                placeholder="Select supplier…"
-              />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div><label className={labelCls}>Cost Price</label><input className={inputCls} type="number" step="0.01" value={editForm.costPrice} onChange={(e) => setEditForm({ ...editForm, costPrice: e.target.value })} /></div>
-            <div><label className={labelCls}>MRP</label><input className={inputCls} type="number" step="0.01" value={editForm.mrp} onChange={(e) => { const mrp = e.target.value; const dp = Number(editForm.discountPercent) || 0; const sp = mrp ? String((Number(mrp) * (1 - dp / 100)).toFixed(2)) : editForm.sellingPrice; setEditForm({ ...editForm, mrp, sellingPrice: sp }); }} /></div>
-            <div><label className={labelCls}>Discount %</label><input className={inputCls} type="number" step="0.01" min="0" max="100" value={editForm.discountPercent} onChange={(e) => { const dp = e.target.value; const mrp = Number(editForm.mrp); const sp = mrp ? String((mrp * (1 - Number(dp) / 100)).toFixed(2)) : editForm.sellingPrice; setEditForm({ ...editForm, discountPercent: dp, sellingPrice: sp }); }} /></div>
-            <div><label className={labelCls}>Selling Price</label><input className={inputCls} type="number" step="0.01" value={editForm.sellingPrice} onChange={(e) => { const sp = e.target.value; const mrp = Number(editForm.mrp); const dp = mrp && Number(sp) ? String(((1 - Number(sp) / mrp) * 100).toFixed(1)) : editForm.discountPercent; setEditForm({ ...editForm, sellingPrice: sp, discountPercent: dp }); }} /></div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div><label className={labelCls}>Unit</label><input className={inputCls} required value={editForm.unit} onChange={(e) => setEditForm({ ...editForm, unit: e.target.value })} /></div>
-            <div><label className={labelCls}>Reorder Level</label><input className={inputCls} type="number" value={editForm.reorderLevel} onChange={(e) => setEditForm({ ...editForm, reorderLevel: e.target.value })} /></div>
-          </div>
-          <div><label className={labelCls}>Storage Location</label><input className={inputCls} value={editForm.storageLocation} onChange={(e) => setEditForm({ ...editForm, storageLocation: e.target.value })} /></div>
-          <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={editForm.isActive} onChange={(e) => setEditForm({ ...editForm, isActive: e.target.checked })} className="rounded" />
-            Active
-          </label>
-          <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={editForm.variablePrice} onChange={(e) => setEditForm({ ...editForm, variablePrice: e.target.checked })} className="rounded" />
-            Variable price (enter price at sale time)
-          </label>
-          <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={editForm.isBranded} onChange={(e) => setEditForm({ ...editForm, isBranded: e.target.checked })} className="rounded" />
-            Branded product
-          </label>
-          <button type="submit" disabled={editSaving} className="w-full rounded-lg bg-blue-600 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
-            {editSaving ? 'Saving...' : 'Save Changes'}
-          </button>
-          <button type="button" onClick={async () => { if (!confirm('Delete this item?')) return; const res = await api.delete(`/admin/inventory/items/${editItem?.id}`); if (res.success) { setEditItem(null); load(); } else alert(res.error?.message || 'Cannot delete'); }} className="w-full mt-2 rounded-lg py-2 text-sm font-medium text-red-600 border border-red-300 hover:bg-red-50 dark:border-red-700 dark:hover:bg-red-900/20">Delete Item</button>
-        </form>
-      </Modal>
+      <InventoryEditModal itemId={editItem?.id || null} onClose={() => setEditItem(null)} onSaved={load} />
       <Modal open={!!stockItem} onClose={() => setStockItem(null)} title={`Stock Movement: ${stockItem?.itemName ?? ''}`}>
         <p className="text-sm text-gray-500 mb-3">Current stock: <span className="font-semibold">{stockItem ? Number(stockItem.quantityInStock) : 0}</span></p>
         <form onSubmit={submitStock} className="space-y-3">

@@ -4,6 +4,7 @@ import { api } from '@/lib/api/client';
 import { toTitleCase } from '@/lib/title-case';
 import { ProcessLoader } from '@/components/shared/process-loader';
 import { Pagination } from '@/components/shared/pagination';
+import { InventoryEditModal } from '@/components/inventory/edit-modal';
 import { ChevronRight, Package, Search, ArrowLeft, MoreVertical, X } from 'lucide-react';
 import Link from 'next/link';
 
@@ -31,12 +32,7 @@ export default function CatalogPage() {
   const [stockForm, setStockForm] = useState({ type: 'STOCK_IN', quantity: '', reason: '' });
   const [stockSaving, setStockSaving] = useState(false);
   const [editItem, setEditItem] = useState<any>(null);
-  const [editForm, setEditForm] = useState({ itemName: '', brand: '', costPrice: '', mrp: '', sellingPrice: '', discountPercent: '' });
   const [editSaving, setEditSaving] = useState(false);
-  const [editModelIds, setEditModelIds] = useState<string[]>([]);
-  const [allBrands, setAllBrands] = useState<any[]>([]);
-  const [allModels, setAllModels] = useState<any[]>([]);
-  const [newModelName, setNewModelName] = useState('');
 
   // Navigation state
   const [selectedBrand, setSelectedBrand] = useState<Brand | null>(null);
@@ -106,53 +102,9 @@ export default function CatalogPage() {
     return '🟢';
   };
 
-  const openEdit = async (itemId: string) => {
+  const openEdit = (itemId: string) => {
     setMenuOpen(null);
-    const res = await api.get<any>(`/admin/inventory/items/${itemId}`);
-    if (res.success) {
-      const d = res.data;
-      setEditItem(d);
-      setEditForm({ itemName: d.itemName || '', brand: d.brand || '', costPrice: String(Number(d.costPrice) || ''), mrp: String(Number(d.mrp) || ''), sellingPrice: String(Number(d.sellingPrice) || ''), discountPercent: String(Number(d.discountPercent) || '') });
-      setEditModelIds((d.vehicleModels || []).map((vm: any) => vm.vehicleModelId));
-    }
-    // Load brands/models if not already loaded
-    if (!allBrands.length) {
-      const bRes = await api.get<any>('/admin/inventory/catalog?level=brands');
-      if (bRes.success) {
-        setAllBrands(bRes.data);
-        const mAll: any[] = [];
-        for (const b of bRes.data) {
-          const mRes = await api.get<any>(`/admin/inventory/catalog?level=models&brandId=${b.id}`);
-          if (mRes.success) mAll.push(...mRes.data.map((m: any) => ({ ...m, brandId: b.id, brandName: b.name })));
-        }
-        setAllModels(mAll);
-      }
-    }
-  };
-
-  const saveEdit = async () => {
-    if (!editItem) return;
-    setEditSaving(true);
-    await api.patch(`/admin/inventory/items/${editItem.id}`, {
-      itemName: editForm.itemName, brand: editForm.brand || null,
-      costPrice: Number(editForm.costPrice) || 0, mrp: editForm.mrp ? Number(editForm.mrp) : null,
-      sellingPrice: Number(editForm.sellingPrice) || 0, discountPercent: editForm.discountPercent ? Number(editForm.discountPercent) : null,
-      modelIds: editModelIds,
-    });
-    setEditSaving(false);
-    setEditItem(null);
-    loadItems(page);
-  };
-
-  const addModel = async (brandId: string, brandName: string) => {
-    if (!newModelName.trim()) return;
-    const res = await api.post<any>('/admin/inventory/catalog/models', { brandId, name: newModelName.trim() });
-    if (res.success) {
-      const m = { id: res.data.id, name: res.data.name, brandId, brandName, engineCC: res.data.engineCC, itemCount: 0 };
-      setAllModels([...allModels, m]);
-      setEditModelIds([...editModelIds, res.data.id]);
-      setNewModelName('');
-    }
+    setEditItem({ id: itemId });
   };
 
   const removeFromModel = async (itemId: string) => {
@@ -388,53 +340,7 @@ export default function CatalogPage() {
       )}
 
       {/* Edit Modal */}
-      {editItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30" onClick={() => setEditItem(null)}>
-          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-xl p-5 max-w-md w-full" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold">Edit: {editItem.sku}</h3>
-              <button onClick={() => setEditItem(null)} className="text-gray-400 hover:text-gray-600"><X size={16} /></button>
-            </div>
-            <div className="space-y-3">
-              <div><label className="block text-xs font-medium text-gray-500 mb-1">Item Name</label><input className="w-full rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm bg-white dark:bg-gray-800" value={editForm.itemName} onChange={e => setEditForm({ ...editForm, itemName: e.target.value })} /></div>
-              <div><label className="block text-xs font-medium text-gray-500 mb-1">Brand</label><input className="w-full rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm bg-white dark:bg-gray-800" value={editForm.brand} onChange={e => setEditForm({ ...editForm, brand: e.target.value })} /></div>
-              <div className="grid grid-cols-2 gap-3">
-                <div><label className="block text-xs font-medium text-gray-500 mb-1">Cost Price</label><input type="number" step="0.01" className="w-full rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm bg-white dark:bg-gray-800" value={editForm.costPrice} onChange={e => setEditForm({ ...editForm, costPrice: e.target.value })} /></div>
-                <div><label className="block text-xs font-medium text-gray-500 mb-1">MRP</label><input type="number" step="0.01" className="w-full rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm bg-white dark:bg-gray-800" value={editForm.mrp} onChange={e => setEditForm({ ...editForm, mrp: e.target.value })} /></div>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div><label className="block text-xs font-medium text-gray-500 mb-1">Selling Price</label><input type="number" step="0.01" className="w-full rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm bg-white dark:bg-gray-800" value={editForm.sellingPrice} onChange={e => setEditForm({ ...editForm, sellingPrice: e.target.value })} /></div>
-                <div><label className="block text-xs font-medium text-gray-500 mb-1">Discount %</label><input type="number" step="0.01" min="0" max="100" className="w-full rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm bg-white dark:bg-gray-800" value={editForm.discountPercent} onChange={e => setEditForm({ ...editForm, discountPercent: e.target.value })} /></div>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">Compatible Models {editModelIds.length > 0 && <span className="text-blue-600">({editModelIds.length})</span>}</label>
-                <div className="max-h-40 overflow-y-auto border rounded-lg p-2 space-y-1 bg-gray-50 dark:bg-gray-800 text-xs">
-                  {allBrands.filter(b => !editForm.brand || b.name.toLowerCase() === editForm.brand.toLowerCase()).map((b: any) => (
-                    <div key={b.id}>
-                      <div className="font-semibold text-gray-500 mt-1 flex items-center justify-between">
-                        <span>{b.name}</span>
-                        <button type="button" onClick={() => { const bModelIds = allModels.filter(m => m.brandId === b.id).map(m => m.id); const allChecked = bModelIds.every(id => editModelIds.includes(id)); setEditModelIds(allChecked ? editModelIds.filter(id => !bModelIds.includes(id)) : [...new Set([...editModelIds, ...bModelIds])]); }} className="text-[10px] text-blue-600 hover:underline">{allModels.filter(m => m.brandId === b.id).every(m => editModelIds.includes(m.id)) ? 'Deselect all' : 'Select all'}</button>
-                      </div>
-                      {allModels.filter((m: any) => m.brandId === b.id).map((m: any) => (
-                        <label key={m.id} className="flex items-center gap-1.5 cursor-pointer hover:bg-white dark:hover:bg-gray-700 px-1 rounded">
-                          <input type="checkbox" checked={editModelIds.includes(m.id)} onChange={e => setEditModelIds(e.target.checked ? [...editModelIds, m.id] : editModelIds.filter(x => x !== m.id))} className="rounded" />
-                          {m.name}
-                        </label>
-                      ))}
-                      <div className="flex gap-1 mt-1 px-1">
-                        <input placeholder="+ New model" className="flex-1 rounded border border-gray-300 dark:border-gray-600 px-2 py-0.5 text-xs bg-white dark:bg-gray-800" value={newModelName} onChange={e => setNewModelName(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addModel(b.id, b.name); } }} />
-                        <button type="button" onClick={() => addModel(b.id, b.name)} className="text-[10px] bg-blue-600 text-white px-2 py-0.5 rounded hover:bg-blue-700">Add</button>
-                      </div>
-                    </div>
-                  ))}
-                  {allBrands.length === 0 && <span className="text-gray-400">Loading models...</span>}
-                </div>
-              </div>
-              <button onClick={saveEdit} disabled={editSaving || !editForm.itemName} className="w-full rounded-lg bg-blue-600 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">{editSaving ? 'Saving...' : 'Save'}</button>
-            </div>
-          </div>
-        </div>
-      )}
+      <InventoryEditModal itemId={editItem?.id || null} onClose={() => setEditItem(null)} onSaved={() => loadItems(page)} />
     </div>
   );
 }
