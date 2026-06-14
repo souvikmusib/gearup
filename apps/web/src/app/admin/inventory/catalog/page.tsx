@@ -4,7 +4,7 @@ import { api } from '@/lib/api/client';
 import { toTitleCase } from '@/lib/title-case';
 import { ProcessLoader } from '@/components/shared/process-loader';
 import { Pagination } from '@/components/shared/pagination';
-import { ChevronRight, Package, Search, ArrowLeft } from 'lucide-react';
+import { ChevronRight, Package, Search, ArrowLeft, MoreVertical, X } from 'lucide-react';
 import Link from 'next/link';
 
 type Brand = { id: string; name: string; logoUrl: string | null; modelCount: number; itemCount: number };
@@ -22,6 +22,14 @@ export default function CatalogPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState('');
+
+  // Kebab menu & actions
+  const [menuOpen, setMenuOpen] = useState<string | null>(null);
+  const [confirmRemove, setConfirmRemove] = useState<string | null>(null);
+  const [viewModelsFor, setViewModelsFor] = useState<{ id: string; name: string; models: string[] } | null>(null);
+  const [stockItem, setStockItem] = useState<{ id: string; name: string } | null>(null);
+  const [stockForm, setStockForm] = useState({ type: 'STOCK_IN', quantity: '', reason: '' });
+  const [stockSaving, setStockSaving] = useState(false);
 
   // Navigation state
   const [selectedBrand, setSelectedBrand] = useState<Brand | null>(null);
@@ -89,6 +97,37 @@ export default function CatalogPage() {
     if (qty <= 0) return '🔴';
     if (reorder && qty <= reorder) return '🟡';
     return '🟢';
+  };
+
+  const removeFromModel = async (itemId: string) => {
+    if (!selectedModel) return;
+    // Get current model links, remove this one
+    const res = await api.get<any>(`/admin/inventory/items/${itemId}`);
+    if (!res.success) return;
+    const currentIds = (res.data.vehicleModels || []).map((vm: any) => vm.vehicleModelId).filter((id: string) => id !== selectedModel.id);
+    await api.patch(`/admin/inventory/items/${itemId}`, { modelIds: currentIds });
+    setConfirmRemove(null);
+    setMenuOpen(null);
+    loadItems(page);
+  };
+
+  const viewCompatibleModels = async (itemId: string, itemName: string) => {
+    const res = await api.get<any>(`/admin/inventory/items/${itemId}`);
+    if (res.success && res.data.vehicleModels) {
+      const models = res.data.vehicleModels.map((vm: any) => `${vm.vehicleModel.brand.name} ${vm.vehicleModel.name}`);
+      setViewModelsFor({ id: itemId, name: itemName, models });
+    }
+    setMenuOpen(null);
+  };
+
+  const submitRestock = async () => {
+    if (!stockItem || !stockForm.quantity) return;
+    setStockSaving(true);
+    await api.post(`/admin/inventory/items/${stockItem.id}/stock`, { type: stockForm.type, quantity: Number(stockForm.quantity), reason: stockForm.reason || undefined });
+    setStockSaving(false);
+    setStockItem(null);
+    setStockForm({ type: 'STOCK_IN', quantity: '', reason: '' });
+    loadItems(page);
   };
 
   return (
@@ -199,6 +238,7 @@ export default function CatalogPage() {
                   <th className="px-4 py-3 text-right">MRP</th>
                   <th className="px-4 py-3 text-right">Selling</th>
                   <th className="px-4 py-3 text-center">Stock</th>
+                  <th className="px-4 py-3 text-center w-10"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
@@ -212,15 +252,82 @@ export default function CatalogPage() {
                     <td className={`px-4 py-2.5 text-center font-medium ${stockColor(Number(item.quantityInStock), item.reorderLevel ? Number(item.reorderLevel) : null)}`}>
                       {stockDot(Number(item.quantityInStock), item.reorderLevel ? Number(item.reorderLevel) : null)} {Number(item.quantityInStock)}
                     </td>
+                    <td className="px-4 py-2.5 text-center relative">
+                      <button onClick={() => setMenuOpen(menuOpen === item.id ? null : item.id)} className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"><MoreVertical size={16} /></button>
+                      {menuOpen === item.id && (
+                        <>
+                        <div className="fixed inset-0 z-40" onClick={() => { setMenuOpen(null); setConfirmRemove(null); }} />
+                        <div className="absolute right-4 top-10 z-50 w-48 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-lg py-1">
+                          <Link href={`/admin/inventory/items?edit=${item.id}`} className="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800" onClick={() => setMenuOpen(null)}>✏️ Edit</Link>
+                          <button onClick={() => viewCompatibleModels(item.id, item.itemName)} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800">🔗 View compatible models</button>
+                          {selectedModel && (
+                            confirmRemove === item.id ? (
+                              <div className="px-4 py-2 space-y-1">
+                                <p className="text-xs text-red-600">Remove from {selectedModel.name}?</p>
+                                <div className="flex gap-2">
+                                  <button onClick={() => removeFromModel(item.id)} className="text-xs bg-red-600 text-white px-2 py-0.5 rounded">Yes</button>
+                                  <button onClick={() => setConfirmRemove(null)} className="text-xs bg-gray-200 dark:bg-gray-700 px-2 py-0.5 rounded">No</button>
+                                </div>
+                              </div>
+                            ) : (
+                              <button onClick={() => setConfirmRemove(item.id)} className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20">❌ Remove from {selectedModel.name}</button>
+                            )
+                          )}
+                          <button onClick={() => { setStockItem({ id: item.id, name: item.itemName }); setMenuOpen(null); }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800">📦 Restock</button>
+                        </div>
+                        </>
+                      )}
+                    </td>
                   </tr>
                 ))}
                 {items.length === 0 && (
-                  <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-500">No parts found</td></tr>
+                  <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-500">No parts found</td></tr>
                 )}
               </tbody>
             </table>
           </div>
           {totalPages > 1 && <div className="mt-4"><Pagination page={page} totalPages={totalPages} onPageChange={(p) => { setPage(p); loadItems(p); }} /></div>}
+        </div>
+      )}
+
+      {/* View Compatible Models Popover */}
+      {viewModelsFor && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30" onClick={() => setViewModelsFor(null)}>
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-xl p-5 max-w-sm w-full" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold text-sm">Compatible Models</h3>
+              <button onClick={() => setViewModelsFor(null)} className="text-gray-400 hover:text-gray-600"><X size={16} /></button>
+            </div>
+            <p className="text-xs text-gray-500 mb-2">{toTitleCase(viewModelsFor.name)}</p>
+            {viewModelsFor.models.length > 0 ? (
+              <ul className="space-y-1 max-h-48 overflow-y-auto">
+                {viewModelsFor.models.map((m, i) => <li key={i} className="text-sm text-gray-700 dark:text-gray-300">• {m}</li>)}
+              </ul>
+            ) : (
+              <p className="text-sm text-gray-500">No models linked</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Restock Modal */}
+      {stockItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30" onClick={() => setStockItem(null)}>
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-xl p-5 max-w-sm w-full" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold text-sm">Restock: {toTitleCase(stockItem.name)}</h3>
+              <button onClick={() => setStockItem(null)} className="text-gray-400 hover:text-gray-600"><X size={16} /></button>
+            </div>
+            <div className="space-y-3">
+              <select className="w-full rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm bg-white dark:bg-gray-800" value={stockForm.type} onChange={e => setStockForm({ ...stockForm, type: e.target.value })}>
+                <option value="STOCK_IN">Stock In</option>
+                <option value="STOCK_OUT">Stock Out</option>
+              </select>
+              <input type="number" min="1" placeholder="Quantity" className="w-full rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm bg-white dark:bg-gray-800" value={stockForm.quantity} onChange={e => setStockForm({ ...stockForm, quantity: e.target.value })} />
+              <input placeholder="Reason (optional)" className="w-full rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm bg-white dark:bg-gray-800" value={stockForm.reason} onChange={e => setStockForm({ ...stockForm, reason: e.target.value })} />
+              <button onClick={submitRestock} disabled={stockSaving || !stockForm.quantity} className="w-full rounded-lg bg-blue-600 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">{stockSaving ? 'Saving...' : 'Submit'}</button>
+            </div>
+          </div>
         </div>
       )}
     </div>
