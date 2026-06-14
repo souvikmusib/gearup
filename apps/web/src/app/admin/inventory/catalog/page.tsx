@@ -30,6 +30,9 @@ export default function CatalogPage() {
   const [stockItem, setStockItem] = useState<{ id: string; name: string } | null>(null);
   const [stockForm, setStockForm] = useState({ type: 'STOCK_IN', quantity: '', reason: '' });
   const [stockSaving, setStockSaving] = useState(false);
+  const [editItem, setEditItem] = useState<any>(null);
+  const [editForm, setEditForm] = useState({ itemName: '', brand: '', costPrice: '', mrp: '', sellingPrice: '', discountPercent: '' });
+  const [editSaving, setEditSaving] = useState(false);
 
   // Navigation state
   const [selectedBrand, setSelectedBrand] = useState<Brand | null>(null);
@@ -97,6 +100,29 @@ export default function CatalogPage() {
     if (qty <= 0) return '🔴';
     if (reorder && qty <= reorder) return '🟡';
     return '🟢';
+  };
+
+  const openEdit = async (itemId: string) => {
+    setMenuOpen(null);
+    const res = await api.get<any>(`/admin/inventory/items/${itemId}`);
+    if (res.success) {
+      const d = res.data;
+      setEditItem(d);
+      setEditForm({ itemName: d.itemName || '', brand: d.brand || '', costPrice: String(Number(d.costPrice) || ''), mrp: String(Number(d.mrp) || ''), sellingPrice: String(Number(d.sellingPrice) || ''), discountPercent: String(Number(d.discountPercent) || '') });
+    }
+  };
+
+  const saveEdit = async () => {
+    if (!editItem) return;
+    setEditSaving(true);
+    await api.patch(`/admin/inventory/items/${editItem.id}`, {
+      itemName: editForm.itemName, brand: editForm.brand || null,
+      costPrice: Number(editForm.costPrice) || 0, mrp: editForm.mrp ? Number(editForm.mrp) : null,
+      sellingPrice: Number(editForm.sellingPrice) || 0, discountPercent: editForm.discountPercent ? Number(editForm.discountPercent) : null,
+    });
+    setEditSaving(false);
+    setEditItem(null);
+    loadItems(page);
   };
 
   const removeFromModel = async (itemId: string) => {
@@ -258,7 +284,7 @@ export default function CatalogPage() {
                         <>
                         <div className="fixed inset-0 z-40" onClick={() => { setMenuOpen(null); setConfirmRemove(null); }} />
                         <div className="absolute right-4 top-10 z-50 w-48 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-lg py-1">
-                          <Link href={`/admin/inventory/items?edit=${item.id}`} className="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800" onClick={() => setMenuOpen(null)}>✏️ Edit</Link>
+                          <button onClick={() => openEdit(item.id)} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800">✏️ Edit</button>
                           <button onClick={() => viewCompatibleModels(item.id, item.itemName)} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800">🔗 View compatible models</button>
                           {selectedModel && (
                             confirmRemove === item.id ? (
@@ -326,6 +352,31 @@ export default function CatalogPage() {
               <input type="number" min="1" placeholder="Quantity" className="w-full rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm bg-white dark:bg-gray-800" value={stockForm.quantity} onChange={e => setStockForm({ ...stockForm, quantity: e.target.value })} />
               <input placeholder="Reason (optional)" className="w-full rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm bg-white dark:bg-gray-800" value={stockForm.reason} onChange={e => setStockForm({ ...stockForm, reason: e.target.value })} />
               <button onClick={submitRestock} disabled={stockSaving || !stockForm.quantity} className="w-full rounded-lg bg-blue-600 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">{stockSaving ? 'Saving...' : 'Submit'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Modal */}
+      {editItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30" onClick={() => setEditItem(null)}>
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-xl p-5 max-w-md w-full" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold">Edit: {editItem.sku}</h3>
+              <button onClick={() => setEditItem(null)} className="text-gray-400 hover:text-gray-600"><X size={16} /></button>
+            </div>
+            <div className="space-y-3">
+              <div><label className="block text-xs font-medium text-gray-500 mb-1">Item Name</label><input className="w-full rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm bg-white dark:bg-gray-800" value={editForm.itemName} onChange={e => setEditForm({ ...editForm, itemName: e.target.value })} /></div>
+              <div><label className="block text-xs font-medium text-gray-500 mb-1">Brand</label><input className="w-full rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm bg-white dark:bg-gray-800" value={editForm.brand} onChange={e => setEditForm({ ...editForm, brand: e.target.value })} /></div>
+              <div className="grid grid-cols-2 gap-3">
+                <div><label className="block text-xs font-medium text-gray-500 mb-1">Cost Price</label><input type="number" step="0.01" className="w-full rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm bg-white dark:bg-gray-800" value={editForm.costPrice} onChange={e => setEditForm({ ...editForm, costPrice: e.target.value })} /></div>
+                <div><label className="block text-xs font-medium text-gray-500 mb-1">MRP</label><input type="number" step="0.01" className="w-full rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm bg-white dark:bg-gray-800" value={editForm.mrp} onChange={e => setEditForm({ ...editForm, mrp: e.target.value })} /></div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div><label className="block text-xs font-medium text-gray-500 mb-1">Selling Price</label><input type="number" step="0.01" className="w-full rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm bg-white dark:bg-gray-800" value={editForm.sellingPrice} onChange={e => setEditForm({ ...editForm, sellingPrice: e.target.value })} /></div>
+                <div><label className="block text-xs font-medium text-gray-500 mb-1">Discount %</label><input type="number" step="0.01" min="0" max="100" className="w-full rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm bg-white dark:bg-gray-800" value={editForm.discountPercent} onChange={e => setEditForm({ ...editForm, discountPercent: e.target.value })} /></div>
+              </div>
+              <button onClick={saveEdit} disabled={editSaving || !editForm.itemName} className="w-full rounded-lg bg-blue-600 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">{editSaving ? 'Saving...' : 'Save'}</button>
             </div>
           </div>
         </div>
