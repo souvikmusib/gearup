@@ -17,8 +17,12 @@ export async function GET(req: NextRequest) {
     const search = sp.get('search') || '';
     const categoryId = sp.get('categoryId') || '';
     const p = paginate({ page, pageSize });
+    const brandId = sp.get('brandId') || '';
+    const modelId = sp.get('modelId') || '';
     const where: Prisma.InventoryItemWhereInput = {};
     if (categoryId) where.categoryId = categoryId;
+    if (modelId) where.vehicleModels = { some: { vehicleModelId: modelId } };
+    else if (brandId) where.vehicleModels = { some: { vehicleModel: { brandId } } };
     if (search) where.OR = [{ itemName: { contains: search, mode: 'insensitive' } }, { sku: { contains: search, mode: 'insensitive' } }];
     const [data, total] = await Promise.all([
       prisma.inventoryItem.findMany({ where, ...p, orderBy: { itemName: 'asc' }, include: { category: { select: { categoryName: true } }, supplier: { select: { supplierName: true } } } }),
@@ -38,6 +42,7 @@ export async function POST(req: NextRequest) {
       quantityInStock: z.number().nonnegative().optional(), reorderLevel: z.number().nonnegative().optional(), reorderQuantity: z.number().nonnegative().optional(),
       storageLocation: z.string().optional(), barcode: z.string().optional(),
       variablePrice: z.boolean().optional(), isBranded: z.boolean().optional(),
+      modelIds: z.string().array().optional(),
     }).parse(await req.json());
     const openingQty = body.quantityInStock ?? 0;
     const item = await prisma.$transaction(async (tx) => {
@@ -75,6 +80,11 @@ export async function POST(req: NextRequest) {
             reason: 'Opening balance',
             performedByAdminId: user.sub,
           },
+        });
+      }
+      if (body.modelIds?.length) {
+        await tx.inventoryItemModel.createMany({
+          data: body.modelIds.map((vehicleModelId) => ({ inventoryItemId: created.id, vehicleModelId })),
         });
       }
       return created;

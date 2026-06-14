@@ -606,10 +606,11 @@ model InventoryItem {
   createdAt              DateTime  @default(now())
   updatedAt              DateTime  @updatedAt
 
-  category       InventoryCategory @relation(fields: [categoryId], references: [id])
-  supplier       Supplier?         @relation(fields: [supplierId], references: [id])
+  category       InventoryCategory  @relation(fields: [categoryId], references: [id])
+  supplier       Supplier?          @relation(fields: [supplierId], references: [id])
   stockMovements StockMovement[]
   jobCardParts   JobCardPart[]
+  vehicleModels  InventoryItemModel[]
 
   @@index([categoryId])
   @@index([supplierId])
@@ -899,4 +900,42 @@ model DocumentSequence {
   updatedAt    DateTime @updatedAt
 
   @@unique([kind, businessDate])
+}
+
+// ── Vehicle Catalog (Brand → Model → Parts compatibility) ───
+
+model VehicleBrand {
+  id        String         @id @default(cuid())
+  name      String         @unique
+  logoUrl   String?
+  sortOrder Int            @default(0)
+  models    VehicleModel[]
+  createdAt DateTime       @default(now())
+}
+
+model VehicleModel {
+  id        String               @id @default(cuid())
+  brandId   String
+  name      String
+  engineCC  Int?
+  yearStart Int?
+  yearEnd   Int?
+  sortOrder Int                  @default(0)
+  brand     VehicleBrand         @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  parts     InventoryItemModel[]
+  createdAt DateTime             @default(now())
+
+  @@unique([brandId, name])
+  @@index([brandId])
+}
+
+model InventoryItemModel {
+  inventoryItemId String
+  vehicleModelId  String
+  inventoryItem   InventoryItem @relation(fields: [inventoryItemId], references: [id], onDelete: Cascade)
+  vehicleModel    VehicleModel  @relation(fields: [vehicleModelId], references: [id], onDelete: Cascade)
+
+  @@id([inventoryItemId, vehicleModelId])
+  @@index([vehicleModelId])
+  @@index([inventoryItemId])
 }

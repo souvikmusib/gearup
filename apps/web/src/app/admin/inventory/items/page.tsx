@@ -31,6 +31,10 @@ export default function InventoryItemsPage() {
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'category' | 'company'>('list');
+  const [vehicleBrands, setVehicleBrands] = useState<any[]>([]);
+  const [vehicleModels, setVehicleModels] = useState<any[]>([]);
+  const [selectedModelIds, setSelectedModelIds] = useState<string[]>([]);
+  const [editModelIds, setEditModelIds] = useState<string[]>([]);
   const timer = useRef<NodeJS.Timeout>();
 
   const loadLookups = async () => {
@@ -38,6 +42,21 @@ export default function InventoryItemsPage() {
     const [catRes, supRes] = await Promise.all([api.get<any>('/admin/inventory/categories'), api.get<any>('/admin/inventory/suppliers')]);
     if (catRes.success) setCategories(catRes.data ?? []);
     if (supRes.success) setSuppliers(supRes.data ?? []);
+  };
+
+  const loadVehicleCatalog = async () => {
+    if (vehicleBrands.length) return;
+    const res = await api.get<any>('/admin/inventory/catalog?level=brands');
+    if (res.success) {
+      setVehicleBrands(res.data);
+      // Load all models for all brands
+      const allModels: any[] = [];
+      for (const b of res.data) {
+        const mRes = await api.get<any>(`/admin/inventory/catalog?level=models&brandId=${b.id}`);
+        if (mRes.success) allModels.push(...mRes.data.map((m: any) => ({ ...m, brandId: b.id, brandName: b.name })));
+      }
+      setVehicleModels(allModels);
+    }
   };
 
   const load = useCallback((s = search, p = page, cat = categoryFilter) => {
@@ -77,12 +96,13 @@ export default function InventoryItemsPage() {
     const body: Record<string, unknown> = { ...form, costPrice: Number(form.costPrice), mrp: form.mrp ? Number(form.mrp) : undefined, sellingPrice: Number(form.sellingPrice), quantityInStock: Number(form.quantityInStock) };
     if (form.discountPercent) body.discountPercent = Number(form.discountPercent);
     if (!body.supplierId) delete body.supplierId;
+    if (selectedModelIds.length) body.modelIds = selectedModelIds;
     if (creating) return;
     setCreating(true);
     setCreateError(null);
     const res = await api.post('/admin/inventory/items', body);
     setCreating(false);
-    if (res.success) { setShowCreate(false); setForm({ sku: '', itemName: '', categoryId: '', supplierId: '', unit: '', brand: '', costPrice: '', mrp: '', sellingPrice: '', discountPercent: '', quantityInStock: '', variablePrice: false, isBranded: true }); load(); }
+    if (res.success) { setShowCreate(false); setForm({ sku: '', itemName: '', categoryId: '', supplierId: '', unit: '', brand: '', costPrice: '', mrp: '', sellingPrice: '', discountPercent: '', quantityInStock: '', variablePrice: false, isBranded: true }); setSelectedModelIds([]); load(); }
     else { setCreateError(res.error?.message || 'Failed to create item'); }
   };
 
@@ -167,7 +187,7 @@ export default function InventoryItemsPage() {
   return (
     <div>
       <PageHeader title="Inventory Items" />
-      <ListToolbar searchPlaceholder="Search items..." onSearch={onSearch} onCreateClick={() => { loadLookups(); setShowCreate(true); }} createLabel="Create Item" />
+      <ListToolbar searchPlaceholder="Search items..." onSearch={onSearch} onCreateClick={() => { loadLookups(); loadVehicleCatalog(); setShowCreate(true); }} createLabel="Create Item" />
 
       {/* View mode toggle + category filter */}
       <div className="mb-4 flex flex-wrap items-center gap-3">
@@ -214,6 +234,23 @@ export default function InventoryItemsPage() {
           <div><label className="block text-xs font-medium mb-1">SKU <span className="text-red-500">*</span></label><input className={inputCls} placeholder="SKU" required value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} /></div>
           <div><label className="block text-xs font-medium mb-1">Item Name <span className="text-red-500">*</span></label><input className={inputCls} placeholder="Item Name" required value={form.itemName} onChange={(e) => setForm({ ...form, itemName: e.target.value })} /></div>
           <div><label className="block text-xs font-medium mb-1">Company / Brand</label><input className={inputCls} list="brand-options" placeholder="e.g. Hero, Honda, Bajaj" value={form.brand} onChange={(e) => setForm({ ...form, brand: e.target.value })} /><datalist id="brand-options">{[...new Set(data.map((i: any) => i.brand).filter(Boolean))].sort().map((b: string) => <option key={b} value={b} />)}</datalist></div>
+          <div><label className="block text-xs font-medium mb-1">Compatible Models</label>
+            <div className="max-h-32 overflow-y-auto border rounded-lg p-2 space-y-1 bg-gray-50 dark:bg-gray-800">
+              {vehicleBrands.filter(b => !form.brand || b.name.toLowerCase() === form.brand.toLowerCase()).map((b: any) => (
+                <div key={b.id}>
+                  <div className="text-xs font-semibold text-gray-500 mt-1">{b.name}</div>
+                  {vehicleModels.filter((m: any) => m.brandId === b.id).map((m: any) => (
+                    <label key={m.id} className="flex items-center gap-1.5 text-xs cursor-pointer hover:bg-white dark:hover:bg-gray-700 px-1 rounded">
+                      <input type="checkbox" checked={selectedModelIds.includes(m.id)} onChange={(e) => setSelectedModelIds(e.target.checked ? [...selectedModelIds, m.id] : selectedModelIds.filter(x => x !== m.id))} className="rounded" />
+                      {m.name}
+                    </label>
+                  ))}
+                </div>
+              ))}
+              {vehicleBrands.length === 0 && <span className="text-xs text-gray-400">Loading models...</span>}
+            </div>
+            {selectedModelIds.length > 0 && <span className="text-xs text-blue-600">{selectedModelIds.length} selected</span>}
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <div><label className={labelCls}>Category <span className="text-red-500">*</span></label>
               <SearchableSelect
