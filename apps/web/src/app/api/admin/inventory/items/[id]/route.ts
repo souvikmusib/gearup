@@ -20,7 +20,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     const body = z.object({
       itemName: z.string().min(1).optional(), categoryId: z.string().optional(), supplierId: z.string().nullable().optional(),
       brand: z.string().nullable().optional(), description: z.string().nullable().optional(), unit: z.string().min(1).optional(),
-      taxRate: z.number().nonnegative().optional(), costPrice: z.number().nonnegative().optional(), mrp: z.number().nonnegative().nullable().optional(), sellingPrice: z.number().nonnegative().optional(), discountPercent: z.number().min(0).max(100).nullable().optional(),
+      taxRate: z.number().nonnegative().optional(), costPrice: z.number().nonnegative().optional(), mrp: z.number().nonnegative().nullable().optional(), sellingPrice: z.number().nonnegative().optional(), discountPercent: z.number().min(0).max(100).nullable().optional(), amcDiscountPercent: z.number().min(0).max(100).nullable().optional(),
       reorderLevel: z.number().nonnegative().nullable().optional(), reorderQuantity: z.number().nonnegative().nullable().optional(),
       storageLocation: z.string().nullable().optional(), barcode: z.string().nullable().optional(), isActive: z.boolean().optional(),
       variablePrice: z.boolean().optional(), isBranded: z.boolean().optional(),

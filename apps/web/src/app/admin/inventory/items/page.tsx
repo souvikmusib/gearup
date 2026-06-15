@@ -22,7 +22,7 @@ export default function InventoryItemsPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [categories, setCategories] = useState<any[]>([]);
   const [suppliers, setSuppliers] = useState<any[]>([]);
-  const [form, setForm] = useState({ sku: '', itemName: '', categoryId: '', supplierId: '', unit: '', brand: '', costPrice: '', mrp: '', sellingPrice: '', discountPercent: '', quantityInStock: '', variablePrice: false, isBranded: true });
+  const [form, setForm] = useState({ sku: '', itemName: '', categoryId: '', supplierId: '', unit: '', brand: '', costPrice: '', mrp: '', sellingPrice: '', discountPercent: '', amcDiscountPercent: '', quantityInStock: '', variablePrice: false, isBranded: true });
   const [editItem, setEditItem] = useState<any>(null);
   const [editForm, setEditForm] = useState({ itemName: '', categoryId: '', supplierId: '', unit: '', brand: '', costPrice: '', mrp: '', sellingPrice: '', discountPercent: '', reorderLevel: '', storageLocation: '', isActive: true, variablePrice: false, isBranded: true });
   const [editSaving, setEditSaving] = useState(false);
@@ -98,6 +98,7 @@ export default function InventoryItemsPage() {
     e.preventDefault();
     const body: Record<string, unknown> = { ...form, costPrice: Number(form.costPrice), mrp: form.mrp ? Number(form.mrp) : undefined, sellingPrice: Number(form.sellingPrice), quantityInStock: Number(form.quantityInStock) };
     if (form.discountPercent) body.discountPercent = Number(form.discountPercent);
+    if (form.amcDiscountPercent) body.amcDiscountPercent = Number(form.amcDiscountPercent);
     if (!body.supplierId) delete body.supplierId;
     if (selectedModelIds.length) body.modelIds = selectedModelIds;
     if (creating) return;
@@ -105,7 +106,7 @@ export default function InventoryItemsPage() {
     setCreateError(null);
     const res = await api.post('/admin/inventory/items', body);
     setCreating(false);
-    if (res.success) { setShowCreate(false); setForm({ sku: '', itemName: '', categoryId: '', supplierId: '', unit: '', brand: '', costPrice: '', mrp: '', sellingPrice: '', discountPercent: '', quantityInStock: '', variablePrice: false, isBranded: true }); setSelectedModelIds([]); load(); }
+    if (res.success) { setShowCreate(false); setForm({ sku: '', itemName: '', categoryId: '', supplierId: '', unit: '', brand: '', costPrice: '', mrp: '', sellingPrice: '', discountPercent: '', amcDiscountPercent: '', quantityInStock: '', variablePrice: false, isBranded: true }); setSelectedModelIds([]); load(); }
     else { setCreateError(res.error?.message || 'Failed to create item'); }
   };
 
@@ -179,7 +180,9 @@ export default function InventoryItemsPage() {
     { key: 'sellingPrice', header: 'Selling (₹)', render: (r: any) => {
       const mrp = Number(r.mrp) || 0;
       const price = Number(r.sellingPrice);
-      return mrp && mrp > price ? <span>₹{price} <span className="text-xs text-gray-400 line-through">₹{mrp}</span></span> : <span>₹{price}</span>;
+      const amcDisc = Number(r.amcDiscountPercent) || 0;
+      const amcPrice = mrp && amcDisc ? (mrp * (1 - amcDisc / 100)).toFixed(0) : null;
+      return <div>{mrp && mrp > price ? <span>₹{price} <span className="text-xs text-gray-400 line-through">₹{mrp}</span></span> : <span>₹{price}</span>}{amcPrice && <div className="text-[10px] text-purple-600">AMC ₹{amcPrice}</div>}</div>;
     }},
     { key: 'actions', header: '', render: (r: any) => (
       <div className="relative" onClick={e => e.stopPropagation()}>
@@ -309,6 +312,10 @@ export default function InventoryItemsPage() {
             <div><label className="block text-xs font-medium mb-1">MRP</label><input className={inputCls} placeholder="0" type="number" step="0.01" value={form.mrp} onChange={(e) => { const mrp = e.target.value; const dp = Number(form.discountPercent) || 0; const sp = mrp ? String((Number(mrp) * (1 - dp / 100)).toFixed(2)) : form.sellingPrice; setForm({ ...form, mrp, sellingPrice: sp }); }} /></div>
             <div><label className="block text-xs font-medium mb-1">Selling Price <span className="text-red-500">*</span></label><input className={inputCls} placeholder="0" type="number" step="0.01" required value={form.sellingPrice} onChange={(e) => { const sp = e.target.value; const mrp = Number(form.mrp); const dp = mrp && Number(sp) ? String(((1 - Number(sp) / mrp) * 100).toFixed(1)) : form.discountPercent; setForm({ ...form, sellingPrice: sp, discountPercent: dp }); }} /></div>
             <div><label className="block text-xs font-medium mb-1">Discount %</label><input className={inputCls} placeholder="0" type="number" step="0.01" min="0" max="100" value={form.discountPercent} onChange={(e) => { const dp = e.target.value; const mrp = Number(form.mrp); const sp = mrp ? String((mrp * (1 - Number(dp) / 100)).toFixed(2)) : form.sellingPrice; setForm({ ...form, discountPercent: dp, sellingPrice: sp }); }} /></div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div><label className="block text-xs font-medium mb-1">AMC Discount %</label><input className={inputCls} placeholder="0" type="number" step="0.01" min="0" max="100" value={form.amcDiscountPercent} onChange={(e) => setForm({ ...form, amcDiscountPercent: e.target.value })} /></div>
+            <div><label className="block text-xs font-medium mb-1">AMC Price</label><input className={inputCls} readOnly value={form.mrp && form.amcDiscountPercent ? (Number(form.mrp) * (1 - Number(form.amcDiscountPercent) / 100)).toFixed(2) : '—'} /></div>
           </div>
           <div><label className="block text-xs font-medium mb-1">Initial Stock Quantity <span className="text-red-500">*</span></label><input className={inputCls} placeholder="0" type="number" required value={form.quantityInStock} onChange={(e) => setForm({ ...form, quantityInStock: e.target.value })} /></div>
           <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.variablePrice} onChange={(e) => setForm({ ...form, variablePrice: e.target.checked })} className="rounded" /><span>Variable price (enter price at sale time)</span></label>

@@ -11,7 +11,7 @@ interface InventoryEditModalProps {
 }
 
 export function InventoryEditModal({ itemId, onClose, onSaved }: InventoryEditModalProps) {
-  const [form, setForm] = useState({ itemName: '', brand: '', costPrice: '', mrp: '', sellingPrice: '', discountPercent: '', reorderLevel: '', isActive: true, variablePrice: false });
+  const [form, setForm] = useState({ itemName: '', brand: '', costPrice: '', mrp: '', sellingPrice: '', discountPercent: '', amcDiscountPercent: '', reorderLevel: '', isActive: true, variablePrice: false });
   const [modelIds, setModelIds] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [sku, setSku] = useState('');
@@ -27,6 +27,7 @@ export function InventoryEditModal({ itemId, onClose, onSaved }: InventoryEditMo
           itemName: d.itemName || '', brand: d.brand || '',
           costPrice: String(Number(d.costPrice) || ''), mrp: String(Number(d.mrp) || ''),
           sellingPrice: String(Number(d.sellingPrice) || ''), discountPercent: String(Number(d.discountPercent) || ''),
+          amcDiscountPercent: String(Number(d.amcDiscountPercent) || ''),
           reorderLevel: d.reorderLevel != null ? String(Number(d.reorderLevel)) : '',
           isActive: d.isActive ?? true, variablePrice: d.variablePrice ?? false,
         });
@@ -43,6 +44,7 @@ export function InventoryEditModal({ itemId, onClose, onSaved }: InventoryEditMo
       itemName: form.itemName, brand: form.brand || null,
       costPrice: Number(form.costPrice) || 0, mrp: form.mrp ? Number(form.mrp) : null,
       sellingPrice: Number(form.sellingPrice) || 0, discountPercent: form.discountPercent ? Number(form.discountPercent) : null,
+      amcDiscountPercent: form.amcDiscountPercent ? Number(form.amcDiscountPercent) : null,
       reorderLevel: form.reorderLevel ? Number(form.reorderLevel) : null,
       isActive: form.isActive, variablePrice: form.variablePrice,
       modelIds,
@@ -67,6 +69,10 @@ export function InventoryEditModal({ itemId, onClose, onSaved }: InventoryEditMo
         <div className="grid grid-cols-2 gap-3">
           <div><label className={labelCls}>Selling Price</label><input type="number" step="0.01" className={inputCls} value={form.sellingPrice} onChange={e => { const sp = e.target.value; const mrp = Number(form.mrp); const dp = mrp && Number(sp) ? String(((1 - Number(sp) / mrp) * 100).toFixed(1)) : form.discountPercent; setForm({ ...form, sellingPrice: sp, discountPercent: dp }); }} /></div>
           <div><label className={labelCls}>Discount %</label><input type="number" step="0.01" min="0" max="100" className={inputCls} value={form.discountPercent} onChange={e => { const dp = e.target.value; const mrp = Number(form.mrp); const sp = mrp ? String((mrp * (1 - Number(dp) / 100)).toFixed(2)) : form.sellingPrice; setForm({ ...form, discountPercent: dp, sellingPrice: sp }); }} /></div>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div><label className={labelCls}>AMC Discount %</label><input type="number" step="0.01" min="0" max="100" className={inputCls} value={form.amcDiscountPercent} onChange={e => setForm({ ...form, amcDiscountPercent: e.target.value })} /></div>
+          <div><label className={labelCls}>AMC Price</label><input className={inputCls} readOnly value={form.mrp && form.amcDiscountPercent ? `₹${(Number(form.mrp) * (1 - Number(form.amcDiscountPercent) / 100)).toFixed(2)}` : '—'} /></div>
         </div>
         <div><label className={labelCls}>Reorder Level</label><input type="number" className={inputCls} placeholder="Alert when stock falls below" value={form.reorderLevel} onChange={e => setForm({ ...form, reorderLevel: e.target.value })} /></div>
 
