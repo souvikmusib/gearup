@@ -9,6 +9,7 @@ import { Pagination } from '@/components/shared/pagination';
 import { Modal } from '@/components/shared/modal';
 import { SearchableSelect } from '@/components/shared/searchable-select';
 import { InventoryEditModal } from '@/components/inventory/edit-modal';
+import { ModelPicker } from '@/components/inventory/model-picker';
 import { AlertTriangle, FolderOpen, Building2, List as ListIcon, MoreVertical } from 'lucide-react';
 import { getBrandStyle, getBrandInitial } from '@/lib/brand-logos';
 
@@ -22,7 +23,7 @@ export default function InventoryItemsPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [categories, setCategories] = useState<any[]>([]);
   const [suppliers, setSuppliers] = useState<any[]>([]);
-  const [form, setForm] = useState({ sku: '', itemName: '', categoryId: '', supplierId: '', unit: '', brand: '', costPrice: '', mrp: '', sellingPrice: '', discountPercent: '', quantityInStock: '', variablePrice: false, isBranded: true });
+  const [form, setForm] = useState({ sku: '', itemName: '', categoryId: '', supplierId: '', unit: '', brand: '', costPrice: '', mrp: '', sellingPrice: '', discountPercent: '', amcDiscountPercent: '', quantityInStock: '', variablePrice: false, isBranded: true });
   const [editItem, setEditItem] = useState<any>(null);
   const [editForm, setEditForm] = useState({ itemName: '', categoryId: '', supplierId: '', unit: '', brand: '', costPrice: '', mrp: '', sellingPrice: '', discountPercent: '', reorderLevel: '', storageLocation: '', isActive: true, variablePrice: false, isBranded: true });
   const [editSaving, setEditSaving] = useState(false);
@@ -98,6 +99,7 @@ export default function InventoryItemsPage() {
     e.preventDefault();
     const body: Record<string, unknown> = { ...form, costPrice: Number(form.costPrice), mrp: form.mrp ? Number(form.mrp) : undefined, sellingPrice: Number(form.sellingPrice), quantityInStock: Number(form.quantityInStock) };
     if (form.discountPercent) body.discountPercent = Number(form.discountPercent);
+    if (form.amcDiscountPercent) body.amcDiscountPercent = Number(form.amcDiscountPercent);
     if (!body.supplierId) delete body.supplierId;
     if (selectedModelIds.length) body.modelIds = selectedModelIds;
     if (creating) return;
@@ -105,7 +107,7 @@ export default function InventoryItemsPage() {
     setCreateError(null);
     const res = await api.post('/admin/inventory/items', body);
     setCreating(false);
-    if (res.success) { setShowCreate(false); setForm({ sku: '', itemName: '', categoryId: '', supplierId: '', unit: '', brand: '', costPrice: '', mrp: '', sellingPrice: '', discountPercent: '', quantityInStock: '', variablePrice: false, isBranded: true }); setSelectedModelIds([]); load(); }
+    if (res.success) { setShowCreate(false); setForm({ sku: '', itemName: '', categoryId: '', supplierId: '', unit: '', brand: '', costPrice: '', mrp: '', sellingPrice: '', discountPercent: '', amcDiscountPercent: '', quantityInStock: '', variablePrice: false, isBranded: true }); setSelectedModelIds([]); load(); }
     else { setCreateError(res.error?.message || 'Failed to create item'); }
   };
 
@@ -177,9 +179,11 @@ export default function InventoryItemsPage() {
     }},
     { key: 'costPrice', header: 'Purchase (₹)', render: (r: any) => `₹${Number(r.costPrice)}` },
     { key: 'sellingPrice', header: 'Selling (₹)', render: (r: any) => {
-      const dp = Number(r.discountPercent) || 0;
+      const mrp = Number(r.mrp) || 0;
       const price = Number(r.sellingPrice);
-      return dp ? <span>₹{(price * (1 - dp/100)).toFixed(0)} <span className="text-xs text-gray-400 line-through">₹{price}</span></span> : <span>₹{price}</span>;
+      const amcDisc = Number(r.amcDiscountPercent) || 0;
+      const amcPrice = mrp && amcDisc ? (mrp * (1 - amcDisc / 100)).toFixed(0) : null;
+      return <div>{mrp && mrp > price ? <span>₹{price} <span className="text-xs text-gray-400 line-through">₹{mrp}</span></span> : <span>₹{price}</span>}{amcPrice && <div className="text-[10px] text-purple-600">AMC ₹{amcPrice}</div>}</div>;
     }},
     { key: 'actions', header: '', render: (r: any) => (
       <div className="relative" onClick={e => e.stopPropagation()}>
@@ -268,23 +272,7 @@ export default function InventoryItemsPage() {
           <div><label className="block text-xs font-medium mb-1">SKU <span className="text-red-500">*</span></label><input className={inputCls} placeholder="SKU" required value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} /></div>
           <div><label className="block text-xs font-medium mb-1">Item Name <span className="text-red-500">*</span></label><input className={inputCls} placeholder="Item Name" required value={form.itemName} onChange={(e) => setForm({ ...form, itemName: e.target.value })} /></div>
           <div><label className="block text-xs font-medium mb-1">Company / Brand</label><input className={inputCls} list="brand-options" placeholder="e.g. Hero, Honda, Bajaj" value={form.brand} onChange={(e) => setForm({ ...form, brand: e.target.value })} /><datalist id="brand-options">{[...new Set(data.map((i: any) => i.brand).filter(Boolean))].sort().map((b: string) => <option key={b} value={b} />)}</datalist></div>
-          <div><label className="block text-xs font-medium mb-1">Compatible Models</label>
-            <div className="max-h-32 overflow-y-auto border rounded-lg p-2 space-y-1 bg-gray-50 dark:bg-gray-800">
-              {vehicleBrands.filter(b => !form.brand || b.name.toLowerCase() === form.brand.toLowerCase()).map((b: any) => (
-                <div key={b.id}>
-                  <div className="text-xs font-semibold text-gray-500 mt-1">{b.name}</div>
-                  {vehicleModels.filter((m: any) => m.brandId === b.id).map((m: any) => (
-                    <label key={m.id} className="flex items-center gap-1.5 text-xs cursor-pointer hover:bg-white dark:hover:bg-gray-700 px-1 rounded">
-                      <input type="checkbox" checked={selectedModelIds.includes(m.id)} onChange={(e) => setSelectedModelIds(e.target.checked ? [...selectedModelIds, m.id] : selectedModelIds.filter(x => x !== m.id))} className="rounded" />
-                      {m.name}
-                    </label>
-                  ))}
-                </div>
-              ))}
-              {vehicleBrands.length === 0 && <span className="text-xs text-gray-400">Loading models...</span>}
-            </div>
-            {selectedModelIds.length > 0 && <span className="text-xs text-blue-600">{selectedModelIds.length} selected</span>}
-          </div>
+          <ModelPicker selectedIds={selectedModelIds} onChange={setSelectedModelIds} />
           <div className="grid grid-cols-2 gap-3">
             <div><label className={labelCls}>Category <span className="text-red-500">*</span></label>
               <SearchableSelect
@@ -305,12 +293,16 @@ export default function InventoryItemsPage() {
           </div>
           <div><label className="block text-xs font-medium mb-1">Unit <span className="text-red-500">*</span></label><input className={inputCls} placeholder="e.g. pcs, litre" required value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })} /></div>
           <div className="grid grid-cols-2 gap-3">
-            <input className={inputCls} placeholder="Cost Price" type="number" step="0.01" required value={form.costPrice} onChange={(e) => setForm({ ...form, costPrice: e.target.value })} />
-            <input className={inputCls} placeholder="MRP" type="number" step="0.01" value={form.mrp} onChange={(e) => { const mrp = e.target.value; const dp = Number(form.discountPercent) || 0; const sp = mrp ? String((Number(mrp) * (1 - dp / 100)).toFixed(2)) : form.sellingPrice; setForm({ ...form, mrp, sellingPrice: sp }); }} />
-            <input className={inputCls} placeholder="Selling Price" type="number" step="0.01" required value={form.sellingPrice} onChange={(e) => { const sp = e.target.value; const mrp = Number(form.mrp); const dp = mrp && Number(sp) ? String(((1 - Number(sp) / mrp) * 100).toFixed(1)) : form.discountPercent; setForm({ ...form, sellingPrice: sp, discountPercent: dp }); }} />
-            <input className={inputCls} placeholder="Discount %" type="number" step="0.01" min="0" max="100" value={form.discountPercent} onChange={(e) => { const dp = e.target.value; const mrp = Number(form.mrp); const sp = mrp ? String((mrp * (1 - Number(dp) / 100)).toFixed(2)) : form.sellingPrice; setForm({ ...form, discountPercent: dp, sellingPrice: sp }); }} />
+            <div><label className="block text-xs font-medium mb-1">Cost Price <span className="text-red-500">*</span></label><input className={inputCls} placeholder="0" type="number" step="0.01" required value={form.costPrice} onChange={(e) => setForm({ ...form, costPrice: e.target.value })} /></div>
+            <div><label className="block text-xs font-medium mb-1">MRP</label><input className={inputCls} placeholder="0" type="number" step="0.01" value={form.mrp} onChange={(e) => { const mrp = e.target.value; const dp = Number(form.discountPercent) || 0; const sp = mrp ? String((Number(mrp) * (1 - dp / 100)).toFixed(2)) : form.sellingPrice; setForm({ ...form, mrp, sellingPrice: sp }); }} /></div>
+            <div><label className="block text-xs font-medium mb-1">Selling Price <span className="text-red-500">*</span></label><input className={inputCls} placeholder="0" type="number" step="0.01" required value={form.sellingPrice} onChange={(e) => { const sp = e.target.value; const mrp = Number(form.mrp); const dp = mrp && Number(sp) ? String(((1 - Number(sp) / mrp) * 100).toFixed(1)) : form.discountPercent; setForm({ ...form, sellingPrice: sp, discountPercent: dp }); }} /></div>
+            <div><label className="block text-xs font-medium mb-1">Discount %</label><input className={inputCls} placeholder="0" type="number" step="0.01" min="0" max="100" value={form.discountPercent} onChange={(e) => { const dp = e.target.value; const mrp = Number(form.mrp); const sp = mrp ? String((mrp * (1 - Number(dp) / 100)).toFixed(2)) : form.sellingPrice; setForm({ ...form, discountPercent: dp, sellingPrice: sp }); }} /></div>
           </div>
-          <input className={inputCls} placeholder="Initial Stock Quantity" type="number" required value={form.quantityInStock} onChange={(e) => setForm({ ...form, quantityInStock: e.target.value })} />
+          <div className="grid grid-cols-2 gap-3">
+            <div><label className="block text-xs font-medium mb-1">AMC Discount %</label><input className={inputCls} placeholder="0" type="number" step="0.01" min="0" max="100" value={form.amcDiscountPercent} onChange={(e) => setForm({ ...form, amcDiscountPercent: e.target.value })} /></div>
+            <div><label className="block text-xs font-medium mb-1">AMC Price</label><input className={inputCls} readOnly value={form.mrp && form.amcDiscountPercent ? (Number(form.mrp) * (1 - Number(form.amcDiscountPercent) / 100)).toFixed(2) : '—'} /></div>
+          </div>
+          <div><label className="block text-xs font-medium mb-1">Initial Stock Quantity <span className="text-red-500">*</span></label><input className={inputCls} placeholder="0" type="number" required value={form.quantityInStock} onChange={(e) => setForm({ ...form, quantityInStock: e.target.value })} /></div>
           <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.variablePrice} onChange={(e) => setForm({ ...form, variablePrice: e.target.checked })} className="rounded" /><span>Variable price (enter price at sale time)</span></label>
           <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.isBranded} onChange={(e) => setForm({ ...form, isBranded: e.target.checked })} className="rounded" /><span>Branded product</span></label>
           <button type="submit" disabled={creating} className="w-full rounded-lg bg-blue-600 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">{creating ? 'Creating...' : 'Create'}</button>
