@@ -177,9 +177,9 @@ export default function InventoryItemsPage() {
     }},
     { key: 'costPrice', header: 'Purchase (₹)', render: (r: any) => `₹${Number(r.costPrice)}` },
     { key: 'sellingPrice', header: 'Selling (₹)', render: (r: any) => {
-      const dp = Number(r.discountPercent) || 0;
+      const mrp = Number(r.mrp) || 0;
       const price = Number(r.sellingPrice);
-      return dp ? <span>₹{(price * (1 - dp/100)).toFixed(0)} <span className="text-xs text-gray-400 line-through">₹{price}</span></span> : <span>₹{price}</span>;
+      return mrp && mrp > price ? <span>₹{price} <span className="text-xs text-gray-400 line-through">₹{mrp}</span></span> : <span>₹{price}</span>;
     }},
     { key: 'actions', header: '', render: (r: any) => (
       <div className="relative" onClick={e => e.stopPropagation()}>
