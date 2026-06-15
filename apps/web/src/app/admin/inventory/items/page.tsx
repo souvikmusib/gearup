@@ -37,6 +37,7 @@ export default function InventoryItemsPage() {
   const [selectedModelIds, setSelectedModelIds] = useState<string[]>([]);
   const [editModelIds, setEditModelIds] = useState<string[]>([]);
   const [itemMenuOpen, setItemMenuOpen] = useState<string | null>(null);
+  const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
   const timer = useRef<NodeJS.Timeout>();
 
   const loadLookups = async () => {
@@ -182,11 +183,11 @@ export default function InventoryItemsPage() {
     }},
     { key: 'actions', header: '', render: (r: any) => (
       <div className="relative" onClick={e => e.stopPropagation()}>
-        <button onClick={() => setItemMenuOpen(itemMenuOpen === r.id ? null : r.id)} className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"><MoreVertical size={16} /></button>
+        <button onClick={(e) => { const rect = (e.currentTarget as HTMLElement).getBoundingClientRect(); setMenuPos({ top: rect.bottom + 4, left: rect.left - 140 }); setItemMenuOpen(itemMenuOpen === r.id ? null : r.id); }} className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"><MoreVertical size={16} /></button>
         {itemMenuOpen === r.id && (
           <>
           <div className="fixed inset-0 z-40" onClick={() => setItemMenuOpen(null)} />
-          <div className="absolute right-0 top-8 z-50 w-44 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-lg py-1">
+          <div className="fixed z-50 w-44 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-lg py-1" style={{ top: menuPos.top, left: menuPos.left }}>
             <button onClick={() => { setItemMenuOpen(null); openEdit(r); }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800">✏️ Edit</button>
             <button onClick={() => openStock(r)} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800">📦 Adjust Stock</button>
             <button onClick={() => { setItemMenuOpen(null); navigator.clipboard.writeText(r.sku); }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800">📋 Copy SKU</button>
