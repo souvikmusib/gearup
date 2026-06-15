@@ -29,7 +29,7 @@ export function DataTable<T extends Record<string, unknown>>({
     return <p className="py-8 text-center text-sm text-gray-500 dark:text-gray-400">{emptyMessage}</p>;
   }
   return (
-    <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
+    <div className="overflow-x-auto overflow-y-visible rounded-lg border border-gray-200 dark:border-gray-700">
       <table className="w-full table-auto divide-y divide-gray-200 dark:divide-gray-700">
         <thead className="bg-gray-50 dark:bg-gray-800">
           <tr>
