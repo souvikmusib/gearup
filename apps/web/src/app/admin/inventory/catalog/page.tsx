@@ -236,7 +236,7 @@ export default function CatalogPage() {
         <div>
           <button onClick={goBack} className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-4"><ArrowLeft size={14} /> Back to categories</button>
           <div className="text-xs text-gray-500 mb-3">{total} items</div>
-          <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700">
+          <div className="rounded-xl border border-gray-200 dark:border-gray-700 overflow-visible">
             <table className="w-full text-sm">
               <thead className="bg-gray-50 dark:bg-gray-800/50">
                 <tr className="text-left text-xs uppercase text-gray-500 tracking-wide">
@@ -260,12 +260,13 @@ export default function CatalogPage() {
                     <td className={`px-4 py-2.5 text-center font-medium ${stockColor(Number(item.quantityInStock), item.reorderLevel ? Number(item.reorderLevel) : null)}`}>
                       {stockDot(Number(item.quantityInStock), item.reorderLevel ? Number(item.reorderLevel) : null)} {Number(item.quantityInStock)}
                     </td>
-                    <td className="px-4 py-2.5 text-center relative">
-                      <button onClick={() => setMenuOpen(menuOpen === item.id ? null : item.id)} className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"><MoreVertical size={16} /></button>
-                      {menuOpen === item.id && (
-                        <>
-                        <div className="fixed inset-0 z-40" onClick={() => { setMenuOpen(null); setConfirmRemove(null); }} />
-                        <div className="absolute right-4 top-10 z-50 w-48 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-lg py-1">
+                    <td className="px-4 py-2.5 text-center">
+                      <div className="relative inline-block" onClick={e => e.stopPropagation()}>
+                        <button onClick={() => setMenuOpen(menuOpen === item.id ? null : item.id)} className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"><MoreVertical size={16} /></button>
+                        {menuOpen === item.id && (
+                          <>
+                          <div className="fixed inset-0 z-40" onClick={() => { setMenuOpen(null); setConfirmRemove(null); }} />
+                          <div className="absolute right-0 top-8 z-50 w-48 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-lg py-1">
                           <button onClick={() => openEdit(item.id)} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800">✏️ Edit</button>
                           <button onClick={() => viewCompatibleModels(item.id, item.itemName)} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800">🔗 View compatible models</button>
                           {selectedModel && (
@@ -285,6 +286,7 @@ export default function CatalogPage() {
                         </div>
                         </>
                       )}
+                      </div>
                     </td>
                   </tr>
                 ))}
