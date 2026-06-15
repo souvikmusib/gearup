@@ -9,6 +9,7 @@ import { Pagination } from '@/components/shared/pagination';
 import { Modal } from '@/components/shared/modal';
 import { SearchableSelect } from '@/components/shared/searchable-select';
 import { InventoryEditModal } from '@/components/inventory/edit-modal';
+import { ModelPicker } from '@/components/inventory/model-picker';
 import { AlertTriangle, FolderOpen, Building2, List as ListIcon, MoreVertical } from 'lucide-react';
 import { getBrandStyle, getBrandInitial } from '@/lib/brand-logos';
 
@@ -271,23 +272,7 @@ export default function InventoryItemsPage() {
           <div><label className="block text-xs font-medium mb-1">SKU <span className="text-red-500">*</span></label><input className={inputCls} placeholder="SKU" required value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} /></div>
           <div><label className="block text-xs font-medium mb-1">Item Name <span className="text-red-500">*</span></label><input className={inputCls} placeholder="Item Name" required value={form.itemName} onChange={(e) => setForm({ ...form, itemName: e.target.value })} /></div>
           <div><label className="block text-xs font-medium mb-1">Company / Brand</label><input className={inputCls} list="brand-options" placeholder="e.g. Hero, Honda, Bajaj" value={form.brand} onChange={(e) => setForm({ ...form, brand: e.target.value })} /><datalist id="brand-options">{[...new Set(data.map((i: any) => i.brand).filter(Boolean))].sort().map((b: string) => <option key={b} value={b} />)}</datalist></div>
-          <div><label className="block text-xs font-medium mb-1">Compatible Models</label>
-            <div className="max-h-32 overflow-y-auto border rounded-lg p-2 space-y-1 bg-gray-50 dark:bg-gray-800">
-              {vehicleBrands.filter(b => !form.brand || b.name.toLowerCase() === form.brand.toLowerCase()).map((b: any) => (
-                <div key={b.id}>
-                  <div className="text-xs font-semibold text-gray-500 mt-1">{b.name}</div>
-                  {vehicleModels.filter((m: any) => m.brandId === b.id).map((m: any) => (
-                    <label key={m.id} className="flex items-center gap-1.5 text-xs cursor-pointer hover:bg-white dark:hover:bg-gray-700 px-1 rounded">
-                      <input type="checkbox" checked={selectedModelIds.includes(m.id)} onChange={(e) => setSelectedModelIds(e.target.checked ? [...selectedModelIds, m.id] : selectedModelIds.filter(x => x !== m.id))} className="rounded" />
-                      {m.name}
-                    </label>
-                  ))}
-                </div>
-              ))}
-              {vehicleBrands.length === 0 && <span className="text-xs text-gray-400">Loading models...</span>}
-            </div>
-            {selectedModelIds.length > 0 && <span className="text-xs text-blue-600">{selectedModelIds.length} selected</span>}
-          </div>
+          <ModelPicker selectedIds={selectedModelIds} onChange={setSelectedModelIds} />
           <div className="grid grid-cols-2 gap-3">
             <div><label className={labelCls}>Category <span className="text-red-500">*</span></label>
               <SearchableSelect

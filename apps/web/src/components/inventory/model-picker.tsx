@@ -16,6 +16,7 @@ export function ModelPicker({ selectedIds, onChange }: ModelPickerProps) {
   const [models, setModels] = useState<Model[]>([]);
   const [filter, setFilter] = useState('');
   const [loaded, setLoaded] = useState(false);
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (loaded) return;
@@ -79,22 +80,31 @@ export function ModelPicker({ selectedIds, onChange }: ModelPickerProps) {
           const bModels = models.filter(m => m.brandId === b.id && (!q || m.name.toLowerCase().includes(q) || b.name.toLowerCase().includes(q)));
           if (!bModels.length) return null;
           const allChecked = bModels.every(m => selectedIds.includes(m.id));
+          const selectedCount = bModels.filter(m => selectedIds.includes(m.id)).length;
+          const isExpanded = expanded.has(b.id) || !!q;
+          const toggleExpand = () => setExpanded(prev => { const next = new Set(prev); next.has(b.id) ? next.delete(b.id) : next.add(b.id); return next; });
           return (
             <div key={b.id}>
-              <div className="flex items-center justify-between sticky top-0 bg-gray-50 dark:bg-gray-800 py-0.5">
-                <span className="font-semibold text-gray-600 dark:text-gray-400">{b.name}</span>
-                <button type="button" onClick={() => toggleBrand(b.id)} className="text-[10px] text-blue-600 hover:underline">
+              <div className="flex items-center justify-between sticky top-0 bg-gray-50 dark:bg-gray-800 py-0.5 cursor-pointer" onClick={toggleExpand}>
+                <span className="font-semibold text-gray-600 dark:text-gray-400">
+                  <span className="inline-block w-3 text-[10px] text-gray-400">{isExpanded ? '▼' : '▶'}</span>
+                  {b.name}
+                  {selectedCount > 0 && <span className="ml-1 text-[10px] text-blue-600">({selectedCount})</span>}
+                </span>
+                <button type="button" onClick={(e) => { e.stopPropagation(); toggleBrand(b.id); }} className="text-[10px] text-blue-600 hover:underline">
                   {allChecked ? 'Deselect all' : 'Select all'}
                 </button>
               </div>
-              <div className="grid grid-cols-2 gap-x-2">
-                {bModels.map(m => (
-                  <label key={m.id} className="flex items-center gap-1.5 cursor-pointer hover:bg-white dark:hover:bg-gray-700 px-1 py-0.5 rounded">
-                    <input type="checkbox" checked={selectedIds.includes(m.id)} onChange={() => toggle(m.id)} className="rounded" />
-                    <span className="truncate">{m.name}</span>
-                  </label>
-                ))}
-              </div>
+              {isExpanded && (
+                <div className="grid grid-cols-2 gap-x-2 ml-3">
+                  {bModels.map(m => (
+                    <label key={m.id} className="flex items-center gap-1.5 cursor-pointer hover:bg-white dark:hover:bg-gray-700 px-1 py-0.5 rounded">
+                      <input type="checkbox" checked={selectedIds.includes(m.id)} onChange={() => toggle(m.id)} className="rounded" />
+                      <span className="truncate">{m.name}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
             </div>
           );
         })}
