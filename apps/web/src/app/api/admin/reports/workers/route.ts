@@ -20,56 +20,85 @@ export async function GET(req: NextRequest) {
       orderBy: { fullName: 'asc' },
     });
 
-    // Get finalized invoices (with date filter) that have a job card
+    // Get finalized invoices with line items
     const invoiceWhere: Record<string, unknown> = { invoiceStatus: 'FINALIZED', jobCardId: { not: null } };
     if (fromDate || toDate) {
       invoiceWhere.invoiceDate = { ...(fromDate ? { gte: fromDate } : {}), ...(toDate ? { lte: toDate } : {}) };
     }
     const invoices = await prisma.invoice.findMany({
       where: invoiceWhere,
-      select: { jobCardId: true, grandTotal: true },
+      select: {
+        jobCardId: true,
+        grandTotal: true,
+        lineItems: { select: { description: true, lineType: true, lineTotal: true } },
+      },
     });
 
-    // Map jobCardId -> revenue
-    const jobRevenue: Record<string, number> = {};
-    const jobCardIds: string[] = [];
-    for (const inv of invoices) {
-      if (inv.jobCardId) {
-        jobRevenue[inv.jobCardId] = (jobRevenue[inv.jobCardId] || 0) + Number(inv.grandTotal);
-        jobCardIds.push(inv.jobCardId);
-      }
+    // Build worker name lookup (normalized for matching)
+    const workerByName: Record<string, string> = {};
+    for (const w of workers) {
+      workerByName[w.fullName.toLowerCase().replace(/\s+/g, ' ').trim()] = w.id;
     }
 
-    // Get worker assignments for these job cards
+    // Attribute revenue per worker
+    const workerRevenue: Record<string, { labor: number; jobIds: Set<string> }> = {};
+    for (const w of workers) workerRevenue[w.id] = { labor: 0, jobIds: new Set() };
+
+    // Track unattributed job card revenue for equal-split fallback
+    const jobUnattributed: Record<string, number> = {};
+    const jobWorkerCount: Record<string, number> = {};
+
+    // Get assignments for worker count per job
+    const jobCardIds = invoices.map(i => i.jobCardId).filter(Boolean) as string[];
     const assignments = jobCardIds.length ? await prisma.workerAssignment.findMany({
       where: { jobCardId: { in: jobCardIds } },
       select: { workerId: true, jobCardId: true },
     }) : [];
 
-    // Count workers per job card + track which jobs each worker had
-    const jobWorkerCount: Record<string, number> = {};
-    const workerJobs: Record<string, Set<string>> = {};
     for (const a of assignments) {
       jobWorkerCount[a.jobCardId] = (jobWorkerCount[a.jobCardId] || 0) + 1;
-      if (!workerJobs[a.workerId]) workerJobs[a.workerId] = new Set();
-      workerJobs[a.workerId].add(a.jobCardId);
+      if (workerRevenue[a.workerId]) workerRevenue[a.workerId].jobIds.add(a.jobCardId);
     }
 
-    // Equal-split revenue per worker
-    const data = workers.map(w => {
-      const jobs = workerJobs[w.id] || new Set();
-      let revenue = 0;
-      for (const jobId of jobs) {
-        const total = jobRevenue[jobId] || 0;
-        const count = jobWorkerCount[jobId] || 1;
-        revenue += total / count;
+    for (const inv of invoices) {
+      if (!inv.jobCardId) continue;
+      let attributed = 0;
+
+      // Try to attribute LABOR lines by matching "Labor — WorkerName"
+      for (const li of inv.lineItems) {
+        if (li.lineType === 'LABOR' && li.description.includes('—')) {
+          const namepart = li.description.split('—')[1]?.toLowerCase().replace(/\s+/g, ' ').trim();
+          if (namepart && workerByName[namepart]) {
+            const wId = workerByName[namepart];
+            workerRevenue[wId].labor += Number(li.lineTotal);
+            workerRevenue[wId].jobIds.add(inv.jobCardId);
+            attributed += Number(li.lineTotal);
+          }
+        }
       }
+
+      // Remaining revenue (parts, service charge, etc.) split equally among assigned workers
+      const remaining = Number(inv.grandTotal) - attributed;
+      if (remaining > 0) jobUnattributed[inv.jobCardId] = (jobUnattributed[inv.jobCardId] || 0) + remaining;
+    }
+
+    // Equal-split the unattributed portion
+    const data = workers.map(w => {
+      const wr = workerRevenue[w.id];
+      let equalSplitRevenue = 0;
+      for (const jobId of wr.jobIds) {
+        const unattr = jobUnattributed[jobId] || 0;
+        const count = jobWorkerCount[jobId] || 1;
+        equalSplitRevenue += unattr / count;
+      }
+      const total = wr.labor + equalSplitRevenue;
       return {
         id: w.id,
         fullName: w.fullName,
         designation: w.designation,
-        assignmentsInPeriod: jobs.size,
-        revenueAttributed: Math.round(revenue * 100) / 100,
+        assignmentsInPeriod: wr.jobIds.size,
+        laborDirect: Math.round(wr.labor * 100) / 100,
+        revenueAttributed: Math.round(total * 100) / 100,
       };
     });
 

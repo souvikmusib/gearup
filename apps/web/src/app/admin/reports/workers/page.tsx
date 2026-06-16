@@ -28,14 +28,15 @@ export default function WorkersReportPage() {
         <span className="text-gray-400">to</span>
         <input type="date" className={inputCls} value={to} onChange={e => setTo(e.target.value)} />
       </div>
-      <p className="text-xs text-amber-600 mb-3">* Revenue is an equal-split estimate across assigned workers per job card</p>
+      <p className="text-xs text-gray-500 mb-3">* Labor (Direct) = matched from &quot;Labor — WorkerName&quot; line items. Total includes equal-split of remaining job revenue.</p>
       <DataTable
         keyField="id"
         columns={[
           { key: 'fullName', header: 'Name' },
           { key: 'designation', header: 'Role', render: (r: any) => r.designation || '—' },
           { key: 'assignmentsInPeriod', header: 'Jobs' },
-          { key: 'revenueAttributed', header: 'Revenue (₹)', render: (r: any) => `₹${Number(r.revenueAttributed).toLocaleString('en-IN')}` },
+          { key: 'laborDirect', header: 'Labor (Direct)', render: (r: any) => `₹${Number(r.laborDirect).toLocaleString('en-IN')}` },
+          { key: 'revenueAttributed', header: 'Total Revenue', render: (r: any) => `₹${Number(r.revenueAttributed).toLocaleString('en-IN')}` },
         ]}
         data={data.sort((a, b) => b.revenueAttributed - a.revenueAttributed)}
       />
