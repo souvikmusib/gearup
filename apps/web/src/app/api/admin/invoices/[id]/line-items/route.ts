@@ -285,6 +285,11 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
             relatedEntityId: params.id,
           },
         });
+        // Remove from job card parts
+        const inv = await tx.invoice.findUniqueOrThrow({ where: { id: params.id }, select: { jobCardId: true } });
+        if (inv.jobCardId) {
+          await tx.jobCardPart.deleteMany({ where: { jobCardId: inv.jobCardId, inventoryItemId: lineItem.referenceItemId } });
+        }
       }
 
       // AMC rollback: undo any service usage created against this invoice's job card.

@@ -495,11 +495,13 @@ export default function JobCardDetailPage() {
                   disabled={!canDelete || deleting}
                   onClick={async () => {
                     setDeleting(true);
-                    const res = await api.delete(`/admin/job-cards/${id}`);
+                    const res = await api.delete<any>(`/admin/job-cards/${id}`);
                     setDeleting(false);
                     if (res.success) {
                       setShowDeleteModal(false);
                       router.push('/admin/job-cards');
+                    } else {
+                      alert(res.error?.message || 'Failed to delete job card');
                     }
                   }}
                   className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50"
