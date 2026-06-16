@@ -12,6 +12,7 @@ import { formatRegNumber } from '@/lib/format-reg';
 import { SearchableSelect } from '@/components/shared/searchable-select';
 import { ListToolbar } from '@/components/shared/list-toolbar';
 import { CustomerPicker } from '@/components/shared/customer-picker';
+import { VehicleRegLookup } from '@/components/shared/vehicle-reg-lookup';
 
 export default function JobCardsPage() {
   const [data, setData] = useState<any[]>([]);
@@ -182,6 +183,14 @@ export default function JobCardsPage() {
       <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Create Job Card">
         <div className="space-y-4">
           {error && <p className="text-sm text-red-600">{error}</p>}
+
+          {/* Quick reg number lookup */}
+          <VehicleRegLookup onResolved={({ customerId, vehicleId }) => {
+            setForm(f => ({ ...f, customerId, vehicleId }));
+            void onCustomerChange(customerId);
+          }} />
+
+          <div className="relative flex items-center"><div className="flex-1 border-t border-gray-200 dark:border-gray-700" /><span className="px-3 text-xs text-gray-400">or pick manually</span><div className="flex-1 border-t border-gray-200 dark:border-gray-700" /></div>
 
           {/* Customer */}
           <CustomerPicker
