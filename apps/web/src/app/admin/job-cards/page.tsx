@@ -112,7 +112,7 @@ export default function JobCardsPage() {
     { key: 'jobCardNumber', header: 'Job Card', nowrap: true, render: (r: any) => (
       <div>
         <span className="font-medium text-sm">{r.jobCardNumber}</span>
-        <span className="block text-[10px] text-gray-400">{formatIST(r.createdAt, { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+        <span className="block text-[10px] text-gray-400">{formatIST(r.createdAt, { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })}</span>
       </div>
     )},
     { key: 'customer', header: 'Customer / Vehicle', render: (r: any) => (
