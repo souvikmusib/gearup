@@ -289,8 +289,8 @@ export default function JobCardDetailPage() {
             <div className="pt-2 border-t dark:border-gray-600 mt-3 space-y-1">
               <p className="text-sm text-gray-600 dark:text-gray-400">Customer: {data.customer?.fullName} · {data.customer?.phoneNumber}</p>
               <p className="text-sm text-gray-600 dark:text-gray-400">Vehicle: {data.vehicle?.registrationNumber} — {data.vehicle?.brand} {data.vehicle?.model}</p>
-              <p className="text-sm text-gray-500">Intake: {formatIST(data.intakeDate)}</p>
-              {data.actualDeliveryAt && <p className="text-sm text-green-600">Delivered: {formatIST(data.actualDeliveryAt)}</p>}
+              <p className="text-sm text-gray-500">Intake: {formatIST(data.intakeDate, { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })}</p>
+              {data.actualDeliveryAt && <p className="text-sm text-green-600">Delivered: {formatIST(data.actualDeliveryAt, { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })}</p>}
               {status === 'READY' && data.customer?.phoneNumber && (
                 <div className="mt-2"><WhatsAppButton phone={data.customer.phoneNumber} message={`Hi ${data.customer.fullName}, your ${data.vehicle?.brand} ${data.vehicle?.model} (${data.vehicle?.registrationNumber}) is ready for pickup! Job Card: ${data.jobCardNumber}. - GearUp Servicing, 9242519099`} /></div>
               )}
@@ -495,11 +495,13 @@ export default function JobCardDetailPage() {
                   disabled={!canDelete || deleting}
                   onClick={async () => {
                     setDeleting(true);
-                    const res = await api.delete(`/admin/job-cards/${id}`);
+                    const res = await api.delete<any>(`/admin/job-cards/${id}`);
                     setDeleting(false);
                     if (res.success) {
                       setShowDeleteModal(false);
                       router.push('/admin/job-cards');
+                    } else {
+                      alert(res.error?.message || 'Failed to delete job card');
                     }
                   }}
                   className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50"

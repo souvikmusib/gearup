@@ -18,13 +18,14 @@ function esc(value: unknown): string {
     .replace(/'/g, '&#39;');
 }
 
-function formatDateIST(date: Date | string, opts?: { long?: boolean }): string {
+function formatDateIST(date: Date | string, opts?: { long?: boolean; time?: boolean }): string {
   const d = new Date(new Date(date).getTime() + 5.5 * 60 * 60 * 1000);
+  const timePart = opts?.time ? ` · ${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}` : '';
   if (opts?.long) {
     const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-    return `${d.getUTCDate()} ${months[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+    return `${d.getUTCDate()} ${months[d.getUTCMonth()]} ${d.getUTCFullYear()}${timePart}`;
   }
-  return `${d.getUTCDate()}/${d.getUTCMonth() + 1}/${d.getUTCFullYear()}`;
+  return `${d.getUTCDate()}/${d.getUTCMonth() + 1}/${d.getUTCFullYear()}${timePart}`;
 }
 
 function numberToWords(num: number): string {
@@ -332,7 +333,7 @@ function generateMechanicCopyHTML(invoice: any, settings: Record<string, any>, l
 </head><body><div class="page">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;padding-bottom:12px;border-bottom:2px solid #111">
     <div><div style="font-size:20px;font-weight:700">${esc(biz.name)}</div><div style="font-size:11px;color:#888;margin-top:2px">MECHANIC WORK ORDER</div></div>
-    <div style="text-align:right"><div style="font-size:16px;font-weight:700">${esc(invoice.jobCard?.jobCardNumber || '-')}</div><div style="color:#666;font-size:12px">${formatDateIST(invoice.invoiceDate)}</div></div>
+    <div style="text-align:right"><div style="font-size:16px;font-weight:700">${esc(invoice.jobCard?.jobCardNumber || '-')}</div><div style="color:#666;font-size:12px">${formatDateIST(invoice.invoiceDate, { long: true, time: true })}</div></div>
   </div>
   <div style="display:flex;gap:16px;margin-bottom:20px">
     <div style="flex:1;background:#f9fafb;padding:12px;border-radius:8px"><strong>Vehicle:</strong> ${invoice.vehicle ? `${esc(invoice.vehicle.brand)} ${esc(invoice.vehicle.model)} — ${esc(invoice.vehicle.registrationNumber)}` : 'Counter Sale'}${invoice.jobCard?.odometerAtIntake ? `<br><span style="font-size:12px;color:#666">Odometer: ${invoice.jobCard.odometerAtIntake.toLocaleString()} km${invoice.jobCard.fuelIndicator ? ` · Fuel: ${esc(invoice.jobCard.fuelIndicator)}` : ''}</span>` : ''}</div>
