@@ -246,6 +246,7 @@ export default function CatalogPage() {
                   <th className="px-4 py-3 text-right">MRP</th>
                   <th className="px-4 py-3 text-right">Selling</th>
                   <th className="px-4 py-3 text-center">Stock</th>
+                  <th className="px-4 py-3">Location</th>
                   <th className="px-4 py-3 text-center w-10"></th>
                 </tr>
               </thead>
@@ -260,6 +261,7 @@ export default function CatalogPage() {
                     <td className={`px-4 py-2.5 text-center font-medium ${stockColor(Number(item.quantityInStock), item.reorderLevel ? Number(item.reorderLevel) : null)}`}>
                       {stockDot(Number(item.quantityInStock), item.reorderLevel ? Number(item.reorderLevel) : null)} {Number(item.quantityInStock)}
                     </td>
+                    <td className="px-4 py-2.5 text-xs text-gray-500">{(item as any).storageLocation || '—'}</td>
                     <td className="px-4 py-2.5 text-center">
                       <div className="relative inline-block" onClick={e => e.stopPropagation()}>
                         <button onClick={() => setMenuOpen(menuOpen === item.id ? null : item.id)} className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"><MoreVertical size={16} /></button>
@@ -291,7 +293,7 @@ export default function CatalogPage() {
                   </tr>
                 ))}
                 {items.length === 0 && (
-                  <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-500">No parts found</td></tr>
+                  <tr><td colSpan={8} className="px-4 py-8 text-center text-gray-500">No parts found</td></tr>
                 )}
               </tbody>
             </table>

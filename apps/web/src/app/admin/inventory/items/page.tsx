@@ -177,6 +177,7 @@ export default function InventoryItemsPage() {
       const low = r.reorderLevel && qty <= Number(r.reorderLevel);
       return <span className={qty <= 0 ? 'text-red-600 font-medium' : low ? 'text-amber-600 font-medium' : ''}>{qty}</span>;
     }},
+    { key: 'storageLocation', header: 'Location', render: (r: any) => r.storageLocation || '—' },
     { key: 'costPrice', header: 'Purchase (₹)', render: (r: any) => `₹${Number(r.costPrice)}` },
     { key: 'sellingPrice', header: 'Selling (₹)', render: (r: any) => {
       const mrp = Number(r.mrp) || 0;
