@@ -60,6 +60,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
         await tx.inventoryItem.update({ where: { id: params.id }, data: { isActive: false } });
         return;
       }
+      await tx.inventoryItemModel.deleteMany({ where: { inventoryItemId: params.id } });
       await tx.stockMovement.deleteMany({ where: { inventoryItemId: params.id } });
       await tx.inventoryItem.delete({ where: { id: params.id } });
     });
