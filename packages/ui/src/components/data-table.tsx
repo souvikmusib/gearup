@@ -6,7 +6,7 @@ interface Column<T> {
   header: string;
   render?: (row: T) => React.ReactNode;
   className?: string;
-  /** Force single-line on this cell. Default is wrap so the table fits the viewport. */
+  /** Force single-line on this cell. Default wraps at spaces (never mid-word). */
   nowrap?: boolean;
 }
 
@@ -60,7 +60,7 @@ export function DataTable<T extends Record<string, unknown>>({
               className={onRowClick ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500' : ''}
             >
               {columns.map((col) => (
-                <td key={col.key} className={`${col.nowrap ? 'whitespace-nowrap' : 'whitespace-normal break-words'} align-top px-4 py-3 text-sm text-gray-900 dark:text-gray-100 ${col.className ?? ''}`}>
+                <td key={col.key} className={`${col.nowrap ? 'whitespace-nowrap' : 'whitespace-normal break-normal'} align-top px-4 py-3 text-sm text-gray-900 dark:text-gray-100 ${col.className ?? ''}`}>
                   {col.render ? col.render(row) : String(row[col.key] ?? '')}
                 </td>
               ))}
