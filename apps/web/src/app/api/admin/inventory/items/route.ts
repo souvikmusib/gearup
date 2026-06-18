@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
       storageLocation: z.string().optional(), barcode: z.string().optional(),
       variablePrice: z.boolean().optional(), isBranded: z.boolean().optional(),
       modelIds: z.string().array().optional(),
-    }).refine(d => !d.amcDiscountPercent || !d.discountPercent || d.amcDiscountPercent >= d.discountPercent, { message: 'AMC discount must be ≥ normal discount', path: ['amcDiscountPercent'] }).parse(await req.json());
+    }).parse(await req.json());
     const openingQty = body.quantityInStock ?? 0;
     const item = await prisma.$transaction(async (tx) => {
       const created = await tx.inventoryItem.create({
