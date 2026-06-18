@@ -25,7 +25,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       storageLocation: z.string().nullable().optional(), barcode: z.string().nullable().optional(), isActive: z.boolean().optional(),
       variablePrice: z.boolean().optional(), isBranded: z.boolean().optional(),
       modelIds: z.string().array().optional(),
-    }).refine(d => !d.amcDiscountPercent || !d.discountPercent || d.amcDiscountPercent >= d.discountPercent, { message: 'AMC discount must be ≥ normal discount', path: ['amcDiscountPercent'] }).parse(await req.json());
+    }).parse(await req.json());
     const { modelIds, ...data } = body;
     const item = await prisma.$transaction(async (tx) => {
       const updated = await tx.inventoryItem.update({ where: { id: params.id }, data });

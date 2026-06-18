@@ -177,6 +177,7 @@ export default function InventoryItemsPage() {
       const low = r.reorderLevel && qty <= Number(r.reorderLevel);
       return <span className={qty <= 0 ? 'text-red-600 font-medium' : low ? 'text-amber-600 font-medium' : ''}>{qty}</span>;
     }},
+    { key: 'storageLocation', header: 'Location', render: (r: any) => r.storageLocation || '—' },
     { key: 'costPrice', header: 'Purchase (₹)', render: (r: any) => `₹${Number(r.costPrice)}` },
     { key: 'sellingPrice', header: 'Selling (₹)', render: (r: any) => {
       const mrp = Number(r.mrp) || 0;
@@ -291,7 +292,10 @@ export default function InventoryItemsPage() {
               />
             </div>
           </div>
-          <div><label className="block text-xs font-medium mb-1">Unit <span className="text-red-500">*</span></label><input className={inputCls} placeholder="e.g. pcs, litre" required value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })} /></div>
+          <div className="grid grid-cols-2 gap-3">
+            <div><label className="block text-xs font-medium mb-1">Initial Stock <span className="text-red-500">*</span></label><input className={inputCls} placeholder="0" type="number" required value={form.quantityInStock} onChange={(e) => setForm({ ...form, quantityInStock: e.target.value })} /></div>
+            <div><label className="block text-xs font-medium mb-1">Unit <span className="text-red-500">*</span></label><select className={inputCls} required value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })}><option value="">Select...</option><option value="PCS">PCS</option><option value="LITRE">Litre</option><option value="ML">ML</option><option value="SET">Set</option><option value="KIT">Kit</option><option value="PAIR">Pair</option><option value="BOTTLE">Bottle</option></select></div>
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <div><label className="block text-xs font-medium mb-1">Cost Price <span className="text-red-500">*</span></label><input className={inputCls} placeholder="0" type="number" step="0.01" required value={form.costPrice} onChange={(e) => setForm({ ...form, costPrice: e.target.value })} /></div>
             <div><label className="block text-xs font-medium mb-1">MRP</label><input className={inputCls} placeholder="0" type="number" step="0.01" value={form.mrp} onChange={(e) => { const mrp = e.target.value; const dp = Number(form.discountPercent) || 0; const sp = mrp ? String((Number(mrp) * (1 - dp / 100)).toFixed(2)) : form.sellingPrice; setForm({ ...form, mrp, sellingPrice: sp }); }} /></div>
@@ -302,7 +306,6 @@ export default function InventoryItemsPage() {
             <div><label className="block text-xs font-medium mb-1">AMC Discount %</label><input className={inputCls} placeholder="0" type="number" step="0.01" min="0" max="100" value={form.amcDiscountPercent} onChange={(e) => setForm({ ...form, amcDiscountPercent: e.target.value })} /></div>
             <div><label className="block text-xs font-medium mb-1">AMC Price</label><input className={inputCls} readOnly value={form.mrp && form.amcDiscountPercent ? (Number(form.mrp) * (1 - Number(form.amcDiscountPercent) / 100)).toFixed(2) : '—'} /></div>
           </div>
-          <div><label className="block text-xs font-medium mb-1">Initial Stock Quantity <span className="text-red-500">*</span></label><input className={inputCls} placeholder="0" type="number" required value={form.quantityInStock} onChange={(e) => setForm({ ...form, quantityInStock: e.target.value })} /></div>
           <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.variablePrice} onChange={(e) => setForm({ ...form, variablePrice: e.target.checked })} className="rounded" /><span>Variable price (enter price at sale time)</span></label>
           <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.isBranded} onChange={(e) => setForm({ ...form, isBranded: e.target.checked })} className="rounded" /><span>Branded product</span></label>
           <button type="submit" disabled={creating} className="w-full rounded-lg bg-blue-600 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">{creating ? 'Creating...' : 'Create'}</button>
