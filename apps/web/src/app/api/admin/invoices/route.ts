@@ -68,20 +68,30 @@ export async function POST(req: NextRequest) {
     let invoice;
     try {
       invoice = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-        let subtotal = 0, taxTotal = 0;
+        let subtotal = 0, taxTotal = 0, discountFromLines = 0;
         // Canonical percent-discount base: sum of (qty*price) across non-discount lines.
         const preSubtotal = nonDiscountPreSubtotal(body.lineItems);
 
+        // Mirror recalcTotalsTx (line-items route): DISCOUNT_ADJUSTMENT lines are split
+        // out of subtotal/taxTotal and tracked separately, so the stored subtotal stays
+        // identical before and after any later line-item edit.
         const lines = body.lineItems.map((li) => {
           const { lineTotal, taxAmount, netLineTotal } = computeLineTotal(li, preSubtotal);
-          subtotal += netLineTotal;
-          taxTotal += taxAmount;
-          return { lineType: li.lineType, description: li.description, quantity: li.quantity, unitPrice: li.unitPrice, taxRate: li.taxRate, sortOrder: li.sortOrder, discountPercent: li.discountPercent, taxAmount, lineTotal };
+          if (li.lineType === 'DISCOUNT_ADJUSTMENT') {
+            discountFromLines += lineTotal; // already negative
+          } else {
+            subtotal += netLineTotal;
+            taxTotal += taxAmount;
+          }
+          // Discount lines persist their percent into discountPercent (>0 ⇒ percent marker)
+          // so later edits re-derive them; non-discount lines keep their per-line discount.
+          const discountPercent = li.lineType === 'DISCOUNT_ADJUSTMENT'
+            ? (li.discountMode === 'percent' ? li.unitPrice : 0)
+            : li.discountPercent;
+          return { lineType: li.lineType, description: li.description, quantity: li.quantity, unitPrice: li.unitPrice, taxRate: li.taxRate, sortOrder: li.sortOrder, discountPercent, taxAmount, lineTotal };
         });
-        subtotal = Math.round(subtotal * 100) / 100;
-        taxTotal = Math.round(taxTotal * 100) / 100;
         const discountAmount = Math.round((body.discountType === 'PERCENTAGE' ? subtotal * ((body.discountValue ?? 0) / 100) : (body.discountValue ?? 0)) * 100) / 100;
-        const grandTotal = Math.round(subtotal + taxTotal - discountAmount);
+        const grandTotal = Math.round(subtotal + taxTotal + discountFromLines - discountAmount);
         return tx.invoice.create({
           data: { invoiceNumber: await generateInvoiceNumber(tx), customerId: body.customerId, vehicleId: body.vehicleId, jobCardId: body.jobCardId, appointmentId: body.appointmentId, invoiceDate: new Date(body.invoiceDate), dueDate: body.dueDate ? new Date(body.dueDate) : undefined, subtotal, taxTotal, discountType: body.discountType, discountValue: body.discountValue, discountAmount, grandTotal, amountDue: grandTotal, notes: body.notes, createdByAdminId: user.sub, lineItems: { create: lines } },
           include: { lineItems: true },

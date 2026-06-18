@@ -196,20 +196,27 @@ export async function POST(req: NextRequest) {
 
       let appointment = null;
       if (body.preferredDate) {
-        const preferredDate = new Date(body.preferredDate);
+        const dateOnly = body.preferredDate.slice(0, 10); // YYYY-MM-DD (schema allows a loose string)
+        const [yy, mm, dd] = dateOnly.split('-').map(Number);
+        // Weekday of the calendar date, timezone-independent (matches AppointmentSlotRule.dayOfWeek).
+        const dayOfWeek = new Date(Date.UTC(yy, mm - 1, dd)).getUTCDay();
         const slotRule = await tx.appointmentSlotRule.findFirst({
-          where: { dayOfWeek: preferredDate.getUTCDay(), isActive: true },
+          where: { dayOfWeek, isActive: true },
         });
         const duration = (slotRule?.slotDurationMinutes ?? 30) * 60_000;
+        // Anchor the slot to the rule's opening time in IST (default 09:00) so the stored
+        // instant is a real wall-clock time, not a meaningless midnight-UTC.
+        const openTime = /^\d{2}:\d{2}/.test(slotRule?.openTime ?? '') ? slotRule!.openTime.slice(0, 5) : '09:00';
+        const slotStart = new Date(`${dateOnly}T${openTime}:00+05:30`);
         appointment = await tx.appointment.create({
           data: {
             referenceId: generateAppointmentRef(),
             serviceRequestId: sr.id,
             customerId: customer.id,
             vehicleId: vehicle.id,
-            appointmentDate: preferredDate,
-            slotStart: preferredDate,
-            slotEnd: new Date(preferredDate.getTime() + duration),
+            appointmentDate: slotStart,
+            slotStart,
+            slotEnd: new Date(slotStart.getTime() + duration),
             bookingSource: 'PUBLIC_FORM',
             status: 'REQUESTED',
           },

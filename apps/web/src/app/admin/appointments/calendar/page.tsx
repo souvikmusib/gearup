@@ -7,7 +7,10 @@ import { PageHeader } from '@gearup/ui';
 import { ProcessLoader } from '@/components/shared/process-loader';
 
 function fmtDate(value: string) {
-  return formatIST(value, { weekday: 'short', month: 'short', day: 'numeric' });
+  const d = /^\d{4}-\d{2}-\d{2}$/.test(value)
+    ? new Date(`${value}T00:00:00+05:30`)
+    : new Date(value);
+  return formatIST(d, { weekday: 'short', month: 'short', day: 'numeric' });
 }
 
 function fmtTime(value: string) {
@@ -38,7 +41,7 @@ export default function AppointmentCalendarPage() {
 
   const grouped = useMemo(() => {
     return items.reduce<Record<string, any[]>>((acc, item) => {
-      const key = new Date(item.appointmentDate).toISOString().slice(0, 10);
+      const key = new Date(item.appointmentDate).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
       acc[key] = [...(acc[key] ?? []), item];
       return acc;
     }, {});

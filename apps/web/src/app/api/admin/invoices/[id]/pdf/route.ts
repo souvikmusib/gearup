@@ -69,7 +69,7 @@ function generateInvoiceHTML(invoice: any, settings: Record<string, any>, logoUr
     bankIfsc: settings['business.bank.ifsc'] || '',
     bankUpi: settings['business.bank.upi'] || '',
   };
-  const footer = settings['invoice.footer'] || 'Thank you for your business!';
+  const footer = settings['invoice.footerNote'] || 'Thank you for your business!';
 
   const nonDiscountItems = invoice.lineItems.filter((li: any) => li.lineType !== 'DISCOUNT_ADJUSTMENT');
   const discountItems = invoice.lineItems.filter((li: any) => li.lineType === 'DISCOUNT_ADJUSTMENT');
@@ -369,7 +369,7 @@ function generateAmcInvoiceHTML(invoice: any, settings: Record<string, any>, log
     bankIfsc: settings['business.bank.ifsc'] || '',
     bankUpi: settings['business.bank.upi'] || '',
   };
-  const footer = settings['invoice.footer'] || 'Thank you for being a Premium AMC member.';
+  const footer = settings['invoice.footerNote'] || 'Thank you for being a Premium AMC member.';
 
   const planPrice = Number(amcContract.plan.price);
   const amcSavings = invoice.lineItems

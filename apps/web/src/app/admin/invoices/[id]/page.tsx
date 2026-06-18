@@ -108,8 +108,9 @@ export default function InvoiceDetailPage() {
         }
         const laborItems = data.lineItems?.filter((li: any) => li.lineType === 'SERVICE_CHARGE') ?? [];
         const partItems = data.lineItems?.filter((li: any) => li.lineType === 'PART') ?? [];
-        const serviceSavings = laborItems.reduce((s: number, li: any) => s + Number(li.lineTotal), 0);
-        const partsSavings = partItems.reduce((s: number, li: any) => s + Number(li.lineTotal) * 0.01, 0);
+        // Use pre-tax net (lineTotal includes tax) so the previewed savings matches the discount actually applied.
+        const serviceSavings = laborItems.reduce((s: number, li: any) => s + (Number(li.lineTotal) - Number(li.taxAmount)), 0);
+        const partsSavings = partItems.reduce((s: number, li: any) => s + (Number(li.lineTotal) - Number(li.taxAmount)) * 0.01, 0);
         const totalSavings = serviceSavings + partsSavings;
         if (totalSavings > 0) setAmcUpsell({ show: true, plan, savings: totalSavings, partsSavings, serviceSavings });
         else setAmcUpsell(null);
@@ -120,6 +121,14 @@ export default function InvoiceDetailPage() {
   const applyAmc = async () => {
     if (!amcUpsell?.plan || !data) return;
     setApplyingAmc(true);
+    const lines = data.lineItems ?? [];
+    // AMC = free labour: set each SERVICE_CHARGE line to 100% off (matches the AMC PDF
+    // template which renders covered service lines as free). Idempotent.
+    for (const li of lines.filter((l: any) => l.lineType === 'SERVICE_CHARGE')) {
+      if (Number(li.discountPercent) !== 100) {
+        await api.patch<any>(`/admin/invoices/${id}/line-items`, { lineItemId: li.id, discountPercent: 100 });
+      }
+    }
     // Add AMC plan line item
     await api.post<any>(`/admin/invoices/${id}/line-items`, {
       lineType: 'AMC', description: `AMC — ${amcUpsell.plan.planName}`,
@@ -127,7 +136,7 @@ export default function InvoiceDetailPage() {
       amcPlanId: amcUpsell.plan.id,
     });
     // Apply 1% discount to all PART line items (branded default)
-    for (const li of (data.lineItems ?? []).filter((l: any) => l.lineType === 'PART')) {
+    for (const li of lines.filter((l: any) => l.lineType === 'PART')) {
       const currentDisc = Number(li.discountPercent) || 0;
       if (currentDisc < 1) {
         await api.patch<any>(`/admin/invoices/${id}/line-items`, { lineItemId: li.id, discountPercent: currentDisc + 1 });

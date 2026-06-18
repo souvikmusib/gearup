@@ -6,6 +6,7 @@ import { logActivity } from '@/lib/activity-logger';
 import { PERMISSIONS } from '@gearup/types';
 import { z } from 'zod';
 import type { Prisma } from '@prisma/client';
+import { recomputeDiscountLineTotal } from '@/lib/invoice-calc';
 
 type Tx = Prisma.TransactionClient;
 
@@ -25,7 +26,22 @@ async function recalcTotalsTx(tx: Tx, invoiceId: string, inv?: { discountAmount:
   const discountLines = lines.filter((l) => l.lineType === 'DISCOUNT_ADJUSTMENT');
   const subtotal = nonDiscountLines.reduce((s, l) => s + Number(l.lineTotal) - Number(l.taxAmount), 0);
   const taxTotal = nonDiscountLines.reduce((s, l) => s + Number(l.taxAmount), 0);
-  const discountFromLines = discountLines.reduce((s, l) => s + Number(l.lineTotal), 0);
+  // Re-derive percent discount lines (discountPercent > 0) against the CURRENT pre-discount
+  // base so a "10% off" line scales when parts are added/removed afterwards. Flat discount
+  // lines (discountPercent === 0) keep their stored total. The re-derived total is persisted
+  // so the line table reflects it.
+  const percentBase = nonDiscountLines.reduce((s, l) => s + Number(l.quantity) * Number(l.unitPrice), 0);
+  let discountFromLines = 0;
+  for (const l of discountLines) {
+    const recomputed = recomputeDiscountLineTotal(
+      { lineType: l.lineType, discountPercent: Number(l.discountPercent), lineTotal: Number(l.lineTotal) },
+      percentBase,
+    );
+    if (Math.abs(recomputed - Number(l.lineTotal)) > 0.005) {
+      await tx.invoiceLineItem.update({ where: { id: l.id }, data: { lineTotal: recomputed } });
+    }
+    discountFromLines += recomputed;
+  }
   let headerDiscountAmount: number;
   let amountPaid: number;
   if (inv) {
@@ -147,7 +163,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
           description: body.description,
           quantity: body.quantity,
           unitPrice: body.unitPrice,
-          discountPercent: body.discountPercent,
+          // For discount lines, discountPercent doubles as the persistent percent-mode
+          // marker (>0 ⇒ percent, re-derived on every recalc); flat discounts store 0.
+          discountPercent: isDiscount ? (body.discountMode === 'percent' ? body.unitPrice : 0) : body.discountPercent,
           taxRate: body.taxRate,
           taxAmount,
           lineTotal,
@@ -206,19 +224,16 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
       let taxAmount: number;
       let lineTotal: number;
+      let discountPercentToStore = data.discountPercent ?? Number(existing.discountPercent);
       if (existing.lineType === 'DISCOUNT_ADJUSTMENT') {
         // Discount lines have their own math: lineTotal is negative and there
         // is no tax. Percent mode anchors to the pre-discount subtotal of the
-        // OTHER lines on this invoice (the canonical percent-discount base).
-        // The previous PATCH implementation incorrectly applied the
-        // qty*price*(1-discount%) formula here, which corrupted the invoice
-        // total whenever a discount line was edited (regression caught by an
-        // integration test exercising a percent-discount PATCH).
+        // OTHER lines on this invoice (the canonical percent-discount base) and
+        // persists the percent into discountPercent so recalcTotalsTx can
+        // re-derive it whenever other lines change later.
         taxAmount = 0;
-        // Mode resolution: caller-supplied → existing-on-row (legacy) → flat.
-        // The schema does not yet persist discountMode on InvoiceLineItem, so
-        // for now percent-mode lines must be re-declared on every PATCH.
-        const mode = data.discountMode ?? ((existing as { discountMode?: string }).discountMode) ?? 'flat';
+        // Mode resolution: caller-supplied → persisted marker (discountPercent>0 ⇒ percent) → flat.
+        const mode = data.discountMode ?? (Number(existing.discountPercent) > 0 ? 'percent' : 'flat');
         if (mode === 'percent') {
           const otherLines = await tx.invoiceLineItem.findMany({
             where: { invoiceId: params.id, lineType: { not: 'DISCOUNT_ADJUSTMENT' } },
@@ -226,17 +241,19 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
           });
           const preSubtotal = otherLines.reduce((s, l) => s + Number(l.quantity) * Number(l.unitPrice), 0);
           lineTotal = -(preSubtotal * (price / 100));
+          discountPercentToStore = price; // persist the percent marker
         } else {
           lineTotal = -Math.abs(qty * price);
+          discountPercentToStore = 0;
         }
       } else {
         const subtotal = qty * price * (1 - discount / 100);
         taxAmount = subtotal * (rate / 100);
         lineTotal = subtotal + taxAmount;
       }
-      // discountMode is API-only (not yet a column); drop before write.
-      const { discountMode: _dm, ...persistable } = data;
-      const updated = await tx.invoiceLineItem.update({ where: { id: lineItemId }, data: { ...persistable, taxAmount, lineTotal } });
+      // discountMode is API-only (not a column); discountPercent is set explicitly below.
+      const { discountMode: _dm, discountPercent: _dp, ...persistable } = data;
+      const updated = await tx.invoiceLineItem.update({ where: { id: lineItemId }, data: { ...persistable, discountPercent: discountPercentToStore, taxAmount, lineTotal } });
       await recalcTotalsTx(tx, params.id, inv);
       return updated;
     });
