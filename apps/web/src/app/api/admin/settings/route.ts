@@ -27,7 +27,7 @@ const SETTING_SCHEMAS: Record<string, ZodSchema> = {
   'business.pincode': optionalStr,
   'business.phone': optionalStr,
   'business.email': z.string().trim().email().max(500).or(z.literal('')),
-  'business.gstin': optionalStr,
+  'business.gst': optionalStr,
   'business.logoUrl': urlSchema.or(z.literal('')),
   'business.currency': z.string().trim().length(3),
   'business.timezone': nonEmptyStr,

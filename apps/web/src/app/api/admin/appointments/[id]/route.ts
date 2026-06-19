@@ -56,7 +56,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     if (body.appointmentDate) data.appointmentDate = new Date(body.appointmentDate);
     if (body.slotStart) data.slotStart = new Date(body.slotStart);
     if (body.slotEnd) data.slotEnd = new Date(body.slotEnd);
-    const appt = await prisma.appointment.update({ where: { id: params.id }, data });
+    const appt = await prisma.appointment.update({ where: { id: params.id }, data, include: { customer: true, vehicle: true, serviceRequest: true, worker: true, confirmedBy: { select: { fullName: true } } } });
     logActivity({ entityType: 'Appointment', entityId: appt.id, action: 'appointment.updated', newValue: body, actorType: 'ADMIN', actorId: user.sub });
     return NextResponse.json({ success: true, data: appt });
   } catch (e) { return handleApiError(e); }

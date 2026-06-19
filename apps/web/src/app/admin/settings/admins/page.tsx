@@ -61,7 +61,7 @@ export default function AdminUsersPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <PageHeader title="Admin Users" description="Manage admin accounts and roles" />
-        <button onClick={() => setShowCreate(true)} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">+ Create User</button>
+        <button onClick={() => { setError(''); setShowCreate(true); }} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">+ Create User</button>
       </div>
       <input
         className={`${inputCls} max-w-md`}
@@ -95,7 +95,7 @@ export default function AdminUsersPage() {
                     <td className="px-4 py-3 align-top"><span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">{admin.roles.map((r: any) => r.name ?? r.key).join(', ') || '-'}</span></td>
                     <td className="px-4 py-3 align-top"><span className={`text-xs font-medium ${admin.status === 'ACTIVE' ? 'text-green-600' : 'text-red-600'}`}>{admin.status}</span></td>
                     <td className="px-4 py-3 align-top text-xs text-gray-500 whitespace-nowrap">{admin.lastLoginAt ? formatIST(admin.lastLoginAt) : 'Never'}</td>
-                    <td className="px-4 py-3 align-top"><button onClick={() => { setEditUser(admin); setEditForm({ fullName: admin.fullName, password: '', phone: admin.phone || '', status: admin.status, roleId: admin.roles[0]?.id || '' }); }} className="text-xs text-blue-600 hover:underline">Edit</button></td>
+                    <td className="px-4 py-3 align-top"><button onClick={() => { setError(''); setEditUser(admin); setEditForm({ fullName: admin.fullName, password: '', phone: admin.phone || '', status: admin.status, roleId: admin.roles[0]?.id || '' }); }} className="text-xs text-blue-600 hover:underline">Edit</button></td>
                   </tr>
                 ))}
               </tbody>

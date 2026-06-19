@@ -35,20 +35,20 @@ export default function ActivityLogsPage() {
   const [to, setTo] = useState('');
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
-  const buildParams = (pg: number) => {
+  const buildParams = (pg: number, f = { entityType, actorType, action, from, to }) => {
     const params = new URLSearchParams();
-    if (entityType) params.set('entityType', entityType);
-    if (actorType) params.set('actorType', actorType);
-    if (action && action.length >= 2) params.set('action', action);
-    if (from) params.set('from', from);
-    if (to) params.set('to', to);
+    if (f.entityType) params.set('entityType', f.entityType);
+    if (f.actorType) params.set('actorType', f.actorType);
+    if (f.action && f.action.length >= 2) params.set('action', f.action);
+    if (f.from) params.set('from', f.from);
+    if (f.to) params.set('to', f.to);
     params.set('page', String(pg));
     return params;
   };
 
-  const load = (pg = page) => {
+  const load = (pg = page, f?: { entityType: string; actorType: string; action: string; from: string; to: string }) => {
     setLoading(true);
-    api.get<LogRow[]>(`/admin/logs?${buildParams(pg)}`).then((r) => {
+    api.get<LogRow[]>(`/admin/logs?${buildParams(pg, f)}`).then((r) => {
       if (r.success) {
         setData(r.data ?? []);
         setTotalPages(r.meta?.totalPages ?? 1);
@@ -62,7 +62,7 @@ export default function ActivityLogsPage() {
   const onApply = () => { setPage(1); load(1); };
   const onReset = () => {
     setEntityType(''); setActorType(''); setAction(''); setFrom(''); setTo(''); setPage(1);
-    setTimeout(() => load(1), 0);
+    load(1, { entityType: '', actorType: '', action: '', from: '', to: '' });
   };
   const onExport = () => {
     const params = buildParams(1);

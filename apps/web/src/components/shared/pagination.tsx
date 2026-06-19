@@ -39,7 +39,7 @@ export function Pagination({
           <label className="flex items-center gap-1 text-gray-500 dark:text-gray-400">
             <span className="hidden sm:inline">Per page</span>
             <select
-              value={pageSize ?? sizes[1]}
+              value={pageSize ?? sizes[0]}
               onChange={(e) => {
                 onPageSizeChange(Number(e.target.value));
                 onPageChange(1);

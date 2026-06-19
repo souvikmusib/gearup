@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   nonDiscountPreSubtotal,
   computeLineTotal,
+  recomputeDiscountLineTotal,
   type InvoiceLineLike,
 } from '../../lib/invoice-calc';
 
@@ -95,5 +96,25 @@ describe('end-to-end invoice math (regression: 600 - 10% = 540)', () => {
     const total = lines.reduce((sum, l) => sum + computeLineTotal(l, base).lineTotal, 0);
     expect(base).toBe(600);
     expect(Math.round(total)).toBe(540);
+  });
+});
+
+describe('recomputeDiscountLineTotal', () => {
+  it('re-derives a percent discount against the current base (the #3 bug fix)', () => {
+    const pctLine = { lineType: 'DISCOUNT_ADJUSTMENT', discountPercent: 10, lineTotal: -100 };
+    // Snapshotted at base 1000 → -100. After a part is added, base 1500 → must scale to -150.
+    expect(recomputeDiscountLineTotal(pctLine, 1000)).toBe(-100);
+    expect(recomputeDiscountLineTotal(pctLine, 1500)).toBe(-150);
+  });
+
+  it('leaves a flat discount line (discountPercent 0) at its stored lineTotal', () => {
+    const flatLine = { lineType: 'DISCOUNT_ADJUSTMENT', discountPercent: 0, lineTotal: -50 };
+    expect(recomputeDiscountLineTotal(flatLine, 1000)).toBe(-50);
+    expect(recomputeDiscountLineTotal(flatLine, 9999)).toBe(-50);
+  });
+
+  it('never touches non-discount lines', () => {
+    const part = { lineType: 'PART', discountPercent: 0, lineTotal: 236 };
+    expect(recomputeDiscountLineTotal(part, 1000)).toBe(236);
   });
 });

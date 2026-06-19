@@ -42,8 +42,8 @@ export async function GET(req: NextRequest) {
 
     const blocked = await prisma.blockedSlot.findMany({ where: { blockDate: targetDate, appliesToAll: true } });
     // Per-slot capacity: group by slotStart, not by day.
-    const dayStart = new Date(Date.UTC(year, month - 1, day, 0, 0));
-    const dayEnd = new Date(Date.UTC(year, month - 1, day + 1, 0, 0));
+    const dayStart = new Date(`${date}T00:00:00+05:30`);
+    const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000);
     const apptRows = await prisma.appointment.groupBy({
       by: ['slotStart'],
       where: { slotStart: { gte: dayStart, lt: dayEnd }, status: { notIn: ['CANCELLED', 'NO_SHOW'] } },
@@ -62,8 +62,8 @@ export async function GET(req: NextRequest) {
         const sH = Math.floor(m / 60), sM = m % 60;
         const eM = m + rule.slotDurationMinutes, eH = Math.floor(eM / 60), eMn = eM % 60;
         const fmt = (h: number, mn: number) => `${String(h).padStart(2, '0')}:${String(mn).padStart(2, '0')}`;
-        const start = new Date(Date.UTC(year, month - 1, day, sH, sM));
-        const end = new Date(Date.UTC(year, month - 1, day, eH, eMn));
+        const start = new Date(`${date}T${fmt(sH, sM)}:00+05:30`);
+        const end = new Date(`${date}T${fmt(eH, eMn)}:00+05:30`);
         // Compare time-of-day only: blockStartTime/blockEndTime are stored as full DateTimes,
         // but the meaningful axis on a given blockDate is the wall-clock window. Normalize both
         // sides to UTC time-of-day on targetDate before comparing.

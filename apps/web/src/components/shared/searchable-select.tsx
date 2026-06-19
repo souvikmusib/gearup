@@ -64,7 +64,7 @@ function fuzzyClosest(query: string, options: SearchableSelectOption[], max = 5)
     return { opt: o, score: best };
   });
   return scored
-    .filter((s) => s.score <= Math.max(2, Math.floor(q.length / 3)))
+    .filter((s) => s.score <= Math.max(1, Math.floor(q.length / 3)))
     .sort((a, b) => a.score - b.score)
     .slice(0, max)
     .map((s) => s.opt);

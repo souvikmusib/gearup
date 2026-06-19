@@ -66,6 +66,7 @@ export default function AppointmentDetailPage() {
 
   const submitReschedule = async () => {
     if (!rescheduleDate) return;
+    if (!rescheduleReason.trim()) { alert('Reschedule reason is required'); return; }
     setLoading('RESCHEDULED');
     const dt = new Date(rescheduleDate);
     const res = await api.patch<any>(`/admin/appointments/${id}`, {
@@ -74,8 +75,9 @@ export default function AppointmentDetailPage() {
       rescheduleReason,
     });
     setLoading('');
+    if (!res.success) { alert(res.error?.message || 'Failed to reschedule'); return; }
     setShowReschedule(false);
-    if (res.success) setData(res.data);
+    setData(res.data);
   };
 
   const assignWorker = async (workerId: string) => {

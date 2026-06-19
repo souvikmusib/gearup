@@ -64,3 +64,23 @@ export function computeLineTotal(
   const taxAmount = net * (taxRate / 100);
   return { lineTotal: net + taxAmount, taxAmount, netLineTotal: net };
 }
+
+/**
+ * Re-derive a stored line's discount contribution against the CURRENT canonical
+ * percent base, so percent discounts stay correct when other lines change later.
+ *
+ * A DISCOUNT_ADJUSTMENT line is treated as percent-mode iff its `discountPercent`
+ * column is > 0 (the persistent marker). Percent lines re-derive from the base;
+ * flat discount lines and all non-discount lines keep their stored `lineTotal`.
+ *
+ * `percentBase` is the pre-line-discount subtotal of non-discount lines, i.e.
+ * `nonDiscountPreSubtotal(lines)` — the same base `computeLineTotal` uses.
+ */
+export function recomputeDiscountLineTotal(
+  line: { lineType: string; discountPercent?: number; lineTotal: number },
+  percentBase: number,
+): number {
+  if (line.lineType !== 'DISCOUNT_ADJUSTMENT') return line.lineTotal;
+  const pct = Number(line.discountPercent) || 0;
+  return pct > 0 ? -(percentBase * (pct / 100)) : line.lineTotal;
+}
