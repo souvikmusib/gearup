@@ -112,7 +112,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
           ? -(Number(inv.subtotal) * (body.unitPrice / 100))
           : -(Math.abs(body.quantity * body.unitPrice));
       } else {
-        // Auto-detect AMC for PART lines: if vehicle has an active contract, boost discount
+        // Auto-detect AMC for PART lines: if vehicle has an active contract OR invoice has AMC line, boost discount
         let effectiveDiscount = body.discountPercent;
         if (body.lineType === 'PART' && inv.vehicleId) {
           const activeContract = await tx.amcContract.findFirst({
@@ -120,8 +120,17 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
           });
           if (activeContract) {
             effectiveDiscount = body.discountPercent + Number(activeContract.extraDiscountPercent);
-            if (effectiveDiscount > 100) effectiveDiscount = 100;
+          } else {
+            // Check if this invoice already has an AMC plan-purchase line
+            const amcLine = await tx.invoiceLineItem.findFirst({
+              where: { invoiceId: params.id, lineType: 'AMC', referenceItemId: { not: null } },
+            });
+            if (amcLine) {
+              const plan = await tx.amcPlan.findUnique({ where: { id: amcLine.referenceItemId! } });
+              if (plan) effectiveDiscount = body.discountPercent + Number(plan.extraDiscountPercent);
+            }
           }
+          if (effectiveDiscount > 100) effectiveDiscount = 100;
         }
         const subtotal = body.quantity * body.unitPrice * (1 - effectiveDiscount / 100);
         taxAmount = subtotal * (body.taxRate / 100);
