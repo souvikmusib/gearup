@@ -73,11 +73,12 @@ function generateInvoiceHTML(invoice: any, settings: Record<string, any>, logoUr
 
   const nonDiscountItems = invoice.lineItems.filter((li: any) => li.lineType !== 'DISCOUNT_ADJUSTMENT');
   const discountItems = invoice.lineItems.filter((li: any) => li.lineType === 'DISCOUNT_ADJUSTMENT');
+  const allDisplayItems = [...nonDiscountItems, ...discountItems];
   const discountFromAdjustments = discountItems.reduce((s: number, li: any) => s + Math.abs(Number(li.lineTotal)), 0);
   const discountFromPercent = invoice.lineItems.filter((li: any) => li.lineType !== 'DISCOUNT_ADJUSTMENT' && Number(li.discountPercent) > 0).reduce((s: number, li: any) => s + Number(li.quantity) * Number(li.unitPrice) * Number(li.discountPercent) / 100, 0);
   const totalDiscount = discountFromAdjustments + discountFromPercent;
 
-  const rows = nonDiscountItems.map((li: any, i: number) => {
+  const rows = allDisplayItems.map((li: any, i: number) => {
     const item = li.referenceItemId ? itemMap[li.referenceItemId] : null;
     const sku = item?.sku || '';
     const mrp = item?.mrp ? Number(item.mrp) : null;
@@ -384,8 +385,10 @@ function generateAmcInvoiceHTML(invoice: any, settings: Record<string, any>, log
   const totalDiscount = discountFromAdjustments + discountFromPercent;
 
   const nonDiscountItems = invoice.lineItems.filter((li: any) => li.lineType !== 'DISCOUNT_ADJUSTMENT');
+  const discountItems = invoice.lineItems.filter((li: any) => li.lineType === 'DISCOUNT_ADJUSTMENT');
+  const allDisplayItems = [...nonDiscountItems, ...discountItems];
 
-  const rows = nonDiscountItems.map((li: any, i: number) => {
+  const rows = allDisplayItems.map((li: any, i: number) => {
     const isAmcCovered = li.lineType === 'AMC' && Number(li.lineTotal) === 0;
     const disc = Number(li.discountPercent) || 0;
     const qty = Number(li.quantity);
