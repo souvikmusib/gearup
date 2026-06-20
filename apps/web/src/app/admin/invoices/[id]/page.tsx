@@ -152,8 +152,6 @@ export default function InvoiceDetailPage() {
     setApplyingAmc(false);
     setAmcUpsell(null);
     fetch();
-    // Open AMC invoice PDF
-    window.open(`/api/admin/invoices/${id}/pdf?type=invoice`, '_blank');
   };
 
   const finalize = async () => {
@@ -316,7 +314,10 @@ export default function InvoiceDetailPage() {
           </button>
           {showPdfMenu && (
             <div className="absolute right-0 top-full mt-1 w-48 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-lg z-10">
-              <button onClick={() => { openPdf(); setShowPdfMenu(false); }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 rounded-t-lg">Invoice</button>
+              {data?.lineItems?.some((li: any) => li.lineType === 'AMC')
+                ? <button onClick={() => { openPdf(); setShowPdfMenu(false); }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 rounded-t-lg font-medium text-amber-700">💎 AMC Invoice</button>
+                : <button onClick={() => { openPdf(); setShowPdfMenu(false); }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 rounded-t-lg">Invoice</button>
+              }
               <button onClick={() => { openPdf('combined'); setShowPdfMenu(false); }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 rounded-b-lg">Customer + Mechanic (1 page)</button>
             </div>
           )}
