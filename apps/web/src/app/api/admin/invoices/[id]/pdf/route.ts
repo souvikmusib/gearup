@@ -73,11 +73,12 @@ function generateInvoiceHTML(invoice: any, settings: Record<string, any>, logoUr
 
   const nonDiscountItems = invoice.lineItems.filter((li: any) => li.lineType !== 'DISCOUNT_ADJUSTMENT');
   const discountItems = invoice.lineItems.filter((li: any) => li.lineType === 'DISCOUNT_ADJUSTMENT');
+  const allDisplayItems = [...nonDiscountItems, ...discountItems];
   const discountFromAdjustments = discountItems.reduce((s: number, li: any) => s + Math.abs(Number(li.lineTotal)), 0);
   const discountFromPercent = invoice.lineItems.filter((li: any) => li.lineType !== 'DISCOUNT_ADJUSTMENT' && Number(li.discountPercent) > 0).reduce((s: number, li: any) => s + Number(li.quantity) * Number(li.unitPrice) * Number(li.discountPercent) / 100, 0);
   const totalDiscount = discountFromAdjustments + discountFromPercent;
 
-  const rows = nonDiscountItems.map((li: any, i: number) => {
+  const rows = allDisplayItems.map((li: any, i: number) => {
     const item = li.referenceItemId ? itemMap[li.referenceItemId] : null;
     const sku = item?.sku || '';
     const mrp = item?.mrp ? Number(item.mrp) : null;
@@ -236,6 +237,8 @@ th { background:#fafafa; padding:10px 10px; text-align:left; font-size:10px; tex
     </div>
     <div style="width:280px">
       <table style="border-collapse:separate">
+        <tr><td style="padding:5px 12px;color:#6b7280;font-size:12px">Total Amount</td><td style="padding:5px 12px;text-align:right;font-size:12px">₹${(netAmount + discountFromAdjustments).toLocaleString('en-IN')}</td></tr>
+        ${discountFromAdjustments > 0 ? `<tr><td style="padding:5px 12px;color:#16a34a;font-size:12px;font-weight:600">Total Discount</td><td style="padding:5px 12px;text-align:right;color:#16a34a;font-size:12px;font-weight:600">−₹${discountFromAdjustments.toLocaleString('en-IN')}</td></tr>` : ''}
         ${taxTotal > 0 ? `
           <tr><td style="padding:5px 12px;color:#6b7280;font-size:11px">CGST (½ Tax)</td><td style="padding:5px 12px;text-align:right;font-size:11px">₹${cgst.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td></tr>
           <tr><td style="padding:5px 12px;color:#6b7280;font-size:11px">SGST (½ Tax)</td><td style="padding:5px 12px;text-align:right;font-size:11px">₹${sgst.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td></tr>
@@ -243,9 +246,12 @@ th { background:#fafafa; padding:10px 10px; text-align:left; font-size:10px; tex
         ${Math.abs(roundOff) > 0.001 ? `<tr><td style="padding:5px 12px;color:#6b7280;font-size:11px">Round Off</td><td style="padding:5px 12px;text-align:right;font-size:11px">${roundOff > 0 ? '+' : ''}₹${roundOff.toFixed(2)}</td></tr>` : ''}
         <tr><td colspan="2" style="padding:0;border-top:2px solid #111"></td></tr>
         <tr><td style="padding:10px 12px;font-size:14px;font-weight:800;color:#111">Net Total</td><td style="padding:10px 12px;text-align:right;font-size:16px;font-weight:800;color:#111">₹${netAmount.toLocaleString('en-IN')}</td></tr>
-        ${totalDiscount > 0 ? `<tr><td colspan="2" style="padding:4px 12px;color:#16a34a;font-size:10px">You saved ₹${totalDiscount.toLocaleString('en-IN')} on this invoice</td></tr>` : ''}
-        ${Number(invoice.amountPaid) > 0 ? `<tr><td style="padding:5px 12px;color:#16a34a;font-size:12px;border-top:1px solid #e5e7eb">Amount Paid</td><td style="padding:5px 12px;text-align:right;color:#16a34a;font-size:12px;border-top:1px solid #e5e7eb">₹${Number(invoice.amountPaid).toLocaleString('en-IN')}</td></tr>` : ''}
-        ${Number(invoice.amountDue) > 0 ? `<tr><td style="padding:7px 12px;color:#dc2626;font-size:13px;font-weight:700;background:#fee2e2">Balance Due</td><td style="padding:7px 12px;text-align:right;color:#dc2626;font-size:13px;font-weight:700;background:#fee2e2">₹${Number(invoice.amountDue).toLocaleString('en-IN')}</td></tr>` : ''}
+      </table>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-top:1px solid #e5e7eb;margin-top:4px">
+        ${totalDiscount > 0 ? `<span style="font-size:10px;color:#16a34a">You saved ₹${totalDiscount.toLocaleString('en-IN')} on this invoice</span>` : '<span></span>'}
+        ${Number(invoice.amountPaid) > 0 ? `<span style="font-size:11px;color:#16a34a;font-weight:600">Paid: ₹${Number(invoice.amountPaid).toLocaleString('en-IN')}</span>` : ''}
+      </div>
+        ${Number(invoice.amountDue) > 0 ? `<div style="margin-top:4px;padding:7px 12px;color:#dc2626;font-size:13px;font-weight:700;background:#fee2e2;border-radius:6px;text-align:center">Balance Due: ₹${Number(invoice.amountDue).toLocaleString('en-IN')}</div>` : ''}
       </table>
     </div>
   </div>
@@ -384,8 +390,10 @@ function generateAmcInvoiceHTML(invoice: any, settings: Record<string, any>, log
   const totalDiscount = discountFromAdjustments + discountFromPercent;
 
   const nonDiscountItems = invoice.lineItems.filter((li: any) => li.lineType !== 'DISCOUNT_ADJUSTMENT');
+  const discountItems = invoice.lineItems.filter((li: any) => li.lineType === 'DISCOUNT_ADJUSTMENT');
+  const allDisplayItems = [...nonDiscountItems, ...discountItems];
 
-  const rows = nonDiscountItems.map((li: any, i: number) => {
+  const rows = allDisplayItems.map((li: any, i: number) => {
     const isAmcCovered = li.lineType === 'AMC' && Number(li.lineTotal) === 0;
     const disc = Number(li.discountPercent) || 0;
     const qty = Number(li.quantity);
@@ -557,6 +565,8 @@ th { background:#FFFBEB; padding:10px 10px; text-align:left; font-size:10px; tex
     </div>
     <div style="width:280px">
       <table style="border-collapse:separate">
+        <tr><td style="padding:5px 12px;color:#6b7280;font-size:12px">Total Amount</td><td style="padding:5px 12px;text-align:right;font-size:12px">₹${(netAmount + discountFromAdjustments).toLocaleString('en-IN')}</td></tr>
+        ${discountFromAdjustments > 0 ? `<tr><td style="padding:5px 12px;color:#16a34a;font-size:12px;font-weight:600">Total Discount</td><td style="padding:5px 12px;text-align:right;color:#16a34a;font-size:12px;font-weight:600">−₹${discountFromAdjustments.toLocaleString('en-IN')}</td></tr>` : ''}
         ${amcSavings > 0 ? `<tr><td style="padding:6px 12px;color:#92400E;font-size:12px;font-weight:700;background:#FFFBEB"><span style="color:#D4A017">★</span> AMC Benefit</td><td style="padding:6px 12px;text-align:right;color:#92400E;font-size:12px;font-weight:700;background:#FFFBEB">−₹${amcSavings.toLocaleString('en-IN')}</td></tr>` : ''}
         ${taxTotal > 0 ? `
           <tr><td style="padding:5px 12px;color:#6b7280;font-size:11px">CGST (½ Tax)</td><td style="padding:5px 12px;text-align:right;font-size:11px">₹${cgst.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td></tr>
@@ -565,10 +575,12 @@ th { background:#FFFBEB; padding:10px 10px; text-align:left; font-size:10px; tex
         ${Math.abs(roundOff) > 0.001 ? `<tr><td style="padding:5px 12px;color:#6b7280;font-size:11px">Round Off</td><td style="padding:5px 12px;text-align:right;font-size:11px">${roundOff > 0 ? '+' : ''}₹${roundOff.toFixed(2)}</td></tr>` : ''}
         <tr><td colspan="2" style="padding:0;border-top:2px solid #D4A017"></td></tr>
         <tr><td style="padding:10px 12px;font-size:14px;font-weight:800;color:#111">Net Total</td><td style="padding:10px 12px;text-align:right;font-size:16px;font-weight:800;color:#111">₹${netAmount.toLocaleString('en-IN')}</td></tr>
-        ${totalDiscount > 0 ? `<tr><td colspan="2" style="padding:4px 12px;color:#16a34a;font-size:10px">You saved ₹${totalDiscount.toLocaleString('en-IN')} on this invoice</td></tr>` : ''}
-        ${Number(invoice.amountPaid) > 0 ? `<tr><td style="padding:5px 12px;color:#16a34a;font-size:12px;border-top:1px solid #e5e7eb">Amount Paid</td><td style="padding:5px 12px;text-align:right;color:#16a34a;font-size:12px;border-top:1px solid #e5e7eb">₹${Number(invoice.amountPaid).toLocaleString('en-IN')}</td></tr>` : ''}
-        ${Number(invoice.amountDue) > 0 ? `<tr><td style="padding:7px 12px;color:#dc2626;font-size:13px;font-weight:700;background:#fee2e2">Balance Due</td><td style="padding:7px 12px;text-align:right;color:#dc2626;font-size:13px;font-weight:700;background:#fee2e2">₹${Number(invoice.amountDue).toLocaleString('en-IN')}</td></tr>` : ''}
       </table>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-top:1px solid #e5e7eb;margin-top:4px">
+        ${totalDiscount > 0 ? `<span style="font-size:10px;color:#16a34a">You saved ₹${totalDiscount.toLocaleString('en-IN')} on this invoice</span>` : '<span></span>'}
+        ${Number(invoice.amountPaid) > 0 ? `<span style="font-size:11px;color:#16a34a;font-weight:600">Paid: ₹${Number(invoice.amountPaid).toLocaleString('en-IN')}</span>` : ''}
+      </div>
+        ${Number(invoice.amountDue) > 0 ? `<div style="margin-top:4px;padding:7px 12px;color:#dc2626;font-size:13px;font-weight:700;background:#fee2e2;border-radius:6px;text-align:center">Balance Due: ₹${Number(invoice.amountDue).toLocaleString('en-IN')}</div>` : ''}
     </div>
   </div>
 

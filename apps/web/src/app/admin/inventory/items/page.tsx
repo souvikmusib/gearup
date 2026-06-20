@@ -154,8 +154,9 @@ export default function InventoryItemsPage() {
   const deleteItem = async (item: any) => {
     if (!confirm(`Delete "${item.itemName}"? This cannot be undone.`)) return;
     setItemMenuOpen(null);
-    await api.delete(`/admin/inventory/items/${item.id}`);
-    load();
+    const res = await api.delete<any>(`/admin/inventory/items/${item.id}`);
+    if (res.success) load();
+    else alert(res.error?.message || 'Failed to delete item');
   };
 
   const submitStock = async (e: React.FormEvent) => {
