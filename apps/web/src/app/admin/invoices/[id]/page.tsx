@@ -152,6 +152,8 @@ export default function InvoiceDetailPage() {
     setApplyingAmc(false);
     setAmcUpsell(null);
     fetch();
+    // Open AMC invoice PDF
+    window.open(`/api/admin/invoices/${id}/pdf?type=invoice`, '_blank');
   };
 
   const finalize = async () => {
