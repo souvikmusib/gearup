@@ -37,6 +37,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     const user = requirePermission(PERMISSIONS.AMC_CONTRACTS_MANAGE);
     const body = z.object({
       status: z.preprocess(v => v === '' ? undefined : v, z.enum(['ACTIVE', 'EXPIRED', 'CANCELLED']).optional()),
+      amcPlanId: z.string().min(1).optional(),
+      servicesRemaining: z.number().int().min(0).optional(),
       notes: z.string().optional(),
     }).parse(await req.json());
 
@@ -66,6 +68,13 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
         body.status !== 'CANCELLED'
       ) {
         data.status = 'EXPIRED';
+      }
+
+      // If plan is changing, lock the new plan's discount terms onto the contract
+      if (body.amcPlanId && body.amcPlanId !== existing.amcPlanId) {
+        const newPlan = await tx.amcPlan.findUniqueOrThrow({ where: { id: body.amcPlanId } });
+        data.extraDiscountPercent = Number(newPlan.extraDiscountPercent);
+        data.laborDiscountPercent = Number(newPlan.laborDiscountPercent);
       }
 
       const contract = await tx.amcContract.update({ where: { id: params.id }, data });

@@ -106,6 +106,8 @@ export async function POST(req: NextRequest) {
               endDate,
               totalServices: plan.totalServicesIncluded,
               servicesRemaining: plan.totalServicesIncluded,
+              extraDiscountPercent: Number(plan.extraDiscountPercent),
+              laborDiscountPercent: Number(plan.laborDiscountPercent),
               amountPaid: body.amountPaid,
               paymentMode: body.paymentMode as any,
               paymentDate: body.paymentDate ?? new Date(),
