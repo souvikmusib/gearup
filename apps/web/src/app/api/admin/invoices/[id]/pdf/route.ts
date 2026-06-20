@@ -669,6 +669,26 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     if (invoice.vehicleId) {
       amcContract = await prisma.amcContract.findFirst({ where: { vehicleId: invoice.vehicleId, status: 'ACTIVE' }, include: { plan: true } });
     }
+    // If invoice has AMC line (plan purchase) but contract doesn't exist yet, build from plan
+    if (!amcContract && hasAmc) {
+      const amcLine = invoice.lineItems.find((li: any) => li.lineType === 'AMC');
+      if (amcLine?.referenceItemId) {
+        const plan = await prisma.amcPlan.findUnique({ where: { id: amcLine.referenceItemId } });
+        if (plan) {
+          amcContract = {
+            contractNumber: 'PENDING',
+            totalServices: plan.totalServicesIncluded,
+            servicesUsed: 0,
+            servicesRemaining: plan.totalServicesIncluded,
+            extraDiscountPercent: plan.extraDiscountPercent,
+            laborDiscountPercent: plan.laborDiscountPercent,
+            startDate: new Date(),
+            endDate: new Date(Date.now() + plan.durationMonths * 30 * 86400000),
+            plan,
+          };
+        }
+      }
+    }
 
     let html: string;
     if (type === 'combined') {
