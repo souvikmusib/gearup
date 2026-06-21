@@ -663,11 +663,31 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     const invItems = refIds.length > 0 ? await prisma.inventoryItem.findMany({ where: { id: { in: refIds } }, select: { id: true, sku: true, mrp: true } }) : [];
     const itemMap = Object.fromEntries(invItems.map((i: any) => [i.id, i]));
 
-    // Check if invoice has AMC line items
+    // Check if invoice has AMC line items OR vehicle has an active AMC contract
     const hasAmc = invoice.lineItems.some((li: any) => li.lineType === 'AMC');
     let amcContract: any = null;
-    if (hasAmc && invoice.vehicleId) {
+    if (invoice.vehicleId) {
       amcContract = await prisma.amcContract.findFirst({ where: { vehicleId: invoice.vehicleId, status: 'ACTIVE' }, include: { plan: true } });
+    }
+    // If invoice has AMC line (plan purchase) but contract doesn't exist yet, build from plan
+    if (!amcContract && hasAmc) {
+      const amcLine = invoice.lineItems.find((li: any) => li.lineType === 'AMC');
+      if (amcLine?.referenceItemId) {
+        const plan = await prisma.amcPlan.findUnique({ where: { id: amcLine.referenceItemId } });
+        if (plan) {
+          amcContract = {
+            contractNumber: 'PENDING',
+            totalServices: plan.totalServicesIncluded,
+            servicesUsed: 0,
+            servicesRemaining: plan.totalServicesIncluded,
+            extraDiscountPercent: plan.extraDiscountPercent,
+            laborDiscountPercent: plan.laborDiscountPercent,
+            startDate: new Date(),
+            endDate: new Date(Date.now() + plan.durationMonths * 30 * 86400000),
+            plan,
+          };
+        }
+      }
     }
 
     let html: string;
@@ -741,7 +761,7 @@ th { background:#f3f4f6; padding:4px 6px; text-align:left; font-size:9px; text-t
       html = generateCustomerDraftHTML(invoice, settings, logoUrl);
     } else if (type === 'mechanic') {
       html = generateMechanicCopyHTML(invoice, settings, logoUrl);
-    } else if (hasAmc && amcContract) {
+    } else if (amcContract) {
       html = generateAmcInvoiceHTML(invoice, settings, logoUrl, amcContract);
     } else {
       html = generateInvoiceHTML(invoice, settings, logoUrl, itemMap);

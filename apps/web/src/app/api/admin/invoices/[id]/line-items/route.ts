@@ -112,9 +112,31 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
           ? -(Number(inv.subtotal) * (body.unitPrice / 100))
           : -(Math.abs(body.quantity * body.unitPrice));
       } else {
-        const subtotal = body.quantity * body.unitPrice * (1 - body.discountPercent / 100);
+        // Auto-detect AMC for PART lines: if vehicle has an active contract OR invoice has AMC line, boost discount
+        let effectiveDiscount = body.discountPercent;
+        if (body.lineType === 'PART' && inv.vehicleId) {
+          const activeContract = await tx.amcContract.findFirst({
+            where: { vehicleId: inv.vehicleId, status: 'ACTIVE' },
+          });
+          if (activeContract) {
+            effectiveDiscount = body.discountPercent + Number(activeContract.extraDiscountPercent);
+          } else {
+            // Check if this invoice already has an AMC plan-purchase line
+            const amcLine = await tx.invoiceLineItem.findFirst({
+              where: { invoiceId: params.id, lineType: 'AMC', referenceItemId: { not: null } },
+            });
+            if (amcLine) {
+              const plan = await tx.amcPlan.findUnique({ where: { id: amcLine.referenceItemId! } });
+              if (plan) effectiveDiscount = body.discountPercent + Number(plan.extraDiscountPercent);
+            }
+          }
+          if (effectiveDiscount > 100) effectiveDiscount = 100;
+        }
+        const subtotal = body.quantity * body.unitPrice * (1 - effectiveDiscount / 100);
         taxAmount = subtotal * (body.taxRate / 100);
         lineTotal = subtotal + taxAmount;
+        // Store the effective discount (including AMC extra) so it persists on the line
+        body.discountPercent = effectiveDiscount;
       }
 
       // Stock deduction for PART — skip if already reserved via job card.
@@ -326,6 +348,57 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
             await tx.amcContract.update({
               where: { id: contract.id },
               data: { servicesUsed: { decrement: 1 }, servicesRemaining: { increment: 1 } },
+            });
+          }
+        }
+
+        // Revert discounts on PART and SERVICE_CHARGE lines when AMC is removed.
+        // Determine extraDiscountPercent: from contract if usage-line, or from plan if purchase-line.
+        let extraDisc = 0;
+        let laborDisc = 100;
+        if (contract) {
+          extraDisc = Number(contract.extraDiscountPercent);
+          laborDisc = Number(contract.laborDiscountPercent);
+        } else {
+          const plan = await tx.amcPlan.findUnique({ where: { id: lineItem.referenceItemId } });
+          if (plan) {
+            extraDisc = Number(plan.extraDiscountPercent);
+            laborDisc = Number(plan.laborDiscountPercent);
+          }
+        }
+        // Revert PART lines: subtract extraDiscountPercent, recalc lineTotal
+        const partLines = await tx.invoiceLineItem.findMany({
+          where: { invoiceId: params.id, lineType: 'PART' },
+        });
+        for (const pl of partLines) {
+          const currentDisc = Number(pl.discountPercent);
+          const revertedDisc = Math.max(0, currentDisc - extraDisc);
+          if (revertedDisc !== currentDisc) {
+            const qty = Number(pl.quantity);
+            const price = Number(pl.unitPrice);
+            const rate = Number(pl.taxRate);
+            const sub = qty * price * (1 - revertedDisc / 100);
+            const tax = sub * (rate / 100);
+            await tx.invoiceLineItem.update({
+              where: { id: pl.id },
+              data: { discountPercent: revertedDisc, taxAmount: tax, lineTotal: sub + tax },
+            });
+          }
+        }
+        // Revert SERVICE_CHARGE lines: set discount back to 0
+        const svcLines = await tx.invoiceLineItem.findMany({
+          where: { invoiceId: params.id, lineType: 'SERVICE_CHARGE' },
+        });
+        for (const sl of svcLines) {
+          if (Number(sl.discountPercent) >= laborDisc) {
+            const qty = Number(sl.quantity);
+            const price = Number(sl.unitPrice);
+            const rate = Number(sl.taxRate);
+            const sub = qty * price;
+            const tax = sub * (rate / 100);
+            await tx.invoiceLineItem.update({
+              where: { id: sl.id },
+              data: { discountPercent: 0, taxAmount: tax, lineTotal: sub + tax },
             });
           }
         }

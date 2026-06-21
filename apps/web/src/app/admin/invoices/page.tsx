@@ -186,7 +186,13 @@ export default function InvoicesPage() {
             )}
           </div>
           {saleType === 'COUNTER' && !counterInvoiceStarted && counterCustomerId && (
-            <button onClick={() => setCounterInvoiceStarted(true)} className="w-full rounded-lg bg-blue-600 py-2 text-sm font-semibold text-white hover:bg-blue-700">Create Invoice</button>
+            <button onClick={async () => {
+              setSaving(true); setError('');
+              const res = await api.post<any>('/admin/invoices', { saleType: 'COUNTER', customerId: counterCustomerId, invoiceDate: new Date().toISOString(), lineItems: [] });
+              setSaving(false);
+              if (res.success) { setShowCreate(false); window.location.href = `/admin/invoices/${res.data.id}`; }
+              else setError(res.error?.message || 'Failed to create');
+            }} disabled={saving} className="w-full rounded-lg bg-blue-600 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50">{saving ? 'Creating...' : 'Create Invoice'}</button>
           )}
           {(selectedJC || (saleType === 'COUNTER' && counterInvoiceStarted)) && (
             <>

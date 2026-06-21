@@ -34,7 +34,7 @@ export default function InvoiceDetailPage() {
   const [lineEdits, setLineEdits] = useState<Record<string, any>>({});
   const [showNewPart, setShowNewPart] = useState(false);
   const [newPartForm, setNewPartForm] = useState({ sku: '', itemName: '', unit: 'PCS', costPrice: '', sellingPrice: '', quantityInStock: '' });
-  const [amcUpsell, setAmcUpsell] = useState<{ show: boolean; plan: any; savings: number; partsSavings: number; serviceSavings: number } | null>(null);
+  const [amcUpsell, setAmcUpsell] = useState<{ show: boolean; plans: any[] } | null>(null);
   const [applyingAmc, setApplyingAmc] = useState(false);
   const inventoryQueryRef = useRef('');
 
@@ -88,58 +88,65 @@ export default function InvoiceDetailPage() {
       if (!r.success) return;
       const hasAmc = (r.data ?? []).some((c: any) => c.vehicleId === data.vehicleId);
       if (hasAmc) { setAmcUpsell(null); return; }
-      // Get best plan matching vehicle CC
+      // Get all plans matching vehicle CC
       Promise.all([api.get<any>('/admin/amc/plans'), api.get<any>(`/admin/vehicles/${data.vehicleId}`)]).then(([pr, vr]) => {
         if (!pr.success || !vr.success) return;
-        const plans = (pr.data ?? []).filter((p: any) => p.isActive);
-        if (plans.length === 0) { setAmcUpsell(null); return; }
+        const allPlans = (pr.data ?? []).filter((p: any) => p.isActive);
+        if (allPlans.length === 0) { setAmcUpsell(null); return; }
         const vehicleCC = vr.data?.engineCC;
-        // Match plan by CC range (e.g. "100-125" matches CC between 100-125)
-        let plan = plans[0];
-        if (vehicleCC) {
-          const matched = plans.find((p: any) => {
-            if (!p.ccRange) return false;
-            const match = p.ccRange.match(/(\d+)/g);
-            if (match && match.length >= 2) return vehicleCC >= Number(match[0]) && vehicleCC <= Number(match[1]);
-            if (match && match.length === 1) return vehicleCC >= Number(match[0]);
-            return false;
-          });
-          if (matched) plan = matched;
-        }
+        // Filter plans matching CC range
+        const matchedPlans = vehicleCC
+          ? allPlans.filter((p: any) => {
+              if (!p.ccRange) return true;
+              const match = p.ccRange.match(/(\d+)/g);
+              if (match && match.length >= 2) return vehicleCC >= Number(match[0]) && vehicleCC <= Number(match[1]);
+              if (match && match.length === 1) return vehicleCC >= Number(match[0]);
+              return true;
+            })
+          : allPlans;
+        if (matchedPlans.length === 0) { setAmcUpsell(null); return; }
         const laborItems = data.lineItems?.filter((li: any) => li.lineType === 'SERVICE_CHARGE') ?? [];
         const partItems = data.lineItems?.filter((li: any) => li.lineType === 'PART') ?? [];
-        // Use pre-tax net (lineTotal includes tax) so the previewed savings matches the discount actually applied.
-        const serviceSavings = laborItems.reduce((s: number, li: any) => s + (Number(li.lineTotal) - Number(li.taxAmount)), 0);
-        const partsSavings = partItems.reduce((s: number, li: any) => s + (Number(li.lineTotal) - Number(li.taxAmount)) * 0.01, 0);
-        const totalSavings = serviceSavings + partsSavings;
-        if (totalSavings > 0) setAmcUpsell({ show: true, plan, savings: totalSavings, partsSavings, serviceSavings });
+        const serviceTotal = laborItems.reduce((s: number, li: any) => s + (Number(li.lineTotal) - Number(li.taxAmount)), 0);
+        const partsTotal = partItems.reduce((s: number, li: any) => s + (Number(li.lineTotal) - Number(li.taxAmount)), 0);
+        // Build card data for each plan
+        const plans = matchedPlans.map((p: any) => {
+          const laborDisc = Number(p.laborDiscountPercent) || 100;
+          const extraDisc = Number(p.extraDiscountPercent) || 0;
+          const serviceSavings = serviceTotal * (laborDisc / 100);
+          const partsSavings = partsTotal * (extraDisc / 100);
+          return { ...p, serviceSavings, partsSavings, savings: serviceSavings + partsSavings };
+        }).filter((p: any) => p.savings > 0).sort((a: any, b: any) => Number(a.price) - Number(b.price));
+        if (plans.length > 0) setAmcUpsell({ show: true, plans });
         else setAmcUpsell(null);
       });
     });
   }, [data]);
 
-  const applyAmc = async () => {
-    if (!amcUpsell?.plan || !data) return;
+  const applyAmc = async (plan: any) => {
+    if (!plan || !data) return;
     setApplyingAmc(true);
     const lines = data.lineItems ?? [];
-    // AMC = free labour: set each SERVICE_CHARGE line to 100% off (matches the AMC PDF
-    // template which renders covered service lines as free). Idempotent.
+    const laborDisc = Number(plan.laborDiscountPercent) || 100;
+    const extraDisc = Number(plan.extraDiscountPercent) || 0;
+    // Apply labor discount to SERVICE_CHARGE lines
     for (const li of lines.filter((l: any) => l.lineType === 'SERVICE_CHARGE')) {
-      if (Number(li.discountPercent) !== 100) {
-        await api.patch<any>(`/admin/invoices/${id}/line-items`, { lineItemId: li.id, discountPercent: 100 });
+      if (Number(li.discountPercent) < laborDisc) {
+        await api.patch<any>(`/admin/invoices/${id}/line-items`, { lineItemId: li.id, discountPercent: laborDisc });
       }
     }
     // Add AMC plan line item
     await api.post<any>(`/admin/invoices/${id}/line-items`, {
-      lineType: 'AMC', description: `AMC — ${amcUpsell.plan.planName}`,
-      quantity: 1, unitPrice: Number(amcUpsell.plan.price), taxRate: 0, discountPercent: 0,
-      amcPlanId: amcUpsell.plan.id,
+      lineType: 'AMC', description: `AMC — ${plan.planName}`,
+      quantity: 1, unitPrice: Number(plan.price), taxRate: 0, discountPercent: 0,
+      amcPlanId: plan.id,
     });
-    // Apply 1% discount to all PART line items (branded default)
+    // Apply extra discount to all PART line items
     for (const li of lines.filter((l: any) => l.lineType === 'PART')) {
       const currentDisc = Number(li.discountPercent) || 0;
-      if (currentDisc < 1) {
-        await api.patch<any>(`/admin/invoices/${id}/line-items`, { lineItemId: li.id, discountPercent: currentDisc + 1 });
+      const newDisc = currentDisc + extraDisc;
+      if (newDisc > currentDisc && newDisc <= 100) {
+        await api.patch<any>(`/admin/invoices/${id}/line-items`, { lineItemId: li.id, discountPercent: newDisc });
       }
     }
     setApplyingAmc(false);
@@ -307,7 +314,10 @@ export default function InvoiceDetailPage() {
           </button>
           {showPdfMenu && (
             <div className="absolute right-0 top-full mt-1 w-48 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-lg z-10">
-              <button onClick={() => { openPdf(); setShowPdfMenu(false); }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 rounded-t-lg">Invoice</button>
+              {data?.lineItems?.some((li: any) => li.lineType === 'AMC')
+                ? <button onClick={() => { openPdf(); setShowPdfMenu(false); }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 rounded-t-lg font-medium text-amber-700">💎 AMC Invoice</button>
+                : <button onClick={() => { openPdf(); setShowPdfMenu(false); }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 rounded-t-lg">Invoice</button>
+              }
               <button onClick={() => { openPdf('combined'); setShowPdfMenu(false); }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 rounded-b-lg">Customer + Mechanic (1 page)</button>
             </div>
           )}
@@ -401,25 +411,31 @@ export default function InvoiceDetailPage() {
         );
       })()}
 
-      {/* AMC Upsell Banner */}
+      {/* AMC Upsell — Scrollable Plan Cards */}
       {amcUpsell?.show && isDraft && (
-        <div className="rounded-xl border border-amber-200 dark:border-amber-800 bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-950/30 dark:to-yellow-950/30 p-5">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Shield size={28} className="text-amber-600" />
-              <div>
-                <p className="font-semibold text-gray-900 dark:text-white">Save ₹{Math.round(amcUpsell.savings)} on this bill with AMC!</p>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-0.5">
-                  {amcUpsell.serviceSavings > 0 && `Service free (₹${Math.round(amcUpsell.serviceSavings)})`}
-                  {amcUpsell.serviceSavings > 0 && amcUpsell.partsSavings > 0 && ' + '}
-                  {amcUpsell.partsSavings > 0 && `Parts 1-2% off (₹${Math.round(amcUpsell.partsSavings)})`}
-                  {` • AMC ${amcUpsell.plan.planName} @ ₹${Number(amcUpsell.plan.price).toLocaleString()}/year`}
-                </p>
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 px-1">
+            <Shield size={20} className="text-amber-600" />
+            <span className="font-semibold text-sm text-gray-700 dark:text-gray-300">Save with AMC — pick a plan</span>
+          </div>
+          <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide">
+            {amcUpsell.plans.map((plan: any) => (
+              <div key={plan.id} className="snap-start shrink-0 w-56 rounded-xl border border-amber-200 dark:border-amber-800 bg-gradient-to-b from-amber-50 to-yellow-50 dark:from-amber-950/30 dark:to-yellow-950/30 p-4 flex flex-col gap-2">
+                <div className="font-bold text-gray-900 dark:text-white text-base">{plan.planName}</div>
+                <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                  <div>🔧 {plan.totalServicesIncluded} free service{plan.totalServicesIncluded > 1 ? 's' : ''}</div>
+                  <div>🏷️ +{Number(plan.extraDiscountPercent)}% parts off</div>
+                  <div>⚡ Labor {Number(plan.laborDiscountPercent)}% off</div>
+                </div>
+                <div className="mt-auto pt-2 border-t border-amber-200 dark:border-amber-800">
+                  <div className="font-bold text-lg text-gray-900 dark:text-white">₹{Number(plan.price).toLocaleString()}<span className="text-xs font-normal text-gray-500">/yr</span></div>
+                  <div className="text-xs text-green-600 font-medium">Save ₹{Math.round(plan.savings)} on this bill</div>
+                </div>
+                <button onClick={() => applyAmc(plan)} disabled={applyingAmc} className="mt-2 w-full rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700 disabled:opacity-50">
+                  {applyingAmc ? 'Adding...' : 'Apply'}
+                </button>
               </div>
-            </div>
-            <button onClick={applyAmc} disabled={applyingAmc} className="shrink-0 rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-700 disabled:opacity-50">
-              {applyingAmc ? 'Adding...' : '+ Add AMC'}
-            </button>
+            ))}
           </div>
         </div>
       )}

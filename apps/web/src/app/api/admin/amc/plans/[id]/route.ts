@@ -26,6 +26,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       durationMonths: z.number().int().positive().optional(),
       totalServicesIncluded: z.number().int().positive().optional(),
       price: z.number().positive().optional(),
+      extraDiscountPercent: z.number().min(0).max(100).optional(),
+      laborDiscountPercent: z.number().min(0).max(100).optional(),
       coveredItems: z.array(z.string().min(1).max(200)).max(200).optional(),
       exclusions: z.string().optional(),
       isActive: z.boolean().optional(),

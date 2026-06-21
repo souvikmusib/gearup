@@ -834,6 +834,8 @@ model AmcPlan {
   durationMonths        Int
   totalServicesIncluded Int
   price                 Decimal     @db.Decimal(12, 2)
+  extraDiscountPercent  Decimal     @default(0) @db.Decimal(5, 2)
+  laborDiscountPercent  Decimal     @default(100) @db.Decimal(5, 2)
   coveredItems          Json?
   exclusions            String?
   isActive              Boolean     @default(true)
@@ -844,23 +846,25 @@ model AmcPlan {
 }
 
 model AmcContract {
-  id                String            @id @default(cuid())
-  contractNumber    String            @unique
-  customerId        String
-  vehicleId         String
-  amcPlanId         String
-  startDate         DateTime
-  endDate           DateTime
-  totalServices     Int
-  servicesUsed      Int               @default(0)
-  servicesRemaining Int
-  amountPaid        Decimal           @db.Decimal(12, 2)
-  paymentMode       PaymentMode?
-  paymentDate       DateTime?
-  status            AmcContractStatus @default(ACTIVE)
-  notes             String?
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
+  id                   String            @id @default(cuid())
+  contractNumber       String            @unique
+  customerId           String
+  vehicleId            String
+  amcPlanId            String
+  startDate            DateTime
+  endDate              DateTime
+  totalServices        Int
+  servicesUsed         Int               @default(0)
+  servicesRemaining    Int
+  extraDiscountPercent Decimal           @default(0) @db.Decimal(5, 2)
+  laborDiscountPercent Decimal           @default(100) @db.Decimal(5, 2)
+  amountPaid           Decimal           @db.Decimal(12, 2)
+  paymentMode          PaymentMode?
+  paymentDate          DateTime?
+  status               AmcContractStatus @default(ACTIVE)
+  notes                String?
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
 
   customer Customer          @relation(fields: [customerId], references: [id], onDelete: Restrict)
   vehicle  Vehicle           @relation(fields: [vehicleId], references: [id], onDelete: Restrict)
