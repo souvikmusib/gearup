@@ -92,7 +92,7 @@ function generateInvoiceHTML(invoice: any, settings: Record<string, any>, logoUr
     return `<tr>
       <td style="padding:9px 10px;border-bottom:1px solid #f3f4f6;text-align:center;color:#9ca3af;font-size:10px">${i + 1}</td>
       <td style="padding:9px 10px;border-bottom:1px solid #f3f4f6">
-        <div style="font-weight:600;color:#111">${esc(li.description)}</div>
+        <div style="font-weight:600;color:#111">${esc((li.lineType === 'LABOR' || li.lineType === 'SERVICE_CHARGE') ? li.description.replace(/\s*[—–-]\s*[A-Z][A-Z\s]+$/, '') : li.description)}</div>
         ${sku ? `<div style="color:#9ca3af;font-size:10px;margin-top:1px;font-family:'Google Sans Code',ui-monospace,monospace">SKU: ${esc(sku)}</div>` : ''}
       </td>
       <td style="padding:9px 10px;border-bottom:1px solid #f3f4f6;text-align:center;color:#6b7280;font-size:10px;font-family:'Google Sans Code',ui-monospace,monospace">${hsn || '—'}</td>
@@ -395,6 +395,7 @@ function generateAmcInvoiceHTML(invoice: any, settings: Record<string, any>, log
 
   const rows = allDisplayItems.map((li: any, i: number) => {
     const isAmcCovered = li.lineType === 'AMC' && Number(li.lineTotal) === 0;
+    const isAmcPurchase = li.lineType === 'AMC' && Number(li.lineTotal) > 0;
     const disc = Number(li.discountPercent) || 0;
     const qty = Number(li.quantity);
     const rate = Number(li.unitPrice);
@@ -404,14 +405,23 @@ function generateAmcInvoiceHTML(invoice: any, settings: Record<string, any>, log
     const hsn = li.lineType === 'PART' ? '8714' : li.lineType === 'LABOR' || li.lineType === 'SERVICE_CHARGE' ? '9987' : li.lineType === 'AMC' ? '9987' : '';
     const rowBg = isAmcCovered ? 'background:#fffbeb' : '';
     const cellBorder = isAmcCovered ? '#fde68a' : '#f3f4f6';
+    // Strip worker name from labor/service descriptions for PDF (e.g. "Labor — RAHUL GARAI" → "Labor")
+    const displayDesc = (li.lineType === 'LABOR' || li.lineType === 'SERVICE_CHARGE') ? li.description.replace(/\s*[—–-]\s*[A-Z][A-Z\s]+$/, '') : li.description;
+    // AMC purchase: show MRP strikethrough if available
+    const mrp = Number(amcContract.plan?.mrpPrice) || 0;
+    const rateCell = isAmcCovered
+      ? `<span style="text-decoration:line-through;color:#9ca3af;font-size:11px">₹${planPrice.toLocaleString('en-IN')}</span>`
+      : isAmcPurchase && mrp > rate
+        ? `<span style="text-decoration:line-through;color:#9ca3af;font-size:11px">₹${mrp.toLocaleString('en-IN')}</span> <span style="font-weight:700;color:#111">₹${rate.toLocaleString('en-IN')}</span>`
+        : `₹${rate.toLocaleString('en-IN')}`;
     return `<tr style="${rowBg}">
       <td style="padding:9px 10px;border-bottom:1px solid ${cellBorder};text-align:center;color:#9ca3af;font-size:10px">${i + 1}</td>
       <td style="padding:9px 10px;border-bottom:1px solid ${cellBorder}">
-        <div style="font-weight:600;color:#111">${esc(li.description)}${isAmcCovered ? '<span style="display:inline-block;margin-left:8px;background:#111;color:#D4A017;font-size:8px;font-weight:800;padding:2px 8px;border-radius:2px;text-transform:uppercase;letter-spacing:1.2px;border:1px solid #D4A017">★ AMC Covered</span>' : ''}</div>
+        <div style="font-weight:600;color:#111">${esc(displayDesc)}${isAmcCovered ? '<span style="display:inline-block;margin-left:8px;background:#111;color:#D4A017;font-size:8px;font-weight:800;padding:2px 8px;border-radius:2px;text-transform:uppercase;letter-spacing:1.2px;border:1px solid #D4A017">★ AMC Covered</span>' : ''}</div>
       </td>
       <td style="padding:9px 10px;border-bottom:1px solid ${cellBorder};text-align:center;color:#6b7280;font-size:10px;font-family:'Google Sans Code',ui-monospace,monospace">${hsn || '—'}</td>
       <td style="padding:9px 10px;border-bottom:1px solid ${cellBorder};text-align:center">${qty}</td>
-      <td style="padding:9px 10px;border-bottom:1px solid ${cellBorder};text-align:right">${isAmcCovered ? `<span style="text-decoration:line-through;color:#9ca3af;font-size:11px">₹${planPrice.toLocaleString('en-IN')}</span>` : `₹${rate.toLocaleString('en-IN')}`}</td>
+      <td style="padding:9px 10px;border-bottom:1px solid ${cellBorder};text-align:right">${rateCell}</td>
       <td style="padding:9px 10px;border-bottom:1px solid ${cellBorder};text-align:center;color:${disc ? '#16a34a' : '#9ca3af'};font-weight:${disc ? '600' : '400'}">${disc ? disc + '%' : '—'}</td>
       <td style="padding:9px 10px;border-bottom:1px solid ${cellBorder};text-align:right;color:#6b7280;font-size:11px">${taxRate ? `${taxRate}%<br><span style="font-size:10px">₹${taxAmt.toFixed(2)}</span>` : '—'}</td>
       <td style="padding:9px 10px;border-bottom:1px solid ${cellBorder};text-align:right;font-weight:700;color:#111">${isAmcCovered ? '<span style="font-weight:800;color:#B45309;font-size:13px;letter-spacing:0.5px">FREE</span>' : `₹${Number(li.lineTotal).toLocaleString('en-IN')}`}</td>
@@ -694,7 +704,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     if (type === 'combined') {
       const biz = { name: settings['business.name'] || 'GearUp Auto Service', phone: settings['business.phone'] || '' };
       const items = invoice.lineItems.filter((li: any) => li.lineType !== 'DISCOUNT_ADJUSTMENT');
-      const rows = items.map((li: any, i: number) => `<tr><td style="padding:3px 6px;border-bottom:1px solid #eee;font-size:10px">${i+1}</td><td style="padding:3px 6px;border-bottom:1px solid #eee;font-size:10px">${esc(li.description)}</td><td style="padding:3px 6px;border-bottom:1px solid #eee;text-align:center;font-size:10px">${Number(li.quantity)}</td><td style="padding:3px 6px;border-bottom:1px solid #eee;text-align:right;font-size:10px">₹${Number(li.lineTotal).toLocaleString()}</td></tr>`).join('');
+      const rows = items.map((li: any, i: number) => `<tr><td style="padding:3px 6px;border-bottom:1px solid #eee;font-size:10px">${i+1}</td><td style="padding:3px 6px;border-bottom:1px solid #eee;font-size:10px">${esc((li.lineType === 'LABOR' || li.lineType === 'SERVICE_CHARGE') ? li.description.replace(/\s*[—–-]\s*[A-Z][A-Z\s]+$/, '') : li.description)}</td><td style="padding:3px 6px;border-bottom:1px solid #eee;text-align:center;font-size:10px">${Number(li.quantity)}</td><td style="padding:3px 6px;border-bottom:1px solid #eee;text-align:right;font-size:10px">₹${Number(li.lineTotal).toLocaleString()}</td></tr>`).join('');
       const tasks = invoice.jobCard?.tasks?.map((t: any, i: number) => `<tr><td style="padding:2px 4px;border-bottom:1px solid #eee;font-size:10px">${i+1}. ${esc(t.taskName)}</td><td style="padding:2px 4px;border-bottom:1px solid #eee;text-align:center;font-size:10px">${t.status === 'COMPLETED' || t.status === 'DONE' ? '✅' : '⬜'}</td></tr>`).join('') || '';
       const parts = invoice.jobCard?.parts?.map((p: any) => `<tr><td style="padding:2px 4px;border-bottom:1px solid #eee;font-size:10px">${esc(p.inventoryItem?.itemName || 'Part')}</td><td style="padding:2px 4px;border-bottom:1px solid #eee;text-align:center;font-size:10px">×${Number(p.requiredQty)}</td></tr>`).join('') || '';
       const vehicle = invoice.vehicle ? `${esc(invoice.vehicle.brand)} ${esc(invoice.vehicle.model)} — ${esc(invoice.vehicle.registrationNumber)}` : 'Counter Sale';
