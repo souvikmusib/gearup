@@ -43,7 +43,7 @@ export default function QuickLineItemsPage() {
             <div className="col-span-2"><label className="text-xs text-gray-500">Label</label><input className={inputCls} value={item.label} onChange={(e) => update(i, 'label', e.target.value)} placeholder="Foam Wash" /></div>
             <div className="col-span-2"><label className="text-xs text-gray-500">Type</label>
               <select className={inputCls} value={item.lineType} onChange={(e) => update(i, 'lineType', e.target.value)}>
-                <option value="SERVICE_CHARGE">Service</option><option value="CUSTOM_CHARGE">Custom</option><option value="PART">Part</option><option value="LABOR">Labor</option>
+                <option value="SERVICE_CHARGE">Service</option><option value="CUSTOM_CHARGE">Custom</option><option value="PART">Part</option><option value="LABOR">Labor Charge</option>
               </select>
             </div>
             <div className="col-span-3"><label className="text-xs text-gray-500">Description</label><input className={inputCls} value={item.description} onChange={(e) => update(i, 'description', e.target.value)} placeholder="FOAM WASH" /></div>
