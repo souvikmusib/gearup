@@ -27,6 +27,7 @@ export default function InvoiceDetailPage() {
   const [workers, setWorkers] = useState<any[]>([]);
   const [amcPlans, setAmcPlans] = useState<any[]>([]);
   const [amcContracts, setAmcContracts] = useState<any[]>([]);
+  const [quickItems, setQuickItems] = useState<any[]>([]);
 
   const [refreshing, setRefreshing] = useState(false);
   const [addStep, setAddStep] = useState<'type' | 'details'>('type');
@@ -74,10 +75,7 @@ export default function InvoiceDetailPage() {
   };
   useEffect(() => {
     fetch(true);
-    // Pre-fetch inventory + workers so dropdowns are instant
-    // Defer inventory/workers load until user interacts with line-item form
-    // loadInventory();
-    // loadWorkers();
+    api.get<any>('/admin/settings').then((r) => { if (r.success) { try { setQuickItems(JSON.parse(r.data['invoice.quickLineItems'] || '[]')); } catch {} } });
   }, [id]);
 
   // Check AMC upsell opportunity
@@ -458,6 +456,18 @@ export default function InvoiceDetailPage() {
             )
           )}
         </div>
+        {isDraft && quickItems.length > 0 && (
+          <div className="px-5 py-2 border-b border-gray-100 dark:border-gray-800 flex flex-wrap gap-2">
+            {quickItems.map((qi: any, i: number) => (
+              <button key={i} onClick={async () => {
+                await api.post<any>(`/admin/invoices/${id}/line-items`, { lineType: qi.lineType, description: qi.description, quantity: 1, unitPrice: qi.unitPrice, taxRate: qi.taxRate || 0, discountPercent: 0 });
+                fetch();
+              }} className="rounded-full border border-gray-300 dark:border-gray-600 px-3 py-1 text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                {qi.label} · ₹{qi.unitPrice}
+              </button>
+            ))}
+          </div>
+        )}
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-gray-50 dark:bg-gray-800/50 text-xs uppercase text-gray-500 tracking-wide">

@@ -58,6 +58,9 @@ const SETTING_SCHEMAS: Record<string, ZodSchema> = {
   'integration.smtpUser': optionalStr,
   'integration.smtpPassword': z.string().max(500),
   'integration.smtpSecure': boolSchema,
+
+  // quick line items (pre-configured items for one-tap add on invoices)
+  'invoice.quickLineItems': z.string().max(8000),
 };
 
 // Hard cap on serialized size of any single setting value (defense-in-depth).

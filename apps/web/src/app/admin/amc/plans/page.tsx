@@ -5,7 +5,7 @@ import { ProcessLoader } from '@/components/shared/process-loader';
 import { PageHeader, DataTable, StatusBadge } from '@gearup/ui';
 import { Modal } from '@/components/shared/modal';
 
-const emptyForm = { planName: '', vehicleType: 'BIKE', ccRange: '', durationMonths: '12', totalServicesIncluded: '3', price: '', extraDiscountPercent: '0', laborDiscountPercent: '100', description: '', exclusions: '' };
+const emptyForm = { planName: '', vehicleType: 'BIKE', ccRange: '', durationMonths: '12', totalServicesIncluded: '3', price: '', mrpPrice: '', extraDiscountPercent: '0', laborDiscountPercent: '100', description: '', exclusions: '' };
 
 export default function AmcPlansPage() {
   const [data, setData] = useState<any[]>([]);
@@ -22,13 +22,13 @@ export default function AmcPlansPage() {
   const openCreate = () => { setEditId(null); setForm(emptyForm); setShowForm(true); setError(''); };
   const openEdit = (plan: any) => {
     setEditId(plan.id);
-    setForm({ planName: plan.planName, vehicleType: plan.vehicleType, ccRange: plan.ccRange || '', durationMonths: String(plan.durationMonths), totalServicesIncluded: String(plan.totalServicesIncluded), price: String(plan.price), extraDiscountPercent: String(Number(plan.extraDiscountPercent) || 0), laborDiscountPercent: String(Number(plan.laborDiscountPercent) ?? 100), description: plan.description || '', exclusions: plan.exclusions || '' });
+    setForm({ planName: plan.planName, vehicleType: plan.vehicleType, ccRange: plan.ccRange || '', durationMonths: String(plan.durationMonths), totalServicesIncluded: String(plan.totalServicesIncluded), price: String(plan.price), mrpPrice: String(Number(plan.mrpPrice) || ''), extraDiscountPercent: String(Number(plan.extraDiscountPercent) || 0), laborDiscountPercent: String(Number(plan.laborDiscountPercent) ?? 100), description: plan.description || '', exclusions: plan.exclusions || '' });
     setShowForm(true); setError('');
   };
 
   const handleSave = async () => {
     setSaving(true); setError('');
-    const payload = { ...form, durationMonths: Number(form.durationMonths), totalServicesIncluded: Number(form.totalServicesIncluded), price: Number(form.price), extraDiscountPercent: Number(form.extraDiscountPercent), laborDiscountPercent: Number(form.laborDiscountPercent) };
+    const payload = { ...form, durationMonths: Number(form.durationMonths), totalServicesIncluded: Number(form.totalServicesIncluded), price: Number(form.price), mrpPrice: form.mrpPrice ? Number(form.mrpPrice) : undefined, extraDiscountPercent: Number(form.extraDiscountPercent), laborDiscountPercent: Number(form.laborDiscountPercent) };
     const res = editId
       ? await api.patch<any>(`/admin/amc/plans/${editId}`, payload)
       : await api.post<any>('/admin/amc/plans', payload);
@@ -91,10 +91,11 @@ export default function AmcPlansPage() {
             <option value="350cc+">350cc+</option>
             <option value="650cc+">650cc+</option>
           </select>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-4 gap-2">
             <div><label className="text-xs text-gray-500">Duration (months)</label><input className="w-full border rounded px-3 py-2 dark:bg-gray-800 dark:border-gray-700" type="number" value={form.durationMonths} onChange={(e) => setForm({ ...form, durationMonths: e.target.value })} /></div>
             <div><label className="text-xs text-gray-500">No. of Services</label><input className="w-full border rounded px-3 py-2 dark:bg-gray-800 dark:border-gray-700" type="number" value={form.totalServicesIncluded} onChange={(e) => setForm({ ...form, totalServicesIncluded: e.target.value })} /></div>
-            <div><label className="text-xs text-gray-500">Price (₹)</label><input className="w-full border rounded px-3 py-2 dark:bg-gray-800 dark:border-gray-700" type="number" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} /></div>
+            <div><label className="text-xs text-gray-500">MRP (₹)</label><input className="w-full border rounded px-3 py-2 dark:bg-gray-800 dark:border-gray-700" type="number" placeholder="Original price" value={form.mrpPrice} onChange={(e) => setForm({ ...form, mrpPrice: e.target.value })} /></div>
+            <div><label className="text-xs text-gray-500">Selling Price (₹)</label><input className="w-full border rounded px-3 py-2 dark:bg-gray-800 dark:border-gray-700" type="number" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} /></div>
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div><label className="text-xs text-gray-500">Extra Parts Discount (%)</label><input className="w-full border rounded px-3 py-2 dark:bg-gray-800 dark:border-gray-700" type="number" step="0.01" min="0" max="100" value={form.extraDiscountPercent} onChange={(e) => setForm({ ...form, extraDiscountPercent: e.target.value })} /></div>
