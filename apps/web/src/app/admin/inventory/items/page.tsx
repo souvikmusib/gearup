@@ -23,9 +23,9 @@ export default function InventoryItemsPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [categories, setCategories] = useState<any[]>([]);
   const [suppliers, setSuppliers] = useState<any[]>([]);
-  const [form, setForm] = useState({ sku: '', itemName: '', categoryId: '', supplierId: '', unit: '', brand: '', costPrice: '', mrp: '', sellingPrice: '', discountPercent: '', amcDiscountPercent: '3', quantityInStock: '', variablePrice: false, isBranded: true });
+  const [form, setForm] = useState({ sku: '', itemName: '', categoryId: '', supplierId: '', unit: '', brand: '', costPrice: '', mrp: '', sellingPrice: '', discountPercent: '', amcDiscountPercent: '3', quantityInStock: '', hsnCode: '', variablePrice: false, isBranded: true });
   const [editItem, setEditItem] = useState<any>(null);
-  const [editForm, setEditForm] = useState({ itemName: '', categoryId: '', supplierId: '', unit: '', brand: '', costPrice: '', mrp: '', sellingPrice: '', discountPercent: '', reorderLevel: '', storageLocation: '', isActive: true, variablePrice: false, isBranded: true });
+  const [editForm, setEditForm] = useState({ itemName: '', categoryId: '', supplierId: '', unit: '', brand: '', costPrice: '', mrp: '', sellingPrice: '', discountPercent: '', reorderLevel: '', storageLocation: '', hsnCode: '', isActive: true, variablePrice: false, isBranded: true });
   const [editSaving, setEditSaving] = useState(false);
   const [stockItem, setStockItem] = useState<any>(null);
   const [stockForm, setStockForm] = useState({ type: 'STOCK_IN', quantity: '', reason: '' });
@@ -107,7 +107,7 @@ export default function InventoryItemsPage() {
     setCreateError(null);
     const res = await api.post('/admin/inventory/items', body);
     setCreating(false);
-    if (res.success) { setShowCreate(false); setForm({ sku: '', itemName: '', categoryId: '', supplierId: '', unit: '', brand: '', costPrice: '', mrp: '', sellingPrice: '', discountPercent: '', amcDiscountPercent: '3', quantityInStock: '', variablePrice: false, isBranded: true }); setSelectedModelIds([]); load(); }
+    if (res.success) { setShowCreate(false); setForm({ sku: '', itemName: '', categoryId: '', supplierId: '', unit: '', brand: '', costPrice: '', mrp: '', sellingPrice: '', discountPercent: '', amcDiscountPercent: '3', quantityInStock: '', hsnCode: '', variablePrice: false, isBranded: true }); setSelectedModelIds([]); load(); }
     else { setCreateError(res.error?.message || 'Failed to create item'); }
   };
 
@@ -116,7 +116,7 @@ export default function InventoryItemsPage() {
     setEditForm({
       itemName: item.itemName || '', categoryId: item.categoryId || '', supplierId: item.supplierId || '', unit: item.unit || '', brand: item.brand || '',
       costPrice: String(Number(item.costPrice) || ''), mrp: String(Number(item.mrp) || ''), sellingPrice: String(Number(item.sellingPrice) || ''), discountPercent: String(Number(item.discountPercent) || ''),
-      reorderLevel: item.reorderLevel != null ? String(Number(item.reorderLevel)) : '', storageLocation: item.storageLocation || '', isActive: item.isActive ?? true, variablePrice: item.variablePrice ?? false, isBranded: item.isBranded ?? true,
+      reorderLevel: item.reorderLevel != null ? String(Number(item.reorderLevel)) : '', storageLocation: item.storageLocation || '', hsnCode: item.hsnCode || '', isActive: item.isActive ?? true, variablePrice: item.variablePrice ?? false, isBranded: item.isBranded ?? true,
     });
     loadLookups();
     loadVehicleCatalog();
@@ -136,7 +136,7 @@ export default function InventoryItemsPage() {
       itemName: editForm.itemName, categoryId: editForm.categoryId, supplierId: editForm.supplierId || null, unit: editForm.unit,
       brand: editForm.brand || null, costPrice: Number(editForm.costPrice), mrp: editForm.mrp ? Number(editForm.mrp) : null, sellingPrice: Number(editForm.sellingPrice), discountPercent: editForm.discountPercent ? Number(editForm.discountPercent) : null,
       reorderLevel: editForm.reorderLevel ? Number(editForm.reorderLevel) : null,
-      storageLocation: editForm.storageLocation || null, isActive: editForm.isActive, variablePrice: editForm.variablePrice, isBranded: editForm.isBranded,
+      storageLocation: editForm.storageLocation || null, hsnCode: editForm.hsnCode || null, isActive: editForm.isActive, variablePrice: editForm.variablePrice, isBranded: editForm.isBranded,
       modelIds: editModelIds,
     };
     const res = await api.patch(`/admin/inventory/items/${editItem.id}`, body);
@@ -272,6 +272,7 @@ export default function InventoryItemsPage() {
         <form onSubmit={onSubmit} className="space-y-3">
           {createError && <div className="rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-700 dark:bg-red-900/20 dark:text-red-300">{createError}</div>}
           <div><label className="block text-xs font-medium mb-1">SKU <span className="text-red-500">*</span></label><input className={inputCls} placeholder="SKU" required value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} /></div>
+          <div><label className="block text-xs font-medium mb-1">HSN Code</label><input className={inputCls} placeholder="e.g. 87141090" value={form.hsnCode} onChange={(e) => setForm({ ...form, hsnCode: e.target.value })} /></div>
           <div><label className="block text-xs font-medium mb-1">Item Name <span className="text-red-500">*</span></label><input className={inputCls} placeholder="Item Name" required value={form.itemName} onChange={(e) => setForm({ ...form, itemName: e.target.value })} /></div>
           <div><label className="block text-xs font-medium mb-1">Company / Brand</label><input className={inputCls} list="brand-options" placeholder="e.g. Hero, Honda, Bajaj" value={form.brand} onChange={(e) => setForm({ ...form, brand: e.target.value })} /><datalist id="brand-options">{[...new Set(data.map((i: any) => i.brand).filter(Boolean))].sort().map((b: string) => <option key={b} value={b} />)}</datalist></div>
           <ModelPicker selectedIds={selectedModelIds} onChange={setSelectedModelIds} />

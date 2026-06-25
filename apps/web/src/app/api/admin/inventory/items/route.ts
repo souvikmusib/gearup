@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
       brand: z.string().optional(), description: z.string().optional(), unit: z.string().min(1),
       taxRate: z.number().nonnegative().optional(), costPrice: z.number().nonnegative().optional(), mrp: z.number().nonnegative().optional(), sellingPrice: z.number().nonnegative().optional(), discountPercent: z.number().min(0).max(100).optional(), amcDiscountPercent: z.number().min(0).max(90).optional(),
       quantityInStock: z.number().nonnegative().optional(), reorderLevel: z.number().nonnegative().optional(), reorderQuantity: z.number().nonnegative().optional(),
-      storageLocation: z.string().optional(), barcode: z.string().optional(),
+      storageLocation: z.string().optional(), barcode: z.string().optional(), hsnCode: z.string().optional(),
       variablePrice: z.boolean().optional(), isBranded: z.boolean().optional(),
       modelIds: z.string().array().optional(),
     }).parse(await req.json());
@@ -68,6 +68,7 @@ export async function POST(req: NextRequest) {
           reorderQuantity: body.reorderQuantity,
           storageLocation: body.storageLocation,
           barcode: body.barcode,
+          hsnCode: body.hsnCode,
         },
       });
       if (openingQty > 0) {

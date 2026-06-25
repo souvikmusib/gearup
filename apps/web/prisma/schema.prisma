@@ -601,6 +601,7 @@ model InventoryItem {
   reorderQuantity        Decimal?  @db.Decimal(12, 2)
   storageLocation        String?
   barcode                String?
+  hsnCode                String?
   isActive               Boolean   @default(true)
   variablePrice          Boolean   @default(false)
   isBranded              Boolean   @default(true)
@@ -657,6 +658,7 @@ model Invoice {
   paymentStatus    PaymentStatus @default(UNPAID)
   invoiceStatus    InvoiceStatus @default(DRAFT)
   notes            String?
+  showGst          Boolean       @default(false)
   finalizedAt      DateTime?
   createdByAdminId String
   createdAt        DateTime      @default(now())

@@ -11,6 +11,7 @@ const updateSchema = z.object({
   dueDate: z.string().optional(),
   discountType: z.string().optional(),
   discountValue: z.number().optional(),
+  showGst: z.boolean().optional(),
 }).strict();
 
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {

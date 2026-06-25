@@ -11,7 +11,7 @@ interface InventoryEditModalProps {
 }
 
 export function InventoryEditModal({ itemId, onClose, onSaved }: InventoryEditModalProps) {
-  const [form, setForm] = useState({ itemName: '', brand: '', costPrice: '', mrp: '', sellingPrice: '', discountPercent: '', amcDiscountPercent: '', reorderLevel: '', isActive: true, variablePrice: false });
+  const [form, setForm] = useState({ itemName: '', brand: '', costPrice: '', mrp: '', sellingPrice: '', discountPercent: '', amcDiscountPercent: '', reorderLevel: '', hsnCode: '', isActive: true, variablePrice: false });
   const [modelIds, setModelIds] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [sku, setSku] = useState('');
@@ -29,6 +29,7 @@ export function InventoryEditModal({ itemId, onClose, onSaved }: InventoryEditMo
           sellingPrice: String(Number(d.sellingPrice) || ''), discountPercent: String(Number(d.discountPercent) || ''),
           amcDiscountPercent: String(Number(d.amcDiscountPercent) || ''),
           reorderLevel: d.reorderLevel != null ? String(Number(d.reorderLevel)) : '',
+          hsnCode: d.hsnCode || '',
           isActive: d.isActive ?? true, variablePrice: d.variablePrice ?? false,
         });
         setModelIds((d.vehicleModels || []).map((vm: any) => vm.vehicleModelId));
@@ -46,7 +47,7 @@ export function InventoryEditModal({ itemId, onClose, onSaved }: InventoryEditMo
       sellingPrice: Number(form.sellingPrice) || 0, discountPercent: form.discountPercent ? Number(form.discountPercent) : null,
       amcDiscountPercent: form.amcDiscountPercent ? Number(form.amcDiscountPercent) : null,
       reorderLevel: form.reorderLevel ? Number(form.reorderLevel) : null,
-      isActive: form.isActive, variablePrice: form.variablePrice,
+      isActive: form.isActive, variablePrice: form.variablePrice, hsnCode: form.hsnCode || null,
       modelIds,
     };
     const res = await api.patch(`/admin/inventory/items/${itemId}`, body);
@@ -75,6 +76,7 @@ export function InventoryEditModal({ itemId, onClose, onSaved }: InventoryEditMo
           <div><label className={labelCls}>AMC Price</label><input className={inputCls} readOnly value={form.mrp && form.amcDiscountPercent ? `₹${(Number(form.mrp) * (1 - Number(form.amcDiscountPercent) / 100)).toFixed(2)}` : '—'} /></div>
         </div>
         <div><label className={labelCls}>Reorder Level</label><input type="number" className={inputCls} placeholder="Alert when stock falls below" value={form.reorderLevel} onChange={e => setForm({ ...form, reorderLevel: e.target.value })} /></div>
+        <div><label className={labelCls}>HSN Code</label><input className={inputCls} placeholder="e.g. 87141090" value={form.hsnCode} onChange={e => setForm({ ...form, hsnCode: e.target.value })} /></div>
 
         <ModelPicker selectedIds={modelIds} onChange={setModelIds} />
 

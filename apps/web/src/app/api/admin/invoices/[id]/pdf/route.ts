@@ -78,6 +78,8 @@ function generateInvoiceHTML(invoice: any, settings: Record<string, any>, logoUr
   const discountFromPercent = invoice.lineItems.filter((li: any) => li.lineType !== 'DISCOUNT_ADJUSTMENT' && Number(li.discountPercent) > 0).reduce((s: number, li: any) => s + Number(li.quantity) * Number(li.unitPrice) * Number(li.discountPercent) / 100, 0);
   const totalDiscount = discountFromAdjustments + discountFromPercent;
 
+  const showGst = !!invoice.showGst;
+
   const rows = allDisplayItems.map((li: any, i: number) => {
     const item = li.referenceItemId ? itemMap[li.referenceItemId] : null;
     const sku = item?.sku || '';
@@ -85,10 +87,12 @@ function generateInvoiceHTML(invoice: any, settings: Record<string, any>, logoUr
     const disc = Number(li.discountPercent) || 0;
     const qty = Number(li.quantity);
     const rate = Number(li.unitPrice);
-    const taxRate = Number(li.taxRate) || 0;
-    const taxable = qty * rate * (1 - disc / 100);
-    const taxAmt = taxable * (taxRate / 100);
-    const hsn = item?.hsn || (li.lineType === 'PART' ? '8714' : li.lineType === 'LABOR' || li.lineType === 'SERVICE_CHARGE' ? '9987' : '');
+    const lineTotal = Number(li.lineTotal);
+    const hsn = item?.hsnCode || (li.lineType === 'PART' ? '87141090' : li.lineType === 'LABOR' || li.lineType === 'SERVICE_CHARGE' || li.lineType === 'CUSTOM_CHARGE' || li.lineType === 'AMC' ? '99871190' : '');
+    // Back-calculate GST from inclusive price
+    const gstTaxable = lineTotal / 1.18;
+    const gstCgst = gstTaxable * 0.09;
+    const gstSgst = gstTaxable * 0.09;
     return `<tr>
       <td style="padding:9px 10px;border-bottom:1px solid #f3f4f6;text-align:center;color:#9ca3af;font-size:10px">${i + 1}</td>
       <td style="padding:9px 10px;border-bottom:1px solid #f3f4f6">
@@ -100,8 +104,14 @@ function generateInvoiceHTML(invoice: any, settings: Record<string, any>, logoUr
       <td style="padding:9px 10px;border-bottom:1px solid #f3f4f6;text-align:right">${mrp ? `<span style="color:#9ca3af">₹${mrp.toLocaleString('en-IN')}</span>` : '—'}</td>
       <td style="padding:9px 10px;border-bottom:1px solid #f3f4f6;text-align:right">₹${rate.toLocaleString('en-IN')}</td>
       <td style="padding:9px 10px;border-bottom:1px solid #f3f4f6;text-align:center;color:${disc ? '#16a34a' : '#9ca3af'};font-weight:${disc ? '600' : '400'}">${disc ? disc + '%' : '—'}</td>
-      <td style="padding:9px 10px;border-bottom:1px solid #f3f4f6;text-align:right;color:#6b7280;font-size:11px">${taxRate ? `${taxRate}%<br><span style="font-size:10px">₹${taxAmt.toFixed(2)}</span>` : '—'}</td>
-      <td style="padding:9px 10px;border-bottom:1px solid #f3f4f6;text-align:right;font-weight:700;color:#111">₹${Number(li.lineTotal).toLocaleString('en-IN')}</td>
+      ${showGst ? `
+      <td style="padding:9px 10px;border-bottom:1px solid #f3f4f6;text-align:right;font-size:11px;color:#6b7280">₹${gstTaxable.toFixed(2)}</td>
+      <td style="padding:9px 10px;border-bottom:1px solid #f3f4f6;text-align:right;font-size:11px;color:#6b7280">₹${gstCgst.toFixed(2)}</td>
+      <td style="padding:9px 10px;border-bottom:1px solid #f3f4f6;text-align:right;font-size:11px;color:#6b7280">₹${gstSgst.toFixed(2)}</td>
+      ` : `
+      <td style="padding:9px 10px;border-bottom:1px solid #f3f4f6;text-align:right;color:#6b7280;font-size:11px">—</td>
+      `}
+      <td style="padding:9px 10px;border-bottom:1px solid #f3f4f6;text-align:right;font-weight:700;color:#111">₹${lineTotal.toLocaleString('en-IN')}</td>
     </tr>`;
   }).join('');
 
@@ -123,6 +133,10 @@ function generateInvoiceHTML(invoice: any, settings: Record<string, any>, logoUr
   const taxTotal = Number(invoice.taxTotal) || 0;
   const cgst = taxTotal / 2;
   const sgst = taxTotal / 2;
+  // Back-calculated GST for display when showGst is on
+  const gstTaxableTotal = showGst ? grandTotal / 1.18 : 0;
+  const gstCgstTotal = showGst ? gstTaxableTotal * 0.09 : 0;
+  const gstSgstTotal = showGst ? gstTaxableTotal * 0.09 : 0;
 
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8">
@@ -210,7 +224,13 @@ th { background:#fafafa; padding:10px 10px; text-align:left; font-size:10px; tex
         <th style="width:70px;text-align:right">MRP</th>
         <th style="width:70px;text-align:right">Rate</th>
         <th style="width:50px;text-align:center">Disc</th>
+        ${showGst ? `
+        <th style="width:75px;text-align:right">Taxable</th>
+        <th style="width:65px;text-align:right">CGST 9%</th>
+        <th style="width:65px;text-align:right">SGST 9%</th>
+        ` : `
         <th style="width:75px;text-align:right">Tax</th>
+        `}
         <th style="width:85px;text-align:right">Amount</th>
       </tr>
     </thead>
@@ -239,9 +259,10 @@ th { background:#fafafa; padding:10px 10px; text-align:left; font-size:10px; tex
       <table style="border-collapse:separate">
         <tr><td style="padding:5px 12px;color:#6b7280;font-size:12px">Total Amount</td><td style="padding:5px 12px;text-align:right;font-size:12px">₹${(netAmount + discountFromAdjustments).toLocaleString('en-IN')}</td></tr>
         ${discountFromAdjustments > 0 ? `<tr><td style="padding:5px 12px;color:#16a34a;font-size:12px;font-weight:600">Total Discount</td><td style="padding:5px 12px;text-align:right;color:#16a34a;font-size:12px;font-weight:600">−₹${discountFromAdjustments.toLocaleString('en-IN')}</td></tr>` : ''}
-        ${taxTotal > 0 ? `
-          <tr><td style="padding:5px 12px;color:#6b7280;font-size:11px">CGST (½ Tax)</td><td style="padding:5px 12px;text-align:right;font-size:11px">₹${cgst.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td></tr>
-          <tr><td style="padding:5px 12px;color:#6b7280;font-size:11px">SGST (½ Tax)</td><td style="padding:5px 12px;text-align:right;font-size:11px">₹${sgst.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td></tr>
+        ${taxTotal > 0 || showGst ? `
+          <tr><td style="padding:5px 12px;color:#6b7280;font-size:11px">Taxable Value</td><td style="padding:5px 12px;text-align:right;font-size:11px">₹${(showGst ? gstTaxableTotal : (grandTotal - taxTotal)).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td></tr>
+          <tr><td style="padding:5px 12px;color:#6b7280;font-size:11px">CGST (9%)</td><td style="padding:5px 12px;text-align:right;font-size:11px">₹${(showGst ? gstCgstTotal : cgst).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td></tr>
+          <tr><td style="padding:5px 12px;color:#6b7280;font-size:11px">SGST (9%)</td><td style="padding:5px 12px;text-align:right;font-size:11px">₹${(showGst ? gstSgstTotal : sgst).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td></tr>
         ` : ''}
         ${Math.abs(roundOff) > 0.001 ? `<tr><td style="padding:5px 12px;color:#6b7280;font-size:11px">Round Off</td><td style="padding:5px 12px;text-align:right;font-size:11px">${roundOff > 0 ? '+' : ''}₹${roundOff.toFixed(2)}</td></tr>` : ''}
         <tr><td colspan="2" style="padding:0;border-top:2px solid #111"></td></tr>
@@ -402,7 +423,7 @@ function generateAmcInvoiceHTML(invoice: any, settings: Record<string, any>, log
     const taxRate = Number(li.taxRate) || 0;
     const taxable = qty * rate * (1 - disc / 100);
     const taxAmt = taxable * (taxRate / 100);
-    const hsn = li.lineType === 'PART' ? '8714' : li.lineType === 'LABOR' || li.lineType === 'SERVICE_CHARGE' ? '9987' : li.lineType === 'AMC' ? '9987' : '';
+    const hsn = li.lineType === 'PART' ? '87141090' : li.lineType === 'LABOR' || li.lineType === 'SERVICE_CHARGE' || li.lineType === 'CUSTOM_CHARGE' || li.lineType === 'AMC' ? '99871190' : '';
     const rowBg = isAmcCovered ? 'background:#fffbeb' : '';
     const cellBorder = isAmcCovered ? '#fde68a' : '#f3f4f6';
     // Strip worker name from labor/service descriptions for PDF (e.g. "Labor — RAHUL GARAI" → "Labor")
@@ -670,7 +691,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
     // Lookup inventory items for SKU/MRP
     const refIds = invoice.lineItems.filter((li: any) => li.referenceItemId).map((li: any) => li.referenceItemId);
-    const invItems = refIds.length > 0 ? await prisma.inventoryItem.findMany({ where: { id: { in: refIds } }, select: { id: true, sku: true, mrp: true } }) : [];
+    const invItems = refIds.length > 0 ? await prisma.inventoryItem.findMany({ where: { id: { in: refIds } }, select: { id: true, sku: true, mrp: true, hsnCode: true } }) : [];
     const itemMap = Object.fromEntries(invItems.map((i: any) => [i.id, i]));
 
     // Check if invoice has AMC line items OR vehicle has an active AMC contract
