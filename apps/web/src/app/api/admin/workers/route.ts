@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { paginate, paginationMeta } from '@/lib/pagination';
-import { requirePermission } from '@/lib/auth';
+import { requirePermission, requireAnyPermission } from '@/lib/auth';
 import { handleApiError } from '@/lib/errors';
 import { logActivity } from '@/lib/activity-logger';
 import { generateWorkerCode } from '@/lib/id-generators';
@@ -17,7 +17,7 @@ const workerSchema = z.object({
 
 export async function GET(req: NextRequest) {
   try {
-    requirePermission(PERMISSIONS.WORKERS_MANAGE);
+    requireAnyPermission(PERMISSIONS.WORKERS_MANAGE, PERMISSIONS.JOB_CARDS_ASSIGN_WORKERS);
     const sp = req.nextUrl.searchParams;
     const page = Number(sp.get('page')) || 1;
     const pageSize = Number(sp.get('pageSize')) || 20;

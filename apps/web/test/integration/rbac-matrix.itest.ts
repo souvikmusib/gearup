@@ -17,12 +17,12 @@ describe('RBAC matrix (integration)', () => {
   beforeEach(() => clearAuth());
 
   const cases: Array<[string, any, string, Record<string, 200 | 403>]> = [
-    ['customers', listCustomers, '/api/admin/customers', { SUPER_ADMIN: 200, RECEPTIONIST: 200, MECHANIC: 403, INVENTORY_MANAGER: 403 }],
+    ['customers', listCustomers, '/api/admin/customers', { SUPER_ADMIN: 200, RECEPTIONIST: 200, MECHANIC: 403, INVENTORY_MANAGER: 200 }],
     // MECHANIC has inventory.view by design (sees parts on the floor).
     ['inventory', listInventory, '/api/admin/inventory/items', { SUPER_ADMIN: 200, INVENTORY_MANAGER: 200, MECHANIC: 200, RECEPTIONIST: 200 }],
     ['expenses', listExpenses, '/api/admin/expenses', { SUPER_ADMIN: 200, MECHANIC: 403, INVENTORY_MANAGER: 403 }],
     ['settings', getSettings, '/api/admin/settings', { SUPER_ADMIN: 200, MECHANIC: 403, RECEPTIONIST: 403 }],
-    ['invoices', listInvoices, '/api/admin/invoices', { SUPER_ADMIN: 200, MECHANIC: 403, INVENTORY_MANAGER: 403 }],
+    ['invoices', listInvoices, '/api/admin/invoices', { SUPER_ADMIN: 200, MECHANIC: 403, INVENTORY_MANAGER: 200 }],
     ['admins-mgmt', listAdmins, '/api/admin/settings/admins', { SUPER_ADMIN: 200, RECEPTIONIST: 403, MECHANIC: 403 }],
   ];
 

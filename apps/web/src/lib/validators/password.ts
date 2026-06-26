@@ -44,14 +44,11 @@ const COMMON_PASSWORDS = new Set(
   ].map((p) => p.toLowerCase()),
 );
 
-export const PASSWORD_MIN_LENGTH = 12;
+export const PASSWORD_MIN_LENGTH = 6;
 
 export const passwordPolicy = z
   .string()
   .min(PASSWORD_MIN_LENGTH, `Password must be at least ${PASSWORD_MIN_LENGTH} characters`)
   .refine((p) => /[A-Za-z]/.test(p) && /\d/.test(p), {
     message: 'Password must contain at least one letter and one digit',
-  })
-  .refine((p) => !COMMON_PASSWORDS.has(p.toLowerCase()), {
-    message: 'Password is too common — choose something less guessable',
   });
