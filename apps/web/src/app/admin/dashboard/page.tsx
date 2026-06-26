@@ -9,6 +9,7 @@ import { DashboardSkeleton } from '@/components/shared/skeletons';
 import { Calendar, FileText, Wrench, AlertTriangle, Receipt, DollarSign, Users, Bike, ClipboardList, Plus, ArrowRight, Clock } from 'lucide-react';
 import { AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { useAuth } from '@/lib/auth/auth-context';
+import { InventoryDashboard } from '@/components/dashboard/inventory-dashboard';
 
 interface DashboardData {
   todayAppointments: number;
@@ -124,7 +125,7 @@ export default function DashboardPage() {
     { label: 'Pending Requests', value: data.pendingRequests, icon: ClipboardList, color: 'bg-amber-50 text-amber-600 dark:bg-amber-950 dark:text-amber-400', href: '/admin/service-requests' },
     { label: 'Active Jobs', value: data.activeJobs, icon: Wrench, color: 'bg-purple-50 text-purple-600 dark:bg-purple-950 dark:text-purple-400', href: '/admin/job-cards' },
     { label: 'Unpaid Invoices', value: data.unpaidInvoices, icon: Receipt, color: 'bg-red-50 text-red-600 dark:bg-red-950 dark:text-red-400', href: '/admin/invoices' },
-    { label: "Today's Revenue", value: `₹${data.todayRevenue.toLocaleString()}`, icon: DollarSign, color: 'bg-green-50 text-green-600 dark:bg-green-950 dark:text-green-400', href: '/admin/reports/revenue' },
+    ...(isReceptionist && !isAdmin ? [] : [{ label: "Today's Revenue", value: `₹${data.todayRevenue.toLocaleString()}`, icon: DollarSign, color: 'bg-green-50 text-green-600 dark:bg-green-950 dark:text-green-400', href: '/admin/reports/revenue' }]),
   ];
 
   const quickActions = isInventoryManager ? [
@@ -150,6 +151,10 @@ export default function DashboardPage() {
   };
 
   const formatAction = (action: string) => action.replace(/\./g, ' ').replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+
+  if (isInventoryManager && !isAdmin && !isReceptionist) {
+    return <InventoryDashboard />;
+  }
 
   return (
     <div className="space-y-6">
@@ -180,7 +185,7 @@ export default function DashboardPage() {
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Revenue Trend (last 7 days) */}
-        <div className="lg:col-span-2 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5">
+        {!(isReceptionist && !isAdmin) && <div className="lg:col-span-2 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-gray-900 dark:text-white">Revenue (Last 7 Days)</h3>
             <button onClick={() => router.push('/admin/reports/revenue')} className="text-sm text-blue-600 hover:text-blue-700 font-medium">Details →</button>
@@ -196,7 +201,7 @@ export default function DashboardPage() {
               </AreaChart>
             </ResponsiveContainer>
           ) : <p className="text-sm text-gray-500 text-center py-8">No revenue data this week</p>}
-        </div>
+        </div>}
 
         {/* Job Status Pie */}
         <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-5">

@@ -48,14 +48,11 @@ function numberToWords(num: number): string {
 }
 
 /**
- * Industry-standard invoice template (v3).
- * - Google Sans throughout.
- * - SVG wordmark on top, accent strip in brand red.
- * - Bill-To / Vehicle / Job-Card cards; itemised table with HSN/SAC
- *   when available, discount column, tax column, amount.
- * - Totals box with subtotal / discount / tax / round-off / grand
- *   total, plus amount-paid + balance-due when relevant.
- * - Amount in words, bank details, authorised signatory, terms.
+ * Traditional Indian Tax Invoice (bordered A4 format).
+ * - 2px solid bordered layout like automobile dealer invoices.
+ * - GearUp branding: #dc2626 red, Segoe UI/Tahoma font.
+ * - GST back-calculation: taxable = lineTotal/1.18, cgst=sgst=taxable*0.09.
+ * - Handles DISCOUNT_ADJUSTMENT lines with negative GST.
  */
 function generateInvoiceHTML(invoice: any, settings: Record<string, any>, logoUrl: string, itemMap: Record<string, any> = {}) {
   const biz = {
@@ -69,248 +66,235 @@ function generateInvoiceHTML(invoice: any, settings: Record<string, any>, logoUr
     bankIfsc: settings['business.bank.ifsc'] || '',
     bankUpi: settings['business.bank.upi'] || '',
   };
-  const footer = settings['invoice.footerNote'] || 'Thank you for your business!';
-
-  const nonDiscountItems = invoice.lineItems.filter((li: any) => li.lineType !== 'DISCOUNT_ADJUSTMENT');
-  const discountItems = invoice.lineItems.filter((li: any) => li.lineType === 'DISCOUNT_ADJUSTMENT');
-  const allDisplayItems = [...nonDiscountItems, ...discountItems];
-  const discountFromAdjustments = discountItems.reduce((s: number, li: any) => s + Math.abs(Number(li.lineTotal)), 0);
-  const discountFromPercent = invoice.lineItems.filter((li: any) => li.lineType !== 'DISCOUNT_ADJUSTMENT' && Number(li.discountPercent) > 0).reduce((s: number, li: any) => s + Number(li.quantity) * Number(li.unitPrice) * Number(li.discountPercent) / 100, 0);
-  const totalDiscount = discountFromAdjustments + discountFromPercent;
 
   const showGst = !!invoice.showGst;
+  const grandTotal = Number(invoice.grandTotal);
+  const netAmount = Math.round(grandTotal);
+  const roundOff = netAmount - grandTotal;
+  const amountWords = numberToWords(netAmount) + ' Rupees Only';
 
-  const rows = allDisplayItems.map((li: any, i: number) => {
+  // GST totals (back-calculated from inclusive amounts)
+  let totalTaxable = 0;
+  let totalCgst = 0;
+  let totalSgst = 0;
+
+  const allItems = invoice.lineItems || [];
+  const rows = allItems.map((li: any, i: number) => {
     const item = li.referenceItemId ? itemMap[li.referenceItemId] : null;
     const sku = item?.sku || '';
-    const mrp = item?.mrp ? Number(item.mrp) : null;
-    const disc = Number(li.discountPercent) || 0;
+    const hsn = item?.hsnCode || (li.lineType === 'PART' ? '87141090' : ['LABOR', 'SERVICE_CHARGE', 'CUSTOM_CHARGE', 'AMC'].includes(li.lineType) ? '99871190' : '');
     const qty = Number(li.quantity);
     const rate = Number(li.unitPrice);
+    const disc = Number(li.discountPercent) || 0;
     const lineTotal = Number(li.lineTotal);
-    const hsn = item?.hsnCode || (li.lineType === 'PART' ? '87141090' : li.lineType === 'LABOR' || li.lineType === 'SERVICE_CHARGE' || li.lineType === 'CUSTOM_CHARGE' || li.lineType === 'AMC' ? '99871190' : '');
-    // Back-calculate GST from inclusive price
-    const gstTaxable = lineTotal / 1.18;
-    const gstCgst = gstTaxable * 0.09;
-    const gstSgst = gstTaxable * 0.09;
-    return `<tr>
-      <td style="padding:9px 10px;border-bottom:1px solid #f3f4f6;text-align:center;color:#9ca3af;font-size:10px">${i + 1}</td>
-      <td style="padding:9px 10px;border-bottom:1px solid #f3f4f6">
-        <div style="font-weight:600;color:#111">${esc((li.lineType === 'LABOR' || li.lineType === 'SERVICE_CHARGE') ? li.description.replace(/\s*[—–-]\s*[A-Z][A-Z\s]+$/, '') : li.description)}</div>
-        ${sku ? `<div style="color:#9ca3af;font-size:10px;margin-top:1px;font-family:'Google Sans Code',ui-monospace,monospace">SKU: ${esc(sku)}</div>` : ''}
-      </td>
-      <td style="padding:9px 10px;border-bottom:1px solid #f3f4f6;text-align:center;color:#6b7280;font-size:10px;font-family:'Google Sans Code',ui-monospace,monospace">${hsn || '—'}</td>
-      <td style="padding:9px 10px;border-bottom:1px solid #f3f4f6;text-align:center">${qty}</td>
-      <td style="padding:9px 10px;border-bottom:1px solid #f3f4f6;text-align:right">${mrp ? `<span style="color:#9ca3af">₹${mrp.toLocaleString('en-IN')}</span>` : '—'}</td>
-      <td style="padding:9px 10px;border-bottom:1px solid #f3f4f6;text-align:right">₹${rate.toLocaleString('en-IN')}</td>
-      <td style="padding:9px 10px;border-bottom:1px solid #f3f4f6;text-align:center;color:${disc ? '#16a34a' : '#9ca3af'};font-weight:${disc ? '600' : '400'}">${disc ? disc + '%' : '—'}</td>
-      ${showGst ? `
-      <td style="padding:9px 10px;border-bottom:1px solid #f3f4f6;text-align:right;font-size:11px;color:#6b7280">₹${gstTaxable.toFixed(2)}</td>
-      <td style="padding:9px 10px;border-bottom:1px solid #f3f4f6;text-align:right;font-size:11px;color:#6b7280">₹${gstCgst.toFixed(2)}</td>
-      <td style="padding:9px 10px;border-bottom:1px solid #f3f4f6;text-align:right;font-size:11px;color:#6b7280">₹${gstSgst.toFixed(2)}</td>
-      ` : `
-      <td style="padding:9px 10px;border-bottom:1px solid #f3f4f6;text-align:right;color:#6b7280;font-size:11px">—</td>
-      `}
-      <td style="padding:9px 10px;border-bottom:1px solid #f3f4f6;text-align:right;font-weight:700;color:#111">₹${lineTotal.toLocaleString('en-IN')}</td>
+    const taxable = lineTotal / 1.18;
+    const cgst = taxable * 0.09;
+    const sgst = taxable * 0.09;
+    totalTaxable += taxable;
+    totalCgst += cgst;
+    totalSgst += sgst;
+
+    const descDisplay = esc(li.description);
+    const skuLine = (li.lineType === 'PART' && sku) ? `<br><span style="font-size:9px;color:#666">SKU: ${esc(sku)}</span>` : '';
+
+    if (showGst) {
+      return `<tr${i % 2 === 1 ? ' style="background:#fafafa"' : ''}>
+        <td style="border:1px solid #e5e7eb;padding:5px 6px;text-align:center;font-size:10px;color:#9ca3af">${i + 1}</td>
+        <td style="border:1px solid #e5e7eb;padding:5px 6px;font-size:10px"><span style="font-weight:600">${descDisplay}</span>${skuLine}</td>
+        <td style="border:1px solid #e5e7eb;padding:5px 6px;text-align:center;font-size:9px;color:#6b7280;font-family:monospace">${hsn || '—'}</td>
+        <td style="border:1px solid #e5e7eb;padding:5px 6px;text-align:center;font-size:10px">${qty}</td>
+        <td style="border:1px solid #e5e7eb;padding:5px 6px;text-align:right;font-size:10px">${rate.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+        <td style="border:1px solid #e5e7eb;padding:5px 6px;text-align:center;font-size:10px;color:${disc ? '#16a34a' : '#9ca3af'};font-weight:${disc ? '600' : '400'}">${disc ? disc + '%' : '—'}</td>
+        <td style="border:1px solid #e5e7eb;padding:5px 6px;text-align:right;font-size:10px;color:#6b7280">${taxable.toFixed(2)}</td>
+        <td style="border:1px solid #e5e7eb;padding:5px 6px;text-align:right;font-size:10px;color:#6b7280">${cgst.toFixed(2)}</td>
+        <td style="border:1px solid #e5e7eb;padding:5px 6px;text-align:right;font-size:10px;color:#6b7280">${sgst.toFixed(2)}</td>
+        <td style="border:1px solid #e5e7eb;padding:5px 6px;text-align:right;font-size:10px;font-weight:700">${lineTotal.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+      </tr>`;
+    }
+    return `<tr${i % 2 === 1 ? ' style="background:#fafafa"' : ''}>
+      <td style="border:1px solid #e5e7eb;padding:5px 6px;text-align:center;font-size:10px;color:#9ca3af">${i + 1}</td>
+      <td style="border:1px solid #e5e7eb;padding:5px 6px;font-size:10px"><span style="font-weight:600">${descDisplay}</span>${skuLine}</td>
+      <td style="border:1px solid #e5e7eb;padding:5px 6px;text-align:center;font-size:9px;color:#6b7280;font-family:monospace">${hsn || '—'}</td>
+      <td style="border:1px solid #e5e7eb;padding:5px 6px;text-align:center;font-size:10px">${qty}</td>
+      <td style="border:1px solid #e5e7eb;padding:5px 6px;text-align:right;font-size:10px">${rate.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+      <td style="border:1px solid #e5e7eb;padding:5px 6px;text-align:center;font-size:10px;color:${disc ? '#16a34a' : '#9ca3af'};font-weight:${disc ? '600' : '400'}">${disc ? disc + '%' : '—'}</td>
+      <td style="border:1px solid #e5e7eb;padding:5px 6px;text-align:right;font-size:10px;font-weight:700">${lineTotal.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
     </tr>`;
   }).join('');
 
-  const payments = invoice.payments?.map((p: any) => `
-    <tr>
-      <td style="padding:7px 10px;border-bottom:1px solid #f3f4f6">${formatDateIST(p.paymentDate)}</td>
-      <td style="padding:7px 10px;border-bottom:1px solid #f3f4f6">${esc(p.paymentMode)}</td>
-      <td style="padding:7px 10px;border-bottom:1px solid #f3f4f6;font-family:'Google Sans Code',ui-monospace,monospace;font-size:11px">${esc(p.referenceNumber || '—')}</td>
-      <td style="padding:7px 10px;border-bottom:1px solid #f3f4f6;text-align:right;font-weight:600;color:#16a34a">₹${Number(p.amount).toLocaleString('en-IN')}</td>
-    </tr>`).join('') || '';
-
-  const statusColor = invoice.paymentStatus === 'PAID' ? '#16a34a' : invoice.paymentStatus === 'PARTIALLY_PAID' ? '#d97706' : '#dc2626';
-  const statusBg = invoice.paymentStatus === 'PAID' ? '#dcfce7' : invoice.paymentStatus === 'PARTIALLY_PAID' ? '#fef3c7' : '#fee2e2';
-  const grandTotal = Number(invoice.grandTotal);
-  const roundOff = Math.round(grandTotal) - grandTotal;
-  const netAmount = Math.round(grandTotal);
-  const amountWords = numberToWords(netAmount) + ' Rupees Only';
-  const odometer = invoice.jobCard?.odometerAtIntake;
-  const taxTotal = Number(invoice.taxTotal) || 0;
-  const cgst = taxTotal / 2;
-  const sgst = taxTotal / 2;
-  // Back-calculated GST for display when showGst is on
-  const gstTaxableTotal = showGst ? grandTotal / 1.18 : 0;
-  const gstCgstTotal = showGst ? gstTaxableTotal * 0.09 : 0;
-  const gstSgstTotal = showGst ? gstTaxableTotal * 0.09 : 0;
+  const gstColSpan = showGst ? 10 : 7;
+  const paymentLabel = invoice.paymentStatus === 'PAID' ? 'PAID' : invoice.paymentStatus === 'PARTIALLY_PAID' ? 'PARTIAL' : 'UNPAID';
 
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Google+Sans:400,500,600,700,800&display=swap">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans+Code:wght@400;500;600&display=swap">
-<title>Invoice ${esc(invoice.invoiceNumber)}</title>
+<title>Tax Invoice ${esc(invoice.invoiceNumber)}</title>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
-body { font-family:'Google Sans','Product Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; color:#111; font-size:12px; background:#fff; }
-@media print { body { -webkit-print-color-adjust:exact; print-color-adjust:exact; } @page { margin:8mm; size:A4; } }
-.page { max-width:820px; margin:0 auto; background:#fff; }
-table { width:100%; border-collapse:collapse; }
-th { background:#fafafa; padding:10px 10px; text-align:left; font-size:10px; text-transform:uppercase; letter-spacing:0.6px; color:#6b7280; font-weight:600; border-bottom:2px solid #e5e7eb; }
-.card-label { font-size:9px; text-transform:uppercase; letter-spacing:1px; color:#9ca3af; font-weight:600; }
-.card-value { font-size:13px; font-weight:600; color:#111; margin-top:4px; }
-.card-meta { font-size:11px; color:#6b7280; margin-top:2px; line-height:1.5; }
-</style></head><body><div class="page">
+body { font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; color:#111; font-size:12px; background:#fff; }
+@media print { body { -webkit-print-color-adjust:exact; print-color-adjust:exact; } @page { margin:6mm; size:A4; } }
+</style></head><body>
+<div style="max-width:210mm;margin:0 auto;border:2px solid #222;padding:0">
 
-<!-- Header band -->
-<div style="background:#fff;border-bottom:1px solid #e5e7eb">
-  <div style="padding:24px 32px 18px 32px;display:flex;justify-content:space-between;align-items:flex-start;gap:24px">
-    <div style="flex:1;min-width:0">
-      <img src="${esc(logoUrl)}" style="height:42px;width:auto;display:block" alt="${esc(biz.name)}" />
-      <div style="margin-top:10px;color:#6b7280;font-size:11px;line-height:1.55">
-        ${biz.address ? `${esc(biz.address)}<br>` : ''}
-        ${biz.phone ? `Tel: ${esc(biz.phone)}` : ''}${biz.phone && biz.email ? ' &nbsp;·&nbsp; ' : ''}${biz.email ? `${esc(biz.email)}` : ''}
-        ${biz.gst ? `<br><span style="color:#111;font-weight:600">GSTIN:</span> <span style="font-family:'Google Sans Code',ui-monospace,monospace">${esc(biz.gst)}</span>` : ''}
-      </div>
+  <!-- Header -->
+  <div style="display:flex;border-bottom:2px solid #222;justify-content:space-between;padding:12px 18px">
+    <div>
+      ${logoUrl ? `<img src="${esc(logoUrl)}" style="height:36px;width:auto;display:block;margin-bottom:4px" alt="${esc(biz.name)}" />` : `<div style="font-size:28px;font-weight:900;color:#dc2626">GEAR UP</div>`}
+      <div style="font-size:8.5px;font-weight:700;color:#555;letter-spacing:2.5px;text-transform:uppercase">Service · Spares · Safety</div>
+      <div style="font-size:9px;color:#444;margin-top:5px;line-height:1.4">${esc(biz.address)}</div>
     </div>
-    <div style="text-align:right">
-      <div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:#9ca3af;font-weight:600">Invoice</div>
-      <div style="font-size:22px;font-weight:800;color:#111;margin-top:6px;font-family:'Google Sans Code',ui-monospace,monospace">${esc(invoice.invoiceNumber)}</div>
-      <div style="font-size:11px;color:#6b7280;margin-top:6px">Issued <strong style="color:#111">${formatDateIST(invoice.invoiceDate, { long: true })}</strong></div>
-      <div style="margin-top:10px;display:inline-block;background:${statusBg};color:${statusColor};font-size:10px;font-weight:700;padding:4px 12px;border-radius:20px;letter-spacing:0.5px;text-transform:uppercase">${esc(invoice.paymentStatus.replace('_', ' '))}</div>
+    <div style="text-align:right;font-size:10px;color:#333;line-height:1.6">
+      ${biz.gst ? `<div style="font-weight:800;font-size:11px">GSTIN: ${esc(biz.gst)}</div>` : ''}
+      ${biz.phone ? `<div>Mob: ${esc(biz.phone)}</div>` : ''}
+      ${biz.email ? `<div>Email: ${esc(biz.email)}</div>` : ''}
     </div>
   </div>
-  <!-- Brand accent strip -->
-  <div style="height:3px;background:linear-gradient(90deg,#FF0000 0%,#AC0000 100%)"></div>
-</div>
 
-<!-- Body -->
-<div style="padding:24px 32px">
+  <!-- TAX INVOICE badge -->
+  <div style="text-align:center;padding:6px 0;border-bottom:2px solid #222;background:#fef2f2">
+    <span style="font-size:15px;font-weight:900;color:#dc2626;letter-spacing:4px">TAX INVOICE</span>
+    <span style="font-size:9px;color:#888;margin-left:10px">Original</span>
+  </div>
 
-  <!-- Bill-To / Vehicle / Job-Card cards -->
-  <div style="display:flex;gap:12px;margin-bottom:22px">
-    <div style="flex:1;border:1px solid #e5e7eb;border-radius:6px;padding:12px">
-      <div class="card-label">Bill To</div>
-      <div class="card-value">${esc(toTitleCase(invoice.customer.fullName))}</div>
-      <div class="card-meta">
-        ${esc(invoice.customer.phoneNumber)}
-        ${invoice.customer.email ? `<br>${esc(invoice.customer.email)}` : ''}
-        ${invoice.customer.addressLine1 ? `<br>${esc(invoice.customer.addressLine1)}` : ''}
-        ${invoice.customer.city ? `<br>${esc(invoice.customer.city)}${invoice.customer.postalCode ? ' — ' + esc(invoice.customer.postalCode) : ''}` : ''}
+  <!-- Info grid -->
+  <div style="display:flex;border-bottom:2px solid #222">
+    <div style="flex:1;border-right:1px solid #222">
+      <div style="display:flex;padding:4px 12px;border-bottom:1px solid #e5e7eb">
+        <span style="font-weight:700;min-width:85px;font-size:10px;color:#555">Invoice No.</span>
+        <span style="font-weight:600;font-size:10.5px">${esc(invoice.invoiceNumber)}</span>
+      </div>
+      <div style="display:flex;padding:4px 12px;border-bottom:1px solid #e5e7eb">
+        <span style="font-weight:700;min-width:85px;font-size:10px;color:#555">Date</span>
+        <span style="font-weight:600;font-size:10.5px">${formatDateIST(invoice.invoiceDate, { long: true, time: true })}</span>
+      </div>
+      <div style="display:flex;padding:4px 12px;border-bottom:1px solid #e5e7eb">
+        <span style="font-weight:700;min-width:85px;font-size:10px;color:#555">Job Card</span>
+        <span style="font-weight:600;font-size:10.5px">${invoice.jobCard ? esc(invoice.jobCard.jobCardNumber) : 'Counter Sale'}</span>
+      </div>
+      <div style="display:flex;padding:4px 12px">
+        <span style="font-weight:700;min-width:85px;font-size:10px;color:#555">Payment</span>
+        <span style="font-weight:600;font-size:10.5px">${paymentLabel}</span>
       </div>
     </div>
-    <div style="flex:1;border:1px solid #e5e7eb;border-radius:6px;padding:12px">
-      <div class="card-label">Vehicle</div>
-      <div class="card-value">${esc(toTitleCase(invoice.vehicle?.brand ?? ''))} ${esc(toTitleCase(invoice.vehicle?.model ?? ''))}</div>
-      <div class="card-meta">
-        ${invoice.vehicle?.registrationNumber ? `<span style="font-family:'Google Sans Code',ui-monospace,monospace;font-weight:600;color:#111">${esc(invoice.vehicle.registrationNumber)}</span>` : 'Counter Sale'}
-        ${odometer ? `<br>Odometer: ${odometer.toLocaleString()} km` : ''}
-        ${invoice.jobCard?.fuelIndicator ? `<br>Fuel: ${esc(invoice.jobCard.fuelIndicator)}` : ''}
+    <div style="flex:1">
+      <div style="display:flex;padding:4px 12px;border-bottom:1px solid #e5e7eb">
+        <span style="font-weight:700;min-width:85px;font-size:10px;color:#555">Customer</span>
+        <span style="font-weight:600;font-size:10.5px">${esc(toTitleCase(invoice.customer.fullName))}</span>
       </div>
-    </div>
-    <div style="flex:1;border:1px solid #e5e7eb;border-radius:6px;padding:12px">
-      <div class="card-label">${invoice.jobCard ? 'Job Card' : 'Sale Type'}</div>
-      <div class="card-value">${invoice.jobCard ? esc(invoice.jobCard.jobCardNumber) : 'Counter Sale'}</div>
-      <div class="card-meta">
-        Status: <strong style="color:#111">${esc(invoice.invoiceStatus)}</strong>
-        ${invoice.finalizedAt ? `<br>Finalised: ${formatDateIST(invoice.finalizedAt)}` : ''}
-        ${invoice.jobCard?.issueSummary ? `<br><span style="color:#9ca3af">Issue:</span> ${esc(invoice.jobCard.issueSummary.slice(0, 50))}${invoice.jobCard.issueSummary.length > 50 ? '…' : ''}` : ''}
+      <div style="display:flex;padding:4px 12px;border-bottom:1px solid #e5e7eb">
+        <span style="font-weight:700;min-width:85px;font-size:10px;color:#555">Phone</span>
+        <span style="font-weight:600;font-size:10.5px">${esc(invoice.customer.phoneNumber)}</span>
+      </div>
+      <div style="display:flex;padding:4px 12px;border-bottom:1px solid #e5e7eb">
+        <span style="font-weight:700;min-width:85px;font-size:10px;color:#555">Vehicle</span>
+        <span style="font-weight:600;font-size:10.5px">${esc(toTitleCase(invoice.vehicle?.brand ?? ''))} ${esc(toTitleCase(invoice.vehicle?.model ?? ''))}</span>
+      </div>
+      <div style="display:flex;padding:4px 12px">
+        <span style="font-weight:700;min-width:85px;font-size:10px;color:#555">Reg. No.</span>
+        <span style="font-weight:600;font-size:10.5px">${esc(invoice.vehicle?.registrationNumber ?? 'N/A')}</span>
       </div>
     </div>
   </div>
 
-  <!-- Line items -->
-  <table>
+  <!-- Pricing note -->
+  <div style="padding:4px 12px;font-size:8.5px;color:#666;background:#f9fafb;border-bottom:1px solid #e5e7eb">
+    * All prices inclusive of GST (18%). Amount = Qty × Unit Price × (1 − Discount%)
+  </div>
+
+  <!-- Items table -->
+  <table style="width:100%;border-collapse:collapse">
     <thead>
-      <tr>
-        <th style="width:30px;text-align:center">#</th>
-        <th>Description</th>
-        <th style="width:55px;text-align:center">HSN/SAC</th>
-        <th style="width:50px;text-align:center">Qty</th>
-        <th style="width:70px;text-align:right">MRP</th>
-        <th style="width:70px;text-align:right">Rate</th>
-        <th style="width:50px;text-align:center">Disc</th>
+      <tr style="background:#dc2626">
+        <th style="border:1px solid #b91c1c;padding:6px 4px;text-align:center;font-size:8px;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;width:25px">SL</th>
+        <th style="border:1px solid #b91c1c;padding:6px 4px;text-align:left;font-size:8px;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:0.3px">Description</th>
+        <th style="border:1px solid #b91c1c;padding:6px 4px;text-align:center;font-size:8px;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;width:55px">HSN</th>
+        <th style="border:1px solid #b91c1c;padding:6px 4px;text-align:center;font-size:8px;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;width:35px">Qty</th>
+        <th style="border:1px solid #b91c1c;padding:6px 4px;text-align:right;font-size:8px;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;width:65px">Unit Price</th>
+        <th style="border:1px solid #b91c1c;padding:6px 4px;text-align:center;font-size:8px;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;width:40px">Disc%</th>
         ${showGst ? `
-        <th style="width:75px;text-align:right">Taxable</th>
-        <th style="width:65px;text-align:right">CGST 9%</th>
-        <th style="width:65px;text-align:right">SGST 9%</th>
-        ` : `
-        <th style="width:75px;text-align:right">Tax</th>
-        `}
-        <th style="width:85px;text-align:right">Amount</th>
+        <th style="border:1px solid #b91c1c;padding:6px 4px;text-align:right;font-size:8px;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;width:65px">Taxable</th>
+        <th style="border:1px solid #b91c1c;padding:6px 4px;text-align:right;font-size:8px;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;width:55px">CGST 9%</th>
+        <th style="border:1px solid #b91c1c;padding:6px 4px;text-align:right;font-size:8px;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;width:55px">SGST 9%</th>
+        ` : ''}
+        <th style="border:1px solid #b91c1c;padding:6px 4px;text-align:right;font-size:8px;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;width:70px">Amount</th>
       </tr>
     </thead>
     <tbody>${rows}</tbody>
   </table>
 
-  <!-- Totals row -->
-  <div style="display:flex;gap:18px;margin-top:20px">
-    <div style="flex:1">
-      <div style="border:1px solid #e5e7eb;border-radius:6px;padding:12px 14px">
-        <div class="card-label">Amount in Words</div>
-        <div style="margin-top:5px;font-size:12px;color:#111;font-weight:500;line-height:1.5">${esc(amountWords)}</div>
-      </div>
-      ${biz.bankName || biz.bankUpi ? `
-      <div style="margin-top:12px;border:1px solid #e5e7eb;border-radius:6px;padding:12px 14px">
-        <div class="card-label">Payment Details</div>
-        <div style="margin-top:5px;font-size:11px;color:#374151;line-height:1.7">
-          ${biz.bankName ? `<div><strong>${esc(biz.bankName)}</strong></div>` : ''}
-          ${biz.bankAccount ? `<div>A/c No: <span style="font-family:'Google Sans Code',ui-monospace,monospace">${esc(biz.bankAccount)}</span></div>` : ''}
-          ${biz.bankIfsc ? `<div>IFSC: <span style="font-family:'Google Sans Code',ui-monospace,monospace">${esc(biz.bankIfsc)}</span></div>` : ''}
-          ${biz.bankUpi ? `<div>UPI: <span style="font-family:'Google Sans Code',ui-monospace,monospace">${esc(biz.bankUpi)}</span></div>` : ''}
+  <!-- Totals section -->
+  <div style="display:flex;border-top:2px solid #222">
+    <!-- Left: Amount in words + bank details -->
+    <div style="flex:1;border-right:1px solid #222;padding:10px 12px">
+      <div style="font-size:10px;font-weight:bold;text-transform:uppercase;color:#555;margin-bottom:4px">Amount in Words</div>
+      <div style="font-size:11px;font-weight:bold;color:#111">${esc(amountWords)}</div>
+      ${biz.bankName ? `
+      <div style="margin-top:12px;border-top:1px solid #ccc;padding-top:8px">
+        <div style="font-size:10px;font-weight:bold;text-transform:uppercase;color:#555;margin-bottom:4px">Bank Details</div>
+        <div style="font-size:10px;line-height:1.6;color:#333">
+          <div>Bank: <strong>${esc(biz.bankName)}</strong></div>
+          ${biz.bankAccount ? `<div>A/c No: ${esc(biz.bankAccount)}</div>` : ''}
+          ${biz.bankIfsc ? `<div>IFSC: ${esc(biz.bankIfsc)}</div>` : ''}
+          ${biz.bankUpi ? `<div>UPI: ${esc(biz.bankUpi)}</div>` : ''}
         </div>
       </div>` : ''}
     </div>
-    <div style="width:280px">
-      <table style="border-collapse:separate">
-        <tr><td style="padding:5px 12px;color:#6b7280;font-size:12px">Total Amount</td><td style="padding:5px 12px;text-align:right;font-size:12px">₹${(netAmount + discountFromAdjustments).toLocaleString('en-IN')}</td></tr>
-        ${discountFromAdjustments > 0 ? `<tr><td style="padding:5px 12px;color:#16a34a;font-size:12px;font-weight:600">Total Discount</td><td style="padding:5px 12px;text-align:right;color:#16a34a;font-size:12px;font-weight:600">−₹${discountFromAdjustments.toLocaleString('en-IN')}</td></tr>` : ''}
-        ${taxTotal > 0 || showGst ? `
-          <tr><td style="padding:5px 12px;color:#6b7280;font-size:11px">Taxable Value</td><td style="padding:5px 12px;text-align:right;font-size:11px">₹${(showGst ? gstTaxableTotal : (grandTotal - taxTotal)).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td></tr>
-          <tr><td style="padding:5px 12px;color:#6b7280;font-size:11px">CGST (9%)</td><td style="padding:5px 12px;text-align:right;font-size:11px">₹${(showGst ? gstCgstTotal : cgst).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td></tr>
-          <tr><td style="padding:5px 12px;color:#6b7280;font-size:11px">SGST (9%)</td><td style="padding:5px 12px;text-align:right;font-size:11px">₹${(showGst ? gstSgstTotal : sgst).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td></tr>
-        ` : ''}
-        ${Math.abs(roundOff) > 0.001 ? `<tr><td style="padding:5px 12px;color:#6b7280;font-size:11px">Round Off</td><td style="padding:5px 12px;text-align:right;font-size:11px">${roundOff > 0 ? '+' : ''}₹${roundOff.toFixed(2)}</td></tr>` : ''}
-        <tr><td colspan="2" style="padding:0;border-top:2px solid #111"></td></tr>
-        <tr><td style="padding:10px 12px;font-size:14px;font-weight:800;color:#111">Net Total</td><td style="padding:10px 12px;text-align:right;font-size:16px;font-weight:800;color:#111">₹${netAmount.toLocaleString('en-IN')}</td></tr>
-      </table>
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-top:1px solid #e5e7eb;margin-top:4px">
-        ${totalDiscount > 0 ? `<span style="font-size:10px;color:#16a34a">You saved ₹${totalDiscount.toLocaleString('en-IN')} on this invoice</span>` : '<span></span>'}
-        ${Number(invoice.amountPaid) > 0 ? `<span style="font-size:11px;color:#16a34a;font-weight:600">Paid: ₹${Number(invoice.amountPaid).toLocaleString('en-IN')}</span>` : ''}
+    <!-- Right: Totals breakdown -->
+    <div style="width:240px;padding:0">
+      ${showGst ? `
+      <div style="display:flex;justify-content:space-between;padding:5px 10px;border-bottom:1px solid #ccc">
+        <span style="font-size:11px">Taxable Value</span>
+        <span style="font-size:11px">${totalTaxable.toFixed(2)}</span>
       </div>
-        ${Number(invoice.amountDue) > 0 ? `<div style="margin-top:4px;padding:7px 12px;color:#dc2626;font-size:13px;font-weight:700;background:#fee2e2;border-radius:6px;text-align:center">Balance Due: ₹${Number(invoice.amountDue).toLocaleString('en-IN')}</div>` : ''}
-      </table>
-    </div>
-  </div>
-
-  ${payments ? `
-  <div style="margin-top:24px">
-    <div style="font-size:11px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Payment History</div>
-    <table>
-      <thead><tr><th>Date</th><th>Mode</th><th>Reference</th><th style="text-align:right">Amount</th></tr></thead>
-      <tbody>${payments}</tbody>
-    </table>
-  </div>` : ''}
-
-  <!-- Signature + Terms -->
-  <div style="margin-top:30px;display:flex;gap:24px;align-items:flex-end">
-    <div style="flex:1;font-size:10px;color:#6b7280;line-height:1.6">
-      <div style="font-weight:600;color:#374151;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;font-size:9px">Terms & Conditions</div>
-      <div>1. Goods once sold will not be taken back or exchanged.</div>
-      <div>2. Warranty as per manufacturer policy only.</div>
-      <div>3. Subject to ${esc(biz.address ? biz.address.split(',').pop()?.trim() || 'local' : 'local')} jurisdiction.</div>
-    </div>
-    <div style="width:200px;text-align:center;font-size:10px;color:#6b7280">
-      <div style="border-top:1px solid #111;padding-top:6px;margin-top:30px">
-        <div style="font-weight:600;color:#111;font-size:11px">For ${esc(biz.name)}</div>
-        <div style="margin-top:2px">Authorised Signatory</div>
+      <div style="display:flex;justify-content:space-between;padding:5px 10px;border-bottom:1px solid #ccc">
+        <span style="font-size:11px">CGST (9%)</span>
+        <span style="font-size:11px">${totalCgst.toFixed(2)}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:5px 10px;border-bottom:1px solid #ccc">
+        <span style="font-size:11px">SGST (9%)</span>
+        <span style="font-size:11px">${totalSgst.toFixed(2)}</span>
+      </div>
+      ` : ''}
+      ${Math.abs(roundOff) >= 0 ? `
+      <div style="display:flex;justify-content:space-between;padding:5px 10px;border-bottom:1px solid #ccc">
+        <span style="font-size:11px">Round Off</span>
+        <span style="font-size:11px">${roundOff >= 0 ? '+' : ''}₹${roundOff.toFixed(2)}</span>
+      </div>` : ''}
+      ${Number(invoice.amountPaid) > 0 && Number(invoice.amountDue) > 0 ? `
+      <div style="display:flex;justify-content:space-between;padding:5px 10px;border-bottom:1px solid #ccc">
+        <span style="font-size:11px">Paid</span>
+        <span style="font-size:11px;color:#16a34a">${Number(invoice.amountPaid).toLocaleString('en-IN', {minimumFractionDigits: 2})}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:5px 10px;border-bottom:1px solid #ccc">
+        <span style="font-size:11px;font-weight:bold;color:#dc2626">Balance Due</span>
+        <span style="font-size:11px;font-weight:bold;color:#dc2626">${Number(invoice.amountDue).toLocaleString('en-IN', {minimumFractionDigits: 2})}</span>
+      </div>` : ''}
+      <div style="display:flex;justify-content:space-between;padding:8px 10px;background:#fef2f2;border-top:2px solid #222">
+        <span style="font-size:15px;font-weight:900;color:#dc2626">GRAND TOTAL</span>
+        <span style="font-size:15px;font-weight:900;color:#dc2626">\u20B9${netAmount.toLocaleString('en-IN')}</span>
       </div>
     </div>
   </div>
 
-</div>
+  <!-- Footer: Terms + Auth signatory -->
+  <div style="display:flex;border-top:2px solid #222">
+    <div style="flex:1;padding:10px 12px;border-right:1px solid #222;font-size:9px;color:#555;line-height:1.6">
+      <div style="font-weight:700;font-size:9.5px;color:#333;margin-bottom:3px">Bank Details:</div>
+      ${biz.bankName ? `<div>Bank: ${esc(biz.bankName)}</div>` : ''}
+      ${biz.bankAccount ? `<div>A/C: ${esc(biz.bankAccount)}${biz.bankIfsc ? ` | IFSC: ${esc(biz.bankIfsc)}` : ''}</div>` : ''}
+      ${biz.bankUpi ? `<div style="font-weight:600;margin-top:4px">UPI: ${esc(biz.bankUpi)}</div>` : ''}
+    </div>
+    <div style="width:180px;padding:10px 12px;text-align:right">
+      <div style="font-size:9.5px;color:#555">For <strong style="color:#dc2626">${esc(biz.name)}</strong></div>
+      <div style="height:35px"></div>
+      <div style="font-weight:700;font-size:10px">Authorised Signatory</div>
+    </div>
+  </div>
+  <div style="padding:5px 12px;border-top:1px solid #e5e7eb;font-size:8px;color:#999">
+    * All prices inclusive of GST (18%) • Goods once sold will not be taken back • Warranty as per manufacturer terms • Subject to Bankura jurisdiction • E. & O. E.
+  </div>
 
-<!-- Footer -->
-<div style="margin-top:18px;padding:14px 32px;background:#fafafa;border-top:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center;font-size:10px;color:#9ca3af">
-  <div>${esc(footer)}</div>
-  <div>${esc(biz.name)}${biz.gst ? ` · GSTIN ${esc(biz.gst)}` : ''}</div>
 </div>
-
-</div></body></html>`;
+</body></html>`;
 }
 
 function generateCustomerDraftHTML(invoice: any, settings: Record<string, any>, logoUrl: string) {
@@ -397,6 +381,7 @@ function generateAmcInvoiceHTML(invoice: any, settings: Record<string, any>, log
     bankUpi: settings['business.bank.upi'] || '',
   };
   const footer = settings['invoice.footerNote'] || 'Thank you for being a Premium AMC member.';
+  const showGst = !!invoice.showGst;
 
   const planPrice = Number(amcContract.plan.price);
   const amcSavings = invoice.lineItems
@@ -426,6 +411,11 @@ function generateAmcInvoiceHTML(invoice: any, settings: Record<string, any>, log
     const hsn = li.lineType === 'PART' ? '87141090' : li.lineType === 'LABOR' || li.lineType === 'SERVICE_CHARGE' || li.lineType === 'CUSTOM_CHARGE' || li.lineType === 'AMC' ? '99871190' : '';
     const rowBg = isAmcCovered ? 'background:#fffbeb' : '';
     const cellBorder = isAmcCovered ? '#fde68a' : '#f3f4f6';
+    const lineTotal = Number(li.lineTotal);
+    // Back-calculate GST from inclusive price (FREE items have lineTotal=0, so GST=0)
+    const gstTaxable = lineTotal / 1.18;
+    const gstCgst = gstTaxable * 0.09;
+    const gstSgst = gstTaxable * 0.09;
     // Strip worker name from labor/service descriptions for PDF (e.g. "Labor — RAHUL GARAI" → "Labor")
     const displayDesc = (li.lineType === 'LABOR' || li.lineType === 'SERVICE_CHARGE') ? li.description.replace(/\s*[—–-]\s*[A-Z][A-Z\s]+$/, '') : li.description;
     // AMC purchase: show MRP strikethrough if available
@@ -444,7 +434,13 @@ function generateAmcInvoiceHTML(invoice: any, settings: Record<string, any>, log
       <td style="padding:9px 10px;border-bottom:1px solid ${cellBorder};text-align:center">${qty}</td>
       <td style="padding:9px 10px;border-bottom:1px solid ${cellBorder};text-align:right">${rateCell}</td>
       <td style="padding:9px 10px;border-bottom:1px solid ${cellBorder};text-align:center;color:${disc ? '#16a34a' : '#9ca3af'};font-weight:${disc ? '600' : '400'}">${disc ? disc + '%' : '—'}</td>
+      ${showGst ? `
+      <td style="padding:9px 10px;border-bottom:1px solid ${cellBorder};text-align:right;font-size:11px;color:#6b7280">₹${gstTaxable.toFixed(2)}</td>
+      <td style="padding:9px 10px;border-bottom:1px solid ${cellBorder};text-align:right;font-size:11px;color:#6b7280">₹${gstCgst.toFixed(2)}</td>
+      <td style="padding:9px 10px;border-bottom:1px solid ${cellBorder};text-align:right;font-size:11px;color:#6b7280">₹${gstSgst.toFixed(2)}</td>
+      ` : `
       <td style="padding:9px 10px;border-bottom:1px solid ${cellBorder};text-align:right;color:#6b7280;font-size:11px">${taxRate ? `${taxRate}%<br><span style="font-size:10px">₹${taxAmt.toFixed(2)}</span>` : '—'}</td>
+      `}
       <td style="padding:9px 10px;border-bottom:1px solid ${cellBorder};text-align:right;font-weight:700;color:#111">${isAmcCovered ? '<span style="font-weight:800;color:#B45309;font-size:13px;letter-spacing:0.5px">FREE</span>' : `₹${Number(li.lineTotal).toLocaleString('en-IN')}`}</td>
     </tr>`;
   }).join('');
@@ -468,6 +464,10 @@ function generateAmcInvoiceHTML(invoice: any, settings: Record<string, any>, log
   const taxTotal = Number(invoice.taxTotal) || 0;
   const cgst = taxTotal / 2;
   const sgst = taxTotal / 2;
+  // Back-calculated GST totals for showGst mode
+  const gstTaxableTotal = showGst ? grandTotal / 1.18 : 0;
+  const gstCgstTotal = showGst ? gstTaxableTotal * 0.09 : 0;
+  const gstSgstTotal = showGst ? gstTaxableTotal * 0.09 : 0;
 
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8">
@@ -569,7 +569,13 @@ th { background:#FFFBEB; padding:10px 10px; text-align:left; font-size:10px; tex
         <th style="width:50px;text-align:center">Qty</th>
         <th style="width:75px;text-align:right">Rate</th>
         <th style="width:50px;text-align:center">Disc</th>
+        ${showGst ? `
+        <th style="width:75px;text-align:right">Taxable</th>
+        <th style="width:65px;text-align:right">CGST 9%</th>
+        <th style="width:65px;text-align:right">SGST 9%</th>
+        ` : `
         <th style="width:75px;text-align:right">Tax</th>
+        `}
         <th style="width:90px;text-align:right">Amount</th>
       </tr>
     </thead>
@@ -599,9 +605,10 @@ th { background:#FFFBEB; padding:10px 10px; text-align:left; font-size:10px; tex
         <tr><td style="padding:5px 12px;color:#6b7280;font-size:12px">Total Amount</td><td style="padding:5px 12px;text-align:right;font-size:12px">₹${(netAmount + discountFromAdjustments).toLocaleString('en-IN')}</td></tr>
         ${discountFromAdjustments > 0 ? `<tr><td style="padding:5px 12px;color:#16a34a;font-size:12px;font-weight:600">Total Discount</td><td style="padding:5px 12px;text-align:right;color:#16a34a;font-size:12px;font-weight:600">−₹${discountFromAdjustments.toLocaleString('en-IN')}</td></tr>` : ''}
         ${amcSavings > 0 ? `<tr><td style="padding:6px 12px;color:#92400E;font-size:12px;font-weight:700;background:#FFFBEB"><span style="color:#D4A017">★</span> AMC Benefit</td><td style="padding:6px 12px;text-align:right;color:#92400E;font-size:12px;font-weight:700;background:#FFFBEB">−₹${amcSavings.toLocaleString('en-IN')}</td></tr>` : ''}
-        ${taxTotal > 0 ? `
-          <tr><td style="padding:5px 12px;color:#6b7280;font-size:11px">CGST (½ Tax)</td><td style="padding:5px 12px;text-align:right;font-size:11px">₹${cgst.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td></tr>
-          <tr><td style="padding:5px 12px;color:#6b7280;font-size:11px">SGST (½ Tax)</td><td style="padding:5px 12px;text-align:right;font-size:11px">₹${sgst.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td></tr>
+        ${taxTotal > 0 || showGst ? `
+          <tr><td style="padding:5px 12px;color:#6b7280;font-size:11px">Taxable Value</td><td style="padding:5px 12px;text-align:right;font-size:11px">₹${(showGst ? gstTaxableTotal : (grandTotal - taxTotal)).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td></tr>
+          <tr><td style="padding:5px 12px;color:#6b7280;font-size:11px">CGST (9%)</td><td style="padding:5px 12px;text-align:right;font-size:11px">₹${(showGst ? gstCgstTotal : cgst).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td></tr>
+          <tr><td style="padding:5px 12px;color:#6b7280;font-size:11px">SGST (9%)</td><td style="padding:5px 12px;text-align:right;font-size:11px">₹${(showGst ? gstSgstTotal : sgst).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td></tr>
         ` : ''}
         ${Math.abs(roundOff) > 0.001 ? `<tr><td style="padding:5px 12px;color:#6b7280;font-size:11px">Round Off</td><td style="padding:5px 12px;text-align:right;font-size:11px">${roundOff > 0 ? '+' : ''}₹${roundOff.toFixed(2)}</td></tr>` : ''}
         <tr><td colspan="2" style="padding:0;border-top:2px solid #D4A017"></td></tr>

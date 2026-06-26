@@ -18,6 +18,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   try {
     const user = requirePermission(PERMISSIONS.INVENTORY_EDIT);
     const body = z.object({
+      sku: z.string().min(1).optional(),
       itemName: z.string().min(1).optional(), categoryId: z.string().optional(), supplierId: z.string().nullable().optional(),
       brand: z.string().nullable().optional(), description: z.string().nullable().optional(), unit: z.string().min(1).optional(),
       taxRate: z.number().nonnegative().optional(), costPrice: z.number().nonnegative().optional(), mrp: z.number().nonnegative().nullable().optional(), sellingPrice: z.number().nonnegative().optional(), discountPercent: z.number().min(0).max(100).nullable().optional(), amcDiscountPercent: z.number().min(0).max(90).nullable().optional(),
