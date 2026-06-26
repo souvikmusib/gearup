@@ -23,6 +23,11 @@ export default function InvoiceDetailPage() {
   const [newLine, setNewLine] = useState({ lineType: 'CUSTOM_CHARGE', description: '', quantity: '1', unitPrice: '', taxRate: '0', discountPercent: '0', discountMode: 'flat', amcPlanId: '', amcContractId: '', inventoryItemId: '' });
   const [addingLine, setAddingLine] = useState(false);
   const [showPdfMenu, setShowPdfMenu] = useState(false);
+  const toggleGst = async () => {
+    const newVal = !data?.showGst;
+    await api.patch(`/admin/invoices/${id}`, { showGst: newVal });
+    fetch();
+  };
   const [inventoryItems, setInventoryItems] = useState<any[]>([]);
   const [workers, setWorkers] = useState<any[]>([]);
   const [amcPlans, setAmcPlans] = useState<any[]>([]);
@@ -304,6 +309,13 @@ export default function InvoiceDetailPage() {
             {loading === 'revert' ? 'Reverting...' : 'Revert to Draft'}
           </button>
         )}
+
+        <label className="inline-flex items-center gap-2 cursor-pointer select-none">
+          <span className="text-xs font-medium text-gray-500 dark:text-gray-400">GST</span>
+          <button type="button" onClick={toggleGst} className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${data?.showGst ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-600'}`}>
+            <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white transition-transform ${data?.showGst ? 'translate-x-4.5' : 'translate-x-0.5'}`} style={{ transform: data?.showGst ? 'translateX(18px)' : 'translateX(3px)' }} />
+          </button>
+        </label>
 
         <div className="relative">
           <button onClick={() => setShowPdfMenu(!showPdfMenu)} className="inline-flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">
