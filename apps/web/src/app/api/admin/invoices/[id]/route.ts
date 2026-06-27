@@ -18,7 +18,12 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   try {
     requirePermission(PERMISSIONS.INVOICES_VIEW);
     const invoice = await prisma.invoice.findUniqueOrThrow({ where: { id: params.id }, include: { lineItems: { orderBy: { sortOrder: 'asc' } }, payments: { orderBy: { paymentDate: 'desc' } }, customer: true, vehicle: true, jobCard: { select: { id: true, jobCardNumber: true } } } });
-    return NextResponse.json({ success: true, data: invoice });
+    // Attach SKU to line items that reference inventory items
+    const refIds = invoice.lineItems.filter(li => li.referenceItemId).map(li => li.referenceItemId!);
+    const items = refIds.length ? await prisma.inventoryItem.findMany({ where: { id: { in: refIds } }, select: { id: true, sku: true } }) : [];
+    const skuMap = Object.fromEntries(items.map(i => [i.id, i.sku]));
+    const lineItemsWithSku = invoice.lineItems.map(li => ({ ...li, sku: li.referenceItemId ? skuMap[li.referenceItemId] || null : null }));
+    return NextResponse.json({ success: true, data: { ...invoice, lineItems: lineItemsWithSku } });
   } catch (e) { return handleApiError(e); }
 }
 

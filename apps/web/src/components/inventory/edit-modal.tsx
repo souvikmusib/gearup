@@ -42,6 +42,7 @@ export function InventoryEditModal({ itemId, onClose, onSaved }: InventoryEditMo
     if (!itemId) return;
     setSaving(true);
     const body: Record<string, unknown> = {
+      sku: sku || undefined,
       itemName: form.itemName, brand: form.brand || null,
       costPrice: Number(form.costPrice) || 0, mrp: form.mrp ? Number(form.mrp) : null,
       sellingPrice: Number(form.sellingPrice) || 0, discountPercent: form.discountPercent ? Number(form.discountPercent) : null,
@@ -61,6 +62,7 @@ export function InventoryEditModal({ itemId, onClose, onSaved }: InventoryEditMo
   return (
     <Modal open={!!itemId} onClose={onClose} title={`Edit: ${sku}`}>
       <form onSubmit={save} className="space-y-3">
+        <div><label className={labelCls}>SKU</label><input className={inputCls} value={sku} onChange={e => setSku(e.target.value)} /></div>
         <div><label className={labelCls}>Item Name</label><input className={inputCls} required value={form.itemName} onChange={e => setForm({ ...form, itemName: e.target.value })} /></div>
         <div><label className={labelCls}>Company / Brand</label><input className={inputCls} list="brand-options-edit" placeholder="e.g. Hero, Honda, Bajaj" value={form.brand} onChange={e => setForm({ ...form, brand: e.target.value })} /><datalist id="brand-options-edit"><option value="Hero"/><option value="Honda"/><option value="Bajaj"/><option value="TVS"/><option value="Yamaha"/><option value="Royal Enfield"/><option value="KTM"/><option value="Suzuki"/><option value="Motul"/><option value="Castrol"/><option value="Mahindra"/></datalist></div>
         <div className="grid grid-cols-2 gap-3">

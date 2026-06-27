@@ -498,7 +498,7 @@ export default function InvoiceDetailPage() {
             {data.lineItems?.map((li: any, i: number) => (
               <tr key={li.id} className="border-t border-gray-100 dark:border-gray-800">
                 <td className="px-5 py-2.5 text-gray-500">{i + 1}</td>
-                <td className="px-5 py-2.5 font-medium">{li.description}</td>
+                <td className="px-5 py-2.5 font-medium">{li.description}{li.sku && <div className="text-xs text-gray-400 font-mono mt-0.5">{li.sku}</div>}</td>
                 <td className="px-5 py-2.5 text-center"><span className="rounded-full bg-gray-100 dark:bg-gray-800 px-2 py-0.5 text-xs">{li.lineType}</span></td>
                 {isDraft ? (
                   editingLines ? (
