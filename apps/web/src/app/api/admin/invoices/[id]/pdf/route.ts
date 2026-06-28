@@ -168,7 +168,7 @@ body { font-family:'Google Sans','Product Sans',-apple-system,BlinkMacSystemFont
 
   <!-- TAX INVOICE badge -->
   <div style="text-align:center;padding:6px 0;border-bottom:2px solid #222;background:#fef2f2">
-    <span style="font-size:15px;font-weight:900;color:#dc2626;letter-spacing:4px">TAX INVOICE</span>
+    <span style="font-size:15px;font-weight:900;color:#dc2626;letter-spacing:4px">INVOICE</span>
     <span style="font-size:9px;color:#888;margin-left:10px">Original</span>
   </div>
 
