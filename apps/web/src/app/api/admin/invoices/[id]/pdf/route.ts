@@ -231,8 +231,8 @@ body { font-family:'Google Sans','Product Sans',-apple-system,BlinkMacSystemFont
         <th style="border:1px solid #b91c1c;padding:6px 4px;text-align:center;font-size:8px;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;width:40px">Disc%</th>
         ${showGst ? `
         <th style="border:1px solid #b91c1c;padding:6px 4px;text-align:right;font-size:8px;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;width:65px">Taxable</th>
-        <th style="border:1px solid #b91c1c;padding:6px 4px;text-align:right;font-size:8px;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;width:55px">CGST 9%</th>
-        <th style="border:1px solid #b91c1c;padding:6px 4px;text-align:right;font-size:8px;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;width:55px">SGST 9%</th>
+        <th style="border:1px solid #b91c1c;padding:6px 4px;text-align:right;font-size:8px;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;width:55px">CGST</th>
+        <th style="border:1px solid #b91c1c;padding:6px 4px;text-align:right;font-size:8px;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;width:55px">SGST</th>
         ` : ''}
         <th style="border:1px solid #b91c1c;padding:6px 4px;text-align:right;font-size:8px;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;width:70px">Amount</th>
       </tr>
@@ -246,7 +246,7 @@ body { font-family:'Google Sans','Product Sans',-apple-system,BlinkMacSystemFont
       ${showGst ? `
       <table style="width:100%;border-collapse:collapse;font-size:9px">
         <thead>
-          <tr><th style="background:#f3f4f6;padding:3px 4px;border:1px solid #ddd;font-weight:700">HSN/SAC</th><th style="background:#f3f4f6;padding:3px 4px;border:1px solid #ddd;font-weight:700">Rate</th><th style="background:#f3f4f6;padding:3px 4px;border:1px solid #ddd;font-weight:700">Taxable</th><th style="background:#f3f4f6;padding:3px 4px;border:1px solid #ddd;font-weight:700">CGST 9%</th><th style="background:#f3f4f6;padding:3px 4px;border:1px solid #ddd;font-weight:700">SGST 9%</th><th style="background:#f3f4f6;padding:3px 4px;border:1px solid #ddd;font-weight:700">Tax Total</th></tr>
+          <tr><th style="background:#f3f4f6;padding:3px 4px;border:1px solid #ddd;font-weight:700">HSN/SAC</th><th style="background:#f3f4f6;padding:3px 4px;border:1px solid #ddd;font-weight:700">Rate</th><th style="background:#f3f4f6;padding:3px 4px;border:1px solid #ddd;font-weight:700">Taxable</th><th style="background:#f3f4f6;padding:3px 4px;border:1px solid #ddd;font-weight:700">CGST</th><th style="background:#f3f4f6;padding:3px 4px;border:1px solid #ddd;font-weight:700">SGST</th><th style="background:#f3f4f6;padding:3px 4px;border:1px solid #ddd;font-weight:700">Tax Total</th></tr>
         </thead>
         <tbody>
           ${Object.entries(hsnGroups).map(([hsn, g]: [string, any]) => `<tr><td style="padding:3px 4px;border:1px solid #ddd;text-align:center">${hsn}</td><td style="padding:3px 4px;border:1px solid #ddd;text-align:center">${g.rate}%</td><td style="padding:3px 4px;border:1px solid #ddd;text-align:center">${g.taxable.toFixed(2)}</td><td style="padding:3px 4px;border:1px solid #ddd;text-align:center">${g.cgst.toFixed(2)}</td><td style="padding:3px 4px;border:1px solid #ddd;text-align:center">${g.sgst.toFixed(2)}</td><td style="padding:3px 4px;border:1px solid #ddd;text-align:center">${(g.cgst + g.sgst).toFixed(2)}</td></tr>`).join('')}
@@ -259,8 +259,8 @@ body { font-family:'Google Sans','Product Sans',-apple-system,BlinkMacSystemFont
     <div style="flex:45%;padding:10px 12px">
       ${showGst ? `
       <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="font-size:11px;color:#555">Taxable Value</span><span style="font-size:11px;font-weight:600;font-family:monospace">₹${totalTaxable.toFixed(2)}</span></div>
-      <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="font-size:11px;color:#555">CGST (9%)</span><span style="font-size:11px;font-weight:600;font-family:monospace">₹${totalCgst.toFixed(2)}</span></div>
-      <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="font-size:11px;color:#555">SGST (9%)</span><span style="font-size:11px;font-weight:600;font-family:monospace">₹${totalSgst.toFixed(2)}</span></div>
+      <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="font-size:11px;color:#555">CGST</span><span style="font-size:11px;font-weight:600;font-family:monospace">₹${totalCgst.toFixed(2)}</span></div>
+      <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="font-size:11px;color:#555">SGST</span><span style="font-size:11px;font-weight:600;font-family:monospace">₹${totalSgst.toFixed(2)}</span></div>
       ` : ''}
       <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="font-size:11px;color:#555">Round Off</span><span style="font-size:11px;font-weight:600;font-family:monospace">${roundOff >= 0 ? '+' : ''}₹${roundOff.toFixed(2)}</span></div>
       <div style="display:flex;justify-content:space-between;padding-top:8px;margin-top:6px;border-top:2px solid #222">
@@ -579,8 +579,8 @@ th { background:#FFFBEB; padding:10px 10px; text-align:left; font-size:10px; tex
         <th style="width:50px;text-align:center">Disc</th>
         ${showGst ? `
         <th style="width:75px;text-align:right">Taxable</th>
-        <th style="width:65px;text-align:right">CGST 9%</th>
-        <th style="width:65px;text-align:right">SGST 9%</th>
+        <th style="width:65px;text-align:right">CGST</th>
+        <th style="width:65px;text-align:right">SGST</th>
         ` : `
         <th style="width:75px;text-align:right">Tax</th>
         `}
@@ -615,8 +615,8 @@ th { background:#FFFBEB; padding:10px 10px; text-align:left; font-size:10px; tex
         ${amcSavings > 0 ? `<tr><td style="padding:6px 12px;color:#92400E;font-size:12px;font-weight:700;background:#FFFBEB"><span style="color:#D4A017">★</span> AMC Benefit</td><td style="padding:6px 12px;text-align:right;color:#92400E;font-size:12px;font-weight:700;background:#FFFBEB">−₹${amcSavings.toLocaleString('en-IN')}</td></tr>` : ''}
         ${taxTotal > 0 || showGst ? `
           <tr><td style="padding:5px 12px;color:#6b7280;font-size:11px">Taxable Value</td><td style="padding:5px 12px;text-align:right;font-size:11px">₹${(showGst ? gstTaxableTotal : (grandTotal - taxTotal)).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td></tr>
-          <tr><td style="padding:5px 12px;color:#6b7280;font-size:11px">CGST (9%)</td><td style="padding:5px 12px;text-align:right;font-size:11px">₹${(showGst ? gstCgstTotal : cgst).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td></tr>
-          <tr><td style="padding:5px 12px;color:#6b7280;font-size:11px">SGST (9%)</td><td style="padding:5px 12px;text-align:right;font-size:11px">₹${(showGst ? gstSgstTotal : sgst).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td></tr>
+          <tr><td style="padding:5px 12px;color:#6b7280;font-size:11px">CGST</td><td style="padding:5px 12px;text-align:right;font-size:11px">₹${(showGst ? gstCgstTotal : cgst).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td></tr>
+          <tr><td style="padding:5px 12px;color:#6b7280;font-size:11px">SGST</td><td style="padding:5px 12px;text-align:right;font-size:11px">₹${(showGst ? gstSgstTotal : sgst).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td></tr>
         ` : ''}
         ${Math.abs(roundOff) > 0.001 ? `<tr><td style="padding:5px 12px;color:#6b7280;font-size:11px">Round Off</td><td style="padding:5px 12px;text-align:right;font-size:11px">${roundOff > 0 ? '+' : ''}₹${roundOff.toFixed(2)}</td></tr>` : ''}
         <tr><td colspan="2" style="padding:0;border-top:2px solid #D4A017"></td></tr>

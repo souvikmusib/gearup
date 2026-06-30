@@ -36,17 +36,13 @@ describe('HSN Rate Lookup', () => {
       expect(await getGstRate('998714')).toBe(18);
     });
 
-    it('returns 0 for unknown HSN (not in lookup table)', async () => {
-      expect(await getGstRate('99999999')).toBe(0);
+    it('returns 18% for unknown HSN (present but not in table — safe default)', async () => {
+      expect(await getGstRate('99999999')).toBe(18);
     });
 
     it('returns 0 rate for null/undefined HSN (no HSN = no GST)', async () => {
       expect(await getGstRate(null)).toBe(0);
       expect(await getGstRate(undefined)).toBe(0);
-    });
-
-    it('returns custom default rate when provided for unknown HSN', async () => {
-      expect(await getGstRate('unknown', 12)).toBe(12);
     });
 
     it('caches rates and does not re-fetch within TTL', async () => {
