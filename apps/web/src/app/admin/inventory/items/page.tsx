@@ -23,6 +23,7 @@ export default function InventoryItemsPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [categories, setCategories] = useState<any[]>([]);
   const [suppliers, setSuppliers] = useState<any[]>([]);
+  const [hsnRates, setHsnRates] = useState<{ hsnCode: string; rate: number; description: string | null }[]>([]);
   const [form, setForm] = useState({ sku: '', itemName: '', categoryId: '', supplierId: '', unit: '', brand: '', costPrice: '', mrp: '', sellingPrice: '', discountPercent: '', amcDiscountPercent: '3', quantityInStock: '', hsnCode: '', variablePrice: false, isBranded: true });
   const [editItem, setEditItem] = useState<any>(null);
   const [editForm, setEditForm] = useState({ itemName: '', categoryId: '', supplierId: '', unit: '', brand: '', costPrice: '', mrp: '', sellingPrice: '', discountPercent: '', reorderLevel: '', storageLocation: '', hsnCode: '', isActive: true, variablePrice: false, isBranded: true });
@@ -43,9 +44,10 @@ export default function InventoryItemsPage() {
 
   const loadLookups = async () => {
     if (categories.length && suppliers.length) return;
-    const [catRes, supRes] = await Promise.all([api.get<any>('/admin/inventory/categories'), api.get<any>('/admin/inventory/suppliers')]);
+    const [catRes, supRes, hsnRes] = await Promise.all([api.get<any>('/admin/inventory/categories'), api.get<any>('/admin/inventory/suppliers'), api.get<any>('/admin/hsn-rates')]);
     if (catRes.success) setCategories(catRes.data ?? []);
     if (supRes.success) setSuppliers(supRes.data ?? []);
+    if (hsnRes.success) setHsnRates(hsnRes.data ?? []);
   };
 
   const loadVehicleCatalog = async () => {
@@ -272,7 +274,16 @@ export default function InventoryItemsPage() {
         <form onSubmit={onSubmit} className="space-y-3">
           {createError && <div className="rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-700 dark:bg-red-900/20 dark:text-red-300">{createError}</div>}
           <div><label className="block text-xs font-medium mb-1">SKU <span className="text-red-500">*</span></label><input className={inputCls} placeholder="SKU" required value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} /></div>
-          <div><label className="block text-xs font-medium mb-1">HSN Code</label><input className={inputCls} placeholder="e.g. 87141090" value={form.hsnCode} onChange={(e) => setForm({ ...form, hsnCode: e.target.value })} /></div>
+          <div><label className="block text-xs font-medium mb-1">HSN Code</label>
+            <select className={inputCls} value={hsnRates.some(h => h.hsnCode === form.hsnCode) || !form.hsnCode ? form.hsnCode : '__custom'} onChange={(e) => { if (e.target.value === '__custom') { setForm({ ...form, hsnCode: '' }); } else { setForm({ ...form, hsnCode: e.target.value }); } }}>
+              <option value="">No HSN (No GST)</option>
+              {hsnRates.map(h => <option key={h.hsnCode} value={h.hsnCode}>{h.hsnCode} — {h.description} ({Number(h.rate)}%)</option>)}
+              <option value="__custom">Custom HSN...</option>
+            </select>
+            {form.hsnCode && !hsnRates.some(h => h.hsnCode === form.hsnCode) && (
+              <input className={inputCls + ' mt-1'} placeholder="Enter custom HSN code" value={form.hsnCode} onChange={(e) => setForm({ ...form, hsnCode: e.target.value })} />
+            )}
+          </div>
           <div><label className="block text-xs font-medium mb-1">Item Name <span className="text-red-500">*</span></label><input className={inputCls} placeholder="Item Name" required value={form.itemName} onChange={(e) => setForm({ ...form, itemName: e.target.value })} /></div>
           <div><label className="block text-xs font-medium mb-1">Company / Brand</label><input className={inputCls} list="brand-options" placeholder="e.g. Hero, Honda, Bajaj" value={form.brand} onChange={(e) => setForm({ ...form, brand: e.target.value })} /><datalist id="brand-options">{[...new Set(data.map((i: any) => i.brand).filter(Boolean))].sort().map((b: string) => <option key={b} value={b} />)}</datalist></div>
           <ModelPicker selectedIds={selectedModelIds} onChange={setSelectedModelIds} />

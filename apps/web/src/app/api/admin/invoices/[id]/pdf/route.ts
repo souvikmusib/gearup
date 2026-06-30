@@ -225,7 +225,7 @@ body { font-family:'Google Sans','Product Sans',-apple-system,BlinkMacSystemFont
       <tr style="background:#dc2626">
         <th style="border:1px solid #b91c1c;padding:6px 4px;text-align:center;font-size:8px;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;width:25px">SL</th>
         <th style="border:1px solid #b91c1c;padding:6px 4px;text-align:left;font-size:8px;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:0.3px">Description</th>
-        <th style="border:1px solid #b91c1c;padding:6px 4px;text-align:center;font-size:8px;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;width:55px">HSN</th>
+        <th style="border:1px solid #b91c1c;padding:6px 4px;text-align:center;font-size:8px;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;width:55px">HSN/SAC</th>
         <th style="border:1px solid #b91c1c;padding:6px 4px;text-align:center;font-size:8px;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;width:35px">Qty</th>
         <th style="border:1px solid #b91c1c;padding:6px 4px;text-align:right;font-size:8px;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;width:65px">Unit Price</th>
         <th style="border:1px solid #b91c1c;padding:6px 4px;text-align:center;font-size:8px;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;width:40px">Disc%</th>
