@@ -7,6 +7,7 @@ import { PERMISSIONS } from '@gearup/types';
 import { z } from 'zod';
 import type { Prisma } from '@prisma/client';
 import { recomputeDiscountLineTotal } from '@/lib/invoice-calc';
+import { resolveHsnAndRate } from '@/lib/hsn-rate';
 
 type Tx = Prisma.TransactionClient;
 
@@ -65,6 +66,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       quantity: z.number().default(1),
       unitPrice: z.number().default(0),
       taxRate: z.number().default(0),
+      hsnCode: z.string().optional(),
       discountPercent: z.number().min(0).max(100).default(0),
       discountMode: z.preprocess(v => v === '' ? undefined : v, z.enum(['flat', 'percent']).optional()),
       amcPlanId: z.string().optional(),
@@ -74,6 +76,14 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
     const item = await prisma.$transaction(async (tx) => {
       const inv = await ensureDraftTx(tx, params.id);
+
+      // Resolve HSN code and tax rate from the HsnRate table
+      const { hsnCode: finalHsn, taxRate: finalRate } = await resolveHsnAndRate(
+        body.lineType, !!inv.showGst, body.inventoryItemId, body.hsnCode,
+      );
+      // Use client-sent taxRate as override if > 0, otherwise use resolved rate
+      const effectiveTaxRate = body.taxRate > 0 ? body.taxRate : finalRate;
+      body.taxRate = effectiveTaxRate;
       const isDiscount = body.lineType === 'DISCOUNT_ADJUSTMENT';
       const isAmc = body.lineType === 'AMC';
       const jobCardId = inv.jobCardId || undefined;
@@ -183,6 +193,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
           invoiceId: params.id,
           lineType: body.lineType,
           description: body.description,
+          hsnCode: finalHsn,
           quantity: body.quantity,
           unitPrice: body.unitPrice,
           // For discount lines, discountPercent doubles as the persistent percent-mode

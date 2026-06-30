@@ -689,6 +689,7 @@ model InvoiceLineItem {
   referenceItemId String?
   workerId        String?
   description     String
+  hsnCode         String?
   quantity        Decimal         @default(1) @db.Decimal(12, 2)
   unitPrice       Decimal         @default(0) @db.Decimal(12, 2)
   discountPercent Decimal         @default(0) @db.Decimal(5, 2)
@@ -947,4 +948,12 @@ model InventoryItemModel {
   @@id([inventoryItemId, vehicleModelId])
   @@index([vehicleModelId])
   @@index([inventoryItemId])
+}
+
+model HsnRate {
+  id          String   @id @default(cuid())
+  hsnCode     String   @unique
+  rate        Decimal  @db.Decimal(5, 2)
+  description String?
+  createdAt   DateTime @default(now())
 }

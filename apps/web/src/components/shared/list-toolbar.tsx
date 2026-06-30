@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Search, Plus, X } from 'lucide-react';
 
 export interface FilterDef {
@@ -36,6 +36,15 @@ export function ListToolbar({
   dateRange,
 }: ListToolbarProps) {
   const [search, setSearch] = useState(searchValue ?? '');
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => { onSearch(value); }, 400);
+  };
+
+  useEffect(() => { return () => { if (debounceRef.current) clearTimeout(debounceRef.current); }; }, []);
 
   const activeChips = Object.entries(filterValues).filter(([k, v]) => {
     if (!v) return false;
@@ -71,7 +80,7 @@ export function ListToolbar({
             className="w-full rounded-lg border border-gray-300 bg-white pl-9 pr-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-white"
             placeholder={searchPlaceholder}
             value={search}
-            onChange={(e) => { setSearch(e.target.value); onSearch(e.target.value); }}
+            onChange={(e) => handleSearchChange(e.target.value)}
           />
         </div>
         {filters?.map((f) => (

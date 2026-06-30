@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { api } from '@/lib/api/client';
 import { PageHeader } from '@gearup/ui';
 
-type QuickItem = { label: string; lineType: string; description: string; unitPrice: number; taxRate: number };
+type QuickItem = { label: string; lineType: string; description: string; unitPrice: number; taxRate: number; hsnCode?: string };
 
 export default function QuickLineItemsPage() {
   const [items, setItems] = useState<QuickItem[]>([]);
@@ -25,7 +25,7 @@ export default function QuickLineItemsPage() {
     setSaving(false);
   };
 
-  const add = () => setItems([...items, { label: '', lineType: 'SERVICE_CHARGE', description: '', unitPrice: 0, taxRate: 0 }]);
+  const add = () => setItems([...items, { label: '', lineType: 'SERVICE_CHARGE', description: '', unitPrice: 0, taxRate: 0, hsnCode: '' }]);
   const remove = (i: number) => setItems(items.filter((_, idx) => idx !== i));
   const update = (i: number, field: string, value: any) => setItems(items.map((it, idx) => idx === i ? { ...it, [field]: value } : it));
 
@@ -48,7 +48,8 @@ export default function QuickLineItemsPage() {
             </div>
             <div className="col-span-3"><label className="text-xs text-gray-500">Description</label><input className={inputCls} value={item.description} onChange={(e) => update(i, 'description', e.target.value)} placeholder="FOAM WASH" /></div>
             <div className="col-span-2"><label className="text-xs text-gray-500">Price (₹)</label><input type="number" className={inputCls} value={item.unitPrice} onChange={(e) => update(i, 'unitPrice', Number(e.target.value))} /></div>
-            <div className="col-span-2"><label className="text-xs text-gray-500">Tax %</label><input type="number" className={inputCls} value={item.taxRate} onChange={(e) => update(i, 'taxRate', Number(e.target.value))} /></div>
+            <div className="col-span-1"><label className="text-xs text-gray-500">Tax %</label><input type="number" className={inputCls} value={item.taxRate} onChange={(e) => update(i, 'taxRate', Number(e.target.value))} /></div>
+            <div className="col-span-1"><label className="text-xs text-gray-500">HSN</label><input className={inputCls} value={item.hsnCode || ''} onChange={(e) => update(i, 'hsnCode', e.target.value)} placeholder="998714" /></div>
             <div className="col-span-1"><button onClick={() => remove(i)} className="text-red-500 text-xs hover:underline mt-4">Remove</button></div>
           </div>
         ))}

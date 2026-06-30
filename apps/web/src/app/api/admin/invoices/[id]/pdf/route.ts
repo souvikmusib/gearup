@@ -82,14 +82,15 @@ function generateInvoiceHTML(invoice: any, settings: Record<string, any>, logoUr
   const rows = allItems.map((li: any, i: number) => {
     const item = li.referenceItemId ? itemMap[li.referenceItemId] : null;
     const sku = item?.sku || '';
-    const hsn = item?.hsnCode || (li.lineType === 'PART' ? '87141090' : ['LABOR', 'SERVICE_CHARGE', 'CUSTOM_CHARGE', 'AMC'].includes(li.lineType) ? '99871190' : '');
+    const hsn = li.hsnCode || item?.hsnCode || (li.lineType === 'PART' ? '87141090' : ['LABOR', 'SERVICE_CHARGE', 'CUSTOM_CHARGE', 'AMC'].includes(li.lineType) ? '998714' : '');
     const qty = Number(li.quantity);
     const rate = Number(li.unitPrice);
     const disc = Number(li.discountPercent) || 0;
     const lineTotal = Number(li.lineTotal);
-    const taxable = lineTotal / 1.18;
-    const cgst = taxable * 0.09;
-    const sgst = taxable * 0.09;
+    const gstRate = Number(li.taxRate) || 18; // fallback for old invoices
+    const taxable = lineTotal / (1 + gstRate / 100);
+    const cgst = taxable * (gstRate / 2) / 100;
+    const sgst = taxable * (gstRate / 2) / 100;
     totalTaxable += taxable;
     totalCgst += cgst;
     totalSgst += sgst;
@@ -124,17 +125,18 @@ function generateInvoiceHTML(invoice: any, settings: Record<string, any>, logoUr
   }).join('');
 
   // HSN-wise tax grouping for the summary table
-  const hsnGroups: Record<string, { taxable: number; cgst: number; sgst: number }> = {};
+  const hsnGroups: Record<string, { taxable: number; cgst: number; sgst: number; rate: number }> = {};
   allItems.forEach((li: any) => {
     const item = li.referenceItemId ? itemMap[li.referenceItemId] : null;
-    const hsn = item?.hsnCode || (li.lineType === 'PART' ? '87141090' : ['LABOR', 'SERVICE_CHARGE', 'CUSTOM_CHARGE', 'AMC'].includes(li.lineType) ? '99871190' : '');
+    const hsn = li.hsnCode || item?.hsnCode || (li.lineType === 'PART' ? '87141090' : ['LABOR', 'SERVICE_CHARGE', 'CUSTOM_CHARGE', 'AMC'].includes(li.lineType) ? '998714' : '');
     if (!hsn) return;
     const lineTotal = Number(li.lineTotal);
-    const taxable = lineTotal / 1.18;
-    if (!hsnGroups[hsn]) hsnGroups[hsn] = { taxable: 0, cgst: 0, sgst: 0 };
+    const gstRate = Number(li.taxRate) || 18;
+    const taxable = lineTotal / (1 + gstRate / 100);
+    if (!hsnGroups[hsn]) hsnGroups[hsn] = { taxable: 0, cgst: 0, sgst: 0, rate: gstRate };
     hsnGroups[hsn].taxable += taxable;
-    hsnGroups[hsn].cgst += taxable * 0.09;
-    hsnGroups[hsn].sgst += taxable * 0.09;
+    hsnGroups[hsn].cgst += taxable * (gstRate / 2) / 100;
+    hsnGroups[hsn].sgst += taxable * (gstRate / 2) / 100;
   });
 
   const gstColSpan = showGst ? 10 : 7;
@@ -214,7 +216,7 @@ body { font-family:'Google Sans','Product Sans',-apple-system,BlinkMacSystemFont
 
   <!-- Pricing note -->
   <div style="padding:4px 12px;font-size:8.5px;color:#666;background:#f9fafb;border-bottom:1px solid #e5e7eb">
-    * All prices inclusive of GST (18%). Amount = Qty × Unit Price × (1 − Discount%)
+    * All prices inclusive of GST. Amount = Qty × Unit Price × (1 − Discount%)
   </div>
 
   <!-- Items table -->
@@ -223,14 +225,14 @@ body { font-family:'Google Sans','Product Sans',-apple-system,BlinkMacSystemFont
       <tr style="background:#dc2626">
         <th style="border:1px solid #b91c1c;padding:6px 4px;text-align:center;font-size:8px;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;width:25px">SL</th>
         <th style="border:1px solid #b91c1c;padding:6px 4px;text-align:left;font-size:8px;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:0.3px">Description</th>
-        <th style="border:1px solid #b91c1c;padding:6px 4px;text-align:center;font-size:8px;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;width:55px">HSN</th>
+        <th style="border:1px solid #b91c1c;padding:6px 4px;text-align:center;font-size:8px;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;width:55px">HSN/SAC</th>
         <th style="border:1px solid #b91c1c;padding:6px 4px;text-align:center;font-size:8px;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;width:35px">Qty</th>
         <th style="border:1px solid #b91c1c;padding:6px 4px;text-align:right;font-size:8px;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;width:65px">Unit Price</th>
         <th style="border:1px solid #b91c1c;padding:6px 4px;text-align:center;font-size:8px;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;width:40px">Disc%</th>
         ${showGst ? `
         <th style="border:1px solid #b91c1c;padding:6px 4px;text-align:right;font-size:8px;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;width:65px">Taxable</th>
-        <th style="border:1px solid #b91c1c;padding:6px 4px;text-align:right;font-size:8px;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;width:55px">CGST 9%</th>
-        <th style="border:1px solid #b91c1c;padding:6px 4px;text-align:right;font-size:8px;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;width:55px">SGST 9%</th>
+        <th style="border:1px solid #b91c1c;padding:6px 4px;text-align:right;font-size:8px;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;width:55px">CGST</th>
+        <th style="border:1px solid #b91c1c;padding:6px 4px;text-align:right;font-size:8px;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;width:55px">SGST</th>
         ` : ''}
         <th style="border:1px solid #b91c1c;padding:6px 4px;text-align:right;font-size:8px;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;width:70px">Amount</th>
       </tr>
@@ -244,10 +246,10 @@ body { font-family:'Google Sans','Product Sans',-apple-system,BlinkMacSystemFont
       ${showGst ? `
       <table style="width:100%;border-collapse:collapse;font-size:9px">
         <thead>
-          <tr><th style="background:#f3f4f6;padding:3px 4px;border:1px solid #ddd;font-weight:700">HSN/SAC</th><th style="background:#f3f4f6;padding:3px 4px;border:1px solid #ddd;font-weight:700">Rate</th><th style="background:#f3f4f6;padding:3px 4px;border:1px solid #ddd;font-weight:700">Taxable</th><th style="background:#f3f4f6;padding:3px 4px;border:1px solid #ddd;font-weight:700">CGST 9%</th><th style="background:#f3f4f6;padding:3px 4px;border:1px solid #ddd;font-weight:700">SGST 9%</th><th style="background:#f3f4f6;padding:3px 4px;border:1px solid #ddd;font-weight:700">Tax Total</th></tr>
+          <tr><th style="background:#f3f4f6;padding:3px 4px;border:1px solid #ddd;font-weight:700">HSN/SAC</th><th style="background:#f3f4f6;padding:3px 4px;border:1px solid #ddd;font-weight:700">Rate</th><th style="background:#f3f4f6;padding:3px 4px;border:1px solid #ddd;font-weight:700">Taxable</th><th style="background:#f3f4f6;padding:3px 4px;border:1px solid #ddd;font-weight:700">CGST</th><th style="background:#f3f4f6;padding:3px 4px;border:1px solid #ddd;font-weight:700">SGST</th><th style="background:#f3f4f6;padding:3px 4px;border:1px solid #ddd;font-weight:700">Tax Total</th></tr>
         </thead>
         <tbody>
-          ${Object.entries(hsnGroups).map(([hsn, g]: [string, any]) => `<tr><td style="padding:3px 4px;border:1px solid #ddd;text-align:center">${hsn}</td><td style="padding:3px 4px;border:1px solid #ddd;text-align:center">18%</td><td style="padding:3px 4px;border:1px solid #ddd;text-align:center">${g.taxable.toFixed(2)}</td><td style="padding:3px 4px;border:1px solid #ddd;text-align:center">${g.cgst.toFixed(2)}</td><td style="padding:3px 4px;border:1px solid #ddd;text-align:center">${g.sgst.toFixed(2)}</td><td style="padding:3px 4px;border:1px solid #ddd;text-align:center">${(g.cgst + g.sgst).toFixed(2)}</td></tr>`).join('')}
+          ${Object.entries(hsnGroups).map(([hsn, g]: [string, any]) => `<tr><td style="padding:3px 4px;border:1px solid #ddd;text-align:center">${hsn}</td><td style="padding:3px 4px;border:1px solid #ddd;text-align:center">${g.rate}%</td><td style="padding:3px 4px;border:1px solid #ddd;text-align:center">${g.taxable.toFixed(2)}</td><td style="padding:3px 4px;border:1px solid #ddd;text-align:center">${g.cgst.toFixed(2)}</td><td style="padding:3px 4px;border:1px solid #ddd;text-align:center">${g.sgst.toFixed(2)}</td><td style="padding:3px 4px;border:1px solid #ddd;text-align:center">${(g.cgst + g.sgst).toFixed(2)}</td></tr>`).join('')}
           <tr style="font-weight:700;background:#f9fafb"><td colspan="2" style="padding:3px 4px;border:1px solid #ddd"><strong>Total</strong></td><td style="padding:3px 4px;border:1px solid #ddd;text-align:center"><strong>${totalTaxable.toFixed(2)}</strong></td><td style="padding:3px 4px;border:1px solid #ddd;text-align:center"><strong>${totalCgst.toFixed(2)}</strong></td><td style="padding:3px 4px;border:1px solid #ddd;text-align:center"><strong>${totalSgst.toFixed(2)}</strong></td><td style="padding:3px 4px;border:1px solid #ddd;text-align:center"><strong>${(totalCgst + totalSgst).toFixed(2)}</strong></td></tr>
         </tbody>
       </table>` : ''}
@@ -257,8 +259,8 @@ body { font-family:'Google Sans','Product Sans',-apple-system,BlinkMacSystemFont
     <div style="flex:45%;padding:10px 12px">
       ${showGst ? `
       <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="font-size:11px;color:#555">Taxable Value</span><span style="font-size:11px;font-weight:600;font-family:monospace">₹${totalTaxable.toFixed(2)}</span></div>
-      <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="font-size:11px;color:#555">CGST (9%)</span><span style="font-size:11px;font-weight:600;font-family:monospace">₹${totalCgst.toFixed(2)}</span></div>
-      <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="font-size:11px;color:#555">SGST (9%)</span><span style="font-size:11px;font-weight:600;font-family:monospace">₹${totalSgst.toFixed(2)}</span></div>
+      <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="font-size:11px;color:#555">CGST</span><span style="font-size:11px;font-weight:600;font-family:monospace">₹${totalCgst.toFixed(2)}</span></div>
+      <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="font-size:11px;color:#555">SGST</span><span style="font-size:11px;font-weight:600;font-family:monospace">₹${totalSgst.toFixed(2)}</span></div>
       ` : ''}
       <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="font-size:11px;color:#555">Round Off</span><span style="font-size:11px;font-weight:600;font-family:monospace">${roundOff >= 0 ? '+' : ''}₹${roundOff.toFixed(2)}</span></div>
       <div style="display:flex;justify-content:space-between;padding-top:8px;margin-top:6px;border-top:2px solid #222">
@@ -288,7 +290,7 @@ body { font-family:'Google Sans','Product Sans',-apple-system,BlinkMacSystemFont
   </div>
 
   <div style="padding:5px 12px;border-top:1px solid #e5e7eb;font-size:8px;color:#999">
-    * All prices inclusive of GST (18%) &nbsp;• Goods once sold will not be taken back &nbsp;• Subject to Bankura jurisdiction &nbsp;• E. & O. E.
+    * All prices inclusive of GST &nbsp;• Goods once sold will not be taken back &nbsp;• Subject to Bankura jurisdiction &nbsp;• E. & O. E.
   </div>
 
 </div>
@@ -397,6 +399,10 @@ function generateAmcInvoiceHTML(invoice: any, settings: Record<string, any>, log
   const discountItems = invoice.lineItems.filter((li: any) => li.lineType === 'DISCOUNT_ADJUSTMENT');
   const allDisplayItems = [...nonDiscountItems, ...discountItems];
 
+  let totalTaxable = 0;
+  let totalCgst = 0;
+  let totalSgst = 0;
+
   const rows = allDisplayItems.map((li: any, i: number) => {
     const isAmcCovered = li.lineType === 'AMC' && Number(li.lineTotal) === 0;
     const isAmcPurchase = li.lineType === 'AMC' && Number(li.lineTotal) > 0;
@@ -406,14 +412,18 @@ function generateAmcInvoiceHTML(invoice: any, settings: Record<string, any>, log
     const taxRate = Number(li.taxRate) || 0;
     const taxable = qty * rate * (1 - disc / 100);
     const taxAmt = taxable * (taxRate / 100);
-    const hsn = li.lineType === 'PART' ? '87141090' : li.lineType === 'LABOR' || li.lineType === 'SERVICE_CHARGE' || li.lineType === 'CUSTOM_CHARGE' || li.lineType === 'AMC' ? '99871190' : '';
+    const hsn = li.hsnCode || (li.lineType === 'PART' ? '87141090' : li.lineType === 'LABOR' || li.lineType === 'SERVICE_CHARGE' || li.lineType === 'CUSTOM_CHARGE' || li.lineType === 'AMC' ? '998714' : '');
     const rowBg = isAmcCovered ? 'background:#fffbeb' : '';
     const cellBorder = isAmcCovered ? '#fde68a' : '#f3f4f6';
     const lineTotal = Number(li.lineTotal);
-    // Back-calculate GST from inclusive price (FREE items have lineTotal=0, so GST=0)
-    const gstTaxable = lineTotal / 1.18;
-    const gstCgst = gstTaxable * 0.09;
-    const gstSgst = gstTaxable * 0.09;
+    // Back-calculate GST from inclusive price using per-line rate
+    const gstRate = Number(li.taxRate) || 18;
+    const gstTaxable = lineTotal / (1 + gstRate / 100);
+    const gstCgst = gstTaxable * (gstRate / 2) / 100;
+    const gstSgst = gstTaxable * (gstRate / 2) / 100;
+    totalTaxable += gstTaxable;
+    totalCgst += gstCgst;
+    totalSgst += gstSgst;
     // Strip worker name from labor/service descriptions for PDF (e.g. "Labor — RAHUL GARAI" → "Labor")
     const displayDesc = (li.lineType === 'LABOR' || li.lineType === 'SERVICE_CHARGE') ? li.description.replace(/\s*[—–-]\s*[A-Z][A-Z\s]+$/, '') : li.description;
     // AMC purchase: show MRP strikethrough if available
@@ -462,10 +472,10 @@ function generateAmcInvoiceHTML(invoice: any, settings: Record<string, any>, log
   const taxTotal = Number(invoice.taxTotal) || 0;
   const cgst = taxTotal / 2;
   const sgst = taxTotal / 2;
-  // Back-calculated GST totals for showGst mode
-  const gstTaxableTotal = showGst ? grandTotal / 1.18 : 0;
-  const gstCgstTotal = showGst ? gstTaxableTotal * 0.09 : 0;
-  const gstSgstTotal = showGst ? gstTaxableTotal * 0.09 : 0;
+  // Back-calculated GST totals for showGst mode (use weighted average or sum from lines)
+  const gstTaxableTotal = showGst ? totalTaxable : 0;
+  const gstCgstTotal = showGst ? totalCgst : 0;
+  const gstSgstTotal = showGst ? totalSgst : 0;
 
   return `<!DOCTYPE html>
 <html><head><meta charset="utf-8">
@@ -569,8 +579,8 @@ th { background:#FFFBEB; padding:10px 10px; text-align:left; font-size:10px; tex
         <th style="width:50px;text-align:center">Disc</th>
         ${showGst ? `
         <th style="width:75px;text-align:right">Taxable</th>
-        <th style="width:65px;text-align:right">CGST 9%</th>
-        <th style="width:65px;text-align:right">SGST 9%</th>
+        <th style="width:65px;text-align:right">CGST</th>
+        <th style="width:65px;text-align:right">SGST</th>
         ` : `
         <th style="width:75px;text-align:right">Tax</th>
         `}
@@ -605,8 +615,8 @@ th { background:#FFFBEB; padding:10px 10px; text-align:left; font-size:10px; tex
         ${amcSavings > 0 ? `<tr><td style="padding:6px 12px;color:#92400E;font-size:12px;font-weight:700;background:#FFFBEB"><span style="color:#D4A017">★</span> AMC Benefit</td><td style="padding:6px 12px;text-align:right;color:#92400E;font-size:12px;font-weight:700;background:#FFFBEB">−₹${amcSavings.toLocaleString('en-IN')}</td></tr>` : ''}
         ${taxTotal > 0 || showGst ? `
           <tr><td style="padding:5px 12px;color:#6b7280;font-size:11px">Taxable Value</td><td style="padding:5px 12px;text-align:right;font-size:11px">₹${(showGst ? gstTaxableTotal : (grandTotal - taxTotal)).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td></tr>
-          <tr><td style="padding:5px 12px;color:#6b7280;font-size:11px">CGST (9%)</td><td style="padding:5px 12px;text-align:right;font-size:11px">₹${(showGst ? gstCgstTotal : cgst).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td></tr>
-          <tr><td style="padding:5px 12px;color:#6b7280;font-size:11px">SGST (9%)</td><td style="padding:5px 12px;text-align:right;font-size:11px">₹${(showGst ? gstSgstTotal : sgst).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td></tr>
+          <tr><td style="padding:5px 12px;color:#6b7280;font-size:11px">CGST</td><td style="padding:5px 12px;text-align:right;font-size:11px">₹${(showGst ? gstCgstTotal : cgst).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td></tr>
+          <tr><td style="padding:5px 12px;color:#6b7280;font-size:11px">SGST</td><td style="padding:5px 12px;text-align:right;font-size:11px">₹${(showGst ? gstSgstTotal : sgst).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td></tr>
         ` : ''}
         ${Math.abs(roundOff) > 0.001 ? `<tr><td style="padding:5px 12px;color:#6b7280;font-size:11px">Round Off</td><td style="padding:5px 12px;text-align:right;font-size:11px">${roundOff > 0 ? '+' : ''}₹${roundOff.toFixed(2)}</td></tr>` : ''}
         <tr><td colspan="2" style="padding:0;border-top:2px solid #D4A017"></td></tr>

@@ -15,6 +15,11 @@ export function InventoryEditModal({ itemId, onClose, onSaved }: InventoryEditMo
   const [modelIds, setModelIds] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [sku, setSku] = useState('');
+  const [hsnRates, setHsnRates] = useState<{ hsnCode: string; rate: number; description: string | null }[]>([]);
+
+  useEffect(() => {
+    api.get<any>('/admin/hsn-rates').then(r => { if (r.success) setHsnRates(r.data ?? []); });
+  }, []);
 
   useEffect(() => {
     if (!itemId) return;
@@ -78,7 +83,16 @@ export function InventoryEditModal({ itemId, onClose, onSaved }: InventoryEditMo
           <div><label className={labelCls}>AMC Price</label><input className={inputCls} readOnly value={form.mrp && form.amcDiscountPercent ? `₹${(Number(form.mrp) * (1 - Number(form.amcDiscountPercent) / 100)).toFixed(2)}` : '—'} /></div>
         </div>
         <div><label className={labelCls}>Reorder Level</label><input type="number" className={inputCls} placeholder="Alert when stock falls below" value={form.reorderLevel} onChange={e => setForm({ ...form, reorderLevel: e.target.value })} /></div>
-        <div><label className={labelCls}>HSN Code</label><input className={inputCls} placeholder="e.g. 87141090" value={form.hsnCode} onChange={e => setForm({ ...form, hsnCode: e.target.value })} /></div>
+        <div><label className={labelCls}>HSN Code</label>
+          <select className={inputCls} value={hsnRates.some(h => h.hsnCode === form.hsnCode) || !form.hsnCode ? form.hsnCode : '__custom'} onChange={e => { if (e.target.value === '__custom') { setForm({ ...form, hsnCode: '' }); } else { setForm({ ...form, hsnCode: e.target.value }); } }}>
+            <option value="">No HSN (No GST)</option>
+            {hsnRates.map(h => <option key={h.hsnCode} value={h.hsnCode}>{h.hsnCode} — {h.description} ({Number(h.rate)}%)</option>)}
+            <option value="__custom">Custom HSN...</option>
+          </select>
+          {form.hsnCode && !hsnRates.some(h => h.hsnCode === form.hsnCode) && (
+            <input className={inputCls + ' mt-1'} placeholder="Enter custom HSN code" value={form.hsnCode} onChange={e => setForm({ ...form, hsnCode: e.target.value })} />
+          )}
+        </div>
 
         <ModelPicker selectedIds={modelIds} onChange={setModelIds} />
 
