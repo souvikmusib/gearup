@@ -5,6 +5,7 @@ import { AppError, handleApiError } from '@/lib/errors';
 import { logActivity } from '@/lib/activity-logger';
 import { PERMISSIONS } from '@gearup/types';
 import { z } from 'zod';
+import { getGstRate } from '@/lib/hsn-rate';
 
 const updateSchema = z.object({
   notes: z.string().optional(),
@@ -40,6 +41,52 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
         throw new AppError(409, 'Discount can only be modified on DRAFT invoices', 'INVOICE_NOT_DRAFT');
       }
     }
+
+    // When showGst is toggled, recalculate taxRate/taxAmount on all line items
+    if (body.showGst !== undefined) {
+      const existing = await prisma.invoice.findUniqueOrThrow({
+        where: { id: params.id },
+        select: { showGst: true, invoiceStatus: true, discountAmount: true, amountPaid: true },
+      });
+      if (existing.showGst !== body.showGst) {
+        if (existing.invoiceStatus !== 'DRAFT') {
+          throw new AppError(409, 'GST can only be toggled on DRAFT invoices', 'INVOICE_NOT_DRAFT');
+        }
+        const lineItems = await prisma.invoiceLineItem.findMany({ where: { invoiceId: params.id } });
+        let subtotal = 0;
+        let taxTotal = 0;
+        let discountFromLines = 0;
+
+        for (const li of lineItems) {
+          if (li.lineType === 'DISCOUNT_ADJUSTMENT') {
+            discountFromLines += Number(li.lineTotal);
+            continue;
+          }
+          const net = Number(li.quantity) * Number(li.unitPrice) * (1 - Number(li.discountPercent) / 100);
+          let taxRate = 0;
+          if (body.showGst) {
+            // Turning GST ON: resolve rate from HSN
+            taxRate = await getGstRate(li.hsnCode);
+          }
+          const taxAmount = net * (taxRate / 100);
+          const lineTotal = net + taxAmount;
+
+          await prisma.invoiceLineItem.update({
+            where: { id: li.id },
+            data: { taxRate, taxAmount, lineTotal },
+          });
+          subtotal += net;
+          taxTotal += taxAmount;
+        }
+
+        const grandTotal = Math.round(subtotal + taxTotal + discountFromLines - Number(existing.discountAmount));
+        data.subtotal = subtotal;
+        data.taxTotal = taxTotal;
+        data.grandTotal = grandTotal;
+        data.amountDue = grandTotal - Number(existing.amountPaid);
+      }
+    }
+
     const invoice = await prisma.invoice.update({ where: { id: params.id }, data });
     logActivity({ entityType: 'Invoice', entityId: invoice.id, action: 'invoice.updated', newValue: body, actorType: 'ADMIN', actorId: user.sub });
     return NextResponse.json({ success: true, data: invoice });

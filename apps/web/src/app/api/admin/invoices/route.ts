@@ -8,12 +8,14 @@ import { handleApiError } from '@/lib/errors';
 import { logActivity } from '@/lib/activity-logger';
 import { generateInvoiceNumber } from '@/lib/id-generators';
 import { computeLineTotal, nonDiscountPreSubtotal } from '@/lib/invoice-calc';
+import { resolveHsnAndRate } from '@/lib/hsn-rate';
 import { PERMISSIONS } from '@gearup/types';
 import { z } from 'zod';
 
 const lineItemSchema = z.object({
   lineType: z.enum(['PART', 'LABOR', 'CUSTOM_CHARGE', 'DISCOUNT_ADJUSTMENT']),
   referenceItemId: z.string().optional(), description: z.string().trim().min(1),
+  hsnCode: z.string().optional(),
   quantity: z.number().positive().default(1), unitPrice: z.number().nonnegative().default(0),
   taxRate: z.number().min(0).max(100).default(0), sortOrder: z.number().default(0),
   discountPercent: z.number().min(0).max(100).default(0),
@@ -22,6 +24,7 @@ const lineItemSchema = z.object({
 const createSchema = z.object({
   customerId: z.string(), vehicleId: z.string().optional(), jobCardId: z.string().optional(), appointmentId: z.string().optional(),
   saleType: z.enum(['SERVICE', 'COUNTER']).default('SERVICE'),
+  showGst: z.boolean().default(false),
   invoiceDate: z.string(), dueDate: z.string().optional(), discountType: z.string().optional(),
   discountValue: z.number().optional(), notes: z.string().optional(), lineItems: z.array(lineItemSchema),
 });
@@ -75,8 +78,17 @@ export async function POST(req: NextRequest) {
         // Mirror recalcTotalsTx (line-items route): DISCOUNT_ADJUSTMENT lines are split
         // out of subtotal/taxTotal and tracked separately, so the stored subtotal stays
         // identical before and after any later line-item edit.
-        const lines = body.lineItems.map((li) => {
-          const { lineTotal, taxAmount, netLineTotal } = computeLineTotal(li, preSubtotal);
+        const lines = [];
+        for (const li of body.lineItems) {
+          // Auto-resolve HSN code and tax rate from the HsnRate table
+          const { hsnCode, taxRate } = await resolveHsnAndRate(
+            li.lineType, body.showGst, li.referenceItemId, li.hsnCode,
+          );
+          // Use resolved rate unless client explicitly provided a non-zero override
+          const effectiveRate = li.taxRate > 0 ? li.taxRate : taxRate;
+          const lineWithRate = { ...li, taxRate: effectiveRate };
+
+          const { lineTotal, taxAmount, netLineTotal } = computeLineTotal(lineWithRate, preSubtotal);
           if (li.lineType === 'DISCOUNT_ADJUSTMENT') {
             discountFromLines += lineTotal; // already negative
           } else {
@@ -88,12 +100,12 @@ export async function POST(req: NextRequest) {
           const discountPercent = li.lineType === 'DISCOUNT_ADJUSTMENT'
             ? (li.discountMode === 'percent' ? li.unitPrice : 0)
             : li.discountPercent;
-          return { lineType: li.lineType, description: li.description, quantity: li.quantity, unitPrice: li.unitPrice, taxRate: li.taxRate, sortOrder: li.sortOrder, discountPercent, taxAmount, lineTotal };
-        });
+          lines.push({ lineType: li.lineType, description: li.description, quantity: li.quantity, unitPrice: li.unitPrice, taxRate: effectiveRate, hsnCode, sortOrder: li.sortOrder, discountPercent, taxAmount, lineTotal });
+        }
         const discountAmount = Math.round((body.discountType === 'PERCENTAGE' ? subtotal * ((body.discountValue ?? 0) / 100) : (body.discountValue ?? 0)) * 100) / 100;
         const grandTotal = Math.round(subtotal + taxTotal + discountFromLines - discountAmount);
         return tx.invoice.create({
-          data: { invoiceNumber: await generateInvoiceNumber(tx), customerId: body.customerId, vehicleId: body.vehicleId, jobCardId: body.jobCardId, appointmentId: body.appointmentId, invoiceDate: new Date(body.invoiceDate), dueDate: body.dueDate ? new Date(body.dueDate) : undefined, subtotal, taxTotal, discountType: body.discountType, discountValue: body.discountValue, discountAmount, grandTotal, amountDue: grandTotal, notes: body.notes, createdByAdminId: user.sub, lineItems: { create: lines } },
+          data: { invoiceNumber: await generateInvoiceNumber(tx), customerId: body.customerId, vehicleId: body.vehicleId, jobCardId: body.jobCardId, appointmentId: body.appointmentId, invoiceDate: new Date(body.invoiceDate), dueDate: body.dueDate ? new Date(body.dueDate) : undefined, showGst: body.showGst, subtotal, taxTotal, discountType: body.discountType, discountValue: body.discountValue, discountAmount, grandTotal, amountDue: grandTotal, notes: body.notes, createdByAdminId: user.sub, lineItems: { create: lines } },
           include: { lineItems: true },
         });
       });

@@ -486,6 +486,7 @@ export default function InvoiceDetailPage() {
               <th className="px-5 py-2.5 text-left">#</th>
               <th className="px-5 py-2.5 text-left">Description</th>
               <th className="px-5 py-2.5 text-center">Type</th>
+              <th className="px-5 py-2.5 text-center">HSN</th>
               <th className="px-5 py-2.5 text-right">Qty</th>
               <th className="px-5 py-2.5 text-right">Unit Price</th>
               <th className="px-5 py-2.5 text-right">Tax %</th>
@@ -500,6 +501,7 @@ export default function InvoiceDetailPage() {
                 <td className="px-5 py-2.5 text-gray-500">{i + 1}</td>
                 <td className="px-5 py-2.5 font-medium">{li.description}{li.sku && <div className="text-xs text-gray-400 font-mono mt-0.5">{li.sku}</div>}</td>
                 <td className="px-5 py-2.5 text-center"><span className="rounded-full bg-gray-100 dark:bg-gray-800 px-2 py-0.5 text-xs">{li.lineType}</span></td>
+                <td className="px-5 py-2.5 text-center text-xs text-gray-400 font-mono">{li.hsnCode || '—'}</td>
                 {isDraft ? (
                   editingLines ? (
                   <>
@@ -563,8 +565,8 @@ export default function InvoiceDetailPage() {
                           <div className="absolute z-50 top-full left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
                             {inventoryItems.filter((i: any) => { if (!newLine.description) return true; const q = newLine.description.toLowerCase().replace(/\s+/g, ' '); return i.itemName.toLowerCase().replace(/\s+/g, ' ').includes(q) || i.sku.toLowerCase().includes(q); }).map((i: any) => {
                               const dp = Number(i.discountPercent) || 0;
-                              return <button key={i.id} type="button" onClick={() => setNewLine({ ...newLine, description: i.itemName, unitPrice: i.variablePrice ? '' : String(Number(i.mrp || i.sellingPrice)), discountPercent: i.mrp ? String(dp) : '0', inventoryItemId: i.id })} className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 border-b border-gray-50 dark:border-gray-700 last:border-0">
-                                <span className="font-medium">{i.itemName}</span> <span className="text-xs text-gray-400">({i.sku})</span>{i.variablePrice ? <span className="text-xs text-amber-500 ml-1">[Variable]</span> : <span className="text-xs text-gray-500 ml-1">₹{Number(i.sellingPrice)}</span>}{dp ? <span className="text-xs text-green-600 ml-1">{dp}% off</span> : ''}
+                              return <button key={i.id} type="button" onClick={() => setNewLine({ ...newLine, description: i.itemName, unitPrice: i.variablePrice ? '' : String(Number(i.mrp || i.sellingPrice)), discountPercent: i.mrp ? String(dp) : '0', inventoryItemId: i.id, taxRate: String(data?.showGst ? 18 : 0) })} className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 border-b border-gray-50 dark:border-gray-700 last:border-0">
+                                <span className="font-medium">{i.itemName}</span> <span className="text-xs text-gray-400">({i.sku})</span>{i.variablePrice ? <span className="text-xs text-amber-500 ml-1">[Variable]</span> : <span className="text-xs text-gray-500 ml-1">₹{Number(i.sellingPrice)}</span>}{dp ? <span className="text-xs text-green-600 ml-1">{dp}% off</span> : ''}{i.hsnCode ? <span className="text-xs text-blue-400 ml-1">HSN:{i.hsnCode}</span> : ''}
                               </button>;
                             })}
                             {inventoryItems.filter((i: any) => { if (!newLine.description) return true; const q = newLine.description.toLowerCase().replace(/\s+/g, ' '); return i.itemName.toLowerCase().replace(/\s+/g, ' ').includes(q) || i.sku.toLowerCase().includes(q); }).length === 0 && <p className="px-3 py-2 text-xs text-gray-400">No matches</p>}
