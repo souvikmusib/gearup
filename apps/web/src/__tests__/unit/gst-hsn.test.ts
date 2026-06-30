@@ -36,17 +36,16 @@ describe('HSN Rate Lookup', () => {
       expect(await getGstRate('998714')).toBe(18);
     });
 
-    it('returns default rate (18) for unknown HSN', async () => {
-      expect(await getGstRate('99999999')).toBe(18);
+    it('returns 0 for unknown HSN (not in lookup table)', async () => {
+      expect(await getGstRate('99999999')).toBe(0);
     });
 
-    it('returns default rate for null/undefined HSN', async () => {
-      expect(await getGstRate(null)).toBe(18);
-      expect(await getGstRate(undefined)).toBe(18);
+    it('returns 0 rate for null/undefined HSN (no HSN = no GST)', async () => {
+      expect(await getGstRate(null)).toBe(0);
+      expect(await getGstRate(undefined)).toBe(0);
     });
 
-    it('returns custom default rate when provided', async () => {
-      expect(await getGstRate(null, 0)).toBe(0);
+    it('returns custom default rate when provided for unknown HSN', async () => {
       expect(await getGstRate('unknown', 12)).toBe(12);
     });
 
@@ -121,10 +120,10 @@ describe('HSN Rate Lookup', () => {
       expect(result.taxRate).toBe(18);
     });
 
-    it('returns 0% for discount adjustment regardless of showGst', async () => {
+    it('returns 0% for discount adjustment (no HSN = no GST)', async () => {
       const result = await resolveHsnAndRate('DISCOUNT_ADJUSTMENT', true);
       expect(result.hsnCode).toBeNull();
-      expect(result.taxRate).toBe(18); // getGstRate(null) returns default
+      expect(result.taxRate).toBe(0); // null HSN → 0%
     });
   });
 

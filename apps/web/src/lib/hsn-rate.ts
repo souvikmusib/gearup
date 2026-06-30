@@ -33,10 +33,10 @@ async function loadRates(): Promise<Map<string, number>> {
 
 /**
  * Look up the GST rate for a given HSN/SAC code.
- * Returns the rate (e.g., 18, 28) or `defaultRate` if not found.
+ * Returns the rate (e.g., 18, 28) or 0 if no HSN code (no HSN = no GST).
  */
-export async function getGstRate(hsnCode: string | null | undefined, defaultRate = 18): Promise<number> {
-  if (!hsnCode) return defaultRate;
+export async function getGstRate(hsnCode: string | null | undefined, defaultRate = 0): Promise<number> {
+  if (!hsnCode) return 0; // No HSN = No GST
   const rates = await loadRates();
   return rates.get(hsnCode) ?? defaultRate;
 }
