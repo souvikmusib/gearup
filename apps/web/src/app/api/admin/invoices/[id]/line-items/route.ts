@@ -74,16 +74,24 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       inventoryItemId: z.string().optional(),
     }).parse(await req.json());
 
+    // Resolve HSN + rate OUTSIDE the transaction. This function opens a separate
+    // Prisma connection to load HsnRate + InventoryItem — on Vercel serverless +
+    // Supabase pooler that can take 5-10s under load, which was the cause of the
+    // P2028 "Transaction already closed" 500s we saw on 2026-07-01. `showGst` is
+    // fetched via a lightweight lookup here; the transaction below re-verifies the
+    // DRAFT status via `ensureDraftTx` so the read isn't a TOCTOU risk.
+    const preInv = await prisma.invoice.findUniqueOrThrow({
+      where: { id: params.id },
+      select: { showGst: true },
+    });
+    const { hsnCode: finalHsn, taxRate: finalRate } = await resolveHsnAndRate(
+      body.lineType, !!preInv.showGst, body.inventoryItemId, body.hsnCode,
+    );
+    const effectiveTaxRate = body.taxRate > 0 ? body.taxRate : finalRate;
+    body.taxRate = effectiveTaxRate;
+
     const item = await prisma.$transaction(async (tx) => {
       const inv = await ensureDraftTx(tx, params.id);
-
-      // Resolve HSN code and tax rate from the HsnRate table
-      const { hsnCode: finalHsn, taxRate: finalRate } = await resolveHsnAndRate(
-        body.lineType, !!inv.showGst, body.inventoryItemId, body.hsnCode,
-      );
-      // Use client-sent taxRate as override if > 0, otherwise use resolved rate
-      const effectiveTaxRate = body.taxRate > 0 ? body.taxRate : finalRate;
-      body.taxRate = effectiveTaxRate;
       const isDiscount = body.lineType === 'DISCOUNT_ADJUSTMENT';
       const isAmc = body.lineType === 'AMC';
       const jobCardId = inv.jobCardId || undefined;
@@ -223,7 +231,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
       await recalcTotalsTx(tx, params.id, inv);
       return created;
-    });
+    }, { timeout: 30000, maxWait: 10000 });
 
     logActivity({ entityType: 'InvoiceLineItem', entityId: item.id, action: 'invoice.line.added', newValue: body, actorType: 'ADMIN', actorId: user.sub });
     return NextResponse.json({ success: true, data: item }, { status: 201 });

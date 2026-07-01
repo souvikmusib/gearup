@@ -60,22 +60,24 @@ function computeLineMath(quantity: number, unitPrice: number, taxRate: number, d
 }
 
 // Sync this part into a DRAFT invoice if one exists. MUST run inside the caller's transaction.
-// Uses the same HSN + tax-rate resolution as `/invoices/[id]/line-items` POST so a part added
-// on the Job Card page produces an invoice line indistinguishable from one added directly on
-// the invoice page — same `hsnCode`, same `taxRate` per the invoice's `showGst` flag.
+// `preResolved` is HSN+rate resolved OUTSIDE the tx by the caller (via `resolveHsnAndRate`) —
+// pulled out of the tx because it opens a separate Prisma connection to load HsnRate, which
+// under Vercel serverless + Supabase pooler routinely blew past the 15s tx timeout with P2028
+// "Transaction already closed" 500s (2026-07-01 incident).
 async function syncPartToInvoiceInTx(
   tx: any,
   jobCardId: string,
   inventoryItemId: string,
   quantity: number,
   unitPrice: number,
+  preResolved: { hsnCode: string | null; taxRate: number },
 ) {
   const invoice = await tx.invoice.findFirst({ where: { jobCardId, invoiceStatus: 'DRAFT' } });
   if (!invoice) return;
   const item = await tx.inventoryItem.findUniqueOrThrow({ where: { id: inventoryItemId } });
   const exists = await tx.invoiceLineItem.findFirst({ where: { invoiceId: invoice.id, referenceItemId: inventoryItemId } });
   if (exists) return;
-  const { hsnCode, taxRate } = await resolveHsnAndRate('PART', !!invoice.showGst, inventoryItemId, null);
+  const { hsnCode, taxRate } = preResolved;
   const discountPercent = Number(item.discountPercent) || 0;
   const { taxAmount, lineTotal } = computeLineMath(quantity, unitPrice, taxRate, discountPercent);
   const count = await tx.invoiceLineItem.count({ where: { invoiceId: invoice.id } });
@@ -113,6 +115,18 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       inventoryItemId: z.string(), requiredQty: z.number().min(0.01), unitPrice: z.number().optional(), notes: z.string().optional(),
     }).parse(await req.json());
 
+    // Pre-resolve HSN + tax rate OUTSIDE the transaction. resolveHsnAndRate opens a separate
+    // Prisma connection to load HsnRate; keeping it out of the tx cuts wall-time by 5-10s on
+    // Vercel serverless + Supabase pooler, preventing the P2028 "Transaction already closed"
+    // 500s we saw on invoice line-items POST for the same reason.
+    const draftInv = await prisma.invoice.findFirst({
+      where: { jobCardId: params.id, invoiceStatus: 'DRAFT' },
+      select: { showGst: true },
+    });
+    const preResolved = await resolveHsnAndRate(
+      'PART', !!draftInv?.showGst, body.inventoryItemId, null,
+    );
+
     const part = await prisma.$transaction(async (tx) => {
       const item = await tx.inventoryItem.findUniqueOrThrow({ where: { id: body.inventoryItemId } });
       await adjustStock(tx, body.inventoryItemId, body.requiredQty, 'RESERVED', params.id);
@@ -125,9 +139,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       // P0: invoice sync MUST live in the same transaction. Otherwise stock can be reserved
       // while the invoice line/totals write fails, producing permanent drift; and concurrent
       // POSTs race on grandTotal/amountDue (read-modify-write with no row lock).
-      await syncPartToInvoiceInTx(tx, params.id, body.inventoryItemId, body.requiredQty, Number(created.unitPrice));
+      await syncPartToInvoiceInTx(tx, params.id, body.inventoryItemId, body.requiredQty, Number(created.unitPrice), preResolved);
       return created;
-    });
+    }, { timeout: 30000, maxWait: 10000 });
     logActivity({ entityType: 'JobCardPart', entityId: part.id, action: 'job-card.part.added', newValue: { jobCardId: params.id, ...body }, actorType: 'ADMIN', actorId: user.sub });
 
     return NextResponse.json({ success: true, data: part }, { status: 201 });
