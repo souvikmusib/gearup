@@ -96,13 +96,16 @@ function generateInvoiceHTML(invoice: any, settings: Record<string, any>, logoUr
     totalSgst += sgst;
 
     const descDisplay = esc(li.description);
-    const skuLine = (li.lineType === 'PART' && sku) ? `<br><span style="font-size:9px;color:#888;font-family:monospace">${esc(sku)}</span>` : '';
+    // Sagnik's reference invoice (Lahora Traders / Hero MotoCorp) puts Part Number in its
+    // own column; do the same. SKU shows for PART lines (from InventoryItem), em-dash otherwise.
+    const partNo = li.lineType === 'PART' && sku ? esc(sku) : '—';
     const rowBg = li.lineType === 'SERVICE_CHARGE' || li.lineType === 'LABOR' ? 'background:#f0fdf4' : li.lineType === 'CUSTOM_CHARGE' ? 'background:#faf5ff' : li.lineType === 'DISCOUNT_ADJUSTMENT' ? 'background:#fef2f2' : (i % 2 === 1 ? 'background:#fafafa' : '');
 
     if (showGst) {
       return `<tr style="${rowBg}">
         <td style="border:1px solid #e5e7eb;padding:5px 6px;text-align:center;font-size:10px;color:#9ca3af">${i + 1}</td>
-        <td style="border:1px solid #e5e7eb;padding:5px 6px;font-size:10px"><span style="font-weight:600">${descDisplay}</span>${skuLine}</td>
+        <td style="border:1px solid #e5e7eb;padding:5px 6px;text-align:left;font-size:9.5px;color:#111;font-family:monospace;font-weight:600">${partNo}</td>
+        <td style="border:1px solid #e5e7eb;padding:5px 6px;font-size:10px;font-weight:600">${descDisplay}</td>
         <td style="border:1px solid #e5e7eb;padding:5px 6px;text-align:center;font-size:9.5px;color:#111;font-family:monospace">${hsn || '—'}</td>
         <td style="border:1px solid #e5e7eb;padding:5px 6px;text-align:center;font-size:10px">${qty}</td>
         <td style="border:1px solid #e5e7eb;padding:5px 6px;text-align:right;font-size:10px">${rate.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
@@ -115,7 +118,8 @@ function generateInvoiceHTML(invoice: any, settings: Record<string, any>, logoUr
     }
     return `<tr style="${rowBg}">
       <td style="border:1px solid #e5e7eb;padding:5px 6px;text-align:center;font-size:10px;color:#9ca3af">${i + 1}</td>
-      <td style="border:1px solid #e5e7eb;padding:5px 6px;font-size:10px"><span style="font-weight:600">${descDisplay}</span>${skuLine}</td>
+      <td style="border:1px solid #e5e7eb;padding:5px 6px;text-align:left;font-size:9.5px;color:#111;font-family:monospace;font-weight:600">${partNo}</td>
+      <td style="border:1px solid #e5e7eb;padding:5px 6px;font-size:10px;font-weight:600">${descDisplay}</td>
       <td style="border:1px solid #e5e7eb;padding:5px 6px;text-align:center;font-size:9.5px;color:#111;font-family:monospace">${hsn || '—'}</td>
       <td style="border:1px solid #e5e7eb;padding:5px 6px;text-align:center;font-size:10px">${qty}</td>
       <td style="border:1px solid #e5e7eb;padding:5px 6px;text-align:right;font-size:10px">${rate.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
@@ -139,7 +143,7 @@ function generateInvoiceHTML(invoice: any, settings: Record<string, any>, logoUr
     hsnGroups[hsn].sgst += taxable * (gstRate / 2) / 100;
   });
 
-  const gstColSpan = showGst ? 10 : 7;
+  const gstColSpan = showGst ? 11 : 8;
   const paymentLabel = invoice.paymentStatus === 'PAID' ? 'PAID' : invoice.paymentStatus === 'PARTIALLY_PAID' ? 'PARTIAL' : 'UNPAID';
 
   return `<!DOCTYPE html>
@@ -224,15 +228,16 @@ body { font-family:'Google Sans','Product Sans',-apple-system,BlinkMacSystemFont
     <thead>
       <tr style="background:#dc2626">
         <th style="border:1px solid #b91c1c;padding:6px 4px;text-align:center;font-size:8px;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;width:25px">SL</th>
+        <th style="border:1px solid #b91c1c;padding:6px 4px;text-align:left;font-size:8px;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;width:90px">Part No.</th>
         <th style="border:1px solid #b91c1c;padding:6px 4px;text-align:left;font-size:8px;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:0.3px">Description</th>
         <th style="border:1px solid #b91c1c;padding:6px 4px;text-align:center;font-size:8px;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;width:55px">HSN/SAC</th>
         <th style="border:1px solid #b91c1c;padding:6px 4px;text-align:center;font-size:8px;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;width:35px">Qty</th>
-        <th style="border:1px solid #b91c1c;padding:6px 4px;text-align:right;font-size:8px;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;width:65px">Unit Price</th>
+        <th style="border:1px solid #b91c1c;padding:6px 4px;text-align:right;font-size:8px;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;width:65px">Rate</th>
         <th style="border:1px solid #b91c1c;padding:6px 4px;text-align:center;font-size:8px;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;width:40px">Disc%</th>
         ${showGst ? `
-        <th style="border:1px solid #b91c1c;padding:6px 4px;text-align:right;font-size:8px;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;width:65px">Taxable</th>
-        <th style="border:1px solid #b91c1c;padding:6px 4px;text-align:right;font-size:8px;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;width:55px">CGST</th>
-        <th style="border:1px solid #b91c1c;padding:6px 4px;text-align:right;font-size:8px;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;width:55px">SGST</th>
+        <th style="border:1px solid #b91c1c;padding:6px 4px;text-align:right;font-size:8px;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;width:60px">Taxable</th>
+        <th style="border:1px solid #b91c1c;padding:6px 4px;text-align:right;font-size:8px;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;width:50px">CGST</th>
+        <th style="border:1px solid #b91c1c;padding:6px 4px;text-align:right;font-size:8px;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;width:50px">SGST</th>
         ` : ''}
         <th style="border:1px solid #b91c1c;padding:6px 4px;text-align:right;font-size:8px;color:#fff;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;width:70px">Amount</th>
       </tr>

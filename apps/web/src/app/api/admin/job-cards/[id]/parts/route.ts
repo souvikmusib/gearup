@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { requirePermission } from '@/lib/auth';
 import { handleApiError, ValidationError } from '@/lib/errors';
 import { logActivity } from '@/lib/activity-logger';
+import { resolveHsnAndRate } from '@/lib/hsn-rate';
 import { PERMISSIONS } from '@gearup/types';
 import { z } from 'zod';
 
@@ -59,6 +60,9 @@ function computeLineMath(quantity: number, unitPrice: number, taxRate: number, d
 }
 
 // Sync this part into a DRAFT invoice if one exists. MUST run inside the caller's transaction.
+// Uses the same HSN + tax-rate resolution as `/invoices/[id]/line-items` POST so a part added
+// on the Job Card page produces an invoice line indistinguishable from one added directly on
+// the invoice page — same `hsnCode`, same `taxRate` per the invoice's `showGst` flag.
 async function syncPartToInvoiceInTx(
   tx: any,
   jobCardId: string,
@@ -71,7 +75,7 @@ async function syncPartToInvoiceInTx(
   const item = await tx.inventoryItem.findUniqueOrThrow({ where: { id: inventoryItemId } });
   const exists = await tx.invoiceLineItem.findFirst({ where: { invoiceId: invoice.id, referenceItemId: inventoryItemId } });
   if (exists) return;
-  const taxRate = Number(item.taxRate);
+  const { hsnCode, taxRate } = await resolveHsnAndRate('PART', !!invoice.showGst, inventoryItemId, null);
   const discountPercent = Number(item.discountPercent) || 0;
   const { taxAmount, lineTotal } = computeLineMath(quantity, unitPrice, taxRate, discountPercent);
   const count = await tx.invoiceLineItem.count({ where: { invoiceId: invoice.id } });
@@ -80,6 +84,7 @@ async function syncPartToInvoiceInTx(
       invoiceId: invoice.id,
       lineType: 'PART',
       description: item.itemName,
+      hsnCode,
       quantity,
       unitPrice,
       discountPercent,
