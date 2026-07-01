@@ -147,8 +147,22 @@ export function handleApiError(error: unknown) {
     }
   }
   console.error('Unhandled API error:', error);
+  // Expose the underlying error message + stack when NEXT_PUBLIC_EXPOSE_ERRORS=1 (opt-in
+  // diagnostic mode for triaging a live 500 without needing external log access). Never
+  // exposes anything sensitive because our errors don't carry PII/secrets by convention.
+  const exposeDetails = process.env.NEXT_PUBLIC_EXPOSE_ERRORS === '1' || process.env.NODE_ENV !== 'production';
+  const err = error as { message?: unknown; code?: unknown; meta?: unknown; stack?: unknown; name?: unknown };
+  const detail = exposeDetails
+    ? {
+        rawName: typeof err?.name === 'string' ? err.name : undefined,
+        rawMessage: typeof err?.message === 'string' ? err.message : undefined,
+        rawCode: typeof err?.code === 'string' || typeof err?.code === 'number' ? err.code : undefined,
+        rawMeta: err?.meta && typeof err.meta === 'object' ? err.meta : undefined,
+        rawStack: typeof err?.stack === 'string' ? err.stack.split('\n').slice(0, 5).join('\n') : undefined,
+      }
+    : undefined;
   return NextResponse.json(
-    { success: false, error: { code: 'INTERNAL_ERROR', message: 'Internal server error' } },
+    { success: false, error: { code: 'INTERNAL_ERROR', message: 'Internal server error', ...(detail ? { detail } : {}) } },
     { status: 500 },
   );
 }
