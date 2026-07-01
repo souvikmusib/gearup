@@ -70,6 +70,19 @@ export async function POST(req: NextRequest) {
     // any conflict surfaces as P2002 and is handled below.
     let invoice;
     try {
+      // Pre-resolve HSN + rate for ALL line items OUTSIDE the transaction.
+      // resolveHsnAndRate opens separate Prisma connections (HsnRate.findMany,
+      // InventoryItem.findUnique) — on Vercel serverless + Supabase pooler these
+      // can take 5-10s each under load, causing P2028 tx timeout if done inside.
+      const resolvedLines: Array<typeof body.lineItems[number] & { _hsnCode: string | null; _taxRate: number }> = [];
+      for (const li of body.lineItems) {
+        const { hsnCode, taxRate } = await resolveHsnAndRate(
+          li.lineType, body.showGst, li.referenceItemId, li.hsnCode,
+        );
+        const effectiveRate = li.taxRate > 0 ? li.taxRate : taxRate;
+        resolvedLines.push({ ...li, _hsnCode: hsnCode, _taxRate: effectiveRate });
+      }
+
       invoice = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
         let subtotal = 0, taxTotal = 0, discountFromLines = 0;
         // Canonical percent-discount base: sum of (qty*price) across non-discount lines.
@@ -79,14 +92,8 @@ export async function POST(req: NextRequest) {
         // out of subtotal/taxTotal and tracked separately, so the stored subtotal stays
         // identical before and after any later line-item edit.
         const lines = [];
-        for (const li of body.lineItems) {
-          // Auto-resolve HSN code and tax rate from the HsnRate table
-          const { hsnCode, taxRate } = await resolveHsnAndRate(
-            li.lineType, body.showGst, li.referenceItemId, li.hsnCode,
-          );
-          // Use resolved rate unless client explicitly provided a non-zero override
-          const effectiveRate = li.taxRate > 0 ? li.taxRate : taxRate;
-          const lineWithRate = { ...li, taxRate: effectiveRate };
+        for (const li of resolvedLines) {
+          const lineWithRate = { ...li, taxRate: li._taxRate };
 
           const { lineTotal, taxAmount, netLineTotal } = computeLineTotal(lineWithRate, preSubtotal);
           if (li.lineType === 'DISCOUNT_ADJUSTMENT') {
@@ -100,7 +107,7 @@ export async function POST(req: NextRequest) {
           const discountPercent = li.lineType === 'DISCOUNT_ADJUSTMENT'
             ? (li.discountMode === 'percent' ? li.unitPrice : 0)
             : li.discountPercent;
-          lines.push({ lineType: li.lineType, description: li.description, quantity: li.quantity, unitPrice: li.unitPrice, taxRate: effectiveRate, hsnCode, sortOrder: li.sortOrder, discountPercent, taxAmount, lineTotal });
+          lines.push({ lineType: li.lineType, description: li.description, quantity: li.quantity, unitPrice: li.unitPrice, taxRate: li._taxRate, hsnCode: li._hsnCode, sortOrder: li.sortOrder, discountPercent, taxAmount, lineTotal });
         }
         const discountAmount = Math.round((body.discountType === 'PERCENTAGE' ? subtotal * ((body.discountValue ?? 0) / 100) : (body.discountValue ?? 0)) * 100) / 100;
         const grandTotal = Math.round(subtotal + taxTotal + discountFromLines - discountAmount);
@@ -108,7 +115,7 @@ export async function POST(req: NextRequest) {
           data: { invoiceNumber: await generateInvoiceNumber(tx), customerId: body.customerId, vehicleId: body.vehicleId, jobCardId: body.jobCardId, appointmentId: body.appointmentId, invoiceDate: new Date(body.invoiceDate), dueDate: body.dueDate ? new Date(body.dueDate) : undefined, showGst: body.showGst, subtotal, taxTotal, discountType: body.discountType, discountValue: body.discountValue, discountAmount, grandTotal, amountDue: grandTotal, notes: body.notes, createdByAdminId: user.sub, lineItems: { create: lines } },
           include: { lineItems: true },
         });
-      });
+      }, { timeout: 30000, maxWait: 10000 });
     } catch (e) {
       if (!isUniqueJobCardInvoiceError(e)) throw e;
       const existing = await prisma.invoice.findFirst({ where: { jobCardId: body.jobCardId } });
