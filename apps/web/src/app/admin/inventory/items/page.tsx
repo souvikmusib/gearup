@@ -175,6 +175,7 @@ export default function InventoryItemsPage() {
     { key: 'itemName', header: 'Item', render: (r: any) => <span title={r.itemName}>{r.itemName}</span> },
     { key: 'brand', header: 'Company', render: (r: any) => r.brand || '—' },
     { key: 'category', header: 'Category', render: (r: any) => r.category?.categoryName || '—' },
+    { key: 'hsnCode', header: 'GST', nowrap: true, render: (r: any) => r.hsnCode ? <span className="inline-flex items-center rounded-full bg-green-50 dark:bg-green-900/20 px-2 py-0.5 text-[10px] font-medium text-green-700 dark:text-green-400">{r.hsnCode}</span> : <span className="text-xs text-gray-300">No GST</span> },
     { key: 'quantityInStock', header: 'Stock', render: (r: any) => {
       const qty = Number(r.quantityInStock);
       const low = r.reorderLevel && qty <= Number(r.reorderLevel);
