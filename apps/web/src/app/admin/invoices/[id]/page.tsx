@@ -501,7 +501,7 @@ export default function InvoiceDetailPage() {
                 <td className="px-5 py-2.5 text-gray-500">{i + 1}</td>
                 <td className="px-5 py-2.5 font-medium">{li.description}{li.sku && <div className="text-xs text-gray-400 font-mono mt-0.5">{li.sku}</div>}</td>
                 <td className="px-5 py-2.5 text-center"><span className="rounded-full bg-gray-100 dark:bg-gray-800 px-2 py-0.5 text-xs">{li.lineType}</span></td>
-                <td className="px-5 py-2.5 text-center text-xs text-gray-400 font-mono">{li.hsnCode || '—'}</td>
+                <td className="px-5 py-2.5 text-center text-xs text-gray-400 font-mono">{li.hsnCode ? <span className="inline-flex items-center gap-1"><span>{li.hsnCode}</span><span className="rounded bg-green-100 dark:bg-green-900/30 px-1 py-0.5 text-[9px] font-semibold text-green-700 dark:text-green-400">GST</span></span> : '—'}</td>
                 {isDraft ? (
                   editingLines ? (
                   <>
