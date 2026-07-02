@@ -42,7 +42,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       }
     }
 
-    // When showGst is toggled, recalculate taxRate/taxAmount on all line items
+    // When showGst is toggled, back-calculate tax from existing prices (total stays the same).
+    // GST is treated as inclusive: lineTotal remains unchanged, unitPrice is reduced so that
+    // unitPrice + tax = original unitPrice. When GST is turned OFF, unitPrice is restored.
     if (body.showGst !== undefined) {
       const existing = await prisma.invoice.findUniqueOrThrow({
         where: { id: params.id },
@@ -62,21 +64,42 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
             discountFromLines += Number(li.lineTotal);
             continue;
           }
-          const net = Number(li.quantity) * Number(li.unitPrice) * (1 - Number(li.discountPercent) / 100);
-          let taxRate = 0;
-          if (body.showGst) {
-            // Turning GST ON: resolve rate from HSN
-            taxRate = await getGstRate(li.hsnCode);
-          }
-          const taxAmount = net * (taxRate / 100);
-          const lineTotal = net + taxAmount;
 
-          await prisma.invoiceLineItem.update({
-            where: { id: li.id },
-            data: { taxRate, taxAmount, lineTotal },
-          });
-          subtotal += net;
-          taxTotal += taxAmount;
+          const currentUnitPrice = Number(li.unitPrice);
+          const qty = Number(li.quantity);
+          const discPct = Number(li.discountPercent);
+          let taxRate = 0;
+
+          if (body.showGst) {
+            // Turning GST ON (inclusive): back-calculate tax from existing price
+            // lineTotal stays the same; extract tax component from within the price
+            taxRate = await getGstRate(li.hsnCode);
+            const grossPerUnit = currentUnitPrice * (1 - discPct / 100);
+            const basePerUnit = grossPerUnit / (1 + taxRate / 100);
+            const newUnitPrice = basePerUnit / (1 - discPct / 100);
+            const net = qty * newUnitPrice * (1 - discPct / 100);
+            const taxAmount = qty * grossPerUnit - net; // tax = gross - base
+            const lineTotal = qty * grossPerUnit; // unchanged from before
+
+            await prisma.invoiceLineItem.update({
+              where: { id: li.id },
+              data: { unitPrice: Math.round(newUnitPrice * 100) / 100, taxRate, taxAmount: Math.round(taxAmount * 100) / 100, lineTotal: Math.round(lineTotal * 100) / 100 },
+            });
+            subtotal += Math.round(net * 100) / 100;
+            taxTotal += Math.round(taxAmount * 100) / 100;
+          } else {
+            // Turning GST OFF: restore unitPrice by absorbing tax back into the price
+            // lineTotal stays the same (base + tax → single price with no tax breakdown)
+            const prevTaxRate = Number(li.taxRate);
+            const restoredUnitPrice = currentUnitPrice * (1 + prevTaxRate / 100);
+            const lineTotal = qty * restoredUnitPrice * (1 - discPct / 100);
+
+            await prisma.invoiceLineItem.update({
+              where: { id: li.id },
+              data: { unitPrice: Math.round(restoredUnitPrice * 100) / 100, taxRate: 0, taxAmount: 0, lineTotal: Math.round(lineTotal * 100) / 100 },
+            });
+            subtotal += Math.round(lineTotal * 100) / 100;
+          }
         }
 
         const grandTotal = Math.round(subtotal + taxTotal + discountFromLines - Number(existing.discountAmount));
