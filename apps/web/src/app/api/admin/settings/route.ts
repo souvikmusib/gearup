@@ -26,7 +26,7 @@ const SETTING_SCHEMAS: Record<string, ZodSchema> = {
   'business.state': optionalStr,
   'business.pincode': optionalStr,
   'business.phone': optionalStr,
-  'business.email': z.string().trim().email().max(500).or(z.literal('')),
+  'business.email': optionalStr,
   'business.gst': optionalStr,
   'business.logoUrl': urlSchema.or(z.literal('')),
   'business.currency': z.string().trim().length(3),
@@ -47,7 +47,7 @@ const SETTING_SCHEMAS: Record<string, ZodSchema> = {
   'notification.reminderEnabled': boolSchema,
   'notification.dailyDigestEnabled': boolSchema,
   'notification.dailyDigestHour': hourOfDay,
-  'notification.fromEmail': z.string().trim().email().max(500).or(z.literal('')),
+  'notification.fromEmail': optionalStr,
   'notification.fromName': optionalStr,
 
   // integration.*

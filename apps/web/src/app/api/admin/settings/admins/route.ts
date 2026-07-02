@@ -134,7 +134,7 @@ export async function POST(req: NextRequest) {
       adminUserId: z.string().min(3),
       fullName: z.string().min(1),
       password: strongPassword,
-      email: z.string().email('Invalid email address').optional(),
+      email: z.string().optional(),
       phone: z
         .string()
         .transform(normalizePhone)
