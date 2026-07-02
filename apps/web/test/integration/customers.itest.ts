@@ -40,7 +40,7 @@ describe('customers route (integration, real DB)', () => {
     expect(body.error.code).toBe('VALIDATION_ERROR');
   });
 
-  it('coerces empty-string email to undefined (no false validation error)', async () => {
+  it('accepts empty-string email (coerced to undefined)', async () => {
     const { status } = await invoke(
       createCustomer,
       req('POST', '/api/admin/customers', { fullName: 'No Email', phoneNumber: '9000000003', email: '' }),

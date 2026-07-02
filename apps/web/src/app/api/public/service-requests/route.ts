@@ -21,8 +21,7 @@ const schema = z.object({
     .string()
     .max(254)
     .optional()
-    .transform((v) => v?.trim() || undefined)
-    .pipe(z.string().email().max(254).optional()),
+    .transform((v) => v?.trim() || undefined),
   vehicleType: z.enum(['CAR', 'BIKE', 'OTHER']),
   brand: z.string().trim().min(1).max(80),
   model: z.string().trim().min(1).max(80),

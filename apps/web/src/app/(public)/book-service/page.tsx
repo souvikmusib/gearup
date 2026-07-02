@@ -43,8 +43,6 @@ function validate(form: Record<string, unknown>): FieldErrors {
   if (!s('phoneNumber')) e.phoneNumber = 'Phone number is required';
   else if (!/^\d{10}$/.test(s('phoneNumber').replace(/[\s-]/g, ''))) e.phoneNumber = 'Enter a valid 10-digit phone number';
 
-  if (s('email') && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s('email'))) e.email = 'Enter a valid email address';
-
   if (!s('registrationNumber')) e.registrationNumber = 'Registration number is required';
   else if (!/^[A-Z]{2}-\d{2}-[A-Z]{1,2}-\d{1,4}$/.test(s('registrationNumber'))) e.registrationNumber = 'Format: KA-01-AB-1234';
 
