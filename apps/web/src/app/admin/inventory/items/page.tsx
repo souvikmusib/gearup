@@ -154,10 +154,13 @@ export default function InventoryItemsPage() {
   };
 
   const deleteItem = async (item: any) => {
-    if (!confirm(`Delete "${item.itemName}"? This cannot be undone.`)) return;
+    if (!confirm(`Delete "${item.itemName}"? Items with stock history will be deactivated instead.`)) return;
     setItemMenuOpen(null);
     const res = await api.delete<any>(`/admin/inventory/items/${item.id}`);
-    if (res.success) load();
+    if (res.success) {
+      if (res.data?.message?.includes('deactivated')) alert('Item deactivated (has stock movement history). It will no longer appear in the list.');
+      load();
+    }
     else alert(res.error?.message || 'Failed to delete item');
   };
 

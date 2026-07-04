@@ -46,6 +46,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const user = requirePermission(PERMISSIONS.INVENTORY_EDIT);
+    let softDeleted = false;
     await prisma.$transaction(async (tx) => {
       const existing = await tx.inventoryItem.findUniqueOrThrow({ where: { id: params.id }, select: { reservedQuantity: true } });
       if (Number(existing.reservedQuantity) > 0) {
@@ -59,13 +60,14 @@ export async function DELETE(_req: NextRequest, { params }: { params: { id: stri
       if (movementCount > 0) {
         // Soft-delete: item has historical stock movements; preserve audit trail.
         await tx.inventoryItem.update({ where: { id: params.id }, data: { isActive: false } });
+        softDeleted = true;
         return;
       }
       await tx.inventoryItemModel.deleteMany({ where: { inventoryItemId: params.id } });
       await tx.stockMovement.deleteMany({ where: { inventoryItemId: params.id } });
       await tx.inventoryItem.delete({ where: { id: params.id } });
     });
-    logActivity({ entityType: 'InventoryItem', entityId: params.id, action: 'inventory.item.deleted', actorType: 'ADMIN', actorId: user.sub });
-    return NextResponse.json({ success: true });
+    logActivity({ entityType: 'InventoryItem', entityId: params.id, action: softDeleted ? 'inventory.item.deactivated' : 'inventory.item.deleted', actorType: 'ADMIN', actorId: user.sub });
+    return NextResponse.json({ success: true, message: softDeleted ? 'Item deactivated (has stock history)' : 'Item deleted' });
   } catch (e) { return handleApiError(e); }
 }
