@@ -19,7 +19,9 @@ export async function GET(req: NextRequest) {
     const p = paginate({ page, pageSize });
     const brandId = sp.get('brandId') || '';
     const modelId = sp.get('modelId') || '';
+    const showInactive = sp.get('showInactive') === 'true';
     const where: Prisma.InventoryItemWhereInput = {};
+    if (!showInactive) where.isActive = true;
     if (categoryId) where.categoryId = categoryId;
     if (modelId) where.vehicleModels = { some: { vehicleModelId: modelId } };
     else if (brandId) where.vehicleModels = { some: { vehicleModel: { brandId } } };
