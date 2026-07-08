@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
     const payRange = hasRange ? `WHERE ("paymentDate" AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata')::date BETWEEN $1::date AND $2::date` : '';
     const invRange = hasRange ? `AND (i."invoiceDate" AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata')::date BETWEEN $1::date AND $2::date` : '';
 
-    const [byMode, total, daily, byType, byWorker, workerJobValue] = await Promise.all([
+    const [byMode, total, daily, byType] = await Promise.all([
       prisma.payment.groupBy({ by: ['paymentMode'], where: paymentWhere, _sum: { amount: true }, _count: true }),
       prisma.payment.aggregate({ where: paymentWhere, _sum: { amount: true } }),
       // Revenue trend: payment totals per calendar day (IST)
@@ -57,30 +57,6 @@ export async function GET(req: NextRequest) {
          GROUP BY 1 ORDER BY total DESC`,
         ...rangeArgs,
       ),
-      // Labor revenue per worker. Labor lines carry "Labor — <NAME>"; match against
-      // Worker.fullName (whitespace-collapsed, case-folded). Unmatched lines surface
-      // as 'Unattributed' rather than inventing names.
-      prisma.$queryRawUnsafe<{ name: string; total: number }[]>(
-        `SELECT COALESCE(w."fullName", 'Unattributed') AS name, SUM(li."lineTotal")::float AS total
-         FROM "InvoiceLineItem" li
-         JOIN "Invoice" i ON i.id = li."invoiceId"
-         LEFT JOIN "Worker" w
-           ON regexp_replace(upper(trim(substring(li.description FROM '[—-]\\s*(.*)$'))), '\\s+', ' ', 'g')
-            = regexp_replace(upper(trim(w."fullName")), '\\s+', ' ', 'g')
-         WHERE li."lineType" = 'LABOR' AND i."invoiceStatus" = 'FINALIZED' ${invRange}
-         GROUP BY 1 ORDER BY total DESC`,
-        ...rangeArgs,
-      ),
-      // Total job-card value per assigned worker (PAID invoices), with paid-job counts
-      prisma.$queryRawUnsafe<{ name: string; total: number; jobs: number }[]>(
-        `SELECT w."fullName" AS name, SUM(i."grandTotal")::float AS total, COUNT(DISTINCT i.id)::int AS jobs
-         FROM "WorkerAssignment" wa
-         JOIN "Worker" w ON w.id = wa."workerId"
-         JOIN "Invoice" i ON i."jobCardId" = wa."jobCardId"
-         WHERE i."paymentStatus" = 'PAID' ${invRange}
-         GROUP BY 1 ORDER BY total DESC`,
-        ...rangeArgs,
-      ),
     ]);
 
     return NextResponse.json({
@@ -90,8 +66,6 @@ export async function GET(req: NextRequest) {
         totalRevenue: Number(total._sum.amount ?? 0),
         daily,
         byType,
-        byWorker,
-        workerJobValue,
       },
     });
   } catch (e) {
