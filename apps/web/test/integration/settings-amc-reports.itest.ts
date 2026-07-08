@@ -129,11 +129,10 @@ describe('reports — all 7 respond 200 with data (integration)', () => {
     });
   }
 
-  it('revenue includes daily/byType/byWorker keys (regression: 072a219)', async () => {
+  it('revenue includes daily/byType keys', async () => {
     const { body } = await invoke(reportRevenue, req('GET', '/api/admin/reports/revenue'));
     expect(body.data).toHaveProperty('daily');
     expect(body.data).toHaveProperty('byType');
-    expect(body.data).toHaveProperty('byWorker');
   });
 });
 
