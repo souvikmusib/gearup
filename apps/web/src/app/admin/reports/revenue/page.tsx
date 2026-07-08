@@ -73,18 +73,6 @@ export default function RevenueReportPage() {
       lines.push('Type,Total');
       data.byType.forEach((t: any) => lines.push(`${esc(t.type)},${Number(t.total ?? 0)}`));
     }
-    if (data.byWorker?.length) {
-      lines.push('');
-      lines.push('Labor Revenue by Worker');
-      lines.push('Worker,Total');
-      data.byWorker.forEach((w: any) => lines.push(`${esc(w.name)},${Number(w.total ?? 0)}`));
-    }
-    if (data.workerJobValue?.length) {
-      lines.push('');
-      lines.push('Total Job Card Value per Worker');
-      lines.push('Worker,Total,Paid Jobs');
-      data.workerJobValue.forEach((w: any) => lines.push(`${esc(w.name)},${Number(w.total ?? 0)},${w.jobs ?? 0}`));
-    }
     const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -239,37 +227,7 @@ export default function RevenueReportPage() {
             </div>
           </div>
         )}
-
-        {data.byWorker?.length > 0 && (
-          <div className="rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 p-5">
-            <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Labor Revenue by Worker</h3>
-            <div className="space-y-2">
-              {data.byWorker.map((w: any) => (
-                <div key={w.name} className="flex items-center justify-between py-2 border-b border-gray-50 dark:border-gray-800 last:border-0">
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{w.name}</span>
-                  <span className="text-sm font-semibold text-blue-600">₹{Math.round(Number(w.total ?? 0)).toLocaleString()}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
-
-      {/* Worker Total Job Card Value */}
-      {data.workerJobValue?.length > 0 && (
-        <div className="rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 p-5">
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Total Revenue per Worker (Full Job Card Value)</h3>
-          <div className="grid grid-cols-3 gap-4">
-            {data.workerJobValue.map((w: any) => (
-              <div key={w.name} className="rounded-lg border border-gray-100 dark:border-gray-800 p-4 text-center">
-                <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{w.name}</p>
-                <p className="text-xl font-bold text-gray-900 dark:text-white mt-1">₹{Math.round(Number(w.total ?? 0)).toLocaleString()}</p>
-                <p className="text-xs text-gray-400 mt-1">{w.jobs} paid jobs</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
