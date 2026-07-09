@@ -254,13 +254,11 @@ export function InventoryItemForm({
         </div>
       </div>
 
-      {/* Storage Location (edit only — also available in create for completeness) */}
-      {mode === 'edit' && (
-        <div>
-          <label className={labelCls}>Storage Location</label>
-          <input className={inputCls} placeholder="e.g. Rack A, Shelf 3" value={form.storageLocation} onChange={e => set({ storageLocation: e.target.value })} />
-        </div>
-      )}
+      {/* Storage Location */}
+      <div>
+        <label className={labelCls}>Storage Location</label>
+        <input className={inputCls} placeholder="e.g. Rack A, Shelf 3" value={form.storageLocation} onChange={e => set({ storageLocation: e.target.value })} />
+      </div>
 
       {/* Pricing: Cost + MRP */}
       <div className="grid grid-cols-2 gap-3">
