@@ -7,9 +7,7 @@ import { PageHeader, DataTable } from '@gearup/ui';
 import { ListToolbar } from '@/components/shared/list-toolbar';
 import { Pagination } from '@/components/shared/pagination';
 import { Modal } from '@/components/shared/modal';
-import { SearchableSelect } from '@/components/shared/searchable-select';
-import { InventoryEditModal } from '@/components/inventory/edit-modal';
-import { ModelPicker } from '@/components/inventory/model-picker';
+import { InventoryItemForm, EMPTY_FORM, type InventoryItemFormData } from '@/components/inventory/inventory-item-form';
 import { AlertTriangle, FolderOpen, Building2, List as ListIcon, MoreVertical } from 'lucide-react';
 import { getBrandStyle, getBrandInitial } from '@/lib/brand-logos';
 
@@ -24,9 +22,9 @@ export default function InventoryItemsPage() {
   const [categories, setCategories] = useState<any[]>([]);
   const [suppliers, setSuppliers] = useState<any[]>([]);
   const [hsnRates, setHsnRates] = useState<{ hsnCode: string; rate: number; description: string | null }[]>([]);
-  const [form, setForm] = useState({ sku: '', itemName: '', categoryId: '', supplierId: '', unit: '', brand: '', costPrice: '', mrp: '', sellingPrice: '', discountPercent: '', amcDiscountPercent: '3', quantityInStock: '', hsnCode: '', variablePrice: false, isBranded: true });
+  const [form, setForm] = useState<InventoryItemFormData>(EMPTY_FORM);
   const [editItem, setEditItem] = useState<any>(null);
-  const [editForm, setEditForm] = useState({ itemName: '', categoryId: '', supplierId: '', unit: '', brand: '', costPrice: '', mrp: '', sellingPrice: '', discountPercent: '', reorderLevel: '', storageLocation: '', hsnCode: '', isActive: true, variablePrice: false, isBranded: true });
+  const [editForm, setEditForm] = useState<InventoryItemFormData>(EMPTY_FORM);
   const [editSaving, setEditSaving] = useState(false);
   const [stockItem, setStockItem] = useState<any>(null);
   const [stockForm, setStockForm] = useState({ type: 'STOCK_IN', quantity: '', reason: '' });
@@ -109,19 +107,20 @@ export default function InventoryItemsPage() {
     setCreateError(null);
     const res = await api.post('/admin/inventory/items', body);
     setCreating(false);
-    if (res.success) { setShowCreate(false); setForm({ sku: '', itemName: '', categoryId: '', supplierId: '', unit: '', brand: '', costPrice: '', mrp: '', sellingPrice: '', discountPercent: '', amcDiscountPercent: '3', quantityInStock: '', hsnCode: '', variablePrice: false, isBranded: true }); setSelectedModelIds([]); load(); }
+    if (res.success) { setShowCreate(false); setForm(EMPTY_FORM); setSelectedModelIds([]); load(); }
     else { setCreateError(res.error?.message || 'Failed to create item'); }
   };
 
   const openEdit = async (item: any) => {
     setEditItem(item);
     setEditForm({
-      itemName: item.itemName || '', categoryId: item.categoryId || '', supplierId: item.supplierId || '', unit: item.unit || '', brand: item.brand || '',
+      sku: item.sku || '', itemName: item.itemName || '', categoryId: item.categoryId || '', supplierId: item.supplierId || '', unit: item.unit || '', brand: item.brand || '',
       costPrice: String(Number(item.costPrice) || ''), mrp: String(Number(item.mrp) || ''), sellingPrice: String(Number(item.sellingPrice) || ''), discountPercent: String(Number(item.discountPercent) || ''),
+      amcDiscountPercent: String(Number(item.amcDiscountPercent) || ''),
+      quantityInStock: String(Number(item.quantityInStock) || ''),
       reorderLevel: item.reorderLevel != null ? String(Number(item.reorderLevel)) : '', storageLocation: item.storageLocation || '', hsnCode: item.hsnCode || '', isActive: item.isActive ?? true, variablePrice: item.variablePrice ?? false, isBranded: item.isBranded ?? true,
     });
     loadLookups();
-    loadVehicleCatalog();
     const res = await api.get<any>(`/admin/inventory/items/${item.id}`);
     if (res.success && res.data.vehicleModels) {
       setEditModelIds(res.data.vehicleModels.map((vm: any) => vm.vehicleModelId));
@@ -135,8 +134,10 @@ export default function InventoryItemsPage() {
     if (!editItem) return;
     setEditSaving(true);
     const body: Record<string, unknown> = {
-      itemName: editForm.itemName, categoryId: editForm.categoryId, supplierId: editForm.supplierId || null, unit: editForm.unit,
+      sku: editForm.sku || undefined,
+      itemName: editForm.itemName, categoryId: editForm.categoryId || undefined, supplierId: editForm.supplierId || null, unit: editForm.unit || undefined,
       brand: editForm.brand || null, costPrice: Number(editForm.costPrice), mrp: editForm.mrp ? Number(editForm.mrp) : null, sellingPrice: Number(editForm.sellingPrice), discountPercent: editForm.discountPercent ? Number(editForm.discountPercent) : null,
+      amcDiscountPercent: editForm.amcDiscountPercent ? Number(editForm.amcDiscountPercent) : null,
       reorderLevel: editForm.reorderLevel ? Number(editForm.reorderLevel) : null,
       storageLocation: editForm.storageLocation || null, hsnCode: editForm.hsnCode || null, isActive: editForm.isActive, variablePrice: editForm.variablePrice, isBranded: editForm.isBranded,
       modelIds: editModelIds,
@@ -233,7 +234,7 @@ export default function InventoryItemsPage() {
   return (
     <div>
       <PageHeader title="Inventory Items" />
-      <ListToolbar searchPlaceholder="Search items..." onSearch={onSearch} onCreateClick={() => { loadLookups(); loadVehicleCatalog(); setShowCreate(true); }} createLabel="Create Item" />
+      <ListToolbar searchPlaceholder="Search items..." onSearch={onSearch} onCreateClick={() => { loadLookups(); setShowCreate(true); }} createLabel="Create Item" />
 
       {/* View mode toggle + category filter */}
       <div className="mb-4 flex flex-wrap items-center gap-3">
@@ -275,60 +276,36 @@ export default function InventoryItemsPage() {
       )}
       {viewMode === 'list' && <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />}
       <Modal open={showCreate} onClose={() => { setShowCreate(false); setCreateError(null); }} title="Create Item">
-        <form onSubmit={onSubmit} className="space-y-3">
-          {createError && <div className="rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-700 dark:bg-red-900/20 dark:text-red-300">{createError}</div>}
-          <div><label className="block text-xs font-medium mb-1">SKU <span className="text-red-500">*</span></label><input className={inputCls} placeholder="SKU" required value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} /></div>
-          <div><label className="block text-xs font-medium mb-1">HSN Code</label>
-            <select className={inputCls} value={hsnRates.some(h => h.hsnCode === form.hsnCode) || !form.hsnCode ? form.hsnCode : '__custom'} onChange={(e) => { if (e.target.value === '__custom') { setForm({ ...form, hsnCode: '' }); } else { setForm({ ...form, hsnCode: e.target.value }); } }}>
-              <option value="">No HSN (No GST)</option>
-              {hsnRates.map(h => <option key={h.hsnCode} value={h.hsnCode}>{h.hsnCode} — {h.description} ({Number(h.rate)}%)</option>)}
-              <option value="__custom">Custom HSN...</option>
-            </select>
-            {form.hsnCode && !hsnRates.some(h => h.hsnCode === form.hsnCode) && (
-              <input className={inputCls + ' mt-1'} placeholder="Enter custom HSN code" value={form.hsnCode} onChange={(e) => setForm({ ...form, hsnCode: e.target.value })} />
-            )}
-          </div>
-          <div><label className="block text-xs font-medium mb-1">Item Name <span className="text-red-500">*</span></label><input className={inputCls} placeholder="Item Name" required value={form.itemName} onChange={(e) => setForm({ ...form, itemName: e.target.value })} /></div>
-          <div><label className="block text-xs font-medium mb-1">Company / Brand</label><input className={inputCls} list="brand-options" placeholder="e.g. Hero, Honda, Bajaj" value={form.brand} onChange={(e) => setForm({ ...form, brand: e.target.value })} /><datalist id="brand-options">{[...new Set(data.map((i: any) => i.brand).filter(Boolean))].sort().map((b: string) => <option key={b} value={b} />)}</datalist></div>
-          <ModelPicker selectedIds={selectedModelIds} onChange={setSelectedModelIds} />
-          <div className="grid grid-cols-2 gap-3">
-            <div><label className={labelCls}>Category <span className="text-red-500">*</span></label>
-              <SearchableSelect
-                options={categories.map((c: any) => ({ value: c.id, label: c.categoryName }))}
-                value={form.categoryId}
-                onChange={(v) => setForm({ ...form, categoryId: v })}
-                placeholder="Select category…"
-              />
-            </div>
-            <div><label className={labelCls}>Supplier</label>
-              <SearchableSelect
-                options={[{ value: '', label: 'None' }, ...suppliers.map((s: any) => ({ value: s.id, label: s.supplierName, sublabel: s.phone }))]}
-                value={form.supplierId}
-                onChange={(v) => setForm({ ...form, supplierId: v })}
-                placeholder="Select supplier…"
-              />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div><label className="block text-xs font-medium mb-1">Initial Stock <span className="text-red-500">*</span></label><input className={inputCls} placeholder="0" type="number" required value={form.quantityInStock} onChange={(e) => setForm({ ...form, quantityInStock: e.target.value })} /></div>
-            <div><label className="block text-xs font-medium mb-1">Unit <span className="text-red-500">*</span></label><select className={inputCls} required value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })}><option value="">Select...</option><option value="PCS">PCS</option><option value="LITRE">Litre</option><option value="ML">ML</option><option value="SET">Set</option><option value="KIT">Kit</option><option value="PAIR">Pair</option><option value="BOTTLE">Bottle</option></select></div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div><label className="block text-xs font-medium mb-1">Cost Price <span className="text-red-500">*</span></label><input className={inputCls} placeholder="0" type="number" step="0.01" required value={form.costPrice} onChange={(e) => setForm({ ...form, costPrice: e.target.value })} /></div>
-            <div><label className="block text-xs font-medium mb-1">MRP</label><input className={inputCls} placeholder="0" type="number" step="0.01" value={form.mrp} onChange={(e) => { const mrp = e.target.value; const m = Number(mrp); if (form.discountPercent) { const dp = Number(form.discountPercent) || 0; const sp = mrp ? String((m * (1 - dp / 100)).toFixed(2)) : form.sellingPrice; setForm({ ...form, mrp, sellingPrice: sp }); } else if (m && Number(form.sellingPrice)) { const dp = Math.max(0, (1 - Number(form.sellingPrice) / m) * 100).toFixed(1); setForm({ ...form, mrp, discountPercent: dp }); } else { setForm({ ...form, mrp }); } }} /></div>
-            <div><label className="block text-xs font-medium mb-1">Selling Price <span className="text-red-500">*</span></label><input className={inputCls} placeholder="0" type="number" step="0.01" required value={form.sellingPrice} onChange={(e) => { const sp = e.target.value; const mrp = Number(form.mrp); const dp = mrp && Number(sp) ? Math.max(0, (1 - Number(sp) / mrp) * 100).toFixed(1) : form.discountPercent; setForm({ ...form, sellingPrice: sp, discountPercent: dp }); }} /></div>
-            <div><label className="block text-xs font-medium mb-1">Discount %</label><input className={inputCls} placeholder="0" type="number" step="0.01" min="0" max="100" value={form.discountPercent} onChange={(e) => { const dp = e.target.value; const mrp = Number(form.mrp); const sp = mrp ? String((mrp * (1 - Number(dp) / 100)).toFixed(2)) : form.sellingPrice; setForm({ ...form, discountPercent: dp, sellingPrice: sp }); }} /></div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div><label className="block text-xs font-medium mb-1">AMC Discount %</label><input className={inputCls} placeholder="0" type="number" step="0.01" min="0" max="100" value={form.amcDiscountPercent} onChange={(e) => setForm({ ...form, amcDiscountPercent: e.target.value })} /></div>
-            <div><label className="block text-xs font-medium mb-1">AMC Price</label><input className={inputCls} readOnly value={form.mrp && form.amcDiscountPercent ? (Number(form.mrp) * (1 - Number(form.amcDiscountPercent) / 100)).toFixed(2) : '—'} /></div>
-          </div>
-          <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.variablePrice} onChange={(e) => setForm({ ...form, variablePrice: e.target.checked })} className="rounded" /><span>Variable price (enter price at sale time)</span></label>
-          <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={form.isBranded} onChange={(e) => setForm({ ...form, isBranded: e.target.checked })} className="rounded" /><span>Branded product</span></label>
-          <button type="submit" disabled={creating} className="w-full rounded-lg bg-blue-600 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">{creating ? 'Creating...' : 'Create'}</button>
-        </form>
+        <InventoryItemForm
+          mode="create"
+          form={form}
+          onChange={setForm}
+          modelIds={selectedModelIds}
+          onModelIdsChange={setSelectedModelIds}
+          categories={categories}
+          suppliers={suppliers}
+          hsnRates={hsnRates}
+          brandSuggestions={[...new Set(data.map((i: any) => i.brand).filter(Boolean))].sort() as string[]}
+          submitting={creating}
+          error={createError}
+          onSubmit={onSubmit}
+        />
       </Modal>
-      <InventoryEditModal itemId={editItem?.id || null} onClose={() => setEditItem(null)} onSaved={load} />
+      <Modal open={!!editItem} onClose={() => setEditItem(null)} title={`Edit: ${editItem?.sku || ''}`}>
+        <InventoryItemForm
+          mode="edit"
+          form={editForm}
+          onChange={setEditForm}
+          modelIds={editModelIds}
+          onModelIdsChange={setEditModelIds}
+          categories={categories}
+          suppliers={suppliers}
+          hsnRates={hsnRates}
+          brandSuggestions={[...new Set(data.map((i: any) => i.brand).filter(Boolean))].sort() as string[]}
+          submitting={editSaving}
+          onSubmit={saveEdit}
+        />
+      </Modal>
       <Modal open={!!stockItem} onClose={() => setStockItem(null)} title={`Stock Movement: ${stockItem?.itemName ?? ''}`}>
         <p className="text-sm text-gray-500 mb-3">Current stock: <span className="font-semibold">{stockItem ? Number(stockItem.quantityInStock) : 0}</span></p>
         <form onSubmit={submitStock} className="space-y-3">
