@@ -6,6 +6,8 @@ import { api } from '@/lib/api/client';
 import { PageHeader, StatusBadge } from '@gearup/ui';
 import { WhatsAppButton } from '@/components/shared/whatsapp-button';
 import { Modal } from '@/components/shared/modal';
+import { useAuth } from '@/lib/auth/auth-context';
+import { PERMISSIONS } from '@gearup/types';
 
 // Simplified statuses (what the UI shows and allows)
 const SIMPLE_STATUSES = ['OPEN', 'ESTIMATE_READY', 'IN_PROGRESS', 'READY', 'DELIVERED', 'CANCELLED'] as const;
@@ -63,6 +65,8 @@ function isLocked(s: string) { return ['DELIVERED', 'CANCELLED'].includes(s); }
 export default function JobCardDetailPage() {
   const { id } = useParams();
   const router = useRouter();
+  const { hasPermission } = useAuth();
+  const canViewCost = hasPermission(PERMISSIONS.INVENTORY_VIEW_COST);
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState('');
   const [notes, setNotes] = useState({ diagnosisNotes: '', internalNotes: '' });
@@ -523,12 +527,14 @@ export default function JobCardDetailPage() {
           </div>
           <div><label className="block text-xs font-medium mb-1">Item Name <span className="text-red-500">*</span></label><input className={inputCls} value={newPartForm.itemName} onChange={(e) => setNewPartForm({ ...newPartForm, itemName: e.target.value })} placeholder="e.g. Engine Oil 20W40 1L" /></div>
           <div className="grid grid-cols-3 gap-3">
-            <div><label className="block text-xs font-medium mb-1">Cost Price</label><input type="number" step="0.01" className={inputCls} value={newPartForm.costPrice} onChange={(e) => setNewPartForm({ ...newPartForm, costPrice: e.target.value })} /></div>
+            {canViewCost && <div><label className="block text-xs font-medium mb-1">Cost Price</label><input type="number" step="0.01" className={inputCls} value={newPartForm.costPrice} onChange={(e) => setNewPartForm({ ...newPartForm, costPrice: e.target.value })} /></div>}
             <div><label className="block text-xs font-medium mb-1">Selling Price <span className="text-red-500">*</span></label><input type="number" step="0.01" className={inputCls} value={newPartForm.sellingPrice} onChange={(e) => setNewPartForm({ ...newPartForm, sellingPrice: e.target.value })} /></div>
             <div><label className="block text-xs font-medium mb-1">Stock Qty</label><input type="number" className={inputCls} value={newPartForm.quantityInStock} onChange={(e) => setNewPartForm({ ...newPartForm, quantityInStock: e.target.value })} /></div>
           </div>
           <button type="button" disabled={!newPartForm.sku || !newPartForm.itemName || !newPartForm.sellingPrice} onClick={async () => {
-            const res = await api.post<any>('/admin/inventory/items', { ...newPartForm, costPrice: Number(newPartForm.costPrice) || 0, sellingPrice: Number(newPartForm.sellingPrice), quantityInStock: Number(newPartForm.quantityInStock) || 0 });
+            const body: Record<string, unknown> = { ...newPartForm, costPrice: Number(newPartForm.costPrice) || 0, sellingPrice: Number(newPartForm.sellingPrice), quantityInStock: Number(newPartForm.quantityInStock) || 0 };
+            if (!canViewCost) delete body.costPrice;
+            const res = await api.post<any>('/admin/inventory/items', body);
             if (res.success) {
               setInventoryItems((prev: any) => [res.data, ...prev]);
               onItemSelect(res.data.id);

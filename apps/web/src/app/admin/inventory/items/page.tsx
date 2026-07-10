@@ -16,6 +16,7 @@ import { PERMISSIONS } from '@gearup/types';
 export default function InventoryItemsPage() {
   const { hasPermission } = useAuth();
   const canHardDelete = hasPermission(PERMISSIONS.INVENTORY_HARD_DELETE);
+  const canViewCost = hasPermission(PERMISSIONS.INVENTORY_VIEW_COST);
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -102,6 +103,7 @@ export default function InventoryItemsPage() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const body: Record<string, unknown> = { ...form, costPrice: Number(form.costPrice), mrp: form.mrp ? Number(form.mrp) : undefined, sellingPrice: Number(form.sellingPrice), quantityInStock: Number(form.quantityInStock) };
+    if (!canViewCost) delete body.costPrice;
     if (form.discountPercent) body.discountPercent = Number(form.discountPercent); else delete body.discountPercent;
     if (form.amcDiscountPercent) body.amcDiscountPercent = Number(form.amcDiscountPercent); else delete body.amcDiscountPercent;
     if (form.reorderLevel) body.reorderLevel = Number(form.reorderLevel); else delete body.reorderLevel;
@@ -147,6 +149,7 @@ export default function InventoryItemsPage() {
       storageLocation: editForm.storageLocation || null, hsnCode: editForm.hsnCode || null, isActive: editForm.isActive, variablePrice: editForm.variablePrice, isBranded: editForm.isBranded,
       modelIds: editModelIds,
     };
+    if (!canViewCost) delete body.costPrice;
     const res = await api.patch(`/admin/inventory/items/${editItem.id}`, body);
     setEditSaving(false);
     if (res.success) { setEditItem(null); load(); }
@@ -203,7 +206,7 @@ export default function InventoryItemsPage() {
       return <span className={qty <= 0 ? 'text-red-600 font-medium' : low ? 'text-amber-600 font-medium' : ''}>{qty}</span>;
     }},
     { key: 'storageLocation', header: 'Location', render: (r: any) => r.storageLocation || '—' },
-    { key: 'costPrice', header: 'Purchase (₹)', render: (r: any) => `₹${Number(r.costPrice)}` },
+    ...(canViewCost ? [{ key: 'costPrice', header: 'Purchase (₹)', render: (r: any) => `₹${Number(r.costPrice)}` }] : []),
     { key: 'sellingPrice', header: 'Selling (₹)', render: (r: any) => {
       const mrp = Number(r.mrp) || 0;
       const price = Number(r.sellingPrice);
@@ -304,6 +307,7 @@ export default function InventoryItemsPage() {
           suppliers={suppliers}
           hsnRates={hsnRates}
           brandSuggestions={[...new Set(data.map((i: any) => i.brand).filter(Boolean))].sort() as string[]}
+          showCostPrice={canViewCost}
           submitting={creating}
           error={createError}
           onSubmit={onSubmit}
@@ -320,6 +324,7 @@ export default function InventoryItemsPage() {
           suppliers={suppliers}
           hsnRates={hsnRates}
           brandSuggestions={[...new Set(data.map((i: any) => i.brand).filter(Boolean))].sort() as string[]}
+          showCostPrice={canViewCost}
           submitting={editSaving}
           onSubmit={saveEdit}
         />

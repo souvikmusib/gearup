@@ -8,8 +8,10 @@ import { z } from 'zod';
 
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    requirePermission(PERMISSIONS.INVENTORY_VIEW);
+    const user = requirePermission(PERMISSIONS.INVENTORY_VIEW);
+    const canViewCost = user.permissions.includes(PERMISSIONS.INVENTORY_VIEW_COST);
     const item = await prisma.inventoryItem.findUniqueOrThrow({ where: { id: params.id }, include: { category: true, supplier: true, vehicleModels: { include: { vehicleModel: { include: { brand: true } } } } } });
+    if (!canViewCost) { (item as any).costPrice = undefined; }
     return NextResponse.json({ success: true, data: item });
   } catch (e) { return handleApiError(e); }
 }
@@ -17,6 +19,7 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const user = requirePermission(PERMISSIONS.INVENTORY_EDIT);
+    const canEditCost = user.permissions.includes(PERMISSIONS.INVENTORY_VIEW_COST);
     const body = z.object({
       sku: z.string().min(1).optional(),
       itemName: z.string().min(1).optional(), categoryId: z.string().optional(), supplierId: z.string().nullable().optional(),
@@ -27,6 +30,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       variablePrice: z.boolean().optional(), isBranded: z.boolean().optional(),
       modelIds: z.string().array().optional(),
     }).parse(await req.json());
+    if (!canEditCost) delete (body as any).costPrice;
     const { modelIds, ...data } = body;
     const item = await prisma.$transaction(async (tx) => {
       const updated = await tx.inventoryItem.update({ where: { id: params.id }, data });
