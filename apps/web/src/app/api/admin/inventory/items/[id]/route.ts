@@ -46,28 +46,15 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const user = requirePermission(PERMISSIONS.INVENTORY_EDIT);
-    let softDeleted = false;
     await prisma.$transaction(async (tx) => {
-      const existing = await tx.inventoryItem.findUniqueOrThrow({ where: { id: params.id }, select: { reservedQuantity: true } });
-      if (Number(existing.reservedQuantity) > 0) {
-        throw new AppError(409, `Cannot delete — item has ${existing.reservedQuantity} unit(s) reserved`, 'CONFLICT');
+      const existing = await tx.inventoryItem.findUniqueOrThrow({ where: { id: params.id }, select: { quantityInStock: true, reservedQuantity: true, isActive: true } });
+      const totalStock = Number(existing.quantityInStock) + Number(existing.reservedQuantity);
+      if (totalStock > 0) {
+        throw new AppError(409, `Cannot delete — item still has ${existing.quantityInStock} in stock and ${existing.reservedQuantity} reserved.`, 'CONFLICT');
       }
-      const usedInJobCards = await tx.jobCardPart.count({ where: { inventoryItemId: params.id } });
-      if (usedInJobCards > 0) {
-        throw new AppError(409, `Cannot delete — item is used in ${usedInJobCards} job card(s). Deactivate instead.`, 'CONFLICT');
-      }
-      const movementCount = await tx.stockMovement.count({ where: { inventoryItemId: params.id } });
-      if (movementCount > 0) {
-        // Soft-delete: item has historical stock movements; preserve audit trail.
-        await tx.inventoryItem.update({ where: { id: params.id }, data: { isActive: false } });
-        softDeleted = true;
-        return;
-      }
-      await tx.inventoryItemModel.deleteMany({ where: { inventoryItemId: params.id } });
-      await tx.stockMovement.deleteMany({ where: { inventoryItemId: params.id } });
-      await tx.inventoryItem.delete({ where: { id: params.id } });
+      await tx.inventoryItem.update({ where: { id: params.id }, data: { isActive: false } });
     });
-    logActivity({ entityType: 'InventoryItem', entityId: params.id, action: softDeleted ? 'inventory.item.deactivated' : 'inventory.item.deleted', actorType: 'ADMIN', actorId: user.sub });
-    return NextResponse.json({ success: true, message: softDeleted ? 'Item deactivated (has stock history)' : 'Item deleted' });
+    logActivity({ entityType: 'InventoryItem', entityId: params.id, action: 'inventory.item.deactivated', actorType: 'ADMIN', actorId: user.sub });
+    return NextResponse.json({ success: true, message: 'Item deactivated' });
   } catch (e) { return handleApiError(e); }
 }
