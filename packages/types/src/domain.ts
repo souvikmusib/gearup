@@ -129,6 +129,7 @@ export const PERMISSIONS = {
   AMC_CONTRACTS_VIEW: 'amc.contracts-view',
   AMC_CONTRACTS_MANAGE: 'amc.contracts-manage',
   DATA_EXPORT: 'data.export',
+  INVENTORY_HARD_DELETE: 'inventory.hard-delete',
 } as const;
 
 export type PermissionKey = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
@@ -138,6 +139,7 @@ export type PermissionKey = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
 const SUPER_ADMIN_ONLY_PERMISSIONS: PermissionKey[] = [
   PERMISSIONS.JOB_CARDS_DELETE,
   PERMISSIONS.DATA_EXPORT,
+  PERMISSIONS.INVENTORY_HARD_DELETE,
 ];
 
 export const ROLE_PERMISSIONS: Record<RoleKey, PermissionKey[]> = {
