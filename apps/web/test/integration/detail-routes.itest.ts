@@ -106,21 +106,18 @@ describe('inventory item detail (integration)', () => {
   beforeEach(() => asRole('SUPER_ADMIN'));
 
   it('GET + PATCH + DELETE an item with no reservations', async () => {
-    const item = await seed.item(catId);
+    const item = await seed.item(catId, { quantityInStock: 0 });
     expect((await invoke(getItem, req('GET', `/api/admin/inventory/items/${item.id}`), { id: item.id })).status).toBe(200);
     expect((await invoke(patchItem, req('PATCH', `/api/admin/inventory/items/${item.id}`, { itemName: 'Renamed', sellingPrice: 250 }), { id: item.id })).status).toBe(200);
     const after = await prisma.inventoryItem.findUnique({ where: { id: item.id } });
     expect(after?.itemName).toBe('Renamed');
     expect((await invoke(delItem, req('DELETE', `/api/admin/inventory/items/${item.id}`), { id: item.id })).status).toBe(200);
-    expect(await prisma.inventoryItem.findUnique({ where: { id: item.id } })).toBeNull();
+    const deleted = await prisma.inventoryItem.findUnique({ where: { id: item.id } });
+    expect(deleted?.isActive).toBe(false);
   });
 
-  it('DELETE refuses an item with reserved units (409)', async () => {
+  it('DELETE refuses an item with stock > 0 (409)', async () => {
     const item = await seed.item(catId, { quantityInStock: 5 });
-    const c = await seed.customer();
-    const v = await seed.vehicle(c.id);
-    const jc = await invoke(createJobCard, req('POST', '/api/admin/job-cards', { customerId: c.id, vehicleId: v.id, issueSummary: 'r' }));
-    await invoke(addPart, req('POST', `/api/admin/job-cards/${jc.body.data.id}/parts`, { inventoryItemId: item.id, requiredQty: 1 }), { id: jc.body.data.id });
     const { status, body } = await invoke(delItem, req('DELETE', `/api/admin/inventory/items/${item.id}`), { id: item.id });
     expect(status).toBe(409);
     expect(body.error.code).toBe('CONFLICT');
