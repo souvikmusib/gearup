@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react';
 import { api } from '@/lib/api/client';
 import { Modal } from '@/components/shared/modal';
 import { ModelPicker } from './model-picker';
+import { useAuth } from '@/lib/auth/auth-context';
+import { PERMISSIONS } from '@gearup/types';
 
 interface InventoryEditModalProps {
   itemId: string | null;
@@ -11,6 +13,8 @@ interface InventoryEditModalProps {
 }
 
 export function InventoryEditModal({ itemId, onClose, onSaved }: InventoryEditModalProps) {
+  const { hasPermission } = useAuth();
+  const canViewCost = hasPermission(PERMISSIONS.INVENTORY_VIEW_COST);
   const [form, setForm] = useState({ itemName: '', brand: '', costPrice: '', mrp: '', sellingPrice: '', discountPercent: '', amcDiscountPercent: '', reorderLevel: '', hsnCode: '', isActive: true, variablePrice: false });
   const [modelIds, setModelIds] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
@@ -56,6 +60,7 @@ export function InventoryEditModal({ itemId, onClose, onSaved }: InventoryEditMo
       isActive: form.isActive, variablePrice: form.variablePrice, hsnCode: form.hsnCode || null,
       modelIds,
     };
+    if (!canViewCost) delete body.costPrice;
     const res = await api.patch(`/admin/inventory/items/${itemId}`, body);
     setSaving(false);
     if (res.success) { onSaved(); onClose(); }
@@ -71,7 +76,7 @@ export function InventoryEditModal({ itemId, onClose, onSaved }: InventoryEditMo
         <div><label className={labelCls}>Item Name</label><input className={inputCls} required value={form.itemName} onChange={e => setForm({ ...form, itemName: e.target.value })} /></div>
         <div><label className={labelCls}>Company / Brand</label><input className={inputCls} list="brand-options-edit" placeholder="e.g. Hero, Honda, Bajaj" value={form.brand} onChange={e => setForm({ ...form, brand: e.target.value })} /><datalist id="brand-options-edit"><option value="Hero"/><option value="Honda"/><option value="Bajaj"/><option value="TVS"/><option value="Yamaha"/><option value="Royal Enfield"/><option value="KTM"/><option value="Suzuki"/><option value="Motul"/><option value="Castrol"/><option value="Mahindra"/></datalist></div>
         <div className="grid grid-cols-2 gap-3">
-          <div><label className={labelCls}>Cost Price</label><input type="number" step="0.01" className={inputCls} value={form.costPrice} onChange={e => setForm({ ...form, costPrice: e.target.value })} /></div>
+          {canViewCost && <div><label className={labelCls}>Cost Price</label><input type="number" step="0.01" className={inputCls} value={form.costPrice} onChange={e => setForm({ ...form, costPrice: e.target.value })} /></div>}
           <div><label className={labelCls}>MRP</label><input type="number" step="0.01" className={inputCls} value={form.mrp} onChange={e => { const mrp = e.target.value; const m = Number(mrp); if (form.discountPercent) { const dp = Number(form.discountPercent) || 0; const sp = mrp ? String((m * (1 - dp / 100)).toFixed(2)) : form.sellingPrice; setForm({ ...form, mrp, sellingPrice: sp }); } else if (m && Number(form.sellingPrice)) { const dp = Math.max(0, (1 - Number(form.sellingPrice) / m) * 100).toFixed(1); setForm({ ...form, mrp, discountPercent: dp }); } else { setForm({ ...form, mrp }); } }} /></div>
         </div>
         <div className="grid grid-cols-2 gap-3">

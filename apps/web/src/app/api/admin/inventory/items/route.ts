@@ -10,7 +10,8 @@ import { z } from 'zod';
 
 export async function GET(req: NextRequest) {
   try {
-    requirePermission(PERMISSIONS.INVENTORY_VIEW);
+    const user = requirePermission(PERMISSIONS.INVENTORY_VIEW);
+    const canViewCost = user.permissions.includes(PERMISSIONS.INVENTORY_VIEW_COST);
     const sp = req.nextUrl.searchParams;
     const page = Number(sp.get('page')) || 1;
     const pageSize = Math.min(Number(sp.get('pageSize')) || 20, 500);
@@ -30,13 +31,15 @@ export async function GET(req: NextRequest) {
       prisma.inventoryItem.findMany({ where, ...p, orderBy: { itemName: 'asc' }, include: { category: { select: { categoryName: true } }, supplier: { select: { supplierName: true } } } }),
       prisma.inventoryItem.count({ where }),
     ]);
-    return NextResponse.json({ success: true, data, meta: paginationMeta(total, page, pageSize) });
+    const items = canViewCost ? data : data.map(({ costPrice, ...rest }) => rest);
+    return NextResponse.json({ success: true, data: items, meta: paginationMeta(total, page, pageSize) });
   } catch (e) { return handleApiError(e); }
 }
 
 export async function POST(req: NextRequest) {
   try {
     const user = requirePermission(PERMISSIONS.INVENTORY_EDIT);
+    const canEditCost = user.permissions.includes(PERMISSIONS.INVENTORY_VIEW_COST);
     const body = z.object({
       sku: z.string().min(1), itemName: z.string().min(1), categoryId: z.string().min(1), supplierId: z.string().min(1).optional(),
       brand: z.string().optional(), description: z.string().optional(), unit: z.string().min(1),
@@ -46,6 +49,7 @@ export async function POST(req: NextRequest) {
       variablePrice: z.boolean().optional(), isBranded: z.boolean().optional(),
       modelIds: z.string().array().optional(),
     }).parse(await req.json());
+    if (!canEditCost) delete (body as any).costPrice;
     const openingQty = body.quantityInStock ?? 0;
     const item = await prisma.$transaction(async (tx) => {
       const created = await tx.inventoryItem.create({

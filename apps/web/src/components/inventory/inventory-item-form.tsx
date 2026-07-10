@@ -60,6 +60,8 @@ interface InventoryItemFormProps {
   hsnRates?: { hsnCode: string; rate: number; description: string | null }[];
   /** Existing brand values for autocomplete */
   brandSuggestions?: string[];
+  /** Whether to show cost price field (superadmin only) */
+  showCostPrice?: boolean;
   /** Submit button label */
   submitLabel?: string;
   /** Whether submission is in progress */
@@ -80,6 +82,7 @@ export function InventoryItemForm({
   suppliers: externalSuppliers,
   hsnRates: externalHsnRates,
   brandSuggestions = [],
+  showCostPrice = true,
   submitLabel,
   submitting = false,
   error,
@@ -262,10 +265,12 @@ export function InventoryItemForm({
 
       {/* Pricing: Cost + MRP */}
       <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className={labelCls}>Cost Price {mode === 'create' && <span className="text-red-500">*</span>}</label>
-          <input className={inputCls} placeholder="0" type="number" step="0.01" required={mode === 'create'} value={form.costPrice} onChange={e => set({ costPrice: e.target.value })} />
-        </div>
+        {showCostPrice && (
+          <div>
+            <label className={labelCls}>Cost Price {mode === 'create' && <span className="text-red-500">*</span>}</label>
+            <input className={inputCls} placeholder="0" type="number" step="0.01" required={mode === 'create'} value={form.costPrice} onChange={e => set({ costPrice: e.target.value })} />
+          </div>
+        )}
         <div>
           <label className={labelCls}>MRP</label>
           <input className={inputCls} placeholder="0" type="number" step="0.01" value={form.mrp} onChange={e => handleMrpChange(e.target.value)} />
