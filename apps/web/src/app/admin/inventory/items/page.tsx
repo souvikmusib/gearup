@@ -10,8 +10,12 @@ import { Modal } from '@/components/shared/modal';
 import { InventoryItemForm, EMPTY_FORM, type InventoryItemFormData } from '@/components/inventory/inventory-item-form';
 import { AlertTriangle, FolderOpen, Building2, List as ListIcon, MoreVertical } from 'lucide-react';
 import { getBrandStyle, getBrandInitial } from '@/lib/brand-logos';
+import { useAuth } from '@/lib/auth/auth-context';
+import { PERMISSIONS } from '@gearup/types';
 
 export default function InventoryItemsPage() {
+  const { hasPermission } = useAuth();
+  const canHardDelete = hasPermission(PERMISSIONS.INVENTORY_HARD_DELETE);
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -98,8 +102,9 @@ export default function InventoryItemsPage() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const body: Record<string, unknown> = { ...form, costPrice: Number(form.costPrice), mrp: form.mrp ? Number(form.mrp) : undefined, sellingPrice: Number(form.sellingPrice), quantityInStock: Number(form.quantityInStock) };
-    if (form.discountPercent) body.discountPercent = Number(form.discountPercent);
-    if (form.amcDiscountPercent) body.amcDiscountPercent = Number(form.amcDiscountPercent);
+    if (form.discountPercent) body.discountPercent = Number(form.discountPercent); else delete body.discountPercent;
+    if (form.amcDiscountPercent) body.amcDiscountPercent = Number(form.amcDiscountPercent); else delete body.amcDiscountPercent;
+    if (form.reorderLevel) body.reorderLevel = Number(form.reorderLevel); else delete body.reorderLevel;
     if (!body.supplierId) delete body.supplierId;
     if (selectedModelIds.length) body.modelIds = selectedModelIds;
     if (creating) return;
@@ -165,6 +170,18 @@ export default function InventoryItemsPage() {
     else alert(res.error?.message || 'Failed to delete item');
   };
 
+  const hardDeleteItem = async (item: any) => {
+    if (!confirm(`⚠️ PERMANENTLY DELETE "${item.itemName}" (${item.sku})?\n\nThis will remove the item AND all related stock movements, job card parts, and model associations.\n\nThis action is IRREVERSIBLE.`)) return;
+    if (!confirm(`Are you absolutely sure? Type OK to confirm you want to permanently erase "${item.itemName}" and all its history.`)) return;
+    setItemMenuOpen(null);
+    const res = await api.post<any>(`/admin/inventory/items/${item.id}/hard-delete`, {});
+    if (res.success) {
+      load();
+    } else {
+      alert(res.error?.message || 'Failed to hard-delete item');
+    }
+  };
+
   const submitStock = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!stockItem || !stockForm.quantity) return;
@@ -205,6 +222,7 @@ export default function InventoryItemsPage() {
             <button onClick={() => openStock(r)} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800">📦 Adjust Stock</button>
             <button onClick={() => { setItemMenuOpen(null); navigator.clipboard.writeText(r.sku); }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800">📋 Copy SKU</button>
             <button onClick={() => deleteItem(r)} className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20">🗑️ Delete</button>
+            {canHardDelete && <button onClick={() => hardDeleteItem(r)} className="w-full text-left px-4 py-2 text-sm text-red-700 font-medium hover:bg-red-50 dark:hover:bg-red-900/20">⛔ Hard Delete</button>}
           </div>
           </>
         )}
