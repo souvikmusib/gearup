@@ -32,6 +32,8 @@ export default function StockMovementsPage() {
     { key: 'quantity', header: 'Qty', render: (r: any) => Number(r.quantity) },
     { key: 'previousQuantity', header: 'Prev', render: (r: any) => Number(r.previousQuantity) },
     { key: 'newQuantity', header: 'New', render: (r: any) => Number(r.newQuantity) },
+    { key: 'batch', header: 'Batch', render: (r: any) => r.batch ? <span className="text-xs">{r.batch.batchNumber}</span> : <span className="text-xs text-gray-400">—</span> },
+    { key: 'costPrice', header: 'Cost', render: (r: any) => r.costPrice ? `₹${Number(r.costPrice)}` : '—' },
     { key: 'reason', header: 'Reason' },
   ]} data={data} keyField="id" /><Pagination page={page} totalPages={totalPages} onPageChange={setPage} /></div>);
 }

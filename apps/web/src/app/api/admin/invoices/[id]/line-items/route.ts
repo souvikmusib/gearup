@@ -180,18 +180,54 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
           const updated = await tx.inventoryItem.findUniqueOrThrow({ where: { id: invItem.id } });
           const newQty = Number(updated.quantityInStock);
           const prevQty = newQty + body.quantity;
-          await tx.stockMovement.create({
-            data: {
-              inventoryItemId: invItem.id,
-              movementType: 'STOCK_OUT',
-              quantity: body.quantity,
-              previousQuantity: prevQty,
-              newQuantity: newQty,
-              reason: 'Invoice line item',
-              relatedEntityType: 'Invoice',
-              relatedEntityId: params.id,
-            },
+
+          // FIFO batch deduction
+          const batches = await tx.stockBatch.findMany({
+            where: { inventoryItemId: invItem.id, remainingQty: { gt: 0 } },
+            orderBy: { purchaseDate: 'asc' },
           });
+
+          let remaining = body.quantity;
+          for (const batch of batches) {
+            if (remaining <= 0) break;
+            const batchRemaining = Number(batch.remainingQty);
+            const deduct = Math.min(remaining, batchRemaining);
+            await tx.stockBatch.update({
+              where: { id: batch.id },
+              data: { remainingQty: { decrement: deduct } },
+            });
+            await tx.stockMovement.create({
+              data: {
+                inventoryItemId: invItem.id,
+                movementType: 'STOCK_OUT',
+                quantity: deduct,
+                previousQuantity: prevQty - (body.quantity - remaining),
+                newQuantity: prevQty - (body.quantity - remaining) - deduct,
+                costPrice: batch.costPrice,
+                batchId: batch.id,
+                reason: 'Invoice line item',
+                relatedEntityType: 'Invoice',
+                relatedEntityId: params.id,
+              },
+            });
+            remaining -= deduct;
+          }
+
+          // Fallback if no batches exist (legacy data)
+          if (batches.length === 0) {
+            await tx.stockMovement.create({
+              data: {
+                inventoryItemId: invItem.id,
+                movementType: 'STOCK_OUT',
+                quantity: body.quantity,
+                previousQuantity: prevQty,
+                newQuantity: newQty,
+                reason: 'Invoice line item',
+                relatedEntityType: 'Invoice',
+                relatedEntityId: params.id,
+              },
+            });
+          }
         }
       }
 
