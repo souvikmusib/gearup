@@ -37,7 +37,10 @@ export async function GET(req: NextRequest) {
         where,
         ...p,
         orderBy: { createdAt: 'desc' },
-        include: { inventoryItem: { select: { itemName: true, sku: true } } },
+        include: {
+          inventoryItem: { select: { itemName: true, sku: true } },
+          batch: { select: { id: true, batchNumber: true, costPrice: true, purchaseDate: true, expiryDate: true } },
+        },
       }),
       prisma.stockMovement.count({ where }),
     ]);

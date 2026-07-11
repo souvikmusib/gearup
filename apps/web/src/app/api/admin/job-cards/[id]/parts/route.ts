@@ -20,9 +20,9 @@ async function recalcEstimates(tx: any, jobCardId: string) {
 
 async function adjustStock(tx: any, inventoryItemId: string, qty: number, type: 'RESERVED' | 'RELEASED' | 'CONSUMED', jobCardId: string) {
   if (qty <= 0) return;
-  // RESERVED: stock -qty, reserved +qty
-  // RELEASED: stock +qty, reserved -qty
-  // CONSUMED: stock unchanged (already decremented at RESERVED time), reserved -qty (permanently committed)
+  // RESERVED: stock -qty, reserved +qty — deduct from batches FIFO
+  // RELEASED: stock +qty, reserved -qty — return to newest batch
+  // CONSUMED: stock unchanged (already decremented at RESERVED time), reserved -qty
   const stockDelta = type === 'RESERVED' ? -qty : type === 'RELEASED' ? qty : 0;
   const reservedDelta = type === 'RESERVED' ? qty : -qty;
   const guard =
@@ -48,7 +48,84 @@ async function adjustStock(tx: any, inventoryItemId: string, qty: number, type: 
 
   const item = await tx.inventoryItem.findUniqueOrThrow({ where: { id: inventoryItemId } });
   const newQty = Number(item.quantityInStock);
-  await tx.stockMovement.create({ data: { inventoryItemId, movementType: type, quantity: qty, previousQuantity: newQty - stockDelta, newQuantity: newQty, relatedEntityType: 'JobCard', relatedEntityId: jobCardId } });
+
+  // --- Batch-level FIFO logic ---
+  if (type === 'RESERVED') {
+    // Deduct from batches, oldest first (FIFO)
+    const batches = await tx.stockBatch.findMany({
+      where: { inventoryItemId, remainingQty: { gt: 0 } },
+      orderBy: { purchaseDate: 'asc' },
+    });
+
+    let remaining = qty;
+    for (const batch of batches) {
+      if (remaining <= 0) break;
+      const batchRemaining = Number(batch.remainingQty);
+      const deduct = Math.min(remaining, batchRemaining);
+
+      await tx.stockBatch.update({
+        where: { id: batch.id },
+        data: { remainingQty: { decrement: deduct } },
+      });
+
+      // Record movement per batch consumed
+      await tx.stockMovement.create({
+        data: {
+          inventoryItemId,
+          movementType: type,
+          quantity: deduct,
+          previousQuantity: newQty + remaining,
+          newQuantity: newQty + remaining - deduct,
+          costPrice: batch.costPrice,
+          batchId: batch.id,
+          relatedEntityType: 'JobCard',
+          relatedEntityId: jobCardId,
+        },
+      });
+
+      remaining -= deduct;
+    }
+
+    // If no batches exist (legacy data without migration), create a single movement without batch
+    if (batches.length === 0) {
+      await tx.stockMovement.create({
+        data: { inventoryItemId, movementType: type, quantity: qty, previousQuantity: newQty - stockDelta, newQuantity: newQty, relatedEntityType: 'JobCard', relatedEntityId: jobCardId },
+      });
+    }
+  } else if (type === 'RELEASED') {
+    // Return stock to the most recent batch that still has this item
+    // (approximate reversal — exact batch tracking on release would need a separate junction)
+    const newestBatch = await tx.stockBatch.findFirst({
+      where: { inventoryItemId },
+      orderBy: { purchaseDate: 'desc' },
+    });
+
+    if (newestBatch) {
+      await tx.stockBatch.update({
+        where: { id: newestBatch.id },
+        data: { remainingQty: { increment: qty } },
+      });
+      await tx.stockMovement.create({
+        data: {
+          inventoryItemId, movementType: type, quantity: qty,
+          previousQuantity: newQty - stockDelta, newQuantity: newQty,
+          costPrice: newestBatch.costPrice, batchId: newestBatch.id,
+          relatedEntityType: 'JobCard', relatedEntityId: jobCardId,
+        },
+      });
+    } else {
+      // No batches — legacy fallback
+      await tx.stockMovement.create({
+        data: { inventoryItemId, movementType: type, quantity: qty, previousQuantity: newQty - stockDelta, newQuantity: newQty, relatedEntityType: 'JobCard', relatedEntityId: jobCardId },
+      });
+    }
+  } else {
+    // CONSUMED: stock was already physically decremented at RESERVED time.
+    // No batch qty change needed — just record the movement.
+    await tx.stockMovement.create({
+      data: { inventoryItemId, movementType: type, quantity: qty, previousQuantity: newQty, newQuantity: newQty, relatedEntityType: 'JobCard', relatedEntityId: jobCardId },
+    });
+  }
 }
 
 // Shared line-total math, matching invoices/[id]/line-items/route.ts

@@ -78,6 +78,18 @@ export async function POST(req: NextRequest) {
         },
       });
       if (openingQty > 0) {
+        const batch = await tx.stockBatch.create({
+          data: {
+            inventoryItemId: created.id,
+            batchNumber: 'OPENING-001',
+            supplierId: body.supplierId || null,
+            costPrice: body.costPrice ?? 0,
+            initialQty: openingQty,
+            remainingQty: openingQty,
+            purchaseDate: new Date(),
+            notes: 'Opening balance batch',
+          },
+        });
         await tx.stockMovement.create({
           data: {
             inventoryItemId: created.id,
@@ -85,6 +97,8 @@ export async function POST(req: NextRequest) {
             quantity: openingQty,
             previousQuantity: 0,
             newQuantity: openingQty,
+            costPrice: body.costPrice ?? null,
+            batchId: batch.id,
             reason: 'Opening balance',
             performedByAdminId: user.sub,
           },

@@ -577,6 +577,7 @@ model Supplier {
   contactPerson String?
   notes         String?
   items         InventoryItem[]
+  stockBatches  StockBatch[]
 }
 
 model InventoryItem {
@@ -611,6 +612,7 @@ model InventoryItem {
   category       InventoryCategory  @relation(fields: [categoryId], references: [id])
   supplier       Supplier?          @relation(fields: [supplierId], references: [id])
   stockMovements StockMovement[]
+  stockBatches   StockBatch[]
   jobCardParts   JobCardPart[]
   vehicleModels  InventoryItemModel[]
 
@@ -626,6 +628,8 @@ model StockMovement {
   quantity           Decimal               @db.Decimal(12, 2)
   previousQuantity   Decimal               @db.Decimal(12, 2)
   newQuantity        Decimal               @db.Decimal(12, 2)
+  costPrice          Decimal?              @db.Decimal(12, 2)
+  batchId            String?
   relatedEntityType  String?
   relatedEntityId    String?
   reason             String?
@@ -633,9 +637,34 @@ model StockMovement {
   createdAt          DateTime              @default(now())
 
   inventoryItem InventoryItem @relation(fields: [inventoryItemId], references: [id])
+  batch         StockBatch?   @relation(fields: [batchId], references: [id])
 
   @@index([inventoryItemId])
   @@index([movementType])
+  @@index([batchId])
+}
+
+model StockBatch {
+  id              String    @id @default(cuid())
+  inventoryItemId String
+  batchNumber     String
+  supplierId      String?
+  costPrice       Decimal   @db.Decimal(12, 2)
+  initialQty      Decimal   @db.Decimal(12, 2)
+  remainingQty    Decimal   @db.Decimal(12, 2)
+  purchaseDate    DateTime  @default(now())
+  expiryDate      DateTime?
+  purchaseRef     String?
+  notes           String?
+  createdAt       DateTime  @default(now())
+
+  inventoryItem  InventoryItem  @relation(fields: [inventoryItemId], references: [id])
+  supplier       Supplier?      @relation(fields: [supplierId], references: [id])
+  stockMovements StockMovement[]
+
+  @@index([inventoryItemId, remainingQty])
+  @@index([inventoryItemId, purchaseDate])
+  @@index([supplierId])
 }
 
 model Invoice {

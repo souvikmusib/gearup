@@ -1,4 +1,5 @@
 'use client';
+import { formatIST } from '@/lib/time';
 import { toTitleCase } from '@/lib/title-case';
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { api } from '@/lib/api/client';
@@ -32,8 +33,11 @@ export default function InventoryItemsPage() {
   const [editForm, setEditForm] = useState<InventoryItemFormData>(EMPTY_FORM);
   const [editSaving, setEditSaving] = useState(false);
   const [stockItem, setStockItem] = useState<any>(null);
-  const [stockForm, setStockForm] = useState({ type: 'STOCK_IN', quantity: '', reason: '' });
+  const [stockForm, setStockForm] = useState({ type: 'STOCK_IN', quantity: '', reason: '', costPrice: '', sellingPrice: '', mrp: '', supplierId: '', purchaseRef: '', expiryDate: '' });
   const [stockSaving, setStockSaving] = useState(false);
+  const [batchesItem, setBatchesItem] = useState<any>(null);
+  const [batchesData, setBatchesData] = useState<any>(null);
+  const [batchesLoading, setBatchesLoading] = useState(false);
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'category' | 'company'>('list');
@@ -158,7 +162,7 @@ export default function InventoryItemsPage() {
   const openStock = (item: any, e?: React.MouseEvent) => {
     e?.stopPropagation();
     setStockItem(item);
-    setStockForm({ type: 'STOCK_IN', quantity: '', reason: '' });
+    setStockForm({ type: 'STOCK_IN', quantity: '', reason: '', costPrice: '', sellingPrice: '', mrp: '', supplierId: '', purchaseRef: '', expiryDate: '' });
     setItemMenuOpen(null);
   };
 
@@ -189,9 +193,26 @@ export default function InventoryItemsPage() {
     e.preventDefault();
     if (!stockItem || !stockForm.quantity) return;
     setStockSaving(true);
-    const res = await api.post(`/admin/inventory/items/${stockItem.id}/stock`, { type: stockForm.type, quantity: Number(stockForm.quantity), reason: stockForm.reason || undefined });
+    const payload: any = { type: stockForm.type, quantity: Number(stockForm.quantity), reason: stockForm.reason || undefined };
+    if (stockForm.type === 'STOCK_IN') {
+      if (stockForm.costPrice) payload.costPrice = Number(stockForm.costPrice);
+      if (stockForm.sellingPrice) payload.sellingPrice = Number(stockForm.sellingPrice);
+      if (stockForm.mrp) payload.mrp = Number(stockForm.mrp);
+      if (stockForm.supplierId) payload.supplierId = stockForm.supplierId;
+      if (stockForm.purchaseRef) payload.purchaseRef = stockForm.purchaseRef;
+      if (stockForm.expiryDate) payload.expiryDate = new Date(stockForm.expiryDate).toISOString();
+    }
+    const res = await api.post(`/admin/inventory/items/${stockItem.id}/stock`, payload);
     setStockSaving(false);
     if (res.success) { setStockItem(null); load(); }
+  };
+
+  const openBatches = async (item: any) => {
+    setBatchesItem(item);
+    setBatchesLoading(true);
+    const res = await api.get<any>(`/admin/inventory/items/${item.id}/batches?includeExhausted=true`);
+    setBatchesLoading(false);
+    if (res.success) setBatchesData(res.data);
   };
 
   const columns = [
@@ -223,6 +244,7 @@ export default function InventoryItemsPage() {
           <div className="fixed z-50 w-44 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-lg py-1" style={{ top: menuPos.top, left: menuPos.left }}>
             <button onClick={() => { setItemMenuOpen(null); openEdit(r); }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800">✏️ Edit</button>
             <button onClick={() => openStock(r)} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800">📦 Adjust Stock</button>
+            <button onClick={() => { setItemMenuOpen(null); openBatches(r); }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800">📊 View Batches</button>
             <button onClick={() => { setItemMenuOpen(null); navigator.clipboard.writeText(r.sku); }} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800">📋 Copy SKU</button>
             <button onClick={() => deleteItem(r)} className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20">🗑️ Delete</button>
             {canHardDelete && <button onClick={() => hardDeleteItem(r)} className="w-full text-left px-4 py-2 text-sm text-red-700 font-medium hover:bg-red-50 dark:hover:bg-red-900/20">⛔ Hard Delete</button>}
@@ -341,11 +363,88 @@ export default function InventoryItemsPage() {
             </select>
           </div>
           <div><label className={labelCls}>Quantity</label><input className={inputCls} type="number" min="0.01" step="0.01" required value={stockForm.quantity} onChange={(e) => setStockForm({ ...stockForm, quantity: e.target.value })} /></div>
+          {stockForm.type === 'STOCK_IN' && (
+            <div className="space-y-3 border-t pt-3 mt-2">
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Batch Details</p>
+              <div className="grid grid-cols-3 gap-2">
+                <div><label className={labelCls}>Cost Price (₹)</label><input className={inputCls} type="number" min="0.01" step="0.01" placeholder={stockItem ? `₹${Number(stockItem.costPrice)}` : ''} value={stockForm.costPrice} onChange={(e) => setStockForm({ ...stockForm, costPrice: e.target.value })} /></div>
+                <div><label className={labelCls}>MRP (₹)</label><input className={inputCls} type="number" min="0.01" step="0.01" placeholder={stockItem?.mrp ? `₹${Number(stockItem.mrp)}` : 'MRP'} value={stockForm.mrp} onChange={(e) => setStockForm({ ...stockForm, mrp: e.target.value })} /></div>
+                <div><label className={labelCls}>Selling Price (₹)</label><input className={inputCls} type="number" min="0.01" step="0.01" placeholder={stockItem ? `₹${Number(stockItem.sellingPrice)}` : ''} value={stockForm.sellingPrice} onChange={(e) => setStockForm({ ...stockForm, sellingPrice: e.target.value })} /></div>
+              </div>
+              <p className="text-xs text-gray-400">Leave blank to keep current prices. Fill to update item prices along with stock-in.</p>
+              <div><label className={labelCls}>Supplier</label>
+                <select className={inputCls} value={stockForm.supplierId} onChange={(e) => setStockForm({ ...stockForm, supplierId: e.target.value })}>
+                  <option value="">— Same as item / None —</option>
+                  {suppliers.map((s: any) => <option key={s.id} value={s.id}>{s.supplierName}</option>)}
+                </select>
+              </div>
+              <div><label className={labelCls}>Purchase Ref / Invoice No.</label><input className={inputCls} placeholder="e.g. INV-2026-456" value={stockForm.purchaseRef} onChange={(e) => setStockForm({ ...stockForm, purchaseRef: e.target.value })} /></div>
+              <div><label className={labelCls}>Expiry Date (optional)</label><input className={inputCls} type="date" value={stockForm.expiryDate} onChange={(e) => setStockForm({ ...stockForm, expiryDate: e.target.value })} /></div>
+            </div>
+          )}
           <div><label className={labelCls}>Reason / Reference</label><input className={inputCls} placeholder="e.g. PO #123 from ABC Supplier, or damage report" value={stockForm.reason} onChange={(e) => setStockForm({ ...stockForm, reason: e.target.value })} /></div>
           <button type="submit" disabled={stockSaving} className="w-full rounded-lg bg-green-600 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50">
             {stockSaving ? 'Saving...' : 'Record Movement'}
           </button>
         </form>
+      </Modal>
+      <Modal open={!!batchesItem} onClose={() => { setBatchesItem(null); setBatchesData(null); }} title={`Stock Batches: ${batchesItem?.itemName ?? ''}`}>
+        {batchesLoading && <p className="text-sm text-gray-500">Loading batches...</p>}
+        {batchesData && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3">
+                <p className="text-xs text-gray-500">Total Remaining</p>
+                <p className="font-semibold text-lg">{batchesData.summary.totalRemaining}</p>
+              </div>
+              <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3">
+                <p className="text-xs text-gray-500">Stock Value</p>
+                <p className="font-semibold text-lg">₹{batchesData.summary.totalValue.toLocaleString()}</p>
+              </div>
+              <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-3">
+                <p className="text-xs text-gray-500">Avg Cost</p>
+                <p className="font-semibold text-lg">₹{batchesData.summary.weightedAvgCost}</p>
+              </div>
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+                <p className="text-xs text-gray-500">Total Batches</p>
+                <p className="font-semibold text-lg">{batchesData.summary.totalBatches}</p>
+              </div>
+            </div>
+            {batchesData.summary.expiredBatches > 0 && (
+              <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg p-2">
+                <AlertTriangle size={14} /> {batchesData.summary.expiredBatches} expired batch(es)
+              </div>
+            )}
+            {batchesData.summary.nearExpiryBatches > 0 && (
+              <div className="flex items-center gap-2 text-sm text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-2">
+                <AlertTriangle size={14} /> {batchesData.summary.nearExpiryBatches} batch(es) expiring within 30 days
+              </div>
+            )}
+            <div className="border-t pt-3">
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Batch Breakdown (oldest first)</p>
+              <div className="space-y-2 max-h-64 overflow-y-auto">
+                {batchesData.batches.length === 0 && <p className="text-sm text-gray-400">No batches found. Run migration or add stock.</p>}
+                {batchesData.batches.map((b: any) => (
+                  <div key={b.id} className={`text-sm border rounded-lg p-3 ${b.remainingQty === 0 ? 'opacity-50' : ''} ${b.isExpired ? 'border-red-300 bg-red-50/50 dark:bg-red-900/10' : 'border-gray-200 dark:border-gray-700'}`}>
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <span className="font-medium">{b.batchNumber}</span>
+                        {b.supplier && <span className="text-xs text-gray-500 ml-2">({b.supplier.supplierName})</span>}
+                      </div>
+                      <span className="text-xs text-gray-400">{b.ageDays}d old</span>
+                    </div>
+                    <div className="flex gap-4 mt-1 text-xs text-gray-600 dark:text-gray-400">
+                      <span>Cost: <span className="font-medium">₹{b.costPrice}</span></span>
+                      <span>Remaining: <span className="font-medium">{b.remainingQty}</span>/{b.initialQty}</span>
+                      {b.expiryDate && <span className={b.isExpired ? 'text-red-600' : b.isNearExpiry ? 'text-yellow-600' : ''}>Exp: {formatIST(b.expiryDate)}</span>}
+                    </div>
+                    {b.purchaseRef && <p className="text-xs text-gray-400 mt-1">Ref: {b.purchaseRef}</p>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </Modal>
     </div>
   );
