@@ -212,8 +212,10 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
                 relatedEntityId: params.id,
               },
             });
-            // Use batch sellingPrice for the invoice line (apply discount from item)
-            const batchSellPrice = Number(batch.sellingPrice) || Number(invItem.sellingPrice);
+            // Use batch MRP as invoice unitPrice (discount applied separately via item.discountPercent)
+            // If no MRP, fall back to sellingPrice (discount will be 0 in that case)
+            const batchMrp = batch.mrp ? Number(batch.mrp) : null;
+            const batchSellPrice = batchMrp || Number(batch.sellingPrice) || Number(invItem.sellingPrice);
             splitLines.push({ qty: deduct, unitPrice: batchSellPrice, batchId: batch.id });
             remaining -= deduct;
           }
