@@ -371,7 +371,7 @@ export default function InventoryItemsPage() {
                 <div><label className={labelCls}>MRP (₹)</label><input className={inputCls} type="number" min="0.01" step="0.01" placeholder={stockItem?.mrp ? `₹${Number(stockItem.mrp)}` : 'MRP'} value={stockForm.mrp} onChange={(e) => setStockForm({ ...stockForm, mrp: e.target.value })} /></div>
                 <div><label className={labelCls}>Selling Price (₹)</label><input className={inputCls} type="number" min="0.01" step="0.01" placeholder={stockItem ? `₹${Number(stockItem.sellingPrice)}` : ''} value={stockForm.sellingPrice} onChange={(e) => setStockForm({ ...stockForm, sellingPrice: e.target.value })} /></div>
               </div>
-              <p className="text-xs text-gray-400">Leave blank to keep current prices. Fill to update item prices along with stock-in.</p>
+              <p className="text-xs text-gray-400">Prices apply to this batch only. Old stock keeps its original prices.</p>
               <div><label className={labelCls}>Supplier</label>
                 <select className={inputCls} value={stockForm.supplierId} onChange={(e) => setStockForm({ ...stockForm, supplierId: e.target.value })}>
                   <option value="">— Same as item / None —</option>
@@ -434,7 +434,7 @@ export default function InventoryItemsPage() {
                       <span className="text-xs text-gray-400">{b.ageDays}d old</span>
                     </div>
                     <div className="flex gap-4 mt-1 text-xs text-gray-600 dark:text-gray-400">
-                      <span>Cost: <span className="font-medium">₹{b.costPrice}</span></span>
+                      <span>Cost: <span className="font-medium">₹{b.costPrice}</span> | Sell: <span className="font-medium">₹{b.sellingPrice}</span> | MRP: <span className="font-medium">{b.mrp || '—'}</span></span>
                       <span>Remaining: <span className="font-medium">{b.remainingQty}</span>/{b.initialQty}</span>
                       {b.expiryDate && <span className={b.isExpired ? 'text-red-600' : b.isNearExpiry ? 'text-yellow-600' : ''}>Exp: {formatIST(b.expiryDate)}</span>}
                     </div>

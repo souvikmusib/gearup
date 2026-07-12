@@ -152,29 +152,69 @@ async function syncPartToInvoiceInTx(
   const invoice = await tx.invoice.findFirst({ where: { jobCardId, invoiceStatus: 'DRAFT' } });
   if (!invoice) return;
   const item = await tx.inventoryItem.findUniqueOrThrow({ where: { id: inventoryItemId } });
-  const exists = await tx.invoiceLineItem.findFirst({ where: { invoiceId: invoice.id, referenceItemId: inventoryItemId } });
-  if (exists) return;
+  // Skip if this item already has lines on this invoice (avoid duplicates on re-sync)
+  const existingLines = await tx.invoiceLineItem.findMany({ where: { invoiceId: invoice.id, referenceItemId: inventoryItemId } });
+  if (existingLines.length > 0) return;
+
   const { hsnCode, taxRate } = preResolved;
   const discountPercent = Number(item.discountPercent) || 0;
-  const { taxAmount, lineTotal } = computeLineMath(quantity, unitPrice, taxRate, discountPercent);
-  const count = await tx.invoiceLineItem.count({ where: { invoiceId: invoice.id } });
-  await tx.invoiceLineItem.create({
-    data: {
-      invoiceId: invoice.id,
-      lineType: 'PART',
-      description: item.itemName,
-      hsnCode,
-      quantity,
-      unitPrice,
-      discountPercent,
-      taxRate,
-      taxAmount,
-      lineTotal,
-      sortOrder: count,
-      referenceItemId: item.id,
+
+  // Look up which batches were just consumed for this item on this job card
+  // to determine per-batch selling prices for split lines
+  const recentMovements = await tx.stockMovement.findMany({
+    where: {
+      inventoryItemId,
+      movementType: 'RESERVED',
+      relatedEntityType: 'JobCard',
+      relatedEntityId: jobCardId,
+      batchId: { not: null },
     },
+    include: { batch: { select: { sellingPrice: true, mrp: true } } },
+    orderBy: { createdAt: 'desc' },
+    take: 20, // reasonable upper bound for a single part add
   });
-  // Recalc totals from tx-queried lines (same shape as invoices line-items recalcTotals)
+
+  // Group movements by batch MRP (or sellingPrice if no MRP)
+  const priceGroups = new Map<number, number>();
+  let accountedQty = 0;
+  for (const m of recentMovements) {
+    if (accountedQty >= quantity) break;
+    // Use MRP as the invoice display price (discount applied separately)
+    const batchMrp = m.batch?.mrp ? Number(m.batch.mrp) : null;
+    const batchPrice = batchMrp || Number(m.batch?.sellingPrice) || unitPrice;
+    const mQty = Math.min(Number(m.quantity), quantity - accountedQty);
+    priceGroups.set(batchPrice, (priceGroups.get(batchPrice) || 0) + mQty);
+    accountedQty += mQty;
+  }
+
+  // Fallback: if no movements found (legacy/no batches), use single price
+  if (priceGroups.size === 0) {
+    priceGroups.set(unitPrice, quantity);
+  }
+
+  let sortOrder = await tx.invoiceLineItem.count({ where: { invoiceId: invoice.id } });
+
+  for (const [price, qty] of priceGroups) {
+    const { taxAmount, lineTotal } = computeLineMath(qty, price, taxRate, discountPercent);
+    await tx.invoiceLineItem.create({
+      data: {
+        invoiceId: invoice.id,
+        lineType: 'PART',
+        description: item.itemName,
+        hsnCode,
+        quantity: qty,
+        unitPrice: price,
+        discountPercent,
+        taxRate,
+        taxAmount,
+        lineTotal,
+        sortOrder: sortOrder++,
+        referenceItemId: item.id,
+      },
+    });
+  }
+
+  // Recalc totals
   const lines = await tx.invoiceLineItem.findMany({ where: { invoiceId: invoice.id } });
   const invSubtotal = lines.reduce((s: number, l: { lineTotal: unknown; taxAmount: unknown }) => s + Number(l.lineTotal) - Number(l.taxAmount), 0);
   const invTaxTotal = lines.reduce((s: number, l: { taxAmount: unknown }) => s + Number(l.taxAmount), 0);
