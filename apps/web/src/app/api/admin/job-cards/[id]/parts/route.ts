@@ -169,7 +169,7 @@ async function syncPartToInvoiceInTx(
       relatedEntityId: jobCardId,
       batchId: { not: null },
     },
-    include: { batch: { select: { sellingPrice: true } } },
+    include: { batch: { select: { sellingPrice: true, mrp: true } } },
     orderBy: { createdAt: 'desc' },
     take: 20, // reasonable upper bound for a single part add
   });
@@ -179,7 +179,8 @@ async function syncPartToInvoiceInTx(
   let accountedQty = 0;
   for (const m of recentMovements) {
     if (accountedQty >= quantity) break;
-    const batchSellPrice = Number(m.batch?.sellingPrice) || unitPrice;
+    const batchMrp = m.batch?.mrp ? Number(m.batch.mrp) : null;
+    const batchSellPrice = batchMrp || Number(m.batch?.sellingPrice) || unitPrice;
     const mQty = Math.min(Number(m.quantity), quantity - accountedQty);
     priceGroups.set(batchSellPrice, (priceGroups.get(batchSellPrice) || 0) + mQty);
     accountedQty += mQty;
