@@ -84,6 +84,8 @@ export async function POST(req: NextRequest) {
             batchNumber: 'OPENING-001',
             supplierId: body.supplierId || null,
             costPrice: body.costPrice ?? 0,
+            sellingPrice: body.sellingPrice ?? 0,
+            mrp: body.mrp ?? null,
             initialQty: openingQty,
             remainingQty: openingQty,
             purchaseDate: new Date(),

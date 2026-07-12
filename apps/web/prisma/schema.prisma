@@ -650,6 +650,8 @@ model StockBatch {
   batchNumber     String
   supplierId      String?
   costPrice       Decimal   @db.Decimal(12, 2)
+  sellingPrice    Decimal   @db.Decimal(12, 2)
+  mrp             Decimal?  @db.Decimal(12, 2)
   initialQty      Decimal   @db.Decimal(12, 2)
   remainingQty    Decimal   @db.Decimal(12, 2)
   purchaseDate    DateTime  @default(now())

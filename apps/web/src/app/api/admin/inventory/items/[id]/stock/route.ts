@@ -47,12 +47,22 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       // Create a batch on STOCK_IN
       if (body.type === 'STOCK_IN') {
         const batchCost = body.costPrice ?? Number(rows[0].costPrice);
+        // Get current item sellingPrice/mrp for fallback
+        const item = await tx.inventoryItem.findUniqueOrThrow({
+          where: { id: params.id },
+          select: { sellingPrice: true, mrp: true },
+        });
+        const batchSellingPrice = body.sellingPrice ?? Number(item.sellingPrice);
+        const batchMrp = body.mrp ?? (item.mrp ? Number(item.mrp) : null);
+
         const batch = await tx.stockBatch.create({
           data: {
             inventoryItemId: params.id,
             batchNumber: body.batchNumber || generateBatchNumber(),
             supplierId: body.supplierId || null,
             costPrice: batchCost,
+            sellingPrice: batchSellingPrice,
+            mrp: batchMrp,
             initialQty: body.quantity,
             remainingQty: body.quantity,
             purchaseDate: new Date(),
@@ -62,37 +72,26 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         });
         batchId = batch.id;
 
-        // Recalculate weighted average cost price + update selling/MRP if provided
-        if (body.costPrice || body.sellingPrice || body.mrp) {
-          const updateData: Record<string, any> = {};
+        // Recalculate weighted average cost price on item (cost only — selling price stays on batch)
+        if (body.costPrice) {
+          const batches = await tx.stockBatch.findMany({
+            where: { inventoryItemId: params.id, remainingQty: { gt: 0 } },
+            select: { remainingQty: true, costPrice: true },
+          });
 
-          if (body.costPrice) {
-            const batches = await tx.stockBatch.findMany({
-              where: { inventoryItemId: params.id, remainingQty: { gt: 0 } },
-              select: { remainingQty: true, costPrice: true },
-            });
+          const totalQty = batches.reduce(
+            (sum, b) => sum.add(new Prisma.Decimal(b.remainingQty)),
+            new Prisma.Decimal(0)
+          );
 
-            const totalQty = batches.reduce(
-              (sum, b) => sum.add(new Prisma.Decimal(b.remainingQty)),
+          if (totalQty.gt(0)) {
+            const weightedSum = batches.reduce(
+              (sum, b) => sum.add(new Prisma.Decimal(b.remainingQty).mul(new Prisma.Decimal(b.costPrice))),
               new Prisma.Decimal(0)
             );
-
-            if (totalQty.gt(0)) {
-              const weightedSum = batches.reduce(
-                (sum, b) => sum.add(new Prisma.Decimal(b.remainingQty).mul(new Prisma.Decimal(b.costPrice))),
-                new Prisma.Decimal(0)
-              );
-              updateData.costPrice = weightedSum.div(totalQty);
-            }
-          }
-
-          if (body.sellingPrice) updateData.sellingPrice = body.sellingPrice;
-          if (body.mrp) updateData.mrp = body.mrp;
-
-          if (Object.keys(updateData).length > 0) {
             await tx.inventoryItem.update({
               where: { id: params.id },
-              data: updateData,
+              data: { costPrice: weightedSum.div(totalQty) },
             });
           }
         }

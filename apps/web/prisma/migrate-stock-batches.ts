@@ -46,6 +46,8 @@ async function main() {
       sku: true,
       itemName: true,
       costPrice: true,
+      sellingPrice: true,
+      mrp: true,
       quantityInStock: true,
       reservedQuantity: true,
       supplierId: true,
@@ -80,6 +82,8 @@ async function main() {
         batchNumber: 'LEGACY-001',
         supplierId: item.supplierId,
         costPrice: item.costPrice,
+        sellingPrice: item.sellingPrice,
+        mrp: item.mrp,
         initialQty: totalStock,
         remainingQty: item.quantityInStock, // only the unreserved portion is "remaining"
         purchaseDate: item.createdAt,

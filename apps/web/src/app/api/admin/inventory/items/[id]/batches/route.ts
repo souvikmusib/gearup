@@ -50,6 +50,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       return {
         ...b,
         costPrice: Number(b.costPrice),
+        sellingPrice: Number(b.sellingPrice),
+        mrp: b.mrp ? Number(b.mrp) : null,
         initialQty: Number(b.initialQty),
         remainingQty: Number(b.remainingQty),
         ageDays,
