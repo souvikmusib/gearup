@@ -54,14 +54,19 @@ describe('public booking pipeline (integration, unauthenticated)', () => {
   });
 
   it('available-slots returns slots when rules exist, empty when none', async () => {
+    // Use a Monday within the 90-day window — compute in UTC to match route logic
+    const today = new Date();
+    const target = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() + 30));
+    while (target.getUTCDay() !== 1) target.setUTCDate(target.getUTCDate() + 1); // find next Monday (UTC)
+    const futureMonday = target.toISOString().split('T')[0];
     // No rules yet → empty
-    let r = await invoke(availableSlots, req('GET', '/api/public/available-slots?date=2026-07-13'));
+    let r = await invoke(availableSlots, req('GET', `/api/public/available-slots?date=${futureMonday}`));
     expect(r.status).toBe(200);
     const emptyLen = (r.body.data?.slots ?? r.body.slots ?? []).length;
     expect(emptyLen).toBe(0);
-    // Monday rule (2026-07-13 is a Monday) → slots appear
+    // Monday rule (dayOfWeek=1 in UTC) → slots appear
     await prisma.appointmentSlotRule.create({ data: { dayOfWeek: 1, openTime: '09:00', closeTime: '12:00', slotDurationMinutes: 60, maxCapacity: 2 } });
-    r = await invoke(availableSlots, req('GET', '/api/public/available-slots?date=2026-07-13'));
+    r = await invoke(availableSlots, req('GET', `/api/public/available-slots?date=${futureMonday}`));
     expect(r.status).toBe(200);
     expect((r.body.data?.slots ?? r.body.slots ?? []).length).toBeGreaterThan(0);
   });
