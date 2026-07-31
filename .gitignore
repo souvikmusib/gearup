@@ -15,6 +15,10 @@ coverage
 .envapps/web/test-results/
 apps/web/test-results/
 
+# Data exports
+*.csv
+db-export-*/
+
 # Graphify artifacts
 graphify-out/
 .graphify*

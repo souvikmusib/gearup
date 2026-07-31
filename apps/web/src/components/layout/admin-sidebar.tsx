@@ -45,6 +45,7 @@ const NAV = [
     ],
   },
   { label: 'Expenses', href: '/admin/expenses', icon: DollarSign, permission: 'expenses.view' },
+  { label: 'Salary Slips', href: '/admin/salary-slips', icon: Receipt, permission: 'expenses.view' },
   { label: 'Notifications', href: '/admin/notifications', icon: Bell, permission: 'notifications.view' },
   {
     label: 'Reports', icon: BarChart3, permission: 'reports.view', children: [
@@ -150,7 +151,7 @@ export function AdminSidebar() {
       {mobileOpen && <div className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={() => setMobileOpen(false)} />}
 
       {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 dark:bg-gray-950 dark:border-gray-800 transform transition-transform lg:translate-x-0 lg:static lg:z-auto ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <aside aria-label="Admin navigation" className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 dark:bg-gray-950 dark:border-gray-800 transform transition-transform lg:translate-x-0 lg:static lg:z-auto ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         {sidebar}
       </aside>
     </>
