@@ -2,7 +2,7 @@
 import { formatIST } from '@/lib/time';
 import { useEffect, useRef, useState } from 'react';
 import { api } from '@/lib/api/client';
-import { ProcessLoader } from '@/components/shared/process-loader';
+import { ListBody } from '@/components/shared/list-body';
 import { PageHeader, DataTable } from '@gearup/ui';
 import { Modal } from '@/components/shared/modal';
 import { Pagination } from '@/components/shared/pagination';
@@ -11,6 +11,7 @@ import { ListToolbar } from '@/components/shared/list-toolbar';
 export default function ExpensesPage() {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [categories, setCategories] = useState<any[]>([]);
@@ -25,6 +26,7 @@ export default function ExpensesPage() {
   const [editForm, setEditForm] = useState({ expenseDate: '', categoryId: '', title: '', amount: '', vendorName: '', paymentMode: 'CASH', notes: '' });
   const [editSaving, setEditSaving] = useState(false);
   const [editError, setEditError] = useState('');
+  const hasLoaded = useRef(false);
 
   const load = (s = search, f = filters, pg = page) => {
     const p = new URLSearchParams();
@@ -37,10 +39,18 @@ export default function ExpensesPage() {
       setData(cached.data?.items ?? cached.data ?? []);
       setTotalPages(cached.meta?.totalPages ?? 1);
       setLoading(false);
+    } else if (hasLoaded.current) {
+      // Keep the current rows visible while the new query resolves.
+      setRefreshing(true);
     } else {
       setLoading(true);
     }
-    promise.then((r) => { if (r.success) { setData(r.data?.items ?? r.data ?? []); setTotalPages(r.meta?.totalPages ?? 1); } setLoading(false); });
+    promise.then((r) => {
+      if (r.success) { setData(r.data?.items ?? r.data ?? []); setTotalPages(r.meta?.totalPages ?? 1); }
+      hasLoaded.current = true;
+      setLoading(false);
+      setRefreshing(false);
+    });
   };
   useEffect(() => {
     load();
@@ -112,7 +122,6 @@ export default function ExpensesPage() {
 
   const inputCls = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white';
 
-  if (loading) return <ProcessLoader title="Loading expenses" steps={['Fetching expense records', 'Preparing list']} />;
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
@@ -138,16 +147,18 @@ export default function ExpensesPage() {
         dateRange={{ fromKey: 'from', toKey: 'to', label: 'Expense date' }}
         onFilterChange={(k, v) => { setFilters((prev) => ({ ...prev, [k]: v })); setPage(1); }}
       />
-      <DataTable columns={[
-        { key: 'expenseDate', header: 'Date', render: (r: any) => formatIST(r.expenseDate) },
-        { key: 'title', header: 'Title' },
-        { key: 'category', header: 'Category', render: (r: any) => r.category?.categoryName },
-        { key: 'amount', header: 'Amount', render: (r: any) => `₹${Number(r.amount)}` },
-        { key: 'vendorName', header: 'Vendor' },
-        { key: 'paymentMode', header: 'Mode' },
-        { key: 'actions', header: '', render: (r: any) => <button onClick={(e) => deleteExpense(r.id, e)} className="text-xs text-red-500 hover:underline">Delete</button> },
-      ]} data={data} keyField="id" onRowClick={openEdit} />
-      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+      <ListBody loading={loading} refreshing={refreshing} title="Loading expenses" steps={['Fetching expense records', 'Preparing list']}>
+        <DataTable columns={[
+          { key: 'expenseDate', header: 'Date', render: (r: any) => formatIST(r.expenseDate) },
+          { key: 'title', header: 'Title' },
+          { key: 'category', header: 'Category', render: (r: any) => r.category?.categoryName },
+          { key: 'amount', header: 'Amount', render: (r: any) => `₹${Number(r.amount)}` },
+          { key: 'vendorName', header: 'Vendor' },
+          { key: 'paymentMode', header: 'Mode' },
+          { key: 'actions', header: '', render: (r: any) => <button onClick={(e) => deleteExpense(r.id, e)} className="text-xs text-red-500 hover:underline">Delete</button> },
+        ]} data={data} keyField="id" onRowClick={openEdit} />
+        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+      </ListBody>
 
       <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Add Expense">
         <div className="space-y-3">

@@ -4,7 +4,7 @@ import { formatIST } from '@/lib/time';
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';
-import { ProcessLoader } from '@/components/shared/process-loader';
+import { ListBody } from '@/components/shared/list-body';
 import { PageHeader, DataTable } from '@gearup/ui';
 import { ListToolbar } from '@/components/shared/list-toolbar';
 import { Pagination } from '@/components/shared/pagination';
@@ -13,6 +13,7 @@ import { Modal } from '@/components/shared/modal';
 export default function CustomersPage() {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState('');
@@ -20,6 +21,7 @@ export default function CustomersPage() {
   const [form, setForm] = useState({ fullName: '', phoneNumber: '', email: '' });
   const router = useRouter();
   const timer = useRef<NodeJS.Timeout>();
+  const hasLoaded = useRef(false);
 
   const load = useCallback((s = search, p = page) => {
     const params = new URLSearchParams();
@@ -31,12 +33,17 @@ export default function CustomersPage() {
       setData(cached.data?.items ?? cached.data ?? []);
       setTotalPages(cached.meta?.totalPages ?? 1);
       setLoading(false);
+    } else if (hasLoaded.current) {
+      // Keep the current rows visible while the new query resolves.
+      setRefreshing(true);
     } else {
       setLoading(true);
     }
     promise.then((res) => {
       if (res.success) { setData(res.data?.items ?? res.data ?? []); setTotalPages(res.meta?.totalPages ?? 1); }
+      hasLoaded.current = true;
       setLoading(false);
+      setRefreshing(false);
     });
   }, [search, page]);
 
@@ -66,9 +73,10 @@ export default function CustomersPage() {
     <div>
       <PageHeader title="Customers" />
       <ListToolbar searchPlaceholder="Search customers..." onSearch={onSearch} onCreateClick={() => setShowCreate(true)} createLabel="Create Customer" />
-      {loading ? <ProcessLoader title="Loading customers" steps={['Fetching customer records', 'Preparing list']} /> :
-        <DataTable columns={columns} data={data} keyField="id" onRowClick={(r: any) => router.push(`/admin/customers/${r.id}`)} />}
-      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+      <ListBody loading={loading} refreshing={refreshing} title="Loading customers" steps={['Fetching customer records', 'Preparing list']}>
+        <DataTable columns={columns} data={data} keyField="id" onRowClick={(r: any) => router.push(`/admin/customers/${r.id}`)} />
+        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+      </ListBody>
       <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Create Customer">
         <form onSubmit={onSubmit} className="space-y-3">
           <div><label className="block text-xs font-medium mb-1">Full Name <span className="text-red-500">*</span></label><input className={inputCls} placeholder="Full Name" required value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} /></div>
