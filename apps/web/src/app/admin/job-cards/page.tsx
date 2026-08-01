@@ -1,10 +1,10 @@
 'use client';
 import { formatIST } from '@/lib/time';
 import { toTitleCase, toSentenceCase } from '@/lib/title-case';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { api } from '@/lib/api/client';
-import { ProcessLoader } from '@/components/shared/process-loader';
+import { ListBody } from '@/components/shared/list-body';
 import { PageHeader, DataTable, StatusBadge } from '@gearup/ui';
 import { Modal } from '@/components/shared/modal';
 import { Pagination } from '@/components/shared/pagination';
@@ -17,6 +17,7 @@ import { VehicleRegLookup } from '@/components/shared/vehicle-reg-lookup';
 export default function JobCardsPage() {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState('');
@@ -31,6 +32,7 @@ export default function JobCardsPage() {
   const [vehForm, setVehForm] = useState({ vehicleType: 'BIKE' as string, registrationNumber: '', brand: '', model: '' });
   const router = useRouter();
   const searchParams = useSearchParams();
+  const hasLoaded = useRef(false);
 
   const load = (s = search, f = filters, pg = page) => {
     const p = new URLSearchParams();
@@ -43,13 +45,20 @@ export default function JobCardsPage() {
       setData(cached.data?.items ?? cached.data ?? []);
       setTotalPages(cached.meta?.totalPages ?? 1);
       setLoading(false);
+    } else if (hasLoaded.current) {
+      // Keep the current rows visible while the new query resolves.
+      setRefreshing(true);
     } else {
       setLoading(true);
     }
-    promise.then((r) => { if (r.success) { setData(r.data?.items ?? r.data ?? []); setTotalPages(r.meta?.totalPages ?? 1); } setLoading(false); });
+    promise.then((r) => {
+      if (r.success) { setData(r.data?.items ?? r.data ?? []); setTotalPages(r.meta?.totalPages ?? 1); }
+      hasLoaded.current = true;
+      setLoading(false);
+      setRefreshing(false);
+    });
   };
   useEffect(() => {
-    load();
     api.get<any>('/admin/workers?status=ACTIVE&pageSize=100').then((r) => { if (r.success) setAllWorkers(r.data?.items ?? r.data ?? []); });
   }, []);
   useEffect(() => { load(); }, [page, filters]);
@@ -143,7 +152,6 @@ export default function JobCardsPage() {
 
   const inputCls = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white';
 
-  if (loading) return <ProcessLoader title="Loading job cards" steps={['Fetching active jobs', 'Preparing list']} />;
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
@@ -177,8 +185,10 @@ export default function JobCardsPage() {
         onFilterChange={(k, v) => { setFilters((prev) => ({ ...prev, [k]: v })); setPage(1); }}
       />
 
-      <DataTable columns={columns} data={data} keyField="id" onRowClick={(r: any) => router.push(`/admin/job-cards/${r.id}`)} />
-      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+      <ListBody loading={loading} refreshing={refreshing} title="Loading job cards" steps={['Fetching active jobs', 'Preparing list']}>
+        <DataTable columns={columns} data={data} keyField="id" onRowClick={(r: any) => router.push(`/admin/job-cards/${r.id}`)} />
+        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+      </ListBody>
 
       <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Create Job Card">
         <div className="space-y-4">

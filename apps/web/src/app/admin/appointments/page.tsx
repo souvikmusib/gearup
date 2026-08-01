@@ -4,7 +4,7 @@ import { formatIST, formatTimeIST } from '@/lib/time';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';
-import { ProcessLoader } from '@/components/shared/process-loader';
+import { ListBody } from '@/components/shared/list-body';
 import { PageHeader, DataTable, StatusBadge } from '@gearup/ui';
 import { Modal } from '@/components/shared/modal';
 import { Pagination } from '@/components/shared/pagination';
@@ -14,6 +14,7 @@ import { CustomerPicker } from '@/components/shared/customer-picker';
 export default function AppointmentsPage() {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState('');
@@ -26,6 +27,7 @@ export default function AppointmentsPage() {
   const [error, setError] = useState('');
   const [form, setForm] = useState({ customerId: '', vehicleId: '', appointmentDate: '', slotStart: '', slotEnd: '' });
   const router = useRouter();
+  const hasLoaded = useRef(false);
 
   const load = (s = search, f = filters, pg = page) => {
     const p = new URLSearchParams();
@@ -38,10 +40,18 @@ export default function AppointmentsPage() {
       setData(cached.data?.items ?? cached.data ?? []);
       setTotalPages(cached.meta?.totalPages ?? 1);
       setLoading(false);
+    } else if (hasLoaded.current) {
+      // Keep the current rows visible while the new query resolves.
+      setRefreshing(true);
     } else {
       setLoading(true);
     }
-    promise.then((r) => { if (r.success) { setData(r.data?.items ?? r.data ?? []); setTotalPages(r.meta?.totalPages ?? 1); } setLoading(false); });
+    promise.then((r) => {
+      if (r.success) { setData(r.data?.items ?? r.data ?? []); setTotalPages(r.meta?.totalPages ?? 1); }
+      hasLoaded.current = true;
+      setLoading(false);
+      setRefreshing(false);
+    });
   };
   useEffect(() => { load(); }, [page, filters]);
 
@@ -97,7 +107,6 @@ export default function AppointmentsPage() {
 
   const inputCls = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white';
 
-  if (loading) return <ProcessLoader title="Loading appointments" steps={['Fetching schedule', 'Preparing list']} />;
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
@@ -114,8 +123,10 @@ export default function AppointmentsPage() {
         dateRange={{ fromKey: 'from', toKey: 'to', label: 'Appointment date' }}
         onFilterChange={(k, v) => { setFilters((prev) => ({ ...prev, [k]: v })); setPage(1); }}
       />
-      <DataTable columns={columns} data={data} keyField="id" onRowClick={(r: any) => router.push(`/admin/appointments/${r.id}`)} />
-      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+      <ListBody loading={loading} refreshing={refreshing} title="Loading appointments" steps={['Fetching schedule', 'Preparing list']}>
+        <DataTable columns={columns} data={data} keyField="id" onRowClick={(r: any) => router.push(`/admin/appointments/${r.id}`)} />
+        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+      </ListBody>
 
       <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Create Appointment">
         <div className="space-y-4">

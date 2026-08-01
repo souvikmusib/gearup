@@ -2,16 +2,18 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api/client';
-import { ProcessLoader } from '@/components/shared/process-loader';
+import { ListBody } from '@/components/shared/list-body';
 import { PageHeader, DataTable } from '@gearup/ui';
 import { formatRegNumber } from '@/lib/format-reg';
 import { Modal } from '@/components/shared/modal';
 import { Pagination } from '@/components/shared/pagination';
+import { ListToolbar } from '@/components/shared/list-toolbar';
 import { CustomerPicker } from '@/components/shared/customer-picker';
 
 export default function VehiclesPage() {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState('');
@@ -20,7 +22,7 @@ export default function VehiclesPage() {
   const [error, setError] = useState('');
   const [form, setForm] = useState({ customerId: '', vehicleType: 'BIKE', registrationNumber: '', brand: '', model: '', variant: '', fuelType: '', engineCC: '' });
   const router = useRouter();
-  const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hasLoaded = useRef(false);
 
   const load = (s = search, pg = page) => {
     const p = new URLSearchParams();
@@ -33,10 +35,18 @@ export default function VehiclesPage() {
       setData(cached.data?.items ?? cached.data ?? []);
       setTotalPages(cached.meta?.totalPages ?? 1);
       setLoading(false);
+    } else if (hasLoaded.current) {
+      // Keep the current rows visible while the new query resolves.
+      setRefreshing(true);
     } else {
       setLoading(true);
     }
-    promise.then((r) => { if (r.success) { setData(r.data?.items ?? r.data ?? []); setTotalPages(r.meta?.totalPages ?? 1); } setLoading(false); });
+    promise.then((r) => {
+      if (r.success) { setData(r.data?.items ?? r.data ?? []); setTotalPages(r.meta?.totalPages ?? 1); }
+      hasLoaded.current = true;
+      setLoading(false);
+      setRefreshing(false);
+    });
   };
   useEffect(() => { load(); }, [page]);
 
@@ -59,18 +69,19 @@ export default function VehiclesPage() {
   ];
   const inputCls = 'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white';
 
-  if (loading) return <ProcessLoader title="Loading vehicles" steps={['Fetching vehicle records', 'Preparing list']} />;
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
-        <PageHeader title="Vehicles" />
-        <button onClick={openCreate} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">+ Add Vehicle</button>
-      </div>
-      <div className="mb-4">
-        <input className="w-full max-w-xs rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white" placeholder="Search by reg number, brand..." value={search} onChange={(e) => { const v = e.target.value; setSearch(v); if (searchTimer.current) clearTimeout(searchTimer.current); searchTimer.current = setTimeout(() => load(v), 300); }} />
-      </div>
-      <DataTable columns={columns} data={data} keyField="id" onRowClick={(r: any) => router.push(`/admin/vehicles/${r.id}`)} />
-      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+      <PageHeader title="Vehicles" />
+      <ListToolbar
+        searchPlaceholder="Search by reg number, brand..."
+        onSearch={(s) => { setSearch(s); setPage(1); load(s, 1); }}
+        onCreateClick={openCreate}
+        createLabel="Add Vehicle"
+      />
+      <ListBody loading={loading} refreshing={refreshing} title="Loading vehicles" steps={['Fetching vehicle records', 'Preparing list']}>
+        <DataTable columns={columns} data={data} keyField="id" onRowClick={(r: any) => router.push(`/admin/vehicles/${r.id}`)} />
+        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+      </ListBody>
 
       <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Add Vehicle">
         <div className="space-y-3">
