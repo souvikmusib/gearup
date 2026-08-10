@@ -42,6 +42,7 @@ export default function InvoiceDetailPage() {
   const [addStep, setAddStep] = useState<'type' | 'details'>('type');
   const [editingLines, setEditingLines] = useState(false);
   const [lineEdits, setLineEdits] = useState<Record<string, any>>({});
+  const [highlightedLineId, setHighlightedLineId] = useState<string | null>(null);
   const [showNewPart, setShowNewPart] = useState(false);
   const [newPartForm, setNewPartForm] = useState({ sku: '', itemName: '', unit: 'PCS', costPrice: '', sellingPrice: '', quantityInStock: '' });
   const [amcUpsell, setAmcUpsell] = useState<{ show: boolean; plans: any[] } | null>(null);
@@ -501,7 +502,7 @@ export default function InvoiceDetailPage() {
           </thead>
           <tbody>
             {data.lineItems?.map((li: any, i: number) => (
-              <tr key={li.id} className="border-t border-gray-100 dark:border-gray-800">
+              <tr key={li.id} id={`line-${li.id}`} className={`border-t border-gray-100 dark:border-gray-800 transition-colors ${highlightedLineId === li.id ? 'bg-amber-50 dark:bg-amber-950/30 ring-2 ring-amber-300 dark:ring-amber-700' : ''}`}>
                 <td className="px-5 py-2.5 text-gray-500">{i + 1}</td>
                 <td className="px-5 py-2.5 font-medium">{li.description}{li.sku && <div className="text-xs text-gray-400 font-mono mt-0.5">{li.sku}</div>}</td>
                 <td className="px-5 py-2.5 text-center"><span className="rounded-full bg-gray-100 dark:bg-gray-800 px-2 py-0.5 text-xs">{li.lineType}</span></td>
@@ -569,8 +570,22 @@ export default function InvoiceDetailPage() {
                           <div className="absolute z-50 top-full left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
                             {inventoryItems.filter((i: any) => { if (!newLine.description) return true; const q = newLine.description.toLowerCase().replace(/\s+/g, ' '); return i.itemName.toLowerCase().replace(/\s+/g, ' ').includes(q) || i.sku.toLowerCase().includes(q); }).map((i: any) => {
                               const dp = Number(i.discountPercent) || 0;
-                              return <button key={i.id} type="button" onClick={() => setNewLine({ ...newLine, description: i.itemName, unitPrice: i.variablePrice ? '' : String(Number(i.mrp || i.sellingPrice)), discountPercent: i.mrp ? String(dp) : '0', inventoryItemId: i.id, taxRate: String(data?.showGst ? 18 : 0) })} className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 border-b border-gray-50 dark:border-gray-700 last:border-0">
-                                <span className="font-medium">{i.itemName}</span> <span className="text-xs text-gray-400">({i.sku})</span>{i.variablePrice ? <span className="text-xs text-amber-500 ml-1">[Variable]</span> : <span className="text-xs text-gray-500 ml-1">₹{Number(i.sellingPrice)}</span>}{dp ? <span className="text-xs text-green-600 ml-1">{dp}% off</span> : ''}{i.hsnCode ? <span className="text-xs text-blue-400 ml-1">HSN:{i.hsnCode}</span> : ''}
+                              const existingLine = data?.lineItems?.find((li: any) => li.lineType === 'PART' && li.referenceItemId === i.id);
+                              return <button key={i.id} type="button" onClick={() => {
+                                if (existingLine) {
+                                  // Scroll to existing line and enable editing
+                                  setEditingLines(true);
+                                  setHighlightedLineId(existingLine.id);
+                                  setTimeout(() => { document.getElementById(`line-${existingLine.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
+                                  setTimeout(() => setHighlightedLineId(null), 3000);
+                                  // Reset the add form
+                                  setNewLine({ lineType: 'CUSTOM_CHARGE', description: '', quantity: '1', unitPrice: '', taxRate: '0', discountPercent: '0', discountMode: 'flat', amcPlanId: '', amcContractId: '', inventoryItemId: '' });
+                                  setAddStep('type');
+                                } else {
+                                  setNewLine({ ...newLine, description: i.itemName, unitPrice: i.variablePrice ? '' : String(Number(i.mrp || i.sellingPrice)), discountPercent: i.mrp ? String(dp) : '0', inventoryItemId: i.id, taxRate: String(data?.showGst ? 18 : 0) });
+                                }
+                              }} className={`w-full text-left px-3 py-2 text-sm border-b border-gray-50 dark:border-gray-700 last:border-0 ${existingLine ? 'bg-amber-50 dark:bg-amber-950/20 hover:bg-amber-100 dark:hover:bg-amber-900/30' : 'hover:bg-gray-100 dark:hover:bg-gray-700'}`}>
+                                <span className="font-medium">{i.itemName}</span> <span className="text-xs text-gray-400">({i.sku})</span>{existingLine ? <span className="text-xs text-amber-600 dark:text-amber-400 ml-1 font-semibold">✓ Added · tap to edit</span> : ''}{i.variablePrice ? <span className="text-xs text-amber-500 ml-1">[Variable]</span> : <span className="text-xs text-gray-500 ml-1">₹{Number(i.sellingPrice)}</span>}{dp ? <span className="text-xs text-green-600 ml-1">{dp}% off</span> : ''}{i.hsnCode ? <span className="text-xs text-blue-400 ml-1">HSN:{i.hsnCode}</span> : ''}
                               </button>;
                             })}
                             {inventoryItems.filter((i: any) => { if (!newLine.description) return true; const q = newLine.description.toLowerCase().replace(/\s+/g, ' '); return i.itemName.toLowerCase().replace(/\s+/g, ' ').includes(q) || i.sku.toLowerCase().includes(q); }).length === 0 && <p className="px-3 py-2 text-xs text-gray-400">No matches</p>}
