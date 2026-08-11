@@ -43,6 +43,7 @@ th { background:#f3f4f6; padding:4px 6px; text-align:left; font-size:9px; text-t
     <div class="meta-box"><div class="meta-label">Vehicle</div>${vehicle}${odometer}${fuel}</div>
     <div class="meta-box"><div class="meta-label">Customer</div>${esc(toTitleCase(invoice.customer.fullName))} · ${esc(invoice.customer.phoneNumber)}</div>
   </div>
+  <div style="margin-bottom:4px;padding:3px 8px;background:#e0f2fe;border-radius:4px;font-size:10px"><strong>Estimated Delivery:</strong> _______________</div>
   ${invoice.jobCard?.issueSummary ? `<div style="margin-bottom:4px;padding:3px 8px;background:#fef3c7;border-radius:4px;font-size:10px"><strong>Issue:</strong> ${esc(invoice.jobCard.issueSummary)}</div>` : ''}
   <div style="display:flex;gap:12px">
     ${tasks ? `<div style="flex:1"><strong style="font-size:9px;text-transform:uppercase;color:#666">Tasks</strong><table><tbody>${tasks}</tbody></table></div>` : ''}
@@ -63,6 +64,7 @@ th { background:#f3f4f6; padding:4px 6px; text-align:left; font-size:9px; text-t
     <div class="meta-box"><div class="meta-label">Customer</div>${esc(toTitleCase(invoice.customer.fullName))} · ${esc(invoice.customer.phoneNumber)}</div>
     <div class="meta-box"><div class="meta-label">Vehicle</div>${vehicle}${odometer}${fuel}</div>
   </div>
+  <div style="margin-bottom:4px;padding:3px 8px;background:#e0f2fe;border-radius:4px;font-size:10px"><strong>Estimated Delivery:</strong> _______________</div>
   <table><thead><tr><th>#</th><th>Item</th><th style="text-align:center">Qty</th><th style="text-align:right">Amount</th></tr></thead><tbody>${rows}</tbody></table>
   <div style="margin-top:12px"><div style="padding:6px 10px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:4px;display:flex;justify-content:space-between;align-items:center">
     <span style="font-size:12px;font-weight:700">Total: ₹${Number(invoice.grandTotal).toLocaleString()} · ${esc(invoice.paymentStatus)}</span>

@@ -55,6 +55,10 @@ export function generateCustomerDraftHTML(invoice: any, settings: Record<string,
   </div>
   ${invoice.jobCard?.issueSummary ? `<div style="margin-bottom:16px;padding:12px;background:#fffbeb;border-radius:8px;border:1px solid #fde68a"><strong>Issue:</strong> ${esc(invoice.jobCard.issueSummary)}</div>` : ''}
   <table><thead><tr><th>#</th><th>Service / Part</th><th style="text-align:center">Type</th><th style="text-align:center">Qty</th></tr></thead><tbody>${tableRows}</tbody></table>
+  <div style="margin-top:16px;padding:12px;background:#e0f2fe;border-radius:8px;border:1px solid #bae6fd;display:flex;justify-content:space-between;align-items:center">
+    <div><strong>Estimated Delivery:</strong> ___________________</div>
+    <div style="font-size:11px;color:#666">(Date &amp; Time)</div>
+  </div>
   <div style="margin-top:24px;padding:16px;background:#f0fdf4;border-radius:8px;border:1px solid #bbf7d0;text-align:center;font-weight:600;font-size:15px">Estimate Total: ₹${Number(invoice.grandTotal).toLocaleString()}</div>
   <div class="footer"><p>Thank you for choosing ${esc(biz.name)}!</p></div>
 </div></body></html>`;

@@ -29,6 +29,10 @@ export function generateMechanicCopyHTML(invoice: any, settings: Record<string, 
   <table><thead><tr><th>#</th><th>Task</th><th style="text-align:center">Done</th></tr></thead><tbody>${tasks}</tbody></table>
   <h2>Parts Required</h2>
   <table><thead><tr><th>#</th><th>Part</th><th style="text-align:center">Qty</th><th style="text-align:right">Price</th></tr></thead><tbody>${parts}</tbody></table>
+  <div style="margin-top:24px;padding:12px;background:#e0f2fe;border-radius:8px;border:1px solid #bae6fd;display:flex;justify-content:space-between;align-items:center">
+    <div><strong>Estimated Delivery:</strong> ___________________</div>
+    <div style="font-size:11px;color:#666">(Date &amp; Time)</div>
+  </div>
   <div style="margin-top:32px;border-top:1px solid #eee;padding-top:16px;display:flex;justify-content:space-between">
     <div><strong>Mechanic Signature:</strong> ___________________</div>
     <div><strong>Date:</strong> ___________________</div>
