@@ -45,6 +45,7 @@ export default function InventoryItemsPage() {
   const [vehicleModels, setVehicleModels] = useState<any[]>([]);
   const [selectedModelIds, setSelectedModelIds] = useState<string[]>([]);
   const [editModelIds, setEditModelIds] = useState<string[]>([]);
+  const [showInactive, setShowInactive] = useState(false);
   const [itemMenuOpen, setItemMenuOpen] = useState<string | null>(null);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
   const timer = useRef<NodeJS.Timeout>();
@@ -72,10 +73,11 @@ export default function InventoryItemsPage() {
     }
   };
 
-  const load = useCallback((s = search, p = page, cat = categoryFilter) => {
+  const load = useCallback((s = search, p = page, cat = categoryFilter, inactive = showInactive) => {
     const params = new URLSearchParams();
     if (s) params.set('search', s);
     if (cat) params.set('categoryId', cat);
+    if (inactive) params.set('showInactive', 'true');
     if (viewMode === 'list') {
       params.set('page', String(p));
     } else {
@@ -94,7 +96,7 @@ export default function InventoryItemsPage() {
       if (res.success) { setData(res.data?.items ?? res.data ?? []); setTotalPages(res.meta?.totalPages ?? 1); }
       setLoading(false);
     });
-  }, [search, page, categoryFilter, viewMode]);
+  }, [search, page, categoryFilter, viewMode, showInactive]);
 
   useEffect(() => { load(); }, [page, viewMode]);
 
@@ -217,7 +219,7 @@ export default function InventoryItemsPage() {
 
   const columns = [
     { key: 'sku', header: 'SKU' },
-    { key: 'itemName', header: 'Item', render: (r: any) => <span title={r.itemName}>{r.itemName}</span> },
+    { key: 'itemName', header: 'Item', render: (r: any) => <span title={r.itemName} className={r.isActive === false ? 'text-gray-400 line-through' : ''}>{r.itemName}{r.isActive === false && <span className="ml-2 inline-flex items-center rounded-full bg-red-50 dark:bg-red-900/20 px-1.5 py-0.5 text-[10px] font-medium text-red-600 dark:text-red-400 no-underline">Inactive</span>}</span> },
     { key: 'brand', header: 'Company', render: (r: any) => r.brand || '—' },
     { key: 'category', header: 'Category', render: (r: any) => r.category?.categoryName || '—' },
     { key: 'hsnCode', header: 'GST', nowrap: true, render: (r: any) => r.hsnCode ? <span className="inline-flex items-center rounded-full bg-green-50 dark:bg-green-900/20 px-2 py-0.5 text-[10px] font-medium text-green-700 dark:text-green-400">{r.hsnCode}</span> : <span className="text-xs text-gray-300">No GST</span> },
@@ -290,6 +292,10 @@ export default function InventoryItemsPage() {
           <option value="">All Categories</option>
           {categories.map((c: any) => <option key={c.id} value={c.id}>{c.categoryName}</option>)}
         </select>
+        <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 cursor-pointer select-none">
+          <input type="checkbox" checked={showInactive} onChange={(e) => { setShowInactive(e.target.checked); setPage(1); load(search, 1, categoryFilter, e.target.checked); }} className="rounded border-gray-300 dark:border-gray-600" />
+          Show Inactive
+        </label>
       </div>
 
       {loading ? <ProcessLoader title="Loading inventory" steps={['Fetching items', 'Preparing list']} /> : viewMode === 'list' ? (

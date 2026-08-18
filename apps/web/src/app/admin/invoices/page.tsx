@@ -10,6 +10,8 @@ import { Pagination } from '@/components/shared/pagination';
 import { Modal } from '@/components/shared/modal';
 import { ProcessLoader } from '@/components/shared/process-loader';
 import { CustomerPicker } from '@/components/shared/customer-picker';
+import { VehicleRegLookup } from '@/components/shared/vehicle-reg-lookup';
+import { SearchableSelect } from '@/components/shared/searchable-select';
 
 const PAYMENT_STATUSES = ['UNPAID','PARTIALLY_PAID','PAID'].map(s => ({ label: s.replace(/_/g, ' '), value: s }));
 const INVOICE_STATUSES = ['DRAFT','FINALIZED','CANCELLED'].map(s => ({ label: s, value: s }));
@@ -22,8 +24,11 @@ export default function InvoicesPage() {
   const [search, setSearch] = useState('');
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [showCreate, setShowCreate] = useState(false);
-  const [saleType, setSaleType] = useState<'SERVICE' | 'COUNTER'>('SERVICE');
+  const [saleType, setSaleType] = useState<'SERVICE' | 'COUNTER' | 'ESTIMATE'>('SERVICE');
   const [counterCustomerId, setCounterCustomerId] = useState('')
+  const [estimateCustomerId, setEstimateCustomerId] = useState('');
+  const [estimateVehicleId, setEstimateVehicleId] = useState('');
+  const [estimateVehicles, setEstimateVehicles] = useState<any[]>([]);
   const [jobCards, setJobCards] = useState<any[]>([]);
   const [selectedJC, setSelectedJC] = useState<any>(null);
   const [lineItems, setLineItems] = useState<any[]>([]);
@@ -70,7 +75,81 @@ export default function InvoicesPage() {
     setModalLoading(true);
     const res = await api.get<any>('/admin/job-cards?pageSize=100');
     setModalLoading(false);
-    if (res.success) setJobCards((res.data?.items ?? res.data ?? []).filter((jc: any) => !['CANCELLED', 'CREATED'].includes(jc.status)));
+  };
+
+  const openEstimate = async () => {
+    setSaleType('ESTIMATE');
+    setShowCreate(true); setError(''); setSelectedJC(null); setLineItems([]);
+    setEstimateCustomerId(''); setEstimateVehicleId(''); setEstimateVehicles([]);
+    setEstimateItems([]); setEstPartSearch('');
+  };
+
+  const onEstimateCustomerChange = async (customerId: string) => {
+    setEstimateCustomerId(customerId);
+    setEstimateVehicleId('');
+    if (!customerId) { setEstimateVehicles([]); return; }
+    const res = await api.get<any>(`/admin/vehicles?customerId=${customerId}&pageSize=50`);
+    if (res.success) setEstimateVehicles(res.data?.items ?? res.data ?? []);
+  };
+
+  // ── Estimate part picker state ──
+  const [estimateItems, setEstimateItems] = useState<Array<{ inventoryItemId: string; description: string; quantity: number; unitPrice: number; taxRate: number }>>([]);
+  const [estPartSearch, setEstPartSearch] = useState('');
+  const [estPartDropdownOpen, setEstPartDropdownOpen] = useState(false);
+  const [estInventoryItems, setEstInventoryItems] = useState<any[]>([]);
+  const estQueryRef = useRef('');
+
+  const loadEstimateInventory = async (search = '') => {
+    const normalized = search.trim();
+    estQueryRef.current = normalized;
+    const params = new URLSearchParams({ pageSize: '25' });
+    if (normalized) params.set('search', normalized);
+    const res = await api.get<any>(`/admin/inventory/items?${params.toString()}`);
+    if (estQueryRef.current !== normalized) return;
+    if (res.success) setEstInventoryItems(res.data?.items ?? res.data ?? []);
+  };
+
+  const addEstimatePart = (item: any) => {
+    // Check if already added
+    const existing = estimateItems.findIndex(i => i.inventoryItemId === item.id);
+    if (existing >= 0) {
+      setEstimateItems(items => items.map((it, idx) => idx === existing ? { ...it, quantity: it.quantity + 1 } : it));
+    } else {
+      setEstimateItems(items => [...items, {
+        inventoryItemId: item.id,
+        description: item.itemName,
+        quantity: 1,
+        unitPrice: Number(item.mrp || item.sellingPrice),
+        taxRate: Number(item.taxRate || 0),
+      }]);
+    }
+    setEstPartSearch('');
+    setEstPartDropdownOpen(false);
+  };
+
+  const updateEstimateItem = (index: number, field: string, value: number) => {
+    setEstimateItems(items => items.map((item, i) => i === index ? { ...item, [field]: value } : item));
+  };
+
+  const removeEstimateItem = (index: number) => {
+    setEstimateItems(items => items.filter((_, i) => i !== index));
+  };
+
+  const submitEstimate = async () => {
+    if (!estimateCustomerId || estimateItems.length === 0) { setError('Select a customer and add at least one part'); return; }
+    setSaving(true); setError('');
+    const res = await api.post<any>('/admin/estimates', {
+      customerId: estimateCustomerId,
+      vehicleId: estimateVehicleId || undefined,
+      items: estimateItems.map((item, i) => ({ ...item, sortOrder: i })),
+    });
+    setSaving(false);
+    if (res.success) {
+      setShowCreate(false);
+      router.push(`/admin/estimates/${res.data.id}`);
+    } else {
+      setError(res.error?.message || 'Failed to create estimate');
+    }
   };
 
   const [counterInvoiceStarted, setCounterInvoiceStarted] = useState(false);
@@ -106,11 +185,14 @@ export default function InvoicesPage() {
     if (saleType === 'SERVICE' && (!selectedJC || lineItems.length === 0)) { setError('Select a job card and add line items'); return; }
     if (saleType === 'COUNTER' && lineItems.length === 0) { setError('Add at least one line item'); return; }
     if (saleType === 'COUNTER' && !counterCustomerId) { setError('Select a customer'); return; }
+    if (saleType === 'ESTIMATE' && !estimateCustomerId) { setError('Select a customer'); return; }
     setSaving(true); setError('');
 
     let customerId = '';
     if (saleType === 'SERVICE' && selectedJC) {
       customerId = selectedJC.customerId;
+    } else if (saleType === 'ESTIMATE') {
+      customerId = estimateCustomerId;
     } else {
       customerId = counterCustomerId;
     }
@@ -124,6 +206,9 @@ export default function InvoicesPage() {
     if (saleType === 'SERVICE' && selectedJC) {
       payload.vehicleId = selectedJC.vehicleId;
       payload.jobCardId = selectedJC.id;
+    }
+    if (saleType === 'ESTIMATE' && estimateVehicleId) {
+      payload.vehicleId = estimateVehicleId;
     }
     const res = await api.post<any>('/admin/invoices', payload);
     setSaving(false);
@@ -148,6 +233,7 @@ export default function InvoicesPage() {
         <PageHeader title="Invoices" />
         <div className="flex gap-2">
           <button onClick={openCreate} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">+ New Invoice</button>
+          <button onClick={openEstimate} className="rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-600">+ Create Estimate</button>
           <button onClick={openCounterSale} className="rounded-lg border border-blue-600 px-4 py-2 text-sm font-semibold text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950">+ Counter Sale</button>
         </div>
       </div>
@@ -166,7 +252,7 @@ export default function InvoicesPage() {
         <DataTable columns={columns} data={data} keyField="id" onRowClick={(r: any) => router.push(`/admin/invoices/${r.id}`)} />}
       <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
 
-      <Modal open={showCreate} onClose={() => setShowCreate(false)} title={saleType === 'COUNTER' ? 'Counter Sale' : 'Create Invoice'}>
+      <Modal open={showCreate} onClose={() => setShowCreate(false)} title={saleType === 'COUNTER' ? 'Counter Sale' : saleType === 'ESTIMATE' ? 'Create Estimate' : 'Create Invoice'}>
         <div className="space-y-4">
           {error && <p className="text-sm text-red-600">{error}</p>}
           {modalLoading && <ProcessLoader title="Preparing invoice form" steps={['Loading eligible job cards', 'Reading selected job-card parts', 'Calculating starter line items']} />}
@@ -179,6 +265,37 @@ export default function InvoicesPage() {
                   {jobCards.map((jc: any) => <option key={jc.id} value={jc.id}>{jc.jobCardNumber} — {jc.customer?.fullName} ({jc.vehicle?.registrationNumber})</option>)}
                 </select>
               </>
+            ) : saleType === 'ESTIMATE' ? (
+              <div className="space-y-4 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800">
+                {/* Quick reg number lookup */}
+                <VehicleRegLookup onResolved={({ customerId, vehicleId }) => {
+                  setEstimateCustomerId(customerId);
+                  setEstimateVehicleId(vehicleId);
+                  void onEstimateCustomerChange(customerId).then(() => setEstimateVehicleId(vehicleId));
+                }} />
+
+                <div className="relative flex items-center"><div className="flex-1 border-t border-gray-200 dark:border-gray-700" /><span className="px-3 text-xs text-gray-400">or pick manually</span><div className="flex-1 border-t border-gray-200 dark:border-gray-700" /></div>
+
+                {/* Customer */}
+                <CustomerPicker
+                  value={estimateCustomerId}
+                  onChange={(customerId) => { void onEstimateCustomerChange(customerId); }}
+                  onCustomerCreated={(customer) => { void onEstimateCustomerChange(customer.id); }}
+                />
+
+                {/* Vehicle */}
+                <div>
+                  <label className="text-sm font-medium block mb-1">Vehicle</label>
+                  <SearchableSelect
+                    options={estimateVehicles.map((v: any) => ({ value: v.id, label: v.registrationNumber, sublabel: `${v.brand ?? ''} ${v.model ?? ''}`.trim() || undefined }))}
+                    value={estimateVehicleId}
+                    onChange={(v) => setEstimateVehicleId(v)}
+                    placeholder="Search by reg number, brand, or model…"
+                    disabled={!estimateCustomerId}
+                  />
+                  {!estimateCustomerId && <p className="text-xs text-gray-400 mt-1">Select a customer first to see their vehicles.</p>}
+                </div>
+              </div>
             ) : (
               <div className="space-y-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
                 <CustomerPicker value={counterCustomerId} onChange={setCounterCustomerId} />
@@ -194,8 +311,72 @@ export default function InvoicesPage() {
               else setError(res.error?.message || 'Failed to create');
             }} disabled={saving} className="w-full rounded-lg bg-blue-600 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50">{saving ? 'Creating...' : 'Create Invoice'}</button>
           )}
-          {(selectedJC || (saleType === 'COUNTER' && counterInvoiceStarted)) && (
+          {(selectedJC || (saleType === 'COUNTER' && counterInvoiceStarted) || (saleType === 'ESTIMATE' && estimateCustomerId)) && (
             <>
+              {saleType === 'ESTIMATE' ? (
+                /* ── Estimate Part Picker ── */
+                <div className="space-y-3">
+                  <div>
+                    <span className="text-[10px] text-gray-400 block mb-1">Search Part</span>
+                    <div className="relative">
+                      <input className={inputCls} placeholder="Type to search parts..." value={estPartSearch}
+                        onFocus={() => { void loadEstimateInventory(estPartSearch); setEstPartDropdownOpen(true); }}
+                        onChange={(e) => { const s = e.target.value; setEstPartSearch(s); setEstPartDropdownOpen(true); if (!s || s.length >= 2) void loadEstimateInventory(s); }}
+                        onBlur={() => setTimeout(() => setEstPartDropdownOpen(false), 150)}
+                        autoComplete="off"
+                      />
+                      {estPartDropdownOpen && (
+                        <div className="absolute z-50 top-full left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
+                          {estInventoryItems.map((i: any) => (
+                            <button key={i.id} type="button" onClick={() => addEstimatePart(i)} className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 border-b border-gray-50 dark:border-gray-700 last:border-0">
+                              <span className="font-medium">{i.itemName}</span> <span className="text-xs text-gray-400">({i.sku})</span> <span className="text-xs text-green-600 ml-1">₹{Number(i.mrp || i.sellingPrice)}</span>
+                            </button>
+                          ))}
+                          {estInventoryItems.length === 0 && <p className="px-3 py-2 text-xs text-gray-400">No matches</p>}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Estimate items list */}
+                  {estimateItems.length > 0 && (
+                    <div className="border rounded-lg overflow-hidden">
+                      <table className="w-full text-sm">
+                        <thead className="bg-gray-50 dark:bg-gray-800">
+                          <tr>
+                            <th className="text-left px-3 py-1.5 font-medium text-gray-600 dark:text-gray-400">Part</th>
+                            <th className="text-center px-2 py-1.5 font-medium text-gray-600 dark:text-gray-400 w-16">Qty</th>
+                            <th className="text-right px-2 py-1.5 font-medium text-gray-600 dark:text-gray-400 w-20">Price</th>
+                            <th className="text-right px-3 py-1.5 font-medium text-gray-600 dark:text-gray-400 w-20">Total</th>
+                            <th className="w-8"></th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {estimateItems.map((item, i) => (
+                            <tr key={i} className="border-t border-gray-100 dark:border-gray-700">
+                              <td className="px-3 py-1.5 text-gray-900 dark:text-white truncate max-w-[160px]" title={item.description}>{item.description}</td>
+                              <td className="px-2 py-1"><input type="number" min="1" step="0.5" className="w-14 text-center rounded border border-gray-200 dark:border-gray-600 bg-transparent text-sm py-0.5" value={item.quantity} onChange={(e) => updateEstimateItem(i, 'quantity', Number(e.target.value))} /></td>
+                              <td className="px-2 py-1"><input type="number" min="0" step="1" className="w-18 text-right rounded border border-gray-200 dark:border-gray-600 bg-transparent text-sm py-0.5" value={item.unitPrice} onChange={(e) => updateEstimateItem(i, 'unitPrice', Number(e.target.value))} /></td>
+                              <td className="px-3 py-1.5 text-right font-medium">₹{Math.round(item.quantity * item.unitPrice)}</td>
+                              <td className="px-1"><button onClick={() => removeEstimateItem(i)} className="text-red-400 hover:text-red-600 text-xs">✕</button></td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                      <div className="flex justify-between items-center px-3 py-2 bg-amber-50 dark:bg-amber-900/20 border-t font-semibold text-sm">
+                        <span>Estimate Total</span>
+                        <span className="text-lg">₹{estimateItems.reduce((sum, item) => sum + Math.round(item.quantity * item.unitPrice), 0)}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  <button onClick={submitEstimate} disabled={saving || estimateItems.length === 0} className="w-full rounded-lg bg-amber-500 py-2 text-sm font-semibold text-white hover:bg-amber-600 disabled:opacity-50">
+                    {saving ? 'Creating...' : 'Create Estimate'}
+                  </button>
+                </div>
+              ) : (
+              /* ── Invoice Line Items (SERVICE / COUNTER) ── */
+              <>
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <label className="text-sm font-medium">Line Items</label>
@@ -230,8 +411,10 @@ export default function InvoicesPage() {
                 ))}
               </div>
               <button onClick={submit} disabled={saving} className="w-full rounded-lg bg-blue-600 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50">
-                {saving ? 'Creating invoice...' : 'Create Invoice'}
+                {saving ? 'Creating...' : 'Create Invoice'}
               </button>
+              </>
+              )}
             </>
           )}
         </div>
