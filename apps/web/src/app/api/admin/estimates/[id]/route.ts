@@ -33,7 +33,7 @@ export async function GET(_req: NextRequest, { params }: RouteContext) {
     const estimate = await prisma.estimate.findUnique({
       where: { id: params.id },
       include: {
-        customer: { select: { fullName: true, phoneNumber: true, addressLine1: true, city: true } },
+        customer: { select: { fullName: true, phoneNumber: true, email: true, addressLine1: true, city: true } },
         vehicle: { select: { registrationNumber: true, brand: true, model: true } },
         items: {
           include: { inventoryItem: { select: { sku: true, itemName: true, hsnCode: true } } },

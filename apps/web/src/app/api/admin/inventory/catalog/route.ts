@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { requirePermission } from '@/lib/auth';
 import { handleApiError } from '@/lib/errors';
 import { PERMISSIONS } from '@gearup/types';
+import { z } from 'zod';
 
 export async function GET(req: NextRequest) {
   try {
@@ -57,5 +58,22 @@ export async function GET(req: NextRequest) {
     }
 
     return NextResponse.json({ success: true, data: [] });
+  } catch (e) { return handleApiError(e); }
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    requirePermission(PERMISSIONS.INVENTORY_EDIT);
+    const body = z.object({
+      name: z.string().trim().min(1),
+      logoUrl: z.string().optional(),
+    }).parse(await req.json());
+
+    const brand = await prisma.vehicleBrand.upsert({
+      where: { name: body.name },
+      update: {},
+      create: { name: body.name, logoUrl: body.logoUrl || null },
+    });
+    return NextResponse.json({ success: true, data: brand }, { status: 201 });
   } catch (e) { return handleApiError(e); }
 }

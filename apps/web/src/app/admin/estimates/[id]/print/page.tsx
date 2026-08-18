@@ -12,237 +12,376 @@ export default function EstimatePrintPage() {
     api.get<any>(`/admin/estimates/${id}`).then((res) => {
       if (res.success) {
         setData(res.data);
-        setTimeout(() => window.print(), 500);
+        setTimeout(() => window.print(), 600);
       }
     });
   }, [id]);
 
   if (!data) return <p style={{ textAlign: 'center', padding: '40px', fontFamily: 'system-ui' }}>Loading...</p>;
 
-  const grandTotal = Number(data.grandTotal);
-  const subtotal = Number(data.subtotal);
-  const taxTotal = Number(data.taxTotal);
+  // Separate items by line type
+  const partItems = (data.items || []).filter((i: any) => !i.lineType || i.lineType === 'PART');
+  const labourItems = (data.items || []).filter((i: any) => i.lineType === 'LABOR');
+  const serviceItems = (data.items || []).filter((i: any) => i.lineType === 'SERVICE_CHARGE' || i.lineType === 'CUSTOM_CHARGE');
+  const discountItems = (data.items || []).filter((i: any) => i.lineType === 'DISCOUNT_ADJUSTMENT');
+
+  // Compute totals
+  const computeLineTotal = (item: any) => {
+    const base = Number(item.quantity) * Number(item.unitPrice);
+    const disc = base * (Number(item.discountPercent || 0) / 100);
+    const afterDisc = base - disc;
+    const taxRate = Number(item.taxRate || 0);
+    const cgst = afterDisc * (taxRate / 200); // half of total GST
+    const sgst = cgst;
+    const total = afterDisc + cgst + sgst;
+    return { base: afterDisc, cgst, sgst, taxRate, total };
+  };
+
+  const partsTotal = partItems.reduce((sum: number, i: any) => sum + computeLineTotal(i).total, 0);
+  const labourTotal = labourItems.reduce((sum: number, i: any) => sum + computeLineTotal(i).total, 0);
+  const serviceTotal = serviceItems.reduce((sum: number, i: any) => sum + computeLineTotal(i).total, 0);
+  const discountTotal = discountItems.reduce((sum: number, i: any) => sum + computeLineTotal(i).total, 0);
+  const totalCGST = [...partItems, ...labourItems, ...serviceItems].reduce((sum: number, i: any) => sum + computeLineTotal(i).cgst, 0);
+  const totalSGST = [...partItems, ...labourItems, ...serviceItems].reduce((sum: number, i: any) => sum + computeLineTotal(i).sgst, 0);
+  const grandTotal = partsTotal + labourTotal + serviceTotal - discountTotal;
+
   const createdDate = formatIST(data.createdAt);
   const validUntil = data.validUntil ? formatIST(data.validUntil) : null;
+
+  const formatCurrency = (n: number) => `₹${Math.round(n).toLocaleString('en-IN')}`;
+  const formatDecimal = (n: number) => `₹${n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: `
-        :root {
-          --brand-red: #e01010;
-          --dark-red: #ac0000;
-          --surface-bg: #ffffff;
-          --surface-muted: #f9f9f9;
-          --text-primary: #1a1a1a;
-          --text-muted: #6a6a6a;
-          --border: #e5e5e5;
-          --accent-green: #1a6b2a;
-        }
+        :root { --brand-red: #e01010; --dark: #1a1a1a; --muted: #6a6a6a; --border: #e0e0e0; --surface: #f9f9f9; --accent-green: #16a34a; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Google Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: var(--text-primary); font-size: 12px; background: #f5f5f5; }
+        body { font-family: 'Segoe UI', -apple-system, sans-serif; font-size: 11px; color: var(--dark); background: #f0f0f0; }
         @media print {
           body { background: none; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-          @page { margin: 10mm; size: A4; }
+          @page { margin: 8mm; size: A4; }
           .no-print { display: none !important; }
-          .estimate-page { box-shadow: none !important; }
+          .page { box-shadow: none !important; margin: 0 !important; }
           nav, aside, [class*="Sidebar"], [class*="sidebar"] { display: none !important; }
           main { padding: 0 !important; margin: 0 !important; overflow: visible !important; }
           .flex.h-screen { display: block !important; }
         }
-        .estimate-page {
-          max-width: 800px; margin: 20px auto; background: #fff; padding: 0;
-          box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-radius: 8px; overflow: hidden;
-          color: #1a1a1a !important;
-        }
-        .header-bar {
-          background: var(--text-primary); padding: 24px 40px; display: flex;
-          justify-content: space-between; align-items: center;
-        }
-        .brand { display: flex; align-items: center; gap: 12px; }
-        .brand img { height: 36px; width: auto; }
-        .estimate-badge {
-          background: var(--brand-red); color: #fff; padding: 8px 20px;
-          border-radius: 4px; font-size: 16px; font-weight: 700; letter-spacing: 1px;
-          text-transform: uppercase;
-        }
-        .body-content { padding: 32px 40px; }
-        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 28px; }
-        .info-box { padding: 16px; background: var(--surface-muted); border-radius: 8px; border: 1px solid var(--border); }
-        .info-label { font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-muted); font-weight: 600; margin-bottom: 6px; }
-        .info-value { font-size: 15px; font-weight: 600; }
-        .info-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
-        .meta-row { display: flex; gap: 16px; margin-bottom: 24px; }
-        .meta-pill { padding: 6px 14px; background: var(--surface-muted); border-radius: 20px; font-size: 11px; color: var(--text-muted); border: 1px solid var(--border); }
-        .meta-pill strong { color: var(--text-primary); }
-        .items-table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
-        .items-table th {
-          text-align: left; padding: 10px 12px; font-size: 9px; text-transform: uppercase;
-          letter-spacing: 1px; color: var(--text-muted); font-weight: 600;
-          border-bottom: 2px solid var(--text-primary);
-        }
-        .items-table th.right { text-align: right; }
-        .items-table th.center { text-align: center; }
-        .items-table td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 12px; color: var(--text-primary); }
-        .items-table td.right { text-align: right; color: var(--text-primary); }
-        .items-table td.center { text-align: center; color: var(--text-primary); }
-        .items-table tr:last-child td { border-bottom: none; }
-        .item-name { font-weight: 600; color: #1a1a1a; }
-        .item-sku { font-size: 10px; color: #6a6a6a; }
-        .totals-section { display: flex; justify-content: flex-end; }
-        .totals-card {
-          width: 280px; background: var(--text-primary); padding: 20px 24px;
-          border-radius: 8px; color: #fff;
-        }
-        .totals-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; }
-        .totals-row.grand {
-          margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.15);
-          font-size: 20px; font-weight: 700; color: var(--brand-red);
-        }
-        .totals-row.grand span:last-child { color: #fff; }
-        .notes-box {
-          margin-top: 24px; padding: 12px 16px; background: #fffbeb;
-          border: 1px solid #fde68a; border-radius: 6px; font-size: 11px; color: #92400e;
-        }
-        .footer-section {
-          margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border);
-          text-align: center; color: var(--text-muted); font-size: 10px;
-        }
-        .footer-section strong { color: var(--text-primary); }
-        .footer-contact { margin-top: 4px; }
-        .validity-note {
-          margin-top: 16px; padding: 10px 16px; background: #f0fdf4; border: 1px solid #bbf7d0;
-          border-radius: 6px; font-size: 11px; color: var(--accent-green); text-align: center;
-        }
-        .print-btn {
-          display: block; margin: 20px auto; padding: 12px 32px; background: var(--text-primary);
-          color: var(--brand-red); border: none; border-radius: 6px; font-weight: 700;
-          font-size: 13px; text-transform: uppercase; letter-spacing: 1px; cursor: pointer;
-        }
+        .page { max-width: 800px; margin: 20px auto; background: #fff; box-shadow: 0 4px 24px rgba(0,0,0,0.1); overflow: hidden; }
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 20px 32px; background: var(--dark); color: #fff; }
+        .header-left img { height: 36px; }
+        .header-right { text-align: right; color: #ccc; font-size: 10px; line-height: 1.6; }
+        .header-right .name { font-size: 13px; font-weight: 700; color: #fff; }
+        .header-right .gstin { font-weight: 600; color: #aaa; }
+        .title-bar { background: var(--brand-red); text-align: center; padding: 6px; color: #fff; font-size: 14px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+        .info-section { padding: 24px 32px 16px; }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+        .info-col { }
+        .info-col + .info-col { border-left: 1px solid var(--border); }
+        .info-row { display: grid; grid-template-columns: 130px 1fr; border-bottom: 1px solid var(--border); }
+        .info-row:last-child { border-bottom: none; }
+        .info-label { padding: 7px 10px; background: var(--surface); font-weight: 600; font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); border-right: 1px solid var(--border); }
+        .info-value { padding: 7px 10px; font-weight: 500; font-size: 11px; }
+        .section-title { padding: 10px 0 6px; font-size: 12px; font-weight: 700; color: var(--dark); border-bottom: 2px solid var(--dark); margin: 16px 32px 0; }
+        .est-table { width: calc(100% - 64px); margin: 0 32px; border-collapse: collapse; margin-top: 4px; }
+        .est-table th { text-align: left; padding: 7px 6px; font-size: 9px; text-transform: uppercase; letter-spacing: 0.7px; color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--border); background: var(--surface); }
+        .est-table th.r { text-align: right; }
+        .est-table th.c { text-align: center; }
+        .est-table td { padding: 6px; border-bottom: 1px solid #f0f0f0; font-size: 11px; }
+        .est-table td.r { text-align: right; }
+        .est-table td.c { text-align: center; }
+        .est-table td.code { font-family: 'SF Mono', Consolas, monospace; font-size: 10px; color: var(--muted); }
+        .est-table tr:last-child td { border-bottom: none; }
+        .subtotal-row td { border-top: 2px solid var(--dark) !important; font-weight: 700; padding-top: 8px !important; background: var(--surface); }
+        .totals-section { margin: 20px 32px; display: flex; justify-content: flex-end; }
+        .totals-box { width: 300px; border: 2px solid var(--dark); border-radius: 6px; overflow: hidden; }
+        .totals-row { display: flex; justify-content: space-between; padding: 9px 14px; border-bottom: 1px solid var(--border); font-size: 12px; }
+        .totals-row:last-child { border-bottom: none; }
+        .totals-row.grand { background: var(--dark); color: #fff; font-size: 15px; font-weight: 700; }
+        .totals-row.grand .amt { color: var(--brand-red); }
+        .notes-section { margin: 14px 32px; padding: 10px 14px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 6px; }
+        .notes-section strong { font-size: 9px; text-transform: uppercase; color: #92400e; }
+        .notes-section p { margin-top: 3px; font-size: 11px; color: #78350f; }
+        .validity { margin: 10px 32px; padding: 7px 14px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; text-align: center; font-size: 10px; color: var(--accent-green); }
+        .signatures { margin: 36px 32px 16px; display: flex; justify-content: space-between; }
+        .sig-box { text-align: center; width: 200px; }
+        .sig-line { border-top: 1px solid var(--dark); margin-bottom: 5px; }
+        .sig-label { font-size: 10px; color: var(--muted); }
+        .sig-for { font-size: 10px; font-weight: 600; margin-top: 2px; }
+        .footer { margin: 0 32px; padding: 14px 0; border-top: 1px solid var(--border); text-align: center; font-size: 10px; color: var(--muted); }
+        .footer strong { color: var(--dark); }
+        .print-btn { display: block; margin: 20px auto; padding: 12px 32px; background: var(--dark); color: var(--brand-red); border: none; border-radius: 6px; font-weight: 700; font-size: 13px; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; }
         .print-btn:hover { background: #333; }
-        .line-type-badge {
-          display: inline-block; padding: 2px 8px; border-radius: 10px;
-          font-size: 9px; font-weight: 600; text-transform: uppercase;
-          letter-spacing: 0.5px; background: #f3f4f6; color: #4b5563;
-        }
-        .line-type-badge[data-type="PART"] { background: #dbeafe; color: #1d4ed8; }
-        .line-type-badge[data-type="LABOR"] { background: #fef3c7; color: #92400e; }
-        .line-type-badge[data-type="SERVICE_CHARGE"] { background: #e0e7ff; color: #4338ca; }
-        .line-type-badge[data-type="CUSTOM_CHARGE"] { background: #f3e8ff; color: #7c3aed; }
-        .line-type-badge[data-type="DISCOUNT_ADJUSTMENT"] { background: #fecaca; color: #dc2626; }
       `}} />
 
-      <div className="estimate-page">
-        <div className="header-bar">
-          <div className="brand">
+      <div className="page">
+        {/* Header */}
+        <div className="header">
+          <div className="header-left">
             <img src="/brand/gearup-logo.png" alt="GearUp" />
           </div>
-          <div className="estimate-badge">Estimate</div>
+          <div className="header-right">
+            <div className="name">GearUp Servicing</div>
+            <div>Milanpally, Katjuridanga, Bankura, WB 722101</div>
+            <div>📞 9242519099 · gearup.sgnk.ai@gmail.com</div>
+            <div className="gstin">GSTIN: 19EHTPM1499B1ZS</div>
+          </div>
         </div>
+        <div className="title-bar">Service Estimate</div>
 
-        <div className="body-content">
-          <div className="meta-row">
-            <div className="meta-pill"><strong>{data.estimateNumber}</strong></div>
-            <div className="meta-pill">Date: <strong>{createdDate}</strong></div>
-            {validUntil && <div className="meta-pill">Valid Until: <strong>{validUntil}</strong></div>}
-          </div>
-
+        {/* Customer & Estimate Info */}
+        <div className="info-section">
           <div className="info-grid">
-            <div className="info-box">
-              <div className="info-label">Customer</div>
-              <div className="info-value">{data.customer?.fullName}</div>
-              <div className="info-sub">{data.customer?.phoneNumber}</div>
-              {data.customer?.addressLine1 && <div className="info-sub">{data.customer.addressLine1}{data.customer.city ? `, ${data.customer.city}` : ''}</div>}
-            </div>
-            <div className="info-box">
-              <div className="info-label">Vehicle</div>
-              {data.vehicle ? (
-                <>
-                  <div className="info-value">{data.vehicle.registrationNumber}</div>
-                  <div className="info-sub">{data.vehicle.brand} {data.vehicle.model}</div>
-                </>
-              ) : (
-                <div className="info-value" style={{ color: '#999' }}>—</div>
-              )}
-            </div>
-          </div>
-
-          <table className="items-table">
-            <thead>
-              <tr>
-                <th style={{ width: '30px' }}>#</th>
-                <th>Description</th>
-                <th style={{ width: '80px' }}>Type</th>
-                <th className="center" style={{ width: '50px' }}>Qty</th>
-                <th className="right" style={{ width: '90px' }}>Unit Price</th>
-                <th className="right" style={{ width: '90px' }}>Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.items.map((item: any, i: number) => {
-                const lineType = item.lineType || 'PART';
-                const typeLabel = lineType.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
-                const isDiscount = lineType === 'DISCOUNT_ADJUSTMENT';
-                const lineAmount = isDiscount
-                  ? -Math.abs(Number(item.quantity) * Number(item.unitPrice))
-                  : Number(item.quantity) * Number(item.unitPrice);
-                return (
-                  <tr key={item.id}>
-                    <td style={{ color: '#999' }}>{i + 1}</td>
-                    <td>
-                      <div className="item-name">{item.description}</div>
-                      {item.inventoryItem?.sku && <div className="item-sku">{item.inventoryItem.sku}{(item.hsnCode || item.inventoryItem.hsnCode) ? ` · HSN ${item.hsnCode || item.inventoryItem.hsnCode}` : ''}</div>}
-                    </td>
-                    <td><span className="line-type-badge" data-type={lineType}>{typeLabel}</span></td>
-                    <td className="center">{Number(item.quantity)}</td>
-                    <td className="right">₹{Number(item.unitPrice).toLocaleString('en-IN')}</td>
-                    <td className="right" style={{ fontWeight: 600, color: isDiscount ? '#dc2626' : undefined }}>
-                      {isDiscount ? '−' : ''}₹{Math.abs(Math.round(lineAmount)).toLocaleString('en-IN')}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-
-          <div className="totals-section">
-            <div className="totals-card">
-              <div className="totals-row">
-                <span>Subtotal</span>
-                <span>₹{subtotal.toLocaleString('en-IN')}</span>
+            <div className="info-col">
+              <div className="info-row">
+                <div className="info-label">Customer</div>
+                <div className="info-value">{data.customer?.fullName}</div>
               </div>
-              {taxTotal > 0 && (
-                <div className="totals-row">
-                  <span>Tax</span>
-                  <span>₹{taxTotal.toLocaleString('en-IN')}</span>
+              <div className="info-row">
+                <div className="info-label">Mobile</div>
+                <div className="info-value">{data.customer?.phoneNumber || '—'}</div>
+              </div>
+              {data.customer?.email && (
+                <div className="info-row">
+                  <div className="info-label">Email</div>
+                  <div className="info-value">{data.customer.email}</div>
                 </div>
               )}
-              <div className="totals-row grand">
-                <span>Total</span>
-                <span>₹{grandTotal.toLocaleString('en-IN')}</span>
+              {data.customer?.addressLine1 && (
+                <div className="info-row">
+                  <div className="info-label">Address</div>
+                  <div className="info-value">{data.customer.addressLine1}{data.customer.city ? `, ${data.customer.city}` : ''}</div>
+                </div>
+              )}
+              {data.notes && (
+                <div className="info-row">
+                  <div className="info-label">Customer Voice</div>
+                  <div className="info-value" style={{ color: '#e01010', fontWeight: 600 }}>{data.notes}</div>
+                </div>
+              )}
+            </div>
+            <div className="info-col">
+              <div className="info-row">
+                <div className="info-label">Estimate #</div>
+                <div className="info-value" style={{ fontWeight: 700 }}>{data.estimateNumber}</div>
               </div>
+              <div className="info-row">
+                <div className="info-label">Estimate Date</div>
+                <div className="info-value">{createdDate}</div>
+              </div>
+              {validUntil && (
+                <div className="info-row">
+                  <div className="info-label">Valid Until</div>
+                  <div className="info-value">{validUntil}</div>
+                </div>
+              )}
+              {data.vehicle && (
+                <>
+                  <div className="info-row">
+                    <div className="info-label">Reg Number</div>
+                    <div className="info-value" style={{ fontWeight: 700 }}>{data.vehicle.registrationNumber}</div>
+                  </div>
+                  <div className="info-row">
+                    <div className="info-label">Vehicle</div>
+                    <div className="info-value">{data.vehicle.brand} {data.vehicle.model}</div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
+        </div>
 
-          {data.notes && (
-            <div className="notes-box">
-              <strong>Note:</strong> {data.notes}
+        {/* Parts Section */}
+        {partItems.length > 0 && (
+          <>
+            <div className="section-title">Parts Description</div>
+            <table className="est-table">
+              <thead>
+                <tr>
+                  <th style={{ width: '75px' }}>Code</th>
+                  <th>Description</th>
+                  <th className="c" style={{ width: '32px' }}>Qty</th>
+                  <th className="r" style={{ width: '68px' }}>Price</th>
+                  <th className="c" style={{ width: '50px' }}>GST %</th>
+                  <th className="r" style={{ width: '58px' }}>CGST</th>
+                  <th className="r" style={{ width: '58px' }}>SGST</th>
+                  <th className="r" style={{ width: '75px' }}>Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {partItems.map((item: any, i: number) => {
+                  const calc = computeLineTotal(item);
+                  const gstPct = calc.taxRate;
+                  const halfGst = gstPct / 2;
+                  return (
+                    <tr key={item.id || i}>
+                      <td className="code">{item.inventoryItem?.sku || item.hsnCode || '—'}</td>
+                      <td>{item.description}</td>
+                      <td className="c">{Number(item.quantity)}</td>
+                      <td className="r">{formatDecimal(Number(item.unitPrice))}</td>
+                      <td className="c">{gstPct > 0 ? `${halfGst}%+${halfGst}%` : '0%'}</td>
+                      <td className="r">{formatDecimal(calc.cgst)}</td>
+                      <td className="r">{formatDecimal(calc.sgst)}</td>
+                      <td className="r" style={{ fontWeight: 600 }}>{formatCurrency(calc.total)}</td>
+                    </tr>
+                  );
+                })}
+                <tr className="subtotal-row">
+                  <td colSpan={5}></td>
+                  <td className="r" colSpan={2} style={{ fontSize: '10px', color: '#6a6a6a' }}>Parts Total</td>
+                  <td className="r" style={{ fontSize: '13px' }}>{formatCurrency(partsTotal)}</td>
+                </tr>
+              </tbody>
+            </table>
+          </>
+        )}
+
+        {/* Labour Section */}
+        {labourItems.length > 0 && (
+          <>
+            <div className="section-title" style={{ marginTop: '20px' }}>Labour Description</div>
+            <table className="est-table">
+              <thead>
+                <tr>
+                  <th style={{ width: '75px' }}>Code</th>
+                  <th>Description</th>
+                  <th className="c" style={{ width: '35px' }}>Hrs</th>
+                  <th className="r" style={{ width: '68px' }}>Rate/Hr</th>
+                  <th className="c" style={{ width: '50px' }}>GST %</th>
+                  <th className="r" style={{ width: '58px' }}>CGST</th>
+                  <th className="r" style={{ width: '58px' }}>SGST</th>
+                  <th className="r" style={{ width: '75px' }}>Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {labourItems.map((item: any, i: number) => {
+                  const calc = computeLineTotal(item);
+                  const gstPct = calc.taxRate;
+                  const halfGst = gstPct / 2;
+                  return (
+                    <tr key={item.id || i}>
+                      <td className="code">{item.inventoryItem?.sku || item.hsnCode || '—'}</td>
+                      <td>{item.description}</td>
+                      <td className="c">{Number(item.quantity).toFixed(2)}</td>
+                      <td className="r">{formatDecimal(Number(item.unitPrice))}</td>
+                      <td className="c">{gstPct > 0 ? `${halfGst}%+${halfGst}%` : '0%'}</td>
+                      <td className="r">{formatDecimal(calc.cgst)}</td>
+                      <td className="r">{formatDecimal(calc.sgst)}</td>
+                      <td className="r" style={{ fontWeight: 600 }}>{formatCurrency(calc.total)}</td>
+                    </tr>
+                  );
+                })}
+                <tr className="subtotal-row">
+                  <td colSpan={5}></td>
+                  <td className="r" colSpan={2} style={{ fontSize: '10px', color: '#6a6a6a' }}>Labour Total</td>
+                  <td className="r" style={{ fontSize: '13px' }}>{formatCurrency(labourTotal)}</td>
+                </tr>
+              </tbody>
+            </table>
+          </>
+        )}
+
+        {/* Service/Custom Charges */}
+        {serviceItems.length > 0 && (
+          <>
+            <div className="section-title" style={{ marginTop: '20px' }}>Other Charges</div>
+            <table className="est-table">
+              <thead>
+                <tr>
+                  <th style={{ width: '75px' }}>Code</th>
+                  <th>Description</th>
+                  <th className="c" style={{ width: '32px' }}>Qty</th>
+                  <th className="r" style={{ width: '68px' }}>Price</th>
+                  <th className="c" style={{ width: '50px' }}>GST %</th>
+                  <th className="r" style={{ width: '58px' }}>CGST</th>
+                  <th className="r" style={{ width: '58px' }}>SGST</th>
+                  <th className="r" style={{ width: '75px' }}>Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {serviceItems.map((item: any, i: number) => {
+                  const calc = computeLineTotal(item);
+                  const gstPct = calc.taxRate;
+                  const halfGst = gstPct / 2;
+                  return (
+                    <tr key={item.id || i}>
+                      <td className="code">{item.hsnCode || '—'}</td>
+                      <td>{item.description}</td>
+                      <td className="c">{Number(item.quantity)}</td>
+                      <td className="r">{formatDecimal(Number(item.unitPrice))}</td>
+                      <td className="c">{gstPct > 0 ? `${halfGst}%+${halfGst}%` : '0%'}</td>
+                      <td className="r">{formatDecimal(calc.cgst)}</td>
+                      <td className="r">{formatDecimal(calc.sgst)}</td>
+                      <td className="r" style={{ fontWeight: 600 }}>{formatCurrency(calc.total)}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </>
+        )}
+
+        {/* Totals */}
+        <div className="totals-section">
+          <div className="totals-box">
+            {partItems.length > 0 && (
+              <div className="totals-row"><span>Parts Subtotal</span><span>{formatCurrency(partsTotal)}</span></div>
+            )}
+            {labourItems.length > 0 && (
+              <div className="totals-row"><span>Labour Subtotal</span><span>{formatCurrency(labourTotal)}</span></div>
+            )}
+            {serviceItems.length > 0 && (
+              <div className="totals-row"><span>Other Charges</span><span>{formatCurrency(serviceTotal)}</span></div>
+            )}
+            {discountItems.length > 0 && (
+              <div className="totals-row" style={{ color: '#dc2626' }}><span>Discount</span><span>−{formatCurrency(discountTotal)}</span></div>
+            )}
+            {totalCGST > 0 && (
+              <>
+                <div className="totals-row"><span>CGST</span><span>{formatDecimal(totalCGST)}</span></div>
+                <div className="totals-row"><span>SGST</span><span>{formatDecimal(totalSGST)}</span></div>
+              </>
+            )}
+            <div className="totals-row grand">
+              <span>Total Estimate</span>
+              <span className="amt">{formatCurrency(grandTotal)}</span>
             </div>
-          )}
-
-          <div className="validity-note">
-            This is an estimate only. Final bill may vary based on actual parts used and labor required.
           </div>
+        </div>
 
-          <div className="footer-section">
-            <p><strong>GearUp Servicing</strong> — Professional Two-Wheeler Care</p>
-            <p className="footer-contact">Milanpally, Katjuridanga, Bankura · 9242519099 · gearup.sgnk.ai@gmail.com</p>
-            <p style={{ marginTop: '4px' }}>GSTIN: 19EHTPM1499B1ZS</p>
+        {/* Notes */}
+        <div className="notes-section">
+          <strong>Note:</strong>
+          <p>This is an estimate only. Final bill may vary based on actual parts used, labour hours, and additional issues discovered during service.</p>
+        </div>
+
+        {/* Validity */}
+        <div className="validity">
+          This estimate is valid for 7 days from the date of issue. Prices subject to change after validity period.
+        </div>
+
+        {/* Signatures */}
+        <div className="signatures">
+          <div className="sig-box">
+            <div className="sig-line"></div>
+            <div className="sig-label">Customer Signature & Date</div>
           </div>
+          <div className="sig-box">
+            <div className="sig-line"></div>
+            <div className="sig-label">Authorised Signatory</div>
+            <div className="sig-for">FOR: GearUp Servicing</div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="footer">
+          <p><strong>GearUp Servicing</strong> — Professional Two-Wheeler Care</p>
+          <p style={{ marginTop: '4px' }}>Milanpally, Katjuridanga, Bankura · 9242519099 · gearup.sgnk.ai@gmail.com</p>
+          <p style={{ marginTop: '2px', fontWeight: 600 }}>GSTIN: 19EHTPM1499B1ZS</p>
         </div>
       </div>
 
       <button className="no-print print-btn" onClick={() => window.print()}>
-        🖨️ Print Estimate
+        🖨️ Print / Save as PDF
       </button>
     </>
   );

@@ -39,6 +39,14 @@ export default function CatalogPage() {
   const [selectedModel, setSelectedModel] = useState<Model | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
 
+  // Create brand/model state
+  const [showAddBrand, setShowAddBrand] = useState(false);
+  const [newBrandName, setNewBrandName] = useState('');
+  const [showAddModel, setShowAddModel] = useState(false);
+  const [newModelName, setNewModelName] = useState('');
+  const [newModelCC, setNewModelCC] = useState('');
+  const [addSaving, setAddSaving] = useState(false);
+
   const level = selectedCategory ? 'items' : selectedModel ? 'categories' : selectedBrand ? 'models' : 'brands';
 
   const loadBrands = useCallback(async () => {
@@ -138,6 +146,37 @@ export default function CatalogPage() {
     loadItems(page);
   };
 
+  const submitBrand = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newBrandName.trim()) return;
+    setAddSaving(true);
+    const res = await api.post<any>('/admin/inventory/catalog', { name: newBrandName.trim() });
+    setAddSaving(false);
+    if (res.success) {
+      setShowAddBrand(false);
+      setNewBrandName('');
+      loadBrands();
+    }
+  };
+
+  const submitModel = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedBrand || !newModelName.trim()) return;
+    setAddSaving(true);
+    const res = await api.post<any>('/admin/inventory/catalog/models', {
+      brandId: selectedBrand.id,
+      name: newModelName.trim(),
+      engineCC: newModelCC ? Number(newModelCC) : undefined,
+    });
+    setAddSaving(false);
+    if (res.success) {
+      setShowAddModel(false);
+      setNewModelName('');
+      setNewModelCC('');
+      loadModels(selectedBrand.id);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -189,6 +228,11 @@ export default function CatalogPage() {
               <span className="text-xs text-gray-500">{b.modelCount} models · {b.itemCount} parts</span>
             </button>
           ))}
+          {/* Add Brand button */}
+          <button onClick={() => setShowAddBrand(true)} className="flex flex-col items-center justify-center gap-2 p-5 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition">
+            <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400 text-2xl">+</div>
+            <span className="font-medium text-sm text-gray-500">Add Brand</span>
+          </button>
         </div>
       )}
 
@@ -204,6 +248,12 @@ export default function CatalogPage() {
                 <span className="text-xs text-gray-500 mt-1">{m.itemCount} parts</span>
               </button>
             ))}
+            {/* Add Model button */}
+            <button onClick={() => setShowAddModel(true)} className="flex flex-col items-start gap-1 p-4 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition text-left">
+              <span className="text-2xl text-gray-400">+</span>
+              <span className="font-medium text-sm text-gray-500">Add Model</span>
+              <span className="text-xs text-gray-400">to {selectedBrand?.name}</span>
+            </button>
             {models.length === 0 && <p className="col-span-full text-sm text-gray-500">No models found for this brand.</p>}
           </div>
         </div>
@@ -339,6 +389,63 @@ export default function CatalogPage() {
               <input placeholder="Reason (optional)" className="w-full rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm bg-white dark:bg-gray-800" value={stockForm.reason} onChange={e => setStockForm({ ...stockForm, reason: e.target.value })} />
               <button onClick={submitRestock} disabled={stockSaving || !stockForm.quantity} className="w-full rounded-lg bg-blue-600 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">{stockSaving ? 'Saving...' : 'Submit'}</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Brand Modal */}
+      {showAddBrand && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30" onClick={() => setShowAddBrand(false)}>
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-xl p-5 max-w-sm w-full" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold text-sm">Add Vehicle Brand</h3>
+              <button onClick={() => setShowAddBrand(false)} className="text-gray-400 hover:text-gray-600"><X size={16} /></button>
+            </div>
+            <form onSubmit={submitBrand} className="space-y-3">
+              <input
+                className="w-full rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm bg-white dark:bg-gray-800"
+                placeholder="Brand name (e.g., Yezdi, Jawa, Royal Enfield)"
+                value={newBrandName}
+                onChange={(e) => setNewBrandName(e.target.value)}
+                required
+                autoFocus
+              />
+              <button type="submit" disabled={addSaving || !newBrandName.trim()} className="w-full rounded-lg bg-blue-600 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+                {addSaving ? 'Adding...' : 'Add Brand'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Model Modal */}
+      {showAddModel && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30" onClick={() => setShowAddModel(false)}>
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 shadow-xl p-5 max-w-sm w-full" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold text-sm">Add Model to {selectedBrand?.name}</h3>
+              <button onClick={() => setShowAddModel(false)} className="text-gray-400 hover:text-gray-600"><X size={16} /></button>
+            </div>
+            <form onSubmit={submitModel} className="space-y-3">
+              <input
+                className="w-full rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm bg-white dark:bg-gray-800"
+                placeholder="Model name (e.g., Roadster, Perak, 42)"
+                value={newModelName}
+                onChange={(e) => setNewModelName(e.target.value)}
+                required
+                autoFocus
+              />
+              <input
+                className="w-full rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm bg-white dark:bg-gray-800"
+                placeholder="Engine CC (optional, e.g., 334)"
+                type="number"
+                value={newModelCC}
+                onChange={(e) => setNewModelCC(e.target.value)}
+              />
+              <button type="submit" disabled={addSaving || !newModelName.trim()} className="w-full rounded-lg bg-blue-600 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50">
+                {addSaving ? 'Adding...' : 'Add Model'}
+              </button>
+            </form>
           </div>
         </div>
       )}
