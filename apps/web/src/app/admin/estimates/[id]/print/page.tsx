@@ -52,6 +52,7 @@ export default function EstimatePrintPage() {
         .estimate-page {
           max-width: 800px; margin: 20px auto; background: #fff; padding: 0;
           box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-radius: 8px; overflow: hidden;
+          color: #1a1a1a !important;
         }
         .header-bar {
           background: var(--text-primary); padding: 24px 40px; display: flex;
@@ -81,12 +82,12 @@ export default function EstimatePrintPage() {
         }
         .items-table th.right { text-align: right; }
         .items-table th.center { text-align: center; }
-        .items-table td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 12px; }
-        .items-table td.right { text-align: right; }
-        .items-table td.center { text-align: center; }
+        .items-table td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 12px; color: var(--text-primary); }
+        .items-table td.right { text-align: right; color: var(--text-primary); }
+        .items-table td.center { text-align: center; color: var(--text-primary); }
         .items-table tr:last-child td { border-bottom: none; }
-        .item-name { font-weight: 500; }
-        .item-sku { font-size: 10px; color: var(--text-muted); }
+        .item-name { font-weight: 600; color: #1a1a1a; }
+        .item-sku { font-size: 10px; color: #6a6a6a; }
         .totals-section { display: flex; justify-content: flex-end; }
         .totals-card {
           width: 280px; background: var(--text-primary); padding: 20px 24px;
