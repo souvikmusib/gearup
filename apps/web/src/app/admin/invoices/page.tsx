@@ -97,6 +97,9 @@ export default function InvoicesPage() {
   const [estPartSearch, setEstPartSearch] = useState('');
   const [estPartDropdownOpen, setEstPartDropdownOpen] = useState(false);
   const [estInventoryItems, setEstInventoryItems] = useState<any[]>([]);
+  const [estSelectedItem, setEstSelectedItem] = useState<any>(null);
+  const [estPartQty, setEstPartQty] = useState('1');
+  const [estPartPrice, setEstPartPrice] = useState('');
   const estQueryRef = useRef('');
 
   const loadEstimateInventory = async (search = '') => {
@@ -109,22 +112,37 @@ export default function InvoicesPage() {
     if (res.success) setEstInventoryItems(res.data?.items ?? res.data ?? []);
   };
 
-  const addEstimatePart = (item: any) => {
-    // Check if already added
-    const existing = estimateItems.findIndex(i => i.inventoryItemId === item.id);
+  const onEstItemSelect = (item: any) => {
+    setEstSelectedItem(item);
+    setEstPartSearch(item.itemName);
+    setEstPartQty('1');
+    setEstPartPrice(String(Number(item.mrp || item.sellingPrice)));
+    setEstPartDropdownOpen(false);
+  };
+
+  const confirmAddEstimatePart = () => {
+    if (!estSelectedItem || !estPartQty) return;
+    const qty = Number(estPartQty);
+    const price = Number(estPartPrice);
+    if (qty <= 0 || price < 0) return;
+
+    // Check if already added — increment qty
+    const existing = estimateItems.findIndex(i => i.inventoryItemId === estSelectedItem.id);
     if (existing >= 0) {
-      setEstimateItems(items => items.map((it, idx) => idx === existing ? { ...it, quantity: it.quantity + 1 } : it));
+      setEstimateItems(items => items.map((it, idx) => idx === existing ? { ...it, quantity: it.quantity + qty } : it));
     } else {
       setEstimateItems(items => [...items, {
-        inventoryItemId: item.id,
-        description: item.itemName,
-        quantity: 1,
-        unitPrice: Number(item.mrp || item.sellingPrice),
-        taxRate: Number(item.taxRate || 0),
+        inventoryItemId: estSelectedItem.id,
+        description: estSelectedItem.itemName,
+        quantity: qty,
+        unitPrice: price,
+        taxRate: Number(estSelectedItem.taxRate || 0),
       }]);
     }
+    setEstSelectedItem(null);
     setEstPartSearch('');
-    setEstPartDropdownOpen(false);
+    setEstPartQty('1');
+    setEstPartPrice('');
   };
 
   const updateEstimateItem = (index: number, field: string, value: number) => {
@@ -321,14 +339,14 @@ export default function InvoicesPage() {
                     <div className="relative">
                       <input className={inputCls} placeholder="Type to search parts..." value={estPartSearch}
                         onFocus={() => { void loadEstimateInventory(estPartSearch); setEstPartDropdownOpen(true); }}
-                        onChange={(e) => { const s = e.target.value; setEstPartSearch(s); setEstPartDropdownOpen(true); if (!s || s.length >= 2) void loadEstimateInventory(s); }}
+                        onChange={(e) => { const s = e.target.value; setEstPartSearch(s); setEstSelectedItem(null); setEstPartDropdownOpen(true); if (!s || s.length >= 2) void loadEstimateInventory(s); }}
                         onBlur={() => setTimeout(() => setEstPartDropdownOpen(false), 150)}
                         autoComplete="off"
                       />
-                      {estPartDropdownOpen && (
+                      {estPartDropdownOpen && !estSelectedItem && (
                         <div className="absolute z-50 top-full left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
                           {estInventoryItems.map((i: any) => (
-                            <button key={i.id} type="button" onClick={() => addEstimatePart(i)} className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 border-b border-gray-50 dark:border-gray-700 last:border-0">
+                            <button key={i.id} type="button" onClick={() => onEstItemSelect(i)} className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 border-b border-gray-50 dark:border-gray-700 last:border-0">
                               <span className="font-medium">{i.itemName}</span> <span className="text-xs text-gray-400">({i.sku})</span> <span className="text-xs text-green-600 ml-1">₹{Number(i.mrp || i.sellingPrice)}</span>
                             </button>
                           ))}
@@ -336,6 +354,13 @@ export default function InvoicesPage() {
                         </div>
                       )}
                     </div>
+                    {estSelectedItem && (
+                      <div className="flex gap-2 mt-2">
+                        <input type="number" className={inputCls} placeholder="Qty" min="0.01" step="0.5" value={estPartQty} onChange={(e) => setEstPartQty(e.target.value)} style={{ width: '80px' }} />
+                        <input type="number" className={inputCls} placeholder="Unit Price" step="1" value={estPartPrice} onChange={(e) => setEstPartPrice(e.target.value)} style={{ flex: 1 }} />
+                        <button type="button" onClick={confirmAddEstimatePart} className="rounded-lg bg-green-600 px-4 py-2 text-xs font-semibold text-white hover:bg-green-700 whitespace-nowrap">Add</button>
+                      </div>
+                    )}
                   </div>
 
                   {/* Estimate items list */}
