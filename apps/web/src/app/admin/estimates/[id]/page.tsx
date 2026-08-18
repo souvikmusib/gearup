@@ -56,6 +56,17 @@ export default function EstimateDetailPage() {
     window.open(`https://wa.me/${phone}?text=${text}`, '_blank');
   };
 
+  const deleteEstimate = async () => {
+    if (!confirm('Delete this estimate? This cannot be undone.')) return;
+    setError('');
+    const res = await api.delete<any>(`/admin/estimates/${id}`);
+    if (res.success) {
+      router.push('/admin/estimates');
+    } else {
+      setError(res.error?.message || 'Failed to delete');
+    }
+  };
+
   if (loading) return <ProcessLoader title="Loading estimate" steps={['Fetching estimate details']} />;
   if (!data) return <p className="text-center text-gray-500 py-8">Estimate not found</p>;
 
@@ -164,6 +175,11 @@ export default function EstimateDetailPage() {
         <button onClick={whatsappShare} className="rounded-lg border border-green-300 dark:border-green-700 px-4 py-2.5 text-sm font-medium text-green-700 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20">
           💬 WhatsApp
         </button>
+        {data.status !== 'CONVERTED' && (
+          <button onClick={deleteEstimate} className="rounded-lg border border-red-300 dark:border-red-700 px-4 py-2.5 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20">
+            🗑️ Delete
+          </button>
+        )}
       </div>
     </div>
   );

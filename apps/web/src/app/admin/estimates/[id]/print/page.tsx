@@ -27,7 +27,7 @@ export default function EstimatePrintPage() {
 
   return (
     <>
-      <style jsx global>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         :root {
           --brand-red: #e01010;
           --dark-red: #ac0000;
@@ -45,7 +45,6 @@ export default function EstimatePrintPage() {
           @page { margin: 10mm; size: A4; }
           .no-print { display: none !important; }
           .estimate-page { box-shadow: none !important; }
-          /* Hide admin shell sidebar + strip layout padding for clean print */
           nav, aside, [class*="Sidebar"], [class*="sidebar"] { display: none !important; }
           main { padding: 0 !important; margin: 0 !important; overflow: visible !important; }
           .flex.h-screen { display: block !important; }
@@ -119,7 +118,7 @@ export default function EstimatePrintPage() {
           font-size: 13px; text-transform: uppercase; letter-spacing: 1px; cursor: pointer;
         }
         .print-btn:hover { background: #333; }
-      `}</style>
+      `}} />
 
       <div className="estimate-page">
         <div className="header-bar">
