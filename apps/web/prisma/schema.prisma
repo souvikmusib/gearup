@@ -1001,6 +1001,14 @@ enum EstimateStatus {
   CANCELLED
 }
 
+enum EstimateLineType {
+  PART
+  LABOR
+  SERVICE_CHARGE
+  CUSTOM_CHARGE
+  DISCOUNT_ADJUSTMENT
+}
+
 model Estimate {
   id                  String         @id @default(cuid())
   estimateNumber      String         @unique
@@ -1030,19 +1038,22 @@ model Estimate {
 }
 
 model EstimateItem {
-  id              String  @id @default(cuid())
+  id              String           @id @default(cuid())
   estimateId      String
-  inventoryItemId String
+  lineType        EstimateLineType @default(PART)
+  inventoryItemId String?
   description     String
-  quantity        Decimal @default(1) @db.Decimal(12, 2)
-  unitPrice       Decimal @default(0) @db.Decimal(12, 2)
-  taxRate         Decimal @default(0) @db.Decimal(5, 2)
-  taxAmount       Decimal @default(0) @db.Decimal(12, 2)
-  lineTotal       Decimal @default(0) @db.Decimal(12, 2)
-  sortOrder       Int     @default(0)
+  hsnCode         String?
+  quantity        Decimal          @default(1) @db.Decimal(12, 2)
+  unitPrice       Decimal          @default(0) @db.Decimal(12, 2)
+  discountPercent Decimal          @default(0) @db.Decimal(5, 2)
+  taxRate         Decimal          @default(0) @db.Decimal(5, 2)
+  taxAmount       Decimal          @default(0) @db.Decimal(12, 2)
+  lineTotal       Decimal          @default(0) @db.Decimal(12, 2)
+  sortOrder       Int              @default(0)
 
-  estimate      Estimate      @relation(fields: [estimateId], references: [id], onDelete: Cascade)
-  inventoryItem InventoryItem @relation(fields: [inventoryItemId], references: [id])
+  estimate      Estimate       @relation(fields: [estimateId], references: [id], onDelete: Cascade)
+  inventoryItem InventoryItem? @relation(fields: [inventoryItemId], references: [id])
 
   @@index([estimateId])
   @@index([inventoryItemId])

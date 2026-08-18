@@ -37,6 +37,7 @@ const NAV = [
     ],
   },
   { label: 'Invoices', href: '/admin/invoices', icon: Receipt, permission: 'invoices.view' },
+  { label: 'Estimates', href: '/admin/estimates', icon: FileText, permission: 'invoices.view' },
   { label: 'Payments', href: '/admin/payments', icon: CreditCard, permission: 'payments.record' },
   {
     label: 'AMC', icon: FileText, permission: 'amc.contracts-view', children: [

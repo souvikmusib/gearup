@@ -7,10 +7,13 @@ import { PERMISSIONS } from '@gearup/types';
 import { z } from 'zod';
 
 const itemSchema = z.object({
-  inventoryItemId: z.string(),
+  lineType: z.enum(['PART', 'LABOR', 'SERVICE_CHARGE', 'CUSTOM_CHARGE', 'DISCOUNT_ADJUSTMENT']).default('PART'),
+  inventoryItemId: z.string().optional().nullable(),
   description: z.string().trim().min(1),
+  hsnCode: z.string().optional().nullable(),
   quantity: z.number().positive().default(1),
   unitPrice: z.number().nonnegative().default(0),
+  discountPercent: z.number().min(0).max(100).default(0),
   taxRate: z.number().min(0).max(100).default(0),
   sortOrder: z.number().default(0),
 });
@@ -61,12 +64,23 @@ export async function PATCH(req: NextRequest, { params }: RouteContext) {
         await tx.estimateItem.deleteMany({ where: { estimateId: params.id } });
 
         const items = body.items.map((item, i) => {
-          const lineTotal = Number(item.quantity) * Number(item.unitPrice);
-          const taxAmount = lineTotal * (Number(item.taxRate) / 100);
+          const isDiscount = item.lineType === 'DISCOUNT_ADJUSTMENT';
+          const baseAmount = Number(item.quantity) * Number(item.unitPrice);
+          const discountAmount = baseAmount * (Number(item.discountPercent ?? 0) / 100);
+          const afterDiscount = baseAmount - discountAmount;
+          const taxAmount = afterDiscount * (Number(item.taxRate) / 100);
+          const lineTotal = isDiscount ? -(afterDiscount + taxAmount) : afterDiscount + taxAmount;
           return {
-            ...item,
-            taxAmount,
-            lineTotal: lineTotal + taxAmount,
+            lineType: item.lineType ?? 'PART',
+            inventoryItemId: item.inventoryItemId || null,
+            description: item.description,
+            hsnCode: item.hsnCode || null,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+            discountPercent: item.discountPercent ?? 0,
+            taxRate: item.taxRate,
+            taxAmount: Math.abs(taxAmount),
+            lineTotal,
             sortOrder: item.sortOrder ?? i,
             estimateId: params.id,
           };
@@ -74,9 +88,9 @@ export async function PATCH(req: NextRequest, { params }: RouteContext) {
 
         await tx.estimateItem.createMany({ data: items });
 
-        const subtotal = items.reduce((sum, i) => sum + (Number(i.quantity) * Number(i.unitPrice)), 0);
+        const subtotal = items.reduce((sum, i) => sum + (i.lineTotal < 0 ? 0 : Number(i.quantity) * Number(i.unitPrice)), 0);
         const taxTotal = items.reduce((sum, i) => sum + i.taxAmount, 0);
-        const grandTotal = subtotal + taxTotal;
+        const grandTotal = items.reduce((sum, i) => sum + i.lineTotal, 0);
 
         return tx.estimate.update({
           where: { id: params.id },

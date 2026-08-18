@@ -47,11 +47,13 @@ export async function POST(_req: NextRequest, { params }: RouteContext) {
           estimatedTotal: estimatedPartsCost,
           status: 'CREATED',
           parts: {
-            create: estimate.items.map((item) => ({
-              inventoryItemId: item.inventoryItemId,
-              requiredQty: item.quantity,
-              unitPrice: item.unitPrice,
-            })),
+            create: estimate.items
+              .filter((item) => item.inventoryItemId != null)
+              .map((item) => ({
+                inventoryItemId: item.inventoryItemId!,
+                requiredQty: item.quantity,
+                unitPrice: item.unitPrice,
+              })),
           },
         },
       });

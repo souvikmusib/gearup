@@ -119,6 +119,16 @@ export default function EstimatePrintPage() {
           font-size: 13px; text-transform: uppercase; letter-spacing: 1px; cursor: pointer;
         }
         .print-btn:hover { background: #333; }
+        .line-type-badge {
+          display: inline-block; padding: 2px 8px; border-radius: 10px;
+          font-size: 9px; font-weight: 600; text-transform: uppercase;
+          letter-spacing: 0.5px; background: #f3f4f6; color: #4b5563;
+        }
+        .line-type-badge[data-type="PART"] { background: #dbeafe; color: #1d4ed8; }
+        .line-type-badge[data-type="LABOR"] { background: #fef3c7; color: #92400e; }
+        .line-type-badge[data-type="SERVICE_CHARGE"] { background: #e0e7ff; color: #4338ca; }
+        .line-type-badge[data-type="CUSTOM_CHARGE"] { background: #f3e8ff; color: #7c3aed; }
+        .line-type-badge[data-type="DISCOUNT_ADJUSTMENT"] { background: #fecaca; color: #dc2626; }
       `}} />
 
       <div className="estimate-page">
@@ -161,24 +171,36 @@ export default function EstimatePrintPage() {
               <tr>
                 <th style={{ width: '30px' }}>#</th>
                 <th>Description</th>
+                <th style={{ width: '80px' }}>Type</th>
                 <th className="center" style={{ width: '50px' }}>Qty</th>
                 <th className="right" style={{ width: '90px' }}>Unit Price</th>
                 <th className="right" style={{ width: '90px' }}>Amount</th>
               </tr>
             </thead>
             <tbody>
-              {data.items.map((item: any, i: number) => (
-                <tr key={item.id}>
-                  <td style={{ color: '#999' }}>{i + 1}</td>
-                  <td>
-                    <div className="item-name">{item.description}</div>
-                    {item.inventoryItem?.sku && <div className="item-sku">{item.inventoryItem.sku}{item.inventoryItem.hsnCode ? ` · HSN ${item.inventoryItem.hsnCode}` : ''}</div>}
-                  </td>
-                  <td className="center">{Number(item.quantity)}</td>
-                  <td className="right">₹{Number(item.unitPrice).toLocaleString('en-IN')}</td>
-                  <td className="right" style={{ fontWeight: 600 }}>₹{Math.round(Number(item.quantity) * Number(item.unitPrice)).toLocaleString('en-IN')}</td>
-                </tr>
-              ))}
+              {data.items.map((item: any, i: number) => {
+                const lineType = item.lineType || 'PART';
+                const typeLabel = lineType.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
+                const isDiscount = lineType === 'DISCOUNT_ADJUSTMENT';
+                const lineAmount = isDiscount
+                  ? -Math.abs(Number(item.quantity) * Number(item.unitPrice))
+                  : Number(item.quantity) * Number(item.unitPrice);
+                return (
+                  <tr key={item.id}>
+                    <td style={{ color: '#999' }}>{i + 1}</td>
+                    <td>
+                      <div className="item-name">{item.description}</div>
+                      {item.inventoryItem?.sku && <div className="item-sku">{item.inventoryItem.sku}{(item.hsnCode || item.inventoryItem.hsnCode) ? ` · HSN ${item.hsnCode || item.inventoryItem.hsnCode}` : ''}</div>}
+                    </td>
+                    <td><span className="line-type-badge" data-type={lineType}>{typeLabel}</span></td>
+                    <td className="center">{Number(item.quantity)}</td>
+                    <td className="right">₹{Number(item.unitPrice).toLocaleString('en-IN')}</td>
+                    <td className="right" style={{ fontWeight: 600, color: isDiscount ? '#dc2626' : undefined }}>
+                      {isDiscount ? '−' : ''}₹{Math.abs(Math.round(lineAmount)).toLocaleString('en-IN')}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
 
