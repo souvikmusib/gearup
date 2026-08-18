@@ -187,6 +187,7 @@ model AdminUser {
   expensesCreated       Expense[]
   invoicesCreated       Invoice[]
   appointmentsConfirmed Appointment[]   @relation("AppointmentConfirmedBy")
+  estimatesCreated      Estimate[]
 }
 
 model Role {
@@ -258,6 +259,7 @@ model Customer {
   jobCards        JobCard[]
   invoices        Invoice[]
   amcContracts    AmcContract[]
+  estimates       Estimate[]
 
   @@index([email])
 }
@@ -289,6 +291,7 @@ model Vehicle {
   jobCards        JobCard[]
   invoices        Invoice[]
   amcContracts    AmcContract[]
+  estimates       Estimate[]
 
   @@index([customerId])
 }
@@ -615,6 +618,7 @@ model InventoryItem {
   stockBatches   StockBatch[]
   jobCardParts   JobCardPart[]
   vehicleModels  InventoryItemModel[]
+  estimateItems  EstimateItem[]
 
   @@index([categoryId])
   @@index([supplierId])
@@ -987,4 +991,59 @@ model HsnRate {
   rate        Decimal  @db.Decimal(5, 2)
   description String?
   createdAt   DateTime @default(now())
+}
+
+// ── Estimates (quotes before job card creation) ──────────────────────────────
+
+enum EstimateStatus {
+  DRAFT
+  CONVERTED
+  CANCELLED
+}
+
+model Estimate {
+  id                  String         @id @default(cuid())
+  estimateNumber      String         @unique
+  customerId          String
+  vehicleId           String?
+  status              EstimateStatus @default(DRAFT)
+  validUntil          DateTime?
+  subtotal            Decimal        @default(0) @db.Decimal(12, 2)
+  taxTotal            Decimal        @default(0) @db.Decimal(12, 2)
+  grandTotal          Decimal        @default(0) @db.Decimal(12, 2)
+  notes               String?
+  convertedJobCardId  String?
+  convertedInvoiceId  String?
+  createdByAdminId    String
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+
+  customer  Customer       @relation(fields: [customerId], references: [id])
+  vehicle   Vehicle?       @relation(fields: [vehicleId], references: [id])
+  createdBy AdminUser      @relation(fields: [createdByAdminId], references: [id])
+  items     EstimateItem[]
+
+  @@index([customerId])
+  @@index([vehicleId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model EstimateItem {
+  id              String  @id @default(cuid())
+  estimateId      String
+  inventoryItemId String
+  description     String
+  quantity        Decimal @default(1) @db.Decimal(12, 2)
+  unitPrice       Decimal @default(0) @db.Decimal(12, 2)
+  taxRate         Decimal @default(0) @db.Decimal(5, 2)
+  taxAmount       Decimal @default(0) @db.Decimal(12, 2)
+  lineTotal       Decimal @default(0) @db.Decimal(12, 2)
+  sortOrder       Int     @default(0)
+
+  estimate      Estimate      @relation(fields: [estimateId], references: [id], onDelete: Cascade)
+  inventoryItem InventoryItem @relation(fields: [inventoryItemId], references: [id])
+
+  @@index([estimateId])
+  @@index([inventoryItemId])
 }

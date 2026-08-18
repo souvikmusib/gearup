@@ -1,5 +1,6 @@
 'use client';
 import React from 'react';
+import { EmptyState } from './empty-state';
 
 interface Column<T> {
   key: string;
@@ -16,6 +17,8 @@ interface DataTableProps<T> {
   keyField: string;
   onRowClick?: (row: T) => void;
   emptyMessage?: string;
+  emptyDescription?: string;
+  emptyAction?: React.ReactNode;
 }
 
 export function DataTable<T extends Record<string, unknown>>({
@@ -24,9 +27,11 @@ export function DataTable<T extends Record<string, unknown>>({
   keyField,
   onRowClick,
   emptyMessage = 'No data found.',
+  emptyDescription,
+  emptyAction,
 }: DataTableProps<T>) {
   if (!data.length) {
-    return <p className="py-8 text-center text-sm text-gray-500 dark:text-gray-400">{emptyMessage}</p>;
+    return <EmptyState title={emptyMessage} description={emptyDescription} action={emptyAction} />;
   }
   return (
     <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">

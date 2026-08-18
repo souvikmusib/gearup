@@ -79,13 +79,24 @@ export async function generateWorkerCode(tx?: any): Promise<string> {
 }
 
 /**
+ * Generate estimate number: ESTGDDMMYYYYNNNN
+ * Example: ESTG1808202600001
+ */
+export async function generateEstimateNumber(tx?: any): Promise<string> {
+  const seq = await nextSequence('ESTIMATE', tx);
+  const dateStr = getISTDateStr();
+  return `ESTG${dateStr}${seq.toString().padStart(4, '0')}`;
+}
+
+/**
  * Check if a document number uses the legacy random format.
  */
 export function isLegacyNumber(num: string): boolean {
   if (!num) return false;
-  // New format: INVGDDMMYYYYNNNN or JOBGDDMMYYYYNNNN
+  // New format: INVGDDMMYYYYNNNN or JOBGDDMMYYYYNNNN or ESTGDDMMYYYYNNNN
   if (/^INVG\d{12,}$/.test(num)) return false;
   if (/^JOBG\d{12,}$/.test(num)) return false;
+  if (/^ESTG\d{12,}$/.test(num)) return false;
   if (/^WRK-\d{8}-\d{4}$/.test(num)) return false;
   return true;
 }
