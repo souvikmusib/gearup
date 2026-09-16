@@ -159,59 +159,28 @@ async function syncPartToInvoiceInTx(
   const { hsnCode, taxRate } = preResolved;
   const discountPercent = Number(item.discountPercent) || 0;
 
-  // Look up which batches were just consumed for this item on this job card
-  // to determine per-batch selling prices for split lines
-  const recentMovements = await tx.stockMovement.findMany({
-    where: {
-      inventoryItemId,
-      movementType: 'RESERVED',
-      relatedEntityType: 'JobCard',
-      relatedEntityId: jobCardId,
-      batchId: { not: null },
+  // Price from the inventory item (the source of truth), not from batches.
+  // Batches track cost/quantity for FIFO — not customer pricing.
+  const itemPrice = Number(item.mrp) || Number(item.sellingPrice) || unitPrice;
+  const { taxAmount, lineTotal } = computeLineMath(quantity, itemPrice, taxRate, discountPercent);
+  const sortOrder = await tx.invoiceLineItem.count({ where: { invoiceId: invoice.id } });
+
+  await tx.invoiceLineItem.create({
+    data: {
+      invoiceId: invoice.id,
+      lineType: 'PART',
+      description: item.itemName,
+      hsnCode,
+      quantity,
+      unitPrice: itemPrice,
+      discountPercent,
+      taxRate,
+      taxAmount,
+      lineTotal,
+      sortOrder,
+      referenceItemId: item.id,
     },
-    include: { batch: { select: { sellingPrice: true, mrp: true } } },
-    orderBy: { createdAt: 'desc' },
-    take: 20, // reasonable upper bound for a single part add
   });
-
-  // Group movements by batch selling price
-  const priceGroups = new Map<number, number>();
-  let accountedQty = 0;
-  for (const m of recentMovements) {
-    if (accountedQty >= quantity) break;
-    const batchMrp = m.batch?.mrp ? Number(m.batch.mrp) : null;
-    const batchSellPrice = batchMrp || Number(m.batch?.sellingPrice) || unitPrice;
-    const mQty = Math.min(Number(m.quantity), quantity - accountedQty);
-    priceGroups.set(batchSellPrice, (priceGroups.get(batchSellPrice) || 0) + mQty);
-    accountedQty += mQty;
-  }
-
-  // Fallback: if no movements found (legacy/no batches), use single price
-  if (priceGroups.size === 0) {
-    priceGroups.set(unitPrice, quantity);
-  }
-
-  let sortOrder = await tx.invoiceLineItem.count({ where: { invoiceId: invoice.id } });
-
-  for (const [price, qty] of priceGroups) {
-    const { taxAmount, lineTotal } = computeLineMath(qty, price, taxRate, discountPercent);
-    await tx.invoiceLineItem.create({
-      data: {
-        invoiceId: invoice.id,
-        lineType: 'PART',
-        description: item.itemName,
-        hsnCode,
-        quantity: qty,
-        unitPrice: price,
-        discountPercent,
-        taxRate,
-        taxAmount,
-        lineTotal,
-        sortOrder: sortOrder++,
-        referenceItemId: item.id,
-      },
-    });
-  }
 
   // Recalc totals
   const lines = await tx.invoiceLineItem.findMany({ where: { invoiceId: invoice.id } });
