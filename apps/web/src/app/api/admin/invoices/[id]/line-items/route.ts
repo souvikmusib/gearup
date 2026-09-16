@@ -159,8 +159,6 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
       // Stock deduction for PART — skip if already reserved via job card.
       // Match by explicit inventoryItemId (NOT by free-text itemName).
-      let splitLines: Array<{ qty: number; unitPrice: number; batchId: string }> = [];
-
       if (body.lineType === 'PART' && body.inventoryItemId) {
         const invItem = await tx.inventoryItem.findUnique({ where: { id: body.inventoryItemId } });
         if (!invItem) throw new ValidationError('Inventory item not found');
@@ -183,7 +181,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
           const newQty = Number(updated.quantityInStock);
           const prevQty = newQty + body.quantity;
 
-          // FIFO batch deduction — collect per-batch allocations for split pricing
+          // FIFO batch deduction — for stock quantity and cost tracking only.
+          // The sell price comes from body.unitPrice (the inventory item price),
+          // NOT from the batch. Batches track cost/quantity, not customer pricing.
           const batches = await tx.stockBatch.findMany({
             where: { inventoryItemId: invItem.id, remainingQty: { gt: 0 } },
             orderBy: { purchaseDate: 'asc' },
@@ -212,11 +212,6 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
                 relatedEntityId: params.id,
               },
             });
-            // Use batch MRP as invoice unitPrice (discount applied separately via item.discountPercent)
-            // If no MRP, fall back to sellingPrice (discount will be 0 in that case)
-            const batchMrp = batch.mrp ? Number(batch.mrp) : null;
-            const batchSellPrice = batchMrp || Number(batch.sellingPrice) || Number(invItem.sellingPrice);
-            splitLines.push({ qty: deduct, unitPrice: batchSellPrice, batchId: batch.id });
             remaining -= deduct;
           }
 
@@ -238,63 +233,23 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         }
       }
 
-      // Create line item(s) — split by batch selling price if FIFO spans different prices
-      let created: any;
-      const effectiveDiscount = body.discountPercent;
-
-      if (splitLines.length > 1) {
-        // Group by selling price — merge batches with same price into one line
-        const priceGroups = new Map<number, number>();
-        for (const sl of splitLines) {
-          priceGroups.set(sl.unitPrice, (priceGroups.get(sl.unitPrice) || 0) + sl.qty);
-        }
-
-        const lineItems: any[] = [];
-        let sortIdx = await tx.invoiceLineItem.count({ where: { invoiceId: params.id } });
-        for (const [price, qty] of priceGroups) {
-          const subtotal = qty * price * (1 - effectiveDiscount / 100);
-          const lineTaxAmount = subtotal * (body.taxRate / 100);
-          const lineLineTotal = subtotal + lineTaxAmount;
-
-          const line = await tx.invoiceLineItem.create({
-            data: {
-              invoiceId: params.id,
-              lineType: body.lineType,
-              description: body.description,
-              hsnCode: finalHsn,
-              quantity: qty,
-              unitPrice: price,
-              discountPercent: effectiveDiscount,
-              taxRate: body.taxRate,
-              taxAmount: lineTaxAmount,
-              lineTotal: lineLineTotal,
-              sortOrder: sortIdx++,
-              referenceItemId,
-            },
-          });
-          lineItems.push(line);
-        }
-        created = lineItems[0]; // Return first for API response
-      } else {
-        // Single price (common case) or non-PART line — create one line item
-        const effectiveUnitPrice = splitLines.length === 1 ? splitLines[0].unitPrice : body.unitPrice;
-        created = await tx.invoiceLineItem.create({
-          data: {
-            invoiceId: params.id,
-            lineType: body.lineType,
-            description: body.description,
-            hsnCode: finalHsn,
-            quantity: body.quantity,
-            unitPrice: effectiveUnitPrice,
-            discountPercent: isDiscount ? (body.discountMode === 'percent' ? body.unitPrice : 0) : effectiveDiscount,
-            taxRate: body.taxRate,
-            taxAmount,
-            lineTotal,
-            sortOrder: 0,
-            referenceItemId,
-          },
-        });
-      }
+      // Create one line item — price always from body.unitPrice (inventory item price)
+      const created = await tx.invoiceLineItem.create({
+        data: {
+          invoiceId: params.id,
+          lineType: body.lineType,
+          description: body.description,
+          hsnCode: finalHsn,
+          quantity: body.quantity,
+          unitPrice: body.unitPrice,
+          discountPercent: isDiscount ? (body.discountMode === 'percent' ? body.unitPrice : 0) : body.discountPercent,
+          taxRate: body.taxRate,
+          taxAmount,
+          lineTotal,
+          sortOrder: 0,
+          referenceItemId,
+        },
+      });
 
       // Sync to job card (all types except DISCOUNT_ADJUSTMENT)
       if (jobCardId && !isDiscount) {
