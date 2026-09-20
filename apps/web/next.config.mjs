@@ -33,6 +33,16 @@ const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ['@prisma/client', 'bcryptjs', 'jsonwebtoken'],
   },
+  // Disable the built-in image optimizer entirely. next/image is used exactly
+  // once in the codebase (admin-sidebar.tsx logo) and that usage already sets
+  // the `unoptimized` prop, so this changes nothing user-visible. What it does
+  // change: the /_next/image endpoint is no longer served, which closes the
+  // AVIF-RCE class (GHSA-2xp9-vwfh-vxw4, affects next up to and including
+  // 14.2.35; the fix is only in next >= 15.5.24). A Next 15 upgrade is
+  // tracked separately in docs/DECIDE.md decision 1.
+  images: {
+    unoptimized: true,
+  },
   async headers() {
     return [
       {

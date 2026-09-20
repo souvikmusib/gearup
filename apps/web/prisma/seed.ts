@@ -4,7 +4,21 @@ import bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
-  const hash = await bcrypt.hash('admin123', 12);
+  // Seed admin password comes from env, never from a hard-coded default.
+  // The old default `admin123` was seeded into production and never rotated,
+  // per the 2026-09-20 security audit (docs/12-SECURITY-REVIEW.md G-3). Any
+  // caller that wants the old behaviour for a throwaway local seed must set
+  // SEED_ADMIN_PASSWORD explicitly.
+  const seedPassword = process.env.SEED_ADMIN_PASSWORD;
+  if (!seedPassword || seedPassword.length < 12) {
+    throw new Error(
+      'SEED_ADMIN_PASSWORD env var is required and must be at least 12 chars. ' +
+      'Example: SEED_ADMIN_PASSWORD="dev-only-<something-random>" pnpm prisma db seed. ' +
+      'NOTE: this seeds LOCAL admin accounts. Rotating PRODUCTION admin passwords ' +
+      'is a separate Rule 2 op; use the Supabase SQL editor with a fresh bcrypt hash.'
+    );
+  }
+  const hash = await bcrypt.hash(seedPassword, 12);
 
   // Roles
   const roles = await Promise.all([
@@ -347,7 +361,7 @@ async function main() {
   }
   console.log('✅ Stock movements seeded');
 
-  console.log('\n🎉 All seed data created! Login: admin / admin123');
+  console.log('\nAll seed data created. Login as admin (or any of the 5 seeded users) with the SEED_ADMIN_PASSWORD you passed.');
 }
 
 main().catch(console.error).finally(() => prisma.$disconnect());
