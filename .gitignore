@@ -37,3 +37,9 @@ docs/audit/2026-06-10/.work/
 .playwright-mcp/
 Gearup-Data-Reconstruction-WA-Images/
 docs/audit/*/db-backups/*.sql
+
+# Report mockups and samples generated from live production data.
+# These embed real revenue figures, SKUs, GSTIN, customer names and vehicle
+# registrations. This repo is public — keep them local.
+docs/*-report-mockup.html
+docs/*-report-sample.pdf

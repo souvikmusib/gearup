@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { requirePermission } from '@/lib/auth';
 import { handleApiError, ValidationError } from '@/lib/errors';
 import { logActivity } from '@/lib/activity-logger';
+import { OVERHEAD_SETTING_KEYS } from '@/lib/reports/overheads';
 import { PERMISSIONS } from '@gearup/types';
 
 // Per-key Zod schemas. Unknown keys are rejected outright.
@@ -16,6 +17,12 @@ const positiveInt = z.number().int().positive();
 const nonNegativeInt = z.number().int().nonnegative();
 const hourOfDay = z.number().int().min(0).max(23);
 const percent = z.number().min(0).max(100);
+/**
+ * A monthly overhead in rupees. Non-negative and finite; capped at 1 crore so a
+ * mistyped figure cannot swamp the profit line. Fractional paise are allowed
+ * because some bills genuinely are not whole rupees.
+ */
+const monthlyAmount = z.number().finite().nonnegative().max(10_000_000);
 
 const SETTING_SCHEMAS: Record<string, ZodSchema> = {
   // business.*
@@ -61,6 +68,12 @@ const SETTING_SCHEMAS: Record<string, ZodSchema> = {
 
   // quick line items (pre-configured items for one-tap add on invoices)
   'invoice.quickLineItems': z.string().max(8000),
+
+  // overheads.monthly.* — fixed monthly running costs, pro-rated onto report
+  // periods by lib/reports/overheads.ts. Registered here (rather than behind a
+  // dedicated route) so they inherit this route's validation, size cap,
+  // SETTINGS_MANAGE gate and activity logging.
+  ...Object.fromEntries(OVERHEAD_SETTING_KEYS.map((key) => [key, monthlyAmount])),
 };
 
 // Hard cap on serialized size of any single setting value (defense-in-depth).

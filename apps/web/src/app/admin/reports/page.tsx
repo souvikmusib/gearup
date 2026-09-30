@@ -3,10 +3,11 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { api } from '@/lib/api/client';
 import { PageHeader } from '@gearup/ui';
-import { DollarSign, Calendar, Wrench, Package, Users, Receipt, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { DollarSign, Calendar, Wrench, Package, Users, Receipt, Cog, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
 const reports = [
   { label: 'Revenue', href: '/admin/reports/revenue', icon: DollarSign, desc: 'Payment and revenue analytics', color: 'text-green-600 bg-green-50 dark:bg-green-950' },
+  { label: 'Parts & Service', href: '/admin/reports/parts-service', icon: Cog, desc: 'Parts margin, cost gaps and overheads', color: 'text-cyan-600 bg-cyan-50 dark:bg-cyan-950' },
   { label: 'Appointments', href: '/admin/reports/appointments', icon: Calendar, desc: 'Booking and attendance metrics', color: 'text-blue-600 bg-blue-50 dark:bg-blue-950' },
   { label: 'Jobs', href: '/admin/reports/jobs', icon: Wrench, desc: 'Job card status and turnaround', color: 'text-purple-600 bg-purple-50 dark:bg-purple-950' },
   { label: 'Inventory', href: '/admin/reports/inventory', icon: Package, desc: 'Stock levels and consumption', color: 'text-amber-600 bg-amber-50 dark:bg-amber-950' },
