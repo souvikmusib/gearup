@@ -167,6 +167,14 @@ enum PaymentMode {
   OTHER
 }
 
+/// Payment channel an invoice is settled through. One invoice = exactly one channel.
+/// Set on the invoice (not the Payment) so GST can be grouped per channel.
+enum InvoiceChannel {
+  GATEWAY_1
+  GATEWAY_2
+  CASH
+}
+
 model AdminUser {
   id                  String          @id @default(cuid())
   adminUserId         String          @unique
@@ -694,6 +702,7 @@ model Invoice {
   invoiceStatus    InvoiceStatus @default(DRAFT)
   notes            String?
   showGst          Boolean       @default(false)
+  channel          InvoiceChannel @default(CASH)
   finalizedAt      DateTime?
   createdByAdminId String
   createdAt        DateTime      @default(now())
@@ -715,6 +724,7 @@ model Invoice {
   @@index([createdByAdminId])
   @@index([customerId, paymentStatus])
   @@index([invoiceDate, paymentStatus])
+  @@index([channel, invoiceDate])
 }
 
 model InvoiceLineItem {

@@ -34,9 +34,8 @@ function getISTBusinessDate(): string {
  * Atomically increment and return the next sequence number for a given
  * document kind on the current IST business day.
  */
-async function nextSequence(kind: string, tx?: any): Promise<number> {
+async function nextSequence(kind: string, tx?: any, businessDate: string = getISTBusinessDate()): Promise<number> {
   const db = tx || prisma;
-  const businessDate = getISTBusinessDate();
 
   // Upsert with increment — atomic via unique constraint
   const result = await db.documentSequence.upsert({
@@ -49,13 +48,34 @@ async function nextSequence(kind: string, tx?: any): Promise<number> {
 }
 
 /**
- * Generate invoice number: INVGDDMMYYYYNNNN
- * Example: INVG1306202600001
+ * Current IST month as 'YYYY-MM' — the monthly sequence key for invoices.
+ */
+function getISTMonthKey(): string {
+  return getISTBusinessDate().slice(0, 7);
+}
+
+/**
+ * Format an invoice number from an IST month key ('YYYY-MM') and sequence.
+ * Pure function: INVG + MM + YYYY + 4-digit monthly sequence.
+ * Example: ('2026-11', 1) -> INVG1120260001
+ */
+export function formatInvoiceNumber(monthKey: string, seq: number): string {
+  const [year, month] = monthKey.split('-');
+  return `INVG${month}${year}${seq.toString().padStart(4, '0')}`;
+}
+
+/**
+ * Generate invoice number: INVG + MM + YYYY + NNNN (sequence resets every IST month).
+ * Example: INVG1120260001
+ *
+ * Uses its own DocumentSequence kind (INVOICE_MONTHLY, keyed 'YYYY-MM') so the legacy
+ * daily INVOICE rows are left untouched. The channel (Gateway 1/2/Cash) is deliberately
+ * NOT part of the number: drafts are created before a channel is chosen.
  */
 export async function generateInvoiceNumber(tx?: any): Promise<string> {
-  const seq = await nextSequence('INVOICE', tx);
-  const dateStr = getISTDateStr();
-  return `INVG${dateStr}${seq.toString().padStart(4, '0')}`;
+  const monthKey = getISTMonthKey();
+  const seq = await nextSequence('INVOICE_MONTHLY', tx, monthKey);
+  return formatInvoiceNumber(monthKey, seq);
 }
 
 /**
@@ -93,8 +113,9 @@ export async function generateEstimateNumber(tx?: any): Promise<string> {
  */
 export function isLegacyNumber(num: string): boolean {
   if (!num) return false;
-  // New format: INVGDDMMYYYYNNNN or JOBGDDMMYYYYNNNN or ESTGDDMMYYYYNNNN
-  if (/^INVG\d{12,}$/.test(num)) return false;
+  // Current formats: INVGMMYYYYNNNN (monthly), INVGDDMMYYYYNNNN (earlier daily invoices),
+  // JOBGDDMMYYYYNNNN, ESTGDDMMYYYYNNNN
+  if (/^INVG\d{10,}$/.test(num)) return false;
   if (/^JOBG\d{12,}$/.test(num)) return false;
   if (/^ESTG\d{12,}$/.test(num)) return false;
   if (/^WRK-\d{8}-\d{4}$/.test(num)) return false;
