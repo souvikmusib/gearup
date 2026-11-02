@@ -32,6 +32,10 @@ export default function InvoiceDetailPage() {
     await api.patch(`/admin/invoices/${id}`, { showGst: newVal });
     fetch();
   };
+  const changeChannel = async (channel: string) => {
+    await api.patch(`/admin/invoices/${id}`, { channel });
+    fetch();
+  };
   const [inventoryItems, setInventoryItems] = useState<any[]>([]);
   const [workers, setWorkers] = useState<any[]>([]);
   const [amcPlans, setAmcPlans] = useState<any[]>([]);
@@ -314,6 +318,21 @@ export default function InvoiceDetailPage() {
             {loading === 'revert' ? 'Reverting...' : 'Revert to Draft'}
           </button>
         )}
+
+        <label className="inline-flex items-center gap-2 select-none">
+          <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Payment via</span>
+          <select
+            value={data.channel || 'CASH'}
+            onChange={(e) => changeChannel(e.target.value)}
+            disabled={!isDraft}
+            title={isDraft ? 'Payment channel for this invoice' : 'Revert to draft to change the payment channel'}
+            className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-2 py-1.5 text-sm text-gray-700 dark:text-gray-300 disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            <option value="CASH">Cash</option>
+            <option value="GATEWAY_1">Payment Gateway 1</option>
+            <option value="GATEWAY_2">Payment Gateway 2</option>
+          </select>
+        </label>
 
         <label className="inline-flex items-center gap-2 cursor-pointer select-none">
           <span className="text-xs font-medium text-gray-500 dark:text-gray-400">GST</span>

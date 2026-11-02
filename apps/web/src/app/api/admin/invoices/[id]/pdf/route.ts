@@ -71,7 +71,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     } else if (type === 'mechanic') {
       html = generateMechanicCopyHTML(invoice, settings, logoUrl);
     } else if (amcContract) {
-      html = generateAmcInvoiceHTML(invoice, settings, logoUrl, amcContract);
+      html = generateAmcInvoiceHTML(invoice, settings, logoUrl, amcContract, itemMap);
     } else {
       html = generateInvoiceHTML(invoice, settings, logoUrl, itemMap);
     }

@@ -21,9 +21,11 @@ const lineItemSchema = z.object({
   discountPercent: z.number().min(0).max(100).default(0),
   discountMode: z.preprocess(v => v === '' ? undefined : v, z.enum(['flat', 'percent']).optional()),
 });
+const INVOICE_CHANNELS = ['GATEWAY_1', 'GATEWAY_2', 'CASH'] as const;
 const createSchema = z.object({
   customerId: z.string(), vehicleId: z.string().optional(), jobCardId: z.string().optional(), appointmentId: z.string().optional(),
   saleType: z.enum(['SERVICE', 'COUNTER']).default('SERVICE'),
+  channel: z.enum(INVOICE_CHANNELS).default('CASH'),
   showGst: z.boolean().default(false),
   invoiceDate: z.string(), dueDate: z.string().optional(), discountType: z.string().optional(),
   discountValue: z.number().optional(), notes: z.string().optional(), lineItems: z.array(lineItemSchema),
@@ -49,6 +51,7 @@ export async function GET(req: NextRequest) {
     const where: Record<string, unknown> = {};
     const ps = sp.get('paymentStatus'); if (ps) where.paymentStatus = ps;
     const is = sp.get('invoiceStatus'); if (is) where.invoiceStatus = is;
+    const ch = sp.get('channel'); if (ch) where.channel = z.enum(INVOICE_CHANNELS).parse(ch);
     const search = sp.get('search'); if (search) where.OR = [{ invoiceNumber: { contains: search, mode: 'insensitive' } }, { customer: { fullName: { contains: search, mode: 'insensitive' } } }];
     const from = sp.get('from'); const to = sp.get('to');
     if (from && to) where.invoiceDate = { gte: new Date(from + 'T00:00:00+05:30'), lte: new Date(to + 'T23:59:59+05:30') };
@@ -112,7 +115,7 @@ export async function POST(req: NextRequest) {
         const discountAmount = Math.round((body.discountType === 'PERCENTAGE' ? subtotal * ((body.discountValue ?? 0) / 100) : (body.discountValue ?? 0)) * 100) / 100;
         const grandTotal = Math.round(subtotal + taxTotal + discountFromLines - discountAmount);
         return tx.invoice.create({
-          data: { invoiceNumber: await generateInvoiceNumber(tx), customerId: body.customerId, vehicleId: body.vehicleId, jobCardId: body.jobCardId, appointmentId: body.appointmentId, invoiceDate: new Date(body.invoiceDate), dueDate: body.dueDate ? new Date(body.dueDate) : undefined, showGst: body.showGst, subtotal, taxTotal, discountType: body.discountType, discountValue: body.discountValue, discountAmount, grandTotal, amountDue: grandTotal, notes: body.notes, createdByAdminId: user.sub, lineItems: { create: lines } },
+          data: { invoiceNumber: await generateInvoiceNumber(tx), customerId: body.customerId, vehicleId: body.vehicleId, jobCardId: body.jobCardId, appointmentId: body.appointmentId, invoiceDate: new Date(body.invoiceDate), dueDate: body.dueDate ? new Date(body.dueDate) : undefined, showGst: body.showGst, channel: body.channel, subtotal, taxTotal, discountType: body.discountType, discountValue: body.discountValue, discountAmount, grandTotal, amountDue: grandTotal, notes: body.notes, createdByAdminId: user.sub, lineItems: { create: lines } },
           include: { lineItems: true },
         });
       }, { timeout: 30000, maxWait: 10000 });

@@ -13,6 +13,7 @@ const updateSchema = z.object({
   discountType: z.string().optional(),
   discountValue: z.number().optional(),
   showGst: z.boolean().optional(),
+  channel: z.enum(['GATEWAY_1', 'GATEWAY_2', 'CASH']).optional(),
 }).strict();
 
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
@@ -35,6 +36,12 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     const data: Record<string, unknown> = { ...body };
     if (body.dueDate) data.dueDate = new Date(body.dueDate);
     const touchesDiscount = body.discountType !== undefined || body.discountValue !== undefined;
+    if (body.channel !== undefined) {
+      const existing = await prisma.invoice.findUniqueOrThrow({ where: { id: params.id }, select: { invoiceStatus: true, channel: true } });
+      if (existing.channel !== body.channel && existing.invoiceStatus !== 'DRAFT') {
+        throw new AppError(409, 'Payment channel can only be changed on DRAFT invoices', 'INVOICE_NOT_DRAFT');
+      }
+    }
     if (touchesDiscount) {
       const existing = await prisma.invoice.findUniqueOrThrow({ where: { id: params.id }, select: { invoiceStatus: true } });
       if (existing.invoiceStatus !== 'DRAFT') {
