@@ -15,6 +15,8 @@ import { SearchableSelect } from '@/components/shared/searchable-select';
 
 const PAYMENT_STATUSES = ['UNPAID','PARTIALLY_PAID','PAID'].map(s => ({ label: s.replace(/_/g, ' '), value: s }));
 const INVOICE_STATUSES = ['DRAFT','FINALIZED','CANCELLED'].map(s => ({ label: s, value: s }));
+const CHANNEL_LABELS: Record<string, string> = { CASH: 'Cash', GATEWAY_1: 'Payment Gateway 1', GATEWAY_2: 'Payment Gateway 2' };
+const CHANNELS = Object.entries(CHANNEL_LABELS).map(([value, label]) => ({ label, value }));
 
 export default function InvoicesPage() {
   const [data, setData] = useState<any[]>([]);
@@ -43,6 +45,7 @@ export default function InvoicesPage() {
     if (s) params.set('search', s);
     if (f.paymentStatus) params.set('paymentStatus', f.paymentStatus);
     if (f.invoiceStatus) params.set('invoiceStatus', f.invoiceStatus);
+    if (f.channel) params.set('channel', f.channel);
     if (f.from) params.set('from', f.from);
     if (f.to) params.set('to', f.to);
     params.set('page', String(p));
@@ -240,6 +243,7 @@ export default function InvoicesPage() {
     { key: 'grandTotal', header: 'Total', render: (r: any) => `₹${Number(r.grandTotal)}` },
     { key: 'amountDue', header: 'Due', render: (r: any) => `₹${Number(r.amountDue)}` },
     { key: 'paymentStatus', header: 'Payment', render: (r: any) => <StatusBadge status={r.paymentStatus} /> },
+    { key: 'channel', header: 'Via', render: (r: any) => CHANNEL_LABELS[r.channel] ?? r.channel },
     { key: 'invoiceStatus', header: 'Status', render: (r: any) => <StatusBadge status={r.invoiceStatus} /> },
   ];
 
@@ -261,6 +265,7 @@ export default function InvoicesPage() {
         filters={[
           { label: 'Payment Status', value: 'paymentStatus', options: PAYMENT_STATUSES },
           { label: 'Invoice Status', value: 'invoiceStatus', options: INVOICE_STATUSES },
+          { label: 'Payment Via', value: 'channel', options: CHANNELS },
         ]}
         filterValues={filters}
         dateRange={{ fromKey: 'from', toKey: 'to', label: 'Invoice date' }}
