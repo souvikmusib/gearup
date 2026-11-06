@@ -5,6 +5,7 @@ import { handleApiError } from '@/lib/errors';
 import { logActivity } from '@/lib/activity-logger';
 import { PERMISSIONS } from '@gearup/types';
 import { z } from 'zod';
+import { resolveHsnAndRate } from '@/lib/hsn-rate';
 
 const itemSchema = z.object({
   lineType: z.enum(['PART', 'LABOR', 'SERVICE_CHARGE', 'CUSTOM_CHARGE', 'DISCOUNT_ADJUSTMENT']).default('PART'),
@@ -43,7 +44,29 @@ export async function GET(_req: NextRequest, { params }: RouteContext) {
       },
     });
     if (!estimate) return NextResponse.json({ success: false, error: { message: 'Estimate not found' } }, { status: 404 });
-    return NextResponse.json({ success: true, data: estimate });
+
+    // Resolve an effective GST rate per line for GST-inclusive display (print/PDF).
+    // Same resolution as invoices: stored rate if set, else HSN table lookup
+    // (item HSN → inventory HSN → line-type default). Display-only; stored values untouched.
+    const items = await Promise.all(
+      estimate.items.map(async (item) => {
+        if (item.lineType === 'DISCOUNT_ADJUSTMENT') {
+          return { ...item, effectiveHsnCode: null, effectiveTaxRate: 0 };
+        }
+        if (Number(item.taxRate) > 0) {
+          return { ...item, effectiveHsnCode: item.hsnCode, effectiveTaxRate: Number(item.taxRate) };
+        }
+        const { hsnCode, taxRate } = await resolveHsnAndRate(
+          item.lineType,
+          true,
+          item.inventoryItemId,
+          item.hsnCode || item.inventoryItem?.hsnCode,
+        );
+        return { ...item, effectiveHsnCode: hsnCode, effectiveTaxRate: taxRate };
+      }),
+    );
+
+    return NextResponse.json({ success: true, data: { ...estimate, items } });
   } catch (err) {
     return handleApiError(err);
   }
