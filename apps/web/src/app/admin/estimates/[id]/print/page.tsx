@@ -25,25 +25,37 @@ export default function EstimatePrintPage() {
   const serviceItems = (data.items || []).filter((i: any) => i.lineType === 'SERVICE_CHARGE' || i.lineType === 'CUSTOM_CHARGE');
   const discountItems = (data.items || []).filter((i: any) => i.lineType === 'DISCOUNT_ADJUSTMENT');
 
-  // Compute totals
+  // Entered prices are GST-INCLUSIVE. Back-calculate the taxable base and the
+  // CGST/SGST split from them; the line total always equals the entered amount.
+  //   gross = qty × unitPrice − line discount
+  //   base  = gross / (1 + rate/100)
+  //   gst   = gross − base  (split equally into CGST + SGST)
   const computeLineTotal = (item: any) => {
-    const base = Number(item.quantity) * Number(item.unitPrice);
-    const disc = base * (Number(item.discountPercent || 0) / 100);
-    const afterDisc = base - disc;
-    const taxRate = Number(item.taxRate || 0);
-    const cgst = afterDisc * (taxRate / 200); // half of total GST
-    const sgst = cgst;
-    const total = afterDisc + cgst + sgst;
-    return { base: afterDisc, cgst, sgst, taxRate, total };
+    const qty = Number(item.quantity);
+    const gross0 = qty * Number(item.unitPrice);
+    const gross = gross0 - gross0 * (Number(item.discountPercent || 0) / 100);
+    const taxRate = Number(item.effectiveTaxRate ?? item.taxRate ?? 0);
+    const base = gross / (1 + taxRate / 100);
+    const gst = gross - base;
+    const cgst = gst / 2;
+    const sgst = gst / 2;
+    const unitBase = qty > 0 ? Number(item.unitPrice) / (1 + taxRate / 100) : 0; // ex-GST rate per unit
+    return { base, unitBase, cgst, sgst, taxRate, total: gross };
   };
 
   const partsTotal = partItems.reduce((sum: number, i: any) => sum + computeLineTotal(i).total, 0);
   const labourTotal = labourItems.reduce((sum: number, i: any) => sum + computeLineTotal(i).total, 0);
   const serviceTotal = serviceItems.reduce((sum: number, i: any) => sum + computeLineTotal(i).total, 0);
   const discountTotal = discountItems.reduce((sum: number, i: any) => sum + computeLineTotal(i).total, 0);
-  const totalCGST = [...partItems, ...labourItems, ...serviceItems].reduce((sum: number, i: any) => sum + computeLineTotal(i).cgst, 0);
-  const totalSGST = [...partItems, ...labourItems, ...serviceItems].reduce((sum: number, i: any) => sum + computeLineTotal(i).sgst, 0);
+  // A discount line is also GST-inclusive, so it reduces the tax component too.
+  const totalCGST =
+    [...partItems, ...labourItems, ...serviceItems].reduce((sum: number, i: any) => sum + computeLineTotal(i).cgst, 0) -
+    discountItems.reduce((sum: number, i: any) => sum + computeLineTotal(i).cgst, 0);
+  const totalSGST =
+    [...partItems, ...labourItems, ...serviceItems].reduce((sum: number, i: any) => sum + computeLineTotal(i).sgst, 0) -
+    discountItems.reduce((sum: number, i: any) => sum + computeLineTotal(i).sgst, 0);
   const grandTotal = partsTotal + labourTotal + serviceTotal - discountTotal;
+  const taxableValue = grandTotal - totalCGST - totalSGST;
 
   const createdDate = formatIST(data.createdAt);
   const validUntil = data.validUntil ? formatIST(data.validUntil) : null;
@@ -200,7 +212,7 @@ export default function EstimatePrintPage() {
                   <th style={{ width: '75px' }}>Code</th>
                   <th>Description</th>
                   <th className="c" style={{ width: '32px' }}>Qty</th>
-                  <th className="r" style={{ width: '68px' }}>Price</th>
+                  <th className="r" style={{ width: '68px' }}>Rate (ex-GST)</th>
                   <th className="c" style={{ width: '50px' }}>GST %</th>
                   <th className="r" style={{ width: '58px' }}>CGST</th>
                   <th className="r" style={{ width: '58px' }}>SGST</th>
@@ -211,14 +223,13 @@ export default function EstimatePrintPage() {
                 {partItems.map((item: any, i: number) => {
                   const calc = computeLineTotal(item);
                   const gstPct = calc.taxRate;
-                  const halfGst = gstPct / 2;
                   return (
                     <tr key={item.id || i}>
                       <td className="code">{item.inventoryItem?.sku || item.hsnCode || '—'}</td>
                       <td>{item.description}</td>
                       <td className="c">{Number(item.quantity)}</td>
-                      <td className="r">{formatDecimal(Number(item.unitPrice))}</td>
-                      <td className="c">{gstPct > 0 ? `${halfGst}%+${halfGst}%` : '0%'}</td>
+                      <td className="r">{formatDecimal(calc.unitBase)}</td>
+                      <td className="c">{`${gstPct}%`}</td>
                       <td className="r">{formatDecimal(calc.cgst)}</td>
                       <td className="r">{formatDecimal(calc.sgst)}</td>
                       <td className="r" style={{ fontWeight: 600 }}>{formatCurrency(calc.total)}</td>
@@ -245,7 +256,7 @@ export default function EstimatePrintPage() {
                   <th style={{ width: '75px' }}>Code</th>
                   <th>Description</th>
                   <th className="c" style={{ width: '35px' }}>Hrs</th>
-                  <th className="r" style={{ width: '68px' }}>Rate/Hr</th>
+                  <th className="r" style={{ width: '68px' }}>Rate/Hr (ex-GST)</th>
                   <th className="c" style={{ width: '50px' }}>GST %</th>
                   <th className="r" style={{ width: '58px' }}>CGST</th>
                   <th className="r" style={{ width: '58px' }}>SGST</th>
@@ -256,14 +267,13 @@ export default function EstimatePrintPage() {
                 {labourItems.map((item: any, i: number) => {
                   const calc = computeLineTotal(item);
                   const gstPct = calc.taxRate;
-                  const halfGst = gstPct / 2;
                   return (
                     <tr key={item.id || i}>
                       <td className="code">{item.inventoryItem?.sku || item.hsnCode || '—'}</td>
                       <td>{item.description}</td>
                       <td className="c">{Number(item.quantity).toFixed(2)}</td>
-                      <td className="r">{formatDecimal(Number(item.unitPrice))}</td>
-                      <td className="c">{gstPct > 0 ? `${halfGst}%+${halfGst}%` : '0%'}</td>
+                      <td className="r">{formatDecimal(calc.unitBase)}</td>
+                      <td className="c">{`${gstPct}%`}</td>
                       <td className="r">{formatDecimal(calc.cgst)}</td>
                       <td className="r">{formatDecimal(calc.sgst)}</td>
                       <td className="r" style={{ fontWeight: 600 }}>{formatCurrency(calc.total)}</td>
@@ -290,7 +300,7 @@ export default function EstimatePrintPage() {
                   <th style={{ width: '75px' }}>Code</th>
                   <th>Description</th>
                   <th className="c" style={{ width: '32px' }}>Qty</th>
-                  <th className="r" style={{ width: '68px' }}>Price</th>
+                  <th className="r" style={{ width: '68px' }}>Rate (ex-GST)</th>
                   <th className="c" style={{ width: '50px' }}>GST %</th>
                   <th className="r" style={{ width: '58px' }}>CGST</th>
                   <th className="r" style={{ width: '58px' }}>SGST</th>
@@ -301,14 +311,13 @@ export default function EstimatePrintPage() {
                 {serviceItems.map((item: any, i: number) => {
                   const calc = computeLineTotal(item);
                   const gstPct = calc.taxRate;
-                  const halfGst = gstPct / 2;
                   return (
                     <tr key={item.id || i}>
-                      <td className="code">{item.hsnCode || '—'}</td>
+                      <td className="code">{item.hsnCode || item.effectiveHsnCode || '—'}</td>
                       <td>{item.description}</td>
                       <td className="c">{Number(item.quantity)}</td>
-                      <td className="r">{formatDecimal(Number(item.unitPrice))}</td>
-                      <td className="c">{gstPct > 0 ? `${halfGst}%+${halfGst}%` : '0%'}</td>
+                      <td className="r">{formatDecimal(calc.unitBase)}</td>
+                      <td className="c">{`${gstPct}%`}</td>
                       <td className="r">{formatDecimal(calc.cgst)}</td>
                       <td className="r">{formatDecimal(calc.sgst)}</td>
                       <td className="r" style={{ fontWeight: 600 }}>{formatCurrency(calc.total)}</td>
@@ -337,8 +346,9 @@ export default function EstimatePrintPage() {
             )}
             {totalCGST > 0 && (
               <>
-                <div className="totals-row"><span>CGST</span><span>{formatDecimal(totalCGST)}</span></div>
-                <div className="totals-row"><span>SGST</span><span>{formatDecimal(totalSGST)}</span></div>
+                <div className="totals-row" style={{ fontSize: '10px', color: '#6a6a6a' }}><span>Taxable Value (excl. GST)</span><span>{formatDecimal(taxableValue)}</span></div>
+                <div className="totals-row" style={{ fontSize: '10px', color: '#6a6a6a' }}><span>CGST (included)</span><span>{formatDecimal(totalCGST)}</span></div>
+                <div className="totals-row" style={{ fontSize: '10px', color: '#6a6a6a' }}><span>SGST (included)</span><span>{formatDecimal(totalSGST)}</span></div>
               </>
             )}
             <div className="totals-row grand">
