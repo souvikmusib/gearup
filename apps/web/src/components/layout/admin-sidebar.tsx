@@ -51,6 +51,7 @@ const NAV = [
   {
     label: 'Reports', icon: BarChart3, permission: 'reports.view', children: [
       { label: 'Overview', href: '/admin/reports' },
+      { label: 'Daily Digest', href: '/admin/reports/daily' },
       { label: 'Revenue', href: '/admin/reports/revenue' },
       { label: 'Parts & Service', href: '/admin/reports/parts-service' },
       { label: 'Appointments', href: '/admin/reports/appointments' },
